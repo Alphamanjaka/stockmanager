@@ -2,10 +2,11 @@
 
 @section('title', 'Gestion des Catégories')
 @section('content')
-    <a href="{{ route('categories.create') }}" class="btn btn-primary mb-3">Ajouter une catégorie</a>
+    <a href="{{ route('admin.categories.create') }}" class="btn btn-primary mb-3">Ajouter une catégorie</a>
+    <!-- Filtre de recherche -->
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
-            <form action="{{ url('/categories') }}" method="GET" class="row g-3">
+            <form action="{{ url('/admin/categories') }}" method="GET" class="row g-3">
                 <div class="col-md-4">
                     <input type="text" name="search" class="form-control" placeholder="Rechercher une catégorie..."
                         value="{{ request('search') }}">
@@ -24,19 +25,35 @@
 
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrer</button>
-                    <a href="{{ url('/categories') }}" class="btn btn-outline-secondary" rel="noopener"
+                    <a href="{{ url('/admin/categories') }}" class="btn btn-outline-secondary" rel="noopener"
                         target="_blank">Réinitialiser</a>
                 </div>
             </form>
         </div>
     </div>
+    <!-- Fin du filtre de recherche -->
+    <!-- Tableau des catégories -->
     <div class="card shadow-sm">
         <div class="card-body">
             <table class="table table-hover">
                 <thead class="table-dark">
                     <tr>
                         <th scope="col">ID</th>
-                        <th scope="col">Nom de la catégorie</th>
+                        <th scope="col">
+                            <a class="text-decoration-none text-white" href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}">Name
+                                @if (request('sort') == 'name')
+                                    <i class="bi bi-sort-{{ request('order') == 'asc' ? 'alpha-down' : 'alpha-up' }}"></i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a class="text-decoration-none text-white" href="{{ request()->fullUrlWithQuery(['sort' => 'parent_id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}">Catégorie Parente
+                                @if (request('sort') == 'parent_id')
+                                    <i class="bi bi-sort-{{ request('order') == 'asc' ? 'alpha-down' : 'alpha-up' }}"></i>
+                                @endif
+                            </a>
+
+                        </th>
                         <th scope="col">Actions</th>
                     </tr>
                 </thead>
@@ -45,10 +62,11 @@
                         <tr>
                             <th scope="row">{{ $category->id }}</th>
                             <td>{{ $category->name }}</td>
+                            <td>{{ $category->parent ? $category->parent->name : 'Aucun parent' }}</td>
                             <td>
-                                <a href="{{ route('categories.edit', $category->id) }}"
+                                <a href="{{ route('admin.categories.edit', $category->id) }}"
                                     class="btn btn-sm btn-primary">Modifier</a>
-                                <form action="{{ route('categories.destroy', $category->id) }}" method="POST"
+                                <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST"
                                     class="d-inline">
                                     @csrf
                                     @method('DELETE')
@@ -61,5 +79,11 @@
                 </tbody>
             </table>
         </div>
+    </div>
+    <!-- Fin du tableau des catégories -->
+
+    <!-- Paginateur -->
+    <div class="mt-4 d-flex justify-content-center">
+        {{ $categories->links() }}
     </div>
 @endsection

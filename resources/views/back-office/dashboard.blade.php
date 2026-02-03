@@ -46,27 +46,27 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <a href="{{ route('products.index') }}" class="btn btn-lg btn-primary w-100 py-3">
+                            <a href="{{ route('admin.products.index') }}" class="btn btn-lg btn-primary w-100 py-3">
                                 <i class="fas fa-box mr-2"></i> Gestion des Produits
                             </a>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <a href="{{ route('categories.index') }}" class="btn btn-lg btn-success w-100 py-3">
+                            <a href="{{ route('admin.categories.index') }}" class="btn btn-lg btn-success w-100 py-3">
                                 <i class="fas fa-list mr-2"></i> Gestion des Catégories
                             </a>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <a href="{{ route('movements.index') }}" class="btn btn-lg btn-info w-100 py-3">
+                            <a href="{{ route('admin.movements.index') }}" class="btn btn-lg btn-info w-100 py-3">
                                 <i class="fas fa-arrows-alt mr-2"></i> Mouvements de Stock
                             </a>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <a href="{{ route('suppliers.index') }}" class="btn btn-lg btn-warning w-100 py-3">
+                            <a href="{{ route('admin.suppliers.index') }}" class="btn btn-lg btn-warning w-100 py-3">
                                 <i class="fas fa-truck mr-2"></i> Gestion des Fournisseurs
                             </a>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <a href="{{ route('purchases.index') }}" class="btn btn-lg btn-danger w-100 py-3">
+                            <a href="{{ route('admin.purchases.index') }}" class="btn btn-lg btn-danger w-100 py-3">
                                 <i class="fas fa-shopping-basket mr-2"></i> Achats
                             </a>
                         </div>

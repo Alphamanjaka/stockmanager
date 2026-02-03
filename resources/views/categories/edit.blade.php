@@ -1,6 +1,5 @@
 @extends('layouts.app-back-office')
-
-@section('title', 'Ajouter une nouvelle catégorie')
+@section('title', 'Modifier la Catégorie')
 
 @section('content')
     @if (session('error'))
@@ -10,18 +9,19 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Détails de la catégorie</h5>
+                    <h5 class="mb-0">Modifier la catégorie</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.categories.store') }}" method="POST">
+                    <form action="{{ route('admin.categories.update', $category->id) }}" method="POST">
                         @csrf
+                        @method('PUT')
                         <div class="mb-3">
-                            <select name="parents_id" id="parents_id" class="form-control" value="{{ old('parents_id') }}">
+                            <select name="parents_id" id="parents_id" class="form-control" value="{{ old('parents_id', $category->parents_id) }}">
                                 <option value="">Sélectionnez une catégorie parente</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}"
-                                        {{ old('parents_id') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
+                                @foreach ($categories as $cat)
+                                    <option value="{{ $cat->id }}"
+                                        {{ old('parents_id', $category->parents_id) == $cat->id ? 'selected' : '' }}>
+                                        {{ $cat->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -29,7 +29,7 @@
                         <div class="mb-3">
                             <label for="name" class="form-label">Nom de la catégorie</label>
                             <input type="text" name="name" id="name"
-                                class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}">
+                                class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $category->name) }}">
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -37,11 +37,11 @@
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
                             <input type="text" id="description" name="description" class="form-control"
-                                value="{{ old('description') }}">
+                                value="{{ old('description', $category->description) }}">
                         </div>
                         <div class="d-flex justify-content-between">
                             <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">Annuler</a>
-                            <button type="submit" class="btn btn-success px-4">Enregistrer la catégorie</button>
+                            <button type="submit" class="btn btn-success px-4">Mettre à jour la catégorie</button>
                         </div>
                     </form>
                 </div>

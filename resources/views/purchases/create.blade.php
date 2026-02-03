@@ -16,7 +16,7 @@
             </ul>
         </div>
     @endif
-    <form action="{{ route('purchases.store') }}" method="POST" id="purchase-form">
+    <form action="{{ route('admin.purchases.store') }}" method="POST" id="purchase-form">
         @csrf
         <div class="row">
             <div class="col-md-8">

@@ -19,7 +19,7 @@
 
     <div class="card shadow-sm">
         <div class="card-body">
-            <form action="{{ route('suppliers.store') }}" method="POST">
+            <form action="{{ route('admin.suppliers.store') }}" method="POST">
                 @csrf
                 <div class="mb-3">
                     <label for="name" class="form-label">Name</label>

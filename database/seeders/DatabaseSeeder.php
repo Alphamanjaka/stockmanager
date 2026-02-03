@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Supplier;
+use App\Services\SaleService;
+use App\Services\PurchaseService;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,8 +18,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call([
+            UserSeeder::class,
+        ]);
+
         // Create 100 products
-        \App\Models\Product::factory(20)->create();
+        \App\Models\Product::factory(50)->create();
 
         // Create a specific user
         User::factory()->create([
@@ -46,43 +52,68 @@ class DatabaseSeeder extends Seeder
             'address' => 'Zone Industrielle Akorondrano'
         ]);
 
+        $products = \App\Models\Product::all();
+
+        if ($products->isEmpty()) {
+            $this->command->info('Skipping sale/purchase seeding because no products found.');
+            return;
+        }
+
         // --- SEEDING DES VENTES (SALES) ---
-        // On crée 30 ventes
-        \App\Models\Sale::factory(30)->create()->each(function ($sale) {
+        $saleService = app(SaleService::class);
+
+        // On crée 30 ventes complètes
+        for ($i = 0; $i < 30; $i++) {
+            $saleItems = [];
             // Pour chaque vente, on prend entre 1 et 5 produits au hasard
-            $products = \App\Models\Product::inRandomOrder()->take(rand(1, 5))->get();
-            $totalBrut = 0;
+            $productsToSell = $products->random(rand(1, 5));
 
-            foreach ($products as $product) {
-                $qty = rand(1, 10);
-                $price = $product->price;
-                $subtotal = $price * $qty;
+            foreach ($productsToSell as $product) {
+                // Pour les besoins du seeder, on s'assure de ne pas vendre plus que le stock initial
+                $quantity = rand(1, min(5, $product->quantity_stock));
+                if ($quantity <= 0) continue;
 
-                // Création de la ligne de vente
-                \App\Models\SaleItem::factory()->create([
-                    'sale_id' => $sale->id,
+                $saleItems[] = [
                     'product_id' => $product->id,
-                    'quantity' => $qty,
-                    'unit_price' => $price,
-                    'subtotal' => $subtotal,
-                ]);
-
-                $totalBrut += $subtotal;
+                    'quantity' => $quantity,
+                    'unit_price' => $product->price,
+                ];
             }
 
-            // Mise à jour des totaux de la vente
+            if (empty($saleItems)) continue;
+
             $discount = rand(0, 1) ? rand(5, 50) : 0; // Une chance sur deux d'avoir une remise
-            $sale->update([
-                'total_brut' => $totalBrut,
-                'discount' => $discount,
-                'total_net' => max(0, $totalBrut - $discount),
-            ]);
-        });
+            $saleService->processSale($saleItems, $discount);
+        }
 
         // --- SEEDING DES ACHATS (PURCHASES) ---
-        // On crée 15 achats liés aux fournisseurs existants
-        \App\Models\Purchase::factory(15)->create([
-            'supplier_id' => fn() => Supplier::inRandomOrder()->first()->id
-        ]);
+        $purchaseService = app(PurchaseService::class);
+        $suppliers = Supplier::all();
+
+        if ($products->isEmpty() || $suppliers->isEmpty()) {
+            $this->command->info('Skipping purchase seeding because no products or suppliers found.');
+            return;
+        }
+
+        // On crée 15 achats complets
+        for ($i = 0; $i < 15; $i++) {
+            $purchaseItems = [];
+            // Pour chaque achat, on prend entre 1 et 5 produits au hasard
+            $productsToPurchase = $products->random(rand(1, 5));
+
+            foreach ($productsToPurchase as $product) {
+                // Pour un achat, le coût est généralement inférieur au prix de vente
+                // Pour un achat, le prix d'achat est généralement inférieur au prix de vente du produit
+                $purchasePrice = $product->price * (rand(60, 80) / 100); // Prix d'achat entre 60% et 80% du prix de vente
+                $purchaseItems[] = [
+                    'product_id' => $product->id,
+                    'quantity' => rand(5, 20), // On achète en plus grande quantité
+                    'unit_price' => round($purchasePrice, 2), // C'est le prix d'achat unitaire
+                ];
+            }
+
+            // On utilise le service pour créer l'achat, ce qui garantit la mise à jour du stock
+            $purchaseService->processPurchase($suppliers->random()->id, $purchaseItems);
+        }
     }
 }

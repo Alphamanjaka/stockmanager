@@ -50,7 +50,7 @@ class ProductController extends Controller
     {
         $this->productService->createProduct($request->validated());
 
-        return redirect()->route('products.index')
+        return redirect()->route('admin.products.index')
             ->with('success', 'le produit a été créé avec succès.');
     }
 
@@ -80,7 +80,7 @@ class ProductController extends Controller
     {
         $this->productService->updateProduct($id, $request->validated());
 
-        return redirect()->route('products.index')
+        return redirect()->route('admin.products.index')
             ->with('success', 'le produit a été modifié avec succès.');
     }
 
@@ -91,7 +91,7 @@ class ProductController extends Controller
     {
         $this->productService->deleteProduct($id);
 
-        return redirect()->route('products.index')
+        return redirect()->route('admin.products.index')
             ->with('success', 'le produit a été supprimé avec succès.');
     }
 }

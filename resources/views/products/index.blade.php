@@ -3,7 +3,7 @@
 @section('title', 'Liste des Produits')
 
 @section('content')
-    <a href="{{ route('products.create') }}" class="btn btn-primary mb-3">+ Ajouter</a>
+    <a href="{{ route('admin.products.create') }}" class="btn btn-primary mb-3">+ Ajouter</a>
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
             <form action="{{ url('/products') }}" method="GET" class="row g-3">
@@ -25,7 +25,7 @@
 
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrer</button>
-                    <a href="{{ url('/products') }}" class="btn btn-outline-secondary" rel="noopener"
+                    <a href="{{ url('admin/products') }}" class="btn btn-outline-secondary" rel="noopener"
                         target="_blank">Réinitialiser</a>
                 </div>
             </form>

@@ -10,7 +10,7 @@
                 <h5 class="mb-0">Détails du produit</h5>
             </div>
             <div class="card-body">
-                <form action="{{ route('products.store') }}" method="POST">
+                <form action="{{ route('admin.products.store') }}" method="POST">
                     @csrf <div class="mb-3">
                         <label for="name" class="form-label">Nom du produit</label>
                         <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}">
@@ -50,7 +50,7 @@
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <a href="{{ route('products.index') }}" class="btn btn-secondary">Annuler</a>
+                        <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">Annuler</a>
                         <button type="submit" class="btn btn-success px-4">Enregistrer le produit</button>
                     </div>
                 </form>

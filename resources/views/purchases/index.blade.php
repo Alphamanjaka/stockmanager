@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="row mb-4">
-        <div class="col-md-6">
+        <div class="col-md-3">
             <div class="card bg-info text-white shadow-sm">
                 <div class="card-body">
                     <h6>Montant Total des Achats (Net)</h6>
@@ -12,11 +12,27 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-3">
             <div class="card bg-warning text-white shadow-sm">
                 <div class="card-body">
                     <h6>Total des Remises sur Achats</h6>
                     <h3>{{ number_format($totalDiscounts, 2) }} €</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <h6>Nombre Total d'Achats</h6>
+                    <h3>{{ $totalPurchases }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <h6>Valeur Moyenne des Achats</h6>
+                    <h3>{{ number_format($averagePurchaseValue, 2) }} €</h3>
                 </div>
             </div>
         </div>
@@ -25,7 +41,7 @@
     <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Transactions Récentes</h5>
-            <a href="{{ route('purchases.create') }}" class="btn btn-primary btn-sm">+ Nouvel Achat</a>
+            <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary btn-sm">+ Nouvel Achat</a>
         </div>
         <div class="card-body">
             <table class="table table-bordered">
@@ -50,7 +66,7 @@
                             <td class="fw-bold text-success">{{ number_format($purchase->total_net, 2) }} €</td>
                             <td>{{ $purchase->created_at->format('d/m/Y H:i') }}</td>
                             <td>
-                                <a href="{{ route('purchases.edit', $purchase->id) }}"
+                                <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
                                     class="btn btn-sm btn-primary">Éditer</a>
                             </td>
                         </tr>

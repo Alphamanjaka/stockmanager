@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Sale;
-use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 
 class SaleService
@@ -15,75 +14,39 @@ class SaleService
         $this->stockService = $stockService;
     }
 
-    public function createSale(array $items, float $discount = 0)
+    public function processSale(array $items, int $discount = 0)
     {
         return DB::transaction(function () use ($items, $discount) {
             $totalBrut = 0;
-            $saleItemsData = [];
 
-            // 1. Phase de calcul et vérification
-            foreach ($items as $item) {
-                $product = Product::findOrFail($item['product_id']);
-                $subtotal = $product->price * $item['quantity'];
-                $totalBrut += $subtotal;
-
-                $saleItemsData[] = [
-                    'product_id' => $product->id,
-                    'quantity'   => $item['quantity'],
-                    'unit_price' => $product->price,
-                    'subtotal'   => $subtotal
-                ];
-            }
-
-            // 2. Création de l'en-tête de vente
+            // 1. Créer la vente initiale
             $sale = Sale::create([
-                'reference'  => 'SALE-' . now()->format('YmdHis'),
-                'total_brut' => $totalBrut,
-                'discount'   => $discount,
-                'total_net'  => $totalBrut - $discount,
+                'reference' => 'SALE-' . now()->format('YmdHis') . '-' . rand(100, 999),
+                'total_brut' => 0, // Temporaire
+                'discount' => $discount,
+                'total_net' => 0, // Temporaire
             ]);
 
-            // 3. Création des lignes et mouvement de stock via StockService
-            foreach ($saleItemsData as $data) {
-                $sale->items()->create($data);
+            foreach ($items as $item) {
+                $subtotal = $item['quantity'] * $item['unit_price'];
+                $totalBrut += $subtotal;
 
-                // On délègue la sortie de stock au StockService
-                $this->stockService->removeStock(
-                    $data['product_id'],
-                    $data['quantity'],
-                    "Vente {$sale->reference}"
-                );
+                // 2. Créer la ligne de vente
+                $sale->items()->create([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'subtotal' => $subtotal,
+                ]);
+
+                // 3. DÉCRÉMENTER le stock via StockService
+                $this->stockService->removeStock($item['product_id'], $item['quantity'], "Vente {$sale->reference}");
             }
+
+            // 4. Mettre à jour les totaux de la vente
+            $sale->update(['total_brut' => $totalBrut, 'total_net' => max(0, $totalBrut - $discount)]);
 
             return $sale;
         });
-    }
-
-    /**
-     * Get all sales with pagination
-     */
-    public function getAllSales($perPage = 15)
-    {
-        return Sale::latest()->paginate($perPage);
-    }
-
-    /**
-     * Get sales statistics
-     */
-    public function getSalesStatistics()
-    {
-        return [
-            'totalRevenue' => Sale::sum('total_net'),
-            'totalDiscounts' => Sale::sum('discount'),
-            'totalSales' => Sale::count(),
-        ];
-    }
-
-    /**
-     * Get single sale by ID
-     */
-    public function getSaleById($id)
-    {
-        return Sale::with('items.product')->findOrFail($id);
     }
 }

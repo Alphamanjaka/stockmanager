@@ -17,10 +17,16 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $filters = [
+            'sort' => $request->get('sort', 'name'),
+            'order' => $request->get('order', 'asc'),
+            'search' => $request->get('search'),
+            'per_page' => 15,
+        ];
         //
-        $categories = $this->categoryService->getAllCategory();
+        $categories = $this->categoryService->getAllCategory($filters);
         return view("categories.index", compact("categories"));
     }
 
@@ -45,7 +51,7 @@ class CategoryController extends Controller
             // We only pass validated data to the service for security.
             $this->categoryService->create($request->validated());
 
-            return redirect()->route("categories.index")->with("success", "Category created successfully.");
+            return redirect()->route("admin.categories.index")->with("success", "Category created successfully.");
         } catch (\Exception $e) {
             // \Log::error($e->getMessage()); // It's good practice to log the actual error for debugging.
             return redirect()->back()->with("error", "An unexpected error occurred. Please try again.")->withInput();
@@ -67,7 +73,10 @@ class CategoryController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        // edit category
+        $category = Category::findOrFail($id);
+        $categories = $this->categoryService->getAllCategory();
+        return view("categories.edit", compact("category", "categories"));
     }
 
     /**
@@ -75,7 +84,16 @@ class CategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // The validation is handled by StoreCategoryRequest.
+        // If it fails, Laravel automatically redirects back with errors.
+        try {
+            // We only pass validated data to the service for security.
+            $this->categoryService->update($id, $request->all());
+            return redirect()->route("admin.categories.index")->with("success", "Category updated successfully.");
+        } catch (\Exception $e) {
+            // \Log::error($e->getMessage()); // It's good practice to log the actual error for debugging.
+            return redirect()->back()->with("error", "An unexpected error occurred. Please try again.")->withInput();
+        }
     }
 
     /**
@@ -83,6 +101,14 @@ class CategoryController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // delete category
+        try {
+            $this->categoryService->delete($id);
+            return redirect()->route("admin.categories.index")->with("success", "Category deleted successfully.");
+        } catch (\Exception $e) {
+            // \Log::error($e->getMessage()); // It's good practice to log the actual error for debugging.
+            return redirect()->back()->with("error", $e->getMessage());
+        }
     }
+
 }

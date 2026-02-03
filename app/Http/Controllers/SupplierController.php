@@ -42,7 +42,7 @@ class SupplierController extends Controller
         $validatedData = $request->validated();
         try {
             $this->supplierService->createSupplier($validatedData);
-            return redirect()->route('suppliers.index')
+            return redirect()->route('admin.suppliers.index')
                 ->with('success', 'Fournisseur ajouté avec succès.');
         } catch (\Exception $th) {
             return back()->withInput()

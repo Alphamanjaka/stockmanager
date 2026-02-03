@@ -1,33 +1,19 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-# Wait for the database to be ready (optional but recommended)
-# Uncomment if you want to wait for postgres
-# until pg_isready -h postgres -U laravel; do
-#   echo "Waiting for postgres..."
-#   sleep 2
-# done
+# Check if $UID and $GID are set, else fallback to default (1000:1000)
+USER_ID=${UID:-1000}
+GROUP_ID=${GID:-1000}
 
-# Set proper permissions for Laravel directories
-chown -R www:www /var/www/storage /var/www/bootstrap/cache
+# Fix file ownership and permissions using the passed UID and GID
+echo "Fixing file permissions with UID=${USER_ID} and GID=${GROUP_ID}..."
+chown -R ${USER_ID}:${GROUP_ID} /var/www || echo "Some files could not be changed"
 
-# Install/update Composer dependencies if vendor doesn't exist
-if [ ! -d "vendor" ]; then
-    composer install --no-interaction --prefer-dist --optimize-autoloader
-fi
-
-# Generate application key if it doesn't exist
-if [ ! -f ".env" ]; then
-    cp .env.example .env
-    php artisan key:generate
-fi
-
-# Run Laravel migrations (optional - be careful in dev)
-# php artisan migrate --force
-
-# Clear and cache config (optional)
+# Clear configurations to avoid caching issues in development
+echo "Clearing configurations..."
 php artisan config:clear
-php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
 
-# Execute the main container command (CMD from Dockerfile)
+# Run the default command (e.g., php-fpm or bash)
 exec "$@"

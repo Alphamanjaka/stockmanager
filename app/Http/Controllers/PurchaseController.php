@@ -29,6 +29,7 @@ class PurchaseController extends Controller
      */
     public function index()
     {
+        
         $purchases = $this->purchaseService->getAllPurchases(15);
         $stats = $this->purchaseService->getPurchaseStatistics();
 
@@ -61,7 +62,7 @@ class PurchaseController extends Controller
                 $data['products']
             );
 
-            return redirect()->route('purchases.index')
+            return redirect()->route('admin.purchases.index')
                 ->with('success', "L'achat {$purchase->reference} a été enregistré. Le stock a été mis à jour.");
         } catch (\Exception $e) {
             return back()->withInput()->withErrors(['error' => $e->getMessage()]);
@@ -105,6 +106,6 @@ class PurchaseController extends Controller
     public function update(Request $request)
     {
         $this->purchaseService->updatePurchase($request->validated());
-        return redirect()->route('purchases.index')->with('success', 'Purchase updated successfully.');
+        return redirect()->route('admin.purchases.index')->with('success', 'Purchase updated successfully.');
     }
 }

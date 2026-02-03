@@ -3,10 +3,10 @@
 @section('title', 'Suppliers')
 
 @section('content')
-    <a href="{{ route('suppliers.create') }}" class="btn btn-primary mb-3">+ Ajouter</a>
+    <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary mb-3">+ Ajouter</a>
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
-            <form action="{{ url('/suppliers') }}" method="GET" class="row g-3">
+            <form action="{{ url('admin/suppliers') }}" method="GET" class="row g-3">
                 <div class="col-md-4">
                     <input type="text" name="search" class="form-control" placeholder="Rechercher un fournisseur..."
                         value="{{ request('search') }}">
@@ -42,7 +42,7 @@
                         <td>{{ $supplier->phone }}</td>
                         <td>{{ $supplier->address }}</td>
                         <td>
-                            <a href="{{ route('suppliers.show', $supplier->id) }}" class="btn btn-info btn-sm">Voir</a>
+                            <a href="{{ route('admin.suppliers.show', $supplier->id) }}" class="btn btn-info btn-sm">Voir</a>
                         </td>
                     </tr>
                 @endforeach

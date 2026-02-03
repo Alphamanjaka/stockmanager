@@ -35,7 +35,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'backOffice'])->name('dashboard');
         Route::resource('products', ProductController::class);
         Route::resource('categories', CategoryController::class);
-        Route::resource('movements', StockMovementController::class);
+        // On limite aux méthodes existantes pour éviter les erreurs
+        Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);
         Route::resource('suppliers', SupplierController::class);
         Route::resource('purchases', PurchaseController::class);
     });
@@ -43,7 +44,8 @@ Route::middleware('auth')->group(function () {
     // Routes Front Office
     Route::middleware('ensure.front.office')->prefix('sales')->name('sales.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'frontOffice'])->name('dashboard');
-        Route::resource('', SaleController::class); // Crée sales.index, sales.create, etc.
+        // On nomme le paramètre 'sale' pour être cohérent avec la route PDF et on limite les actions
+        Route::resource('', SaleController::class)->parameters(['' => 'sale'])->only(['index', 'create', 'store', 'show']);
         Route::get('/{sale}/pdf', [SaleController::class, 'exportPdf'])->name('pdf'); // Devient sales.pdf
     });
 });
