@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);
         Route::resource('suppliers', SupplierController::class);
         Route::resource('purchases', PurchaseController::class);
+        
     });
 
     // Routes Front Office

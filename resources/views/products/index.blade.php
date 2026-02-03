@@ -6,7 +6,7 @@
     <a href="{{ route('admin.products.create') }}" class="btn btn-primary mb-3">+ Ajouter</a>
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
-            <form action="{{ url('/products') }}" method="GET" class="row g-3">
+            <form action="{{ url('admin/products') }}" method="GET" class="row g-3">
                 <div class="col-md-4">
                     <input type="text" name="search" class="form-control" placeholder="Rechercher un produit..."
                         value="{{ request('search') }}">
@@ -25,8 +25,7 @@
 
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrer</button>
-                    <a href="{{ url('admin/products') }}" class="btn btn-outline-secondary" rel="noopener"
-                        target="_blank">Réinitialiser</a>
+                    <a href="{{ url('admin/products') }}" class="btn btn-outline-secondary" rel="noopener">Réinitialiser</a>
                 </div>
             </form>
         </div>

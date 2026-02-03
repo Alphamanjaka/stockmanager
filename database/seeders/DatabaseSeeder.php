@@ -8,6 +8,8 @@ use Illuminate\Database\Seeder;
 use App\Models\Supplier;
 use App\Services\SaleService;
 use App\Services\PurchaseService;
+use App\Services\ProductService;
+use App\Services\SupplierService;
 
 class DatabaseSeeder extends Seeder
 {
@@ -21,9 +23,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
         ]);
-
-        // Create 100 products
-        \App\Models\Product::factory(50)->create();
 
         // Create a specific user
         User::factory()->create([
@@ -52,7 +51,10 @@ class DatabaseSeeder extends Seeder
             'address' => 'Zone Industrielle Akorondrano'
         ]);
 
-        $products = \App\Models\Product::all();
+        // Create 100 products
+        \App\Models\Product::factory(25)->create();
+        $productService = app(ProductService::class);
+        $products = $productService->getAllProducts();
 
         if ($products->isEmpty()) {
             $this->command->info('Skipping sale/purchase seeding because no products found.');
@@ -70,7 +72,7 @@ class DatabaseSeeder extends Seeder
 
             foreach ($productsToSell as $product) {
                 // Pour les besoins du seeder, on s'assure de ne pas vendre plus que le stock initial
-                $quantity = rand(1, min(5, $product->quantity_stock));
+                $quantity = rand(1, min(2, $product->quantity_stock));
                 if ($quantity <= 0) continue;
 
                 $saleItems[] = [
@@ -83,12 +85,13 @@ class DatabaseSeeder extends Seeder
             if (empty($saleItems)) continue;
 
             $discount = rand(0, 1) ? rand(5, 50) : 0; // Une chance sur deux d'avoir une remise
-            $saleService->processSale($saleItems, $discount);
+            $saleService->createSale($saleItems, $discount);
         }
 
         // --- SEEDING DES ACHATS (PURCHASES) ---
         $purchaseService = app(PurchaseService::class);
-        $suppliers = Supplier::all();
+        $supplierServivce= app(SupplierService::class);
+        $suppliers = $supplierServivce->getAllSuppliers();
 
         if ($products->isEmpty() || $suppliers->isEmpty()) {
             $this->command->info('Skipping purchase seeding because no products or suppliers found.');

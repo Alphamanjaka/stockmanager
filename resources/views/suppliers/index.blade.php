@@ -42,11 +42,15 @@
                         <td>{{ $supplier->phone }}</td>
                         <td>{{ $supplier->address }}</td>
                         <td>
-                            <a href="{{ route('admin.suppliers.show', $supplier->id) }}" class="btn btn-info btn-sm">Voir</a>
+                            <a href="{{ route('admin.suppliers.show', $supplier->id) }}"
+                                class="btn btn-info btn-sm">Voir</a>
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
+        <div class="mt-4 d-flex justify-content-center">
+            {{ $suppliers->links() }}
+        </div>
     </div>
 @endsection

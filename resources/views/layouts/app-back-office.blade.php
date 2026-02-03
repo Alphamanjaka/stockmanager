@@ -78,7 +78,8 @@
                     <small class="text-danger">Back Office</small>
                 </div>
                 <hr>
-                <a href="{{ route('admin.dashboard') }}" class="{{ request()->is('admin*') ? 'active-link' : '' }}">
+                <a href="{{ route('admin.dashboard') }}"
+                    class="{{ request()->is('admin/dashboard*') ? 'active-link' : '' }}">
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
                 <a href="{{ route('admin.products.index') }}"
@@ -96,6 +97,9 @@
                 <a href="{{ route('admin.movements.index') }}"
                     class="{{ request()->is('admin/movements*') ? 'active-link' : '' }}">
                     <i class="fas fa-arrows-alt"></i> Mouvements Stock
+                </a>
+                <a href="#" class="">
+                    <i class="fas fa-chart-line"></i> Sales
                 </a>
                 <a href="{{ route('admin.purchases.index') }}"
                     class="{{ request()->is('admin/purchases*') ? 'active-link' : '' }}">

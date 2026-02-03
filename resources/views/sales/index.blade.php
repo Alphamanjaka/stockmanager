@@ -9,7 +9,7 @@
         <div class="card bg-success text-white shadow-sm">
             <div class="card-body">
                 <h6>Chiffre d'Affaires Total (Net)</h6>
-                <h3>{{ number_format($totalRevenue, 2) }} €</h3>
+                <h3>{{ number_format($total_revenue, 2) }} €</h3>
             </div>
         </div>
     </div>
@@ -17,7 +17,7 @@
         <div class="card bg-danger text-white shadow-sm">
             <div class="card-body">
                 <h6>Total des Remises Accordées</h6>
-                <h3>{{ number_format($totalDiscounts, 2) }} €</h3>
+                <h3>{{ number_format($total_discount, 2) }} €</h3>
             </div>
         </div>
     </div>

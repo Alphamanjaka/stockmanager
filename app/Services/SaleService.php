@@ -3,50 +3,86 @@
 namespace App\Services;
 
 use App\Models\Sale;
+use App\Models\Product;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class SaleService
 {
-    protected $stockService;
-
-    public function __construct(StockService $stockService)
+    /**
+     * Crée une vente sans utilisateur associé.
+     */
+    public function createSale(array $productsData, float $discount = 0): Sale
     {
-        $this->stockService = $stockService;
-    }
-
-    public function processSale(array $items, int $discount = 0)
-    {
-        return DB::transaction(function () use ($items, $discount) {
-            $totalBrut = 0;
-
-            // 1. Créer la vente initiale
+        return DB::transaction(function () use ($productsData, $discount) {
+            // 1. Créer la vente d'abord (avec des montants temporaires)
             $sale = Sale::create([
-                'reference' => 'SALE-' . now()->format('YmdHis') . '-' . rand(100, 999),
-                'total_brut' => 0, // Temporaire
-                'discount' => $discount,
-                'total_net' => 0, // Temporaire
+                'reference'    => 'SALE-' . strtoupper(Str::random(8)),
+                'total_brut' => 0,
+                'discount'     => $discount,
+                'total_net' => 0,
             ]);
 
-            foreach ($items as $item) {
-                $subtotal = $item['quantity'] * $item['unit_price'];
-                $totalBrut += $subtotal;
+            $totalAmount = 0;
 
-                // 2. Créer la ligne de vente
+            foreach ($productsData as $item) {
+                $product = Product::findOrFail($item['product_id']);
+
+                if ($product->quantity_stock < $item['quantity']) {
+                    throw new \Exception("Stock insuffisant pour : {$product->name} ");
+                }
+
+                $subtotal = $product->price * $item['quantity'];
+                $totalAmount += $subtotal;
+
+                // 2. Créer les lignes de vente via la relation hasMany 'items'
                 $sale->items()->create([
-                    'product_id' => $item['product_id'],
+                    'product_id' => $product->id,
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
+                    'unit_price' => $product->price,
                     'subtotal' => $subtotal,
                 ]);
 
-                // 3. DÉCRÉMENTER le stock via StockService
-                $this->stockService->removeStock($item['product_id'], $item['quantity'], "Vente {$sale->reference}");
+                // 3. Mise à jour du stock
+                $product->decrement('quantity_stock', $item['quantity']);
             }
 
             // 4. Mettre à jour les totaux de la vente
-            $sale->update(['total_brut' => $totalBrut, 'total_net' => max(0, $totalBrut - $discount)]);
+            $sale->update([
+                'total_brut' => $totalAmount,
+                'total_net' => $totalAmount - $discount,
+            ]);
 
             return $sale;
         });
+    }
+
+    /**
+     * Liste des ventes simplifiée.
+     */
+    public function getAllSales(int $perPage = 15, array $filters = [])
+    {
+        // On retire le 'user' du Eager Loading
+        return Sale::with(['items.product'])
+            ->latest()
+            ->when($filters['search'] ?? null, function ($query, $search) {
+                $query->where('reference', 'like', "%{$search}%");
+            })
+            ->paginate($perPage);
+    }
+
+    public function getSaleById($id): Sale
+    {
+        return Sale::with(['items.product'])->findOrFail($id);
+    }
+
+    public function getSalesStatistics(): array
+    {
+        return [
+            'today_sales_count' => Sale::whereDate('created_at', today())->count(),
+            'total_revenue'     => Sale::sum('total_net'),
+            'average_sale'      => Sale::avg('total_net') ?? 0,
+            'total_discount' => Sale::sum('discount') ??0,
+        ];
     }
 }

@@ -82,33 +82,34 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StoreCategoryRequest $request, string $id)
     {
-        // The validation is handled by StoreCategoryRequest.
-        // If it fails, Laravel automatically redirects back with errors.
         try {
             // We only pass validated data to the service for security.
-            $this->categoryService->update($id, $request->all());
+            $this->categoryService->update($id, $request->validated());
             return redirect()->route("admin.categories.index")->with("success", "Category updated successfully.");
         } catch (\Exception $e) {
             // \Log::error($e->getMessage()); // It's good practice to log the actual error for debugging.
             return redirect()->back()->with("error", "An unexpected error occurred. Please try again.")->withInput();
         }
     }
-
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        // delete category
         try {
+            $category = Category::withCount('products')->findOrFail($id);
+
+            if ($category->products_count > 0) {
+                return redirect()->route('admin.categories.index')
+                    ->with('error', "Impossible de supprimer la catégorie « {$category->name} » car elle est associée à {$category->products_count} produit(s).");
+            }
             $this->categoryService->delete($id);
             return redirect()->route("admin.categories.index")->with("success", "Category deleted successfully.");
         } catch (\Exception $e) {
             // \Log::error($e->getMessage()); // It's good practice to log the actual error for debugging.
-            return redirect()->back()->with("error", $e->getMessage());
+            return redirect()->back()->with("error", "Une erreur est survenue lors de la suppression de la catégorie.");
         }
     }
-
 }

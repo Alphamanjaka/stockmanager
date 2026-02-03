@@ -37,7 +37,23 @@
             </div>
         </div>
     </div>
-
+    <!-- Filtre de recherche -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form action="{{ url('/admin/purchases') }}" method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Looking for a purchase..."
+                        value="{{ request('search') }}">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrer</button>
+                    <a href="{{ url('/admin/purchases') }}" class="btn btn-outline-secondary"
+                        rel="noopener">Réinitialiser</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Fin du filtre de recherche -->
     <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Transactions Récentes</h5>

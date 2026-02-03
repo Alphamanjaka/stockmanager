@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Purchase;
 use Illuminate\Support\Facades\DB;
-use App\Models\Product;
 
 class PurchaseService
 {
@@ -22,7 +21,7 @@ class PurchaseService
 
             // 1. Créer l'achat
             $purchase = Purchase::create([
-                'reference' => 'PUR-' . now()->format('YmdHis') . '-' . rand(100, 999),
+                'reference' => 'PUR-' . now()->format('YmdHis') . '-' . rand(100, 789546),
                 'supplier_id' => $supplierId,
                 'total_amount' => 0, // On mettra à jour après
                 'total_net' => 0, // On mettra à jour après
@@ -87,5 +86,18 @@ class PurchaseService
         $purchase = Purchase::findOrFail($data['id']);
         $purchase->update($data);
         return $purchase;
+    }
+    public function applyFilters($query, $filters)
+    {
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+        if (!empty($filters['supplier_id'])) {
+            $query->where('supplier_id', $filters['supplier_id']);
+        }
+        return $query;
     }
 }

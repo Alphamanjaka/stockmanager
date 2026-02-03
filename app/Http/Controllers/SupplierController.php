@@ -17,10 +17,16 @@ class SupplierController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // get all suppliers
-        $suppliers = $this->supplierService->getAllSuppliers();
+        $filters = [
+            'sort' => $request->get('sort', 'name'),
+            'order' => $request->get('order', 'asc'),
+            'search' => $request->get('search'),
+            'per_page' => 10,
+        ];
+
+        $suppliers = $this->supplierService->getAllSuppliers($filters);
         return view('suppliers.index', compact('suppliers'));
     }
 

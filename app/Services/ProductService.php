@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\Category;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ProductService
 {
@@ -12,25 +13,16 @@ class ProductService
      */
     public function getAllProducts($filters = [])
     {
-        $sortableColumns = ['name', 'price', 'quantity_stock', 'created_at'];
-        $sort = in_array($filters['sort'] ?? 'name', $sortableColumns) ? $filters['sort'] : 'name';
-        $order = ($filters['order'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
-        $perPage = $filters['per_page'] ?? 15;
+        // 1. On commence toujours par une base de requête (Query Builder)
+        $query = Product::query();
 
-        $query = Product::with('category');
-
-        // Filter by search
-        if (!empty($filters['search'])) {
-            $query->where('name', 'like', "%{$filters['search']}%");
+        // 2. On applique les filtres UNIQUEMENT s'ils sont présents
+        if (!empty($filters)) {
+            $query = $this->applyFilters($query, $filters);
         }
 
-        // Filter by category
-        if (!empty($filters['category'])) {
-            $query->where('category_id', $filters['category']);
-        }
-
-        // Apply sorting and pagination
-        return $query->orderBy($sort, $order)->paginate($perPage)->appends(request()->query());
+        // 3. Retourne soit une collection, soit une pagination
+        return $query->paginate($filters['per_page'] ?? 15);
     }
 
     /**
@@ -100,5 +92,18 @@ class ProductService
     {
         $product = Product::findOrFail($productId);
         return $product->quantity_stock >= $quantity;
+    }
+    protected function applyFilters($query, $filters)
+    {
+        // On réutilise ta logique de colonnes autorisées
+        $sortableColumns = ['name', 'price', 'quantity_stock', 'created_at'];
+
+        $sort = in_array($filters['sort'] ?? '', $sortableColumns) ? $filters['sort'] : 'created_at';
+        $order = ($filters['order'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+
+        return $query->when($filters['search'] ?? null, function ($q, $search) {
+            $q->where('name', 'like', "%{$search}%");
+        })
+            ->orderBy($sort, $order);
     }
 }

@@ -19,6 +19,15 @@ return new class extends Migration
             $table->decimal('total_net', 10, 2);   // total_brut - discount
             $table->timestamps();
         });
+        Schema::create('sale_items', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('sale_id')->constrained()->onDelete('cascade');
+            $table->foreignId('product_id')->constrained();
+            $table->integer('quantity');
+            $table->decimal('unit_price', 10, 2); // Prix au moment de la vente
+            $table->decimal('subtotal', 10, 2);   // quantity * unit_price
+            $table->timestamps();
+        });
     }
 
     /**
@@ -26,6 +35,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('sale_items');
         Schema::dropIfExists('sales');
     }
 };
