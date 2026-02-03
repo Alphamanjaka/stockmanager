@@ -9,6 +9,11 @@ use Illuminate\Support\Str;
 
 class SaleService
 {
+    protected $stockService;
+    public function __construct(StockService $stockService)
+    {
+        $this->stockService = $stockService;
+    }
     /**
      * Crée une vente sans utilisateur associé.
      */
@@ -43,8 +48,8 @@ class SaleService
                     'subtotal' => $subtotal,
                 ]);
 
-                // 3. Mise à jour du stock
-                $product->decrement('quantity_stock', $item['quantity']);
+                // 3. DÉCRÉMENTER le stock via StockService
+                $this->stockService->removeStock($product->id, $item['quantity'],   "Vente {$sale->reference}");
             }
 
             // 4. Mettre à jour les totaux de la vente

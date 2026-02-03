@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\SaleItem;
 use App\Models\Category;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
@@ -14,7 +16,7 @@ class ProductService
     public function getAllProducts($filters = [])
     {
         // 1. On commence toujours par une base de requête (Query Builder)
-        $query = Product::query();
+        $query = Product::with('category');
 
         // 2. On applique les filtres UNIQUEMENT s'ils sont présents
         if (!empty($filters)) {
@@ -22,7 +24,7 @@ class ProductService
         }
 
         // 3. Retourne soit une collection, soit une pagination
-        return $query->paginate($filters['per_page'] ?? 15);
+        return $query->paginate($filters['per_page'] ?? 15)->withQueryString();
     }
 
     /**
@@ -72,7 +74,13 @@ class ProductService
      */
     public function deleteProduct($id)
     {
-        $product = Product::findOrFail($id);
+        // On vérifie que le produit n'est lié à aucune ligne de vente ou d'achat
+        $product = Product::withCount(['saleItems', 'purchaseItems'])->findOrFail($id);
+
+        if ($product->sale_items_count > 0 || $product->purchase_items_count > 0) {
+            throw new \Exception("Impossible de supprimer ce produit car il est lié à des ventes ou des achats existants.");
+        }
+
         $product->delete();
         return $product;
     }
@@ -101,9 +109,38 @@ class ProductService
         $sort = in_array($filters['sort'] ?? '', $sortableColumns) ? $filters['sort'] : 'created_at';
         $order = ($filters['order'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 
-        return $query->when($filters['search'] ?? null, function ($q, $search) {
+        $query->when($filters['search'] ?? null, function ($q, $search) {
             $q->where('name', 'like', "%{$search}%");
         })
+            ->when($filters['category'] ?? null, function ($q, $category) {
+                $q->where('category_id', $category);
+            });
+
+        return $query
             ->orderBy($sort, $order);
+    }
+
+    /**
+     * Get the most sold product.
+     */
+    public function getMostSoldProduct()
+    {
+        return SaleItem::select('product_id', DB::raw('SUM(quantity) as total_sold'))
+            ->groupBy('product_id')
+            ->with('product:id,name') // Eager load only what's needed
+            ->orderByDesc('total_sold')
+            ->first();
+    }
+
+    /**
+     * Get the least sold product among those that have been sold.
+     */
+    public function getLeastSoldProduct()
+    {
+        return SaleItem::select('product_id', DB::raw('SUM(quantity) as total_sold'))
+            ->groupBy('product_id')
+            ->with('product:id,name')
+            ->orderBy('total_sold', 'asc')
+            ->first();
     }
 }

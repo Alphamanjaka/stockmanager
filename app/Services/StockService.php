@@ -53,4 +53,38 @@ class StockService
     {
         return StockMovement::with('product')->findOrFail($id);
     }
+
+    public function getStockMovementsForProduct(int $productId, int $perPage = 10)
+    {
+        return StockMovement::with('product')
+            ->where('product_id', $productId)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+    }
+
+    /**
+     * Get stock evolution data for a chart.
+     * Works backwards from current stock to ensure accuracy.
+     */
+    public function getStockEvolutionForProduct(int $productId): array
+    {
+        $product = Product::findOrFail($productId);
+        $movements = StockMovement::where('product_id', $productId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $stockLevel = $product->quantity_stock;
+        $dataPoints = [];
+
+        // Add current state as the last point
+        $dataPoints[] = ['x' => now()->toIso8601String(), 'y' => $stockLevel];
+
+        foreach ($movements as $movement) {
+            // We subtract the movement's quantity because we are going back in time.
+            $stockLevel -= $movement->quantity;
+            $dataPoints[] = ['x' => $movement->created_at->toIso8601String(), 'y' => $stockLevel];
+        }
+
+        return array_reverse($dataPoints);
+    }
 }

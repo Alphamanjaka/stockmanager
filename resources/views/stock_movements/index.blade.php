@@ -30,5 +30,8 @@
                 </tbody>
             </table>
         </div>
+        <div class="card-footer">
+            {{ $stockMovements->links() }}
+        </div>
     </div>
 @endsection

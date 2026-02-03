@@ -8,7 +8,7 @@
             <div class="card bg-info text-white shadow-sm">
                 <div class="card-body">
                     <h6>Montant Total des Achats (Net)</h6>
-                    <h3>{{ number_format($totalPurchases, 2) }} €</h3>
+                    <h3>{{ number_format($totalSpent, 2) }} €</h3>
                 </div>
             </div>
         </div>

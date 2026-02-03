@@ -4,15 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
 use App\Services\ProductService;
+use App\Services\StockService;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     protected $productService;
+    protected $stockService;
 
-    public function __construct(ProductService $productService)
+    public function __construct(ProductService $productService, StockService $stockService)
     {
         $this->productService = $productService;
+        $this->stockService = $stockService;
     }
 
     /**
@@ -30,8 +33,10 @@ class ProductController extends Controller
 
         $products = $this->productService->getAllProducts($filters);
         $categories = $this->productService->getAllCategories();
+        $mostSoldProduct = $this->productService->getMostSoldProduct();
+        $leastSoldProduct = $this->productService->getLeastSoldProduct();
 
-        return view('products.index', compact('products', 'categories'));
+        return view('products.index', compact('products', 'categories', 'mostSoldProduct', 'leastSoldProduct'));
     }
 
     /**
@@ -60,7 +65,16 @@ class ProductController extends Controller
     public function show(int $id)
     {
         $product = $this->productService->getProductById($id);
-        return view('products.show', compact('product'));
+        // For the paginated history table
+        $stockMovements = $this->stockService->getStockMovementsForProduct($id, 10);
+        // For the evolution chart
+        $stockEvolution = $this->stockService->getStockEvolutionForProduct($id);
+
+        // Prepare data for the chart, already in ISO 8601 format from the service
+        $chartLabels = json_encode(array_column($stockEvolution, 'x'));
+        $chartData = json_encode(array_column($stockEvolution, 'y'));
+
+        return view('products.show', compact('product', 'stockMovements', 'chartLabels', 'chartData'));
     }
 
     /**
@@ -89,9 +103,14 @@ class ProductController extends Controller
      */
     public function destroy(int $id)
     {
-        $this->productService->deleteProduct($id);
+        try {
+            $this->productService->deleteProduct($id);
 
-        return redirect()->route('admin.products.index')
-            ->with('success', 'le produit a été supprimé avec succès.');
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Le produit a été supprimé avec succès.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.products.index')
+                ->with('error', $e->getMessage());
+        }
     }
 }
