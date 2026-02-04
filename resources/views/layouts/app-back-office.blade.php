@@ -100,7 +100,7 @@
                     <i class="fas fa-arrows-alt"></i> Mouvements Stock
                 </a>
                 <a href="#" class="">
-                    <i class="fas fa-chart-line"></i> Sales
+                    <i class="fas fa-cash-register"></i> Sales
                 </a>
                 <a href="{{ route('admin.purchases.index') }}"
                     class="{{ request()->is('admin/purchases*') ? 'active-link' : '' }}">

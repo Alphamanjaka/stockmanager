@@ -70,11 +70,19 @@
                                 <i class="fas fa-shopping-basket mr-2"></i> Achats
                             </a>
                         </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="#" class="btn btn-lg btn-secondary w-100 py-3">
+                                <i class="fas fa-cash-register mr-2"></i> Ventes
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Fin des modules de gestion -->
+
+
 
     <!-- Graphique des ventes du back office -->
     <div class="row mt-4">

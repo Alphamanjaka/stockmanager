@@ -19,7 +19,7 @@ class CategoryFactory extends Factory
         return [
             "name"=> $this->faker->name,
             "description"=> $this->faker->sentence(),
-            "parents_id"=> null, // by default, no parent category
+            "parent_id"=> null, // by default, no parent category
         ];
     }
 }

@@ -16,20 +16,26 @@
                         @csrf
                         @method('PUT')
                         <div class="mb-3">
-                            <select name="parents_id" id="parents_id" class="form-control" value="{{ old('parents_id', $category->parents_id) }}">
+                            <label for="parent_id" class="form-label">Catégorie Parente</label>
+                            <select name="parent_id" id="parent_id" class="form-control">
                                 <option value="">Sélectionnez une catégorie parente</option>
                                 @foreach ($categories as $cat)
-                                    <option value="{{ $cat->id }}"
-                                        {{ old('parents_id', $category->parents_id) == $cat->id ? 'selected' : '' }}>
-                                        {{ $cat->name }}
-                                    </option>
+                                    @if ($cat->id !== $category->id)
+                                        {{-- Empêcher de se sélectionner soi-même --}}
+                                        <option value="{{ $cat->id }}"
+                                            {{ old('parent_id', $category->parent_id) == $cat->id ? 'selected' : '' }}>
+                                            {{ $cat->name }}
+                                        </option>
+                                    @endif
                                 @endforeach
                             </select>
+                            <div class="form-text">Laisser vide si c'est une catégorie principale.</div>
                         </div>
                         <div class="mb-3">
                             <label for="name" class="form-label">Nom de la catégorie</label>
                             <input type="text" name="name" id="name"
-                                class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $category->name) }}">
+                                class="form-control @error('name') is-invalid @enderror"
+                                value="{{ old('name', $category->name) }}">
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

@@ -3,6 +3,36 @@
 @section('title', 'Gestion des Catégories')
 @section('content')
     <a href="{{ route('admin.categories.create') }}" class="btn btn-primary mb-3">Ajouter une catégorie</a>
+
+    {{-- Dashboard Rapide --}}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-folder"></i> Total Catégories</h6>
+                    <h3 class="mb-0">{{ $stats['total_categories'] }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-box-seam"></i> Produits Classés</h6>
+                    <h3 class="mb-0">{{ $stats['total_products_linked'] }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-trophy"></i> Plus Populaire</h6>
+                    <p class="mb-0 fs-5">{{ $stats['most_populated']->name ?? 'N/A' }}
+                        <small>({{ $stats['most_populated']->products_count ?? 0 }} produits)</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Filtre de recherche -->
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
@@ -40,20 +70,24 @@
                     <tr>
                         <th scope="col">ID</th>
                         <th scope="col">
-                            <a class="text-decoration-none text-white" href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}">Name
+                            <a class="text-decoration-none text-white"
+                                href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}">Name
                                 @if (request('sort') == 'name')
                                     <i class="bi bi-sort-{{ request('order') == 'asc' ? 'alpha-down' : 'alpha-up' }}"></i>
                                 @endif
                             </a>
                         </th>
                         <th>
-                            <a class="text-decoration-none text-white" href="{{ request()->fullUrlWithQuery(['sort' => 'parent_id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}">Catégorie Parente
+                            <a class="text-decoration-none text-white"
+                                href="{{ request()->fullUrlWithQuery(['sort' => 'parent_id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}">Catégorie
+                                Parente
                                 @if (request('sort') == 'parent_id')
                                     <i class="bi bi-sort-{{ request('order') == 'asc' ? 'alpha-down' : 'alpha-up' }}"></i>
                                 @endif
                             </a>
 
                         </th>
+                        <th scope="col">Produits</th>
                         <th scope="col">Actions</th>
                     </tr>
                 </thead>
@@ -63,6 +97,7 @@
                             <th scope="row">{{ $category->id }}</th>
                             <td>{{ $category->name }}</td>
                             <td>{{ $category->parent ? $category->parent->name : 'Aucun parent' }}</td>
+                            <td>{{ $category->products_count }}</td>
                             <td>
                                 <a href="{{ route('admin.categories.edit', $category->id) }}"
                                     class="btn btn-sm btn-primary">Modifier</a>

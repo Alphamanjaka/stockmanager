@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 use App\Services\CategoryService;
 
 class CategoryController extends Controller
@@ -27,7 +28,8 @@ class CategoryController extends Controller
         ];
         //
         $categories = $this->categoryService->getAllCategory($filters);
-        return view("categories.index", compact("categories"));
+        $stats = $this->categoryService->getCategoryStats();
+        return view("categories.index", compact("categories", "stats"));
     }
 
     /**
@@ -63,9 +65,15 @@ class CategoryController extends Controller
      */
     public function show(string $id)
     {
-        // detail of category
-        $category = Category::findOrFail($id);
-        return view("categories.show", compact("category"));
+        $category = $this->categoryService->getCategoryById($id);
+        $products = $this->categoryService->getProductsByCategory($id);
+
+        // Calcul de la valeur du stock pour cette catégorie
+        $stockValue = $products->sum(function ($product) {
+            return $product->price * $product->quantity_stock;
+        });
+
+        return view("categories.show", compact("category", "products", "stockValue"));
     }
 
     /**
@@ -82,7 +90,7 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(StoreCategoryRequest $request, string $id)
+    public function update(UpdateCategoryRequest $request, string $id)
     {
         try {
             // We only pass validated data to the service for security.
@@ -90,7 +98,7 @@ class CategoryController extends Controller
             return redirect()->route("admin.categories.index")->with("success", "Category updated successfully.");
         } catch (\Exception $e) {
             // \Log::error($e->getMessage()); // It's good practice to log the actual error for debugging.
-            return redirect()->back()->with("error", "An unexpected error occurred. Please try again.")->withInput();
+            return redirect()->back()->with("error", "An unexpected error occurred. Please try again. " . $e->getMessage() )->withInput();
         }
     }
     /**

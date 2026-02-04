@@ -9,10 +9,10 @@ class Category extends Model
 {
     use HasFactory;  // Uncomment if you want to use factories for Category model
     //
-        protected $fillable = [
+    protected $fillable = [
         'name',
         'description',
-        'parents_id',
+        'parent_id',
     ];
     // obtain the parent category: $cat->parent
     public function parent()
@@ -22,6 +22,10 @@ class Category extends Model
     // obtain all children categories: $cat->children
     public function children()
     {
-        return $this->hasMany(Category::class,'parent_id');
+        return $this->hasMany(Category::class, 'parent_id');
+    }
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 }
