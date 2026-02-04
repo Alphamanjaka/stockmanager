@@ -14,8 +14,7 @@
 
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrer</button>
-                    <a href="{{ url('/suppliers') }}" class="btn btn-outline-secondary" rel="noopener"
-                        target="_blank">Réinitialiser</a>
+                    <a href="{{ url('admin/suppliers') }}" class="btn btn-outline-secondary" rel="noopener">Réinitialiser</a>
                 </div>
             </form>
         </div>

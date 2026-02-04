@@ -82,7 +82,8 @@ class CategoryController extends Controller
     public function edit(string $id)
     {
         // edit category
-        $category = Category::findOrFail($id);
+        $category = $this->categoryService->getCategoryById($id);
+        // get all categories
         $categories = $this->categoryService->getAllCategory();
         return view("categories.edit", compact("category", "categories"));
     }

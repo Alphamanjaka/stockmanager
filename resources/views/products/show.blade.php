@@ -82,7 +82,7 @@
         <div class="card-header bg-dark text-white">
             <h5 class="mb-0"><i class="fas fa-chart-line"></i> Évolution du Stock</h5>
         </div>
-        <div class="card-body" width="100%" height="300px">
+        <div class="card-body" style="height: 300px;">
             <canvas id="stockChart"></canvas>
         </div>
     </div>

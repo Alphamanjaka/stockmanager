@@ -96,7 +96,7 @@
                         <tr>
                             <th scope="row">{{ $category->id }}</th>
                             <td>{{ $category->name }}</td>
-                            <td>{{ $category->parent ? $category->parent->name : 'Aucun parent' }}</td>
+                            <td>{{ $category->parent ? $category->parent->name : '--' }}</td>
                             <td>{{ $category->products_count }}</td>
                             <td>
                                 <a href="{{ route('admin.categories.edit', $category->id) }}"
