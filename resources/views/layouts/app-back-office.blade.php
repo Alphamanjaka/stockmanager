@@ -106,6 +106,10 @@
                     class="{{ request()->is('admin/purchases*') ? 'active-link' : '' }}">
                     <i class="fas fa-shopping-basket"></i> Achats
                 </a>
+                <a href="{{ route('admin.imports.index') }}"
+                    class="{{ request()->is('admin/imports*') ? 'active-link' : '' }}">
+                    <i class="fas fa-file-import"></i> Imports
+                </a>
                 <hr>
                 <a href="{{ route('logout') }}"
                     onclick="event.preventDefault(); document.getElementById('logout-form').submit();"

@@ -9,6 +9,9 @@ use Maatwebsite\Excel\Concerns\WithValidation;
 
 class CategoryImport implements ToModel, WithHeadingRow, WithValidation
 {
+    private int $created = 0;
+    private int $updated = 0;
+
     /**
      * @param array $row
      *
@@ -30,11 +33,21 @@ class CategoryImport implements ToModel, WithHeadingRow, WithValidation
             }
         }
 
-        return new Category([
-            'name'        => $row['name'],
-            'description' => $row['description'] ?? null,
-            'parent_id'   => $parentId,
-        ]);
+        $category = Category::updateOrCreate(
+            ['name' => $row['name']],
+            [
+                'description' => $row['description'] ?? null,
+                'parent_id'   => $parentId,
+            ]
+        );
+
+        if ($category->wasRecentlyCreated) {
+            $this->created++;
+        } elseif ($category->wasChanged()) {
+            $this->updated++;
+        }
+
+        return $category;
     }
 
     public function rules(): array
@@ -44,6 +57,16 @@ class CategoryImport implements ToModel, WithHeadingRow, WithValidation
             'description' => 'nullable|string',
             'parent_id'   => 'nullable|integer|exists:categories,id',
             'parent'      => 'nullable|string',
+        ];
+    }
+
+    public function getReport(): array
+    {
+        return [
+            'created' => $this->created,
+            'updated' => $this->updated,
+            'failures' => 0,
+            'failure_details' => [],
         ];
     }
 }

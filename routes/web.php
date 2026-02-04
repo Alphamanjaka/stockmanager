@@ -6,6 +6,7 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ImportController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\PurchaseController;
@@ -39,7 +40,10 @@ Route::middleware('auth')->group(function () {
         Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);
         Route::resource('suppliers', SupplierController::class);
         Route::resource('purchases', PurchaseController::class);
-        
+        // Module d'Importation Centralisé
+        Route::get('/imports', [ImportController::class, 'index'])->name('imports.index');
+        Route::post('/imports', [ImportController::class, 'store'])->name('imports.store');
+        Route::get('/imports/template/{type}', [ImportController::class, 'downloadTemplate'])->name('imports.template');
     });
 
     // Routes Front Office
