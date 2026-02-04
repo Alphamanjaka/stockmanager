@@ -75,9 +75,12 @@ class ProductService
     public function deleteProduct($id)
     {
         // On vérifie que le produit n'est lié à aucune ligne de vente ou d'achat
-        $product = Product::withCount(['saleItems', 'purchaseItems'])->findOrFail($id);
+        $product = Product::findOrFail($id);
 
-        if ($product->sale_items_count > 0 || $product->purchase_items_count > 0) {
+        $hasSales = SaleItem::where('product_id', $id)->exists();
+        $hasPurchases = DB::table('purchase_items')->where('product_id', $id)->exists();
+
+        if ($hasSales || $hasPurchases) {
             throw new \Exception("Impossible de supprimer ce produit car il est lié à des ventes ou des achats existants.");
         }
 

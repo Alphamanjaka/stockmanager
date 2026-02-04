@@ -56,7 +56,7 @@ class ProductController extends Controller
         $this->productService->createProduct($request->validated());
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'le produit a été créé avec succès.');
+            ->with('success', 'Product created successfully.');
     }
 
     /**
@@ -95,7 +95,7 @@ class ProductController extends Controller
         $this->productService->updateProduct($id, $request->validated());
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'le produit a été modifié avec succès.');
+            ->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -107,10 +107,39 @@ class ProductController extends Controller
             $this->productService->deleteProduct($id);
 
             return redirect()->route('admin.products.index')
-                ->with('success', 'Le produit a été supprimé avec succès.');
+                ->with('success', 'Product deleted successfully.');
         } catch (\Exception $e) {
             return redirect()->route('admin.products.index')
                 ->with('error', $e->getMessage());
+        }
+    }
+    public function importProducts(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:csv,txt'
+        ]);
+
+        $mapping = [
+            'name'           => 'nom',      // 'colonne_db' => 'entete_csv'
+            'price'          => 'prix',
+            'quantity_stock' => 'stock',
+            'category_id'    => 'id_categorie'
+        ];
+
+        $rules = [
+            'nom'  => 'required',
+            'prix' => 'required|numeric',
+        ];
+
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import(
+                new \App\Imports\GenericImport(\App\Models\Product::class, $mapping, $rules),
+                $request->file('file')
+            );
+
+            return back()->with('success', 'Importation terminée !');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erreur : ' . $e->getMessage());
         }
     }
 }
