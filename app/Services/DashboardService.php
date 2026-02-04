@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\StockMovement;
 
 class DashboardService
 {
@@ -248,5 +249,12 @@ class DashboardService
     private function getTotalSales()
     {
         return Sale::count();
+    }
+    // Exemple de logique pour votre DashboardService
+    public function getStockTrends()
+    {
+        $entries = StockMovement::where('type', 'in')->whereBetween(...)->sum('quantity');
+        $outputs = StockMovement::where('type', 'out')->whereBetween(...)->sum('quantity');
+        return compact('entries', 'outputs');
     }
 }

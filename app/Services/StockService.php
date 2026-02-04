@@ -11,14 +11,18 @@ class StockService
     public function addStock(int $productId, int $quantity, string $reason)
     {
         DB::transaction(function () use ($productId, $quantity, $reason) {
-            $product = Product::findOrFail($productId);
-            $product->increment('quantity_stock', $quantity);
+            $product = Product::lockForUpdate()->findOrFail($productId); // lockForUpdate évite les conflits Docker/multi-users
 
-            StockMovement::create([
+            $before = $product->quantity_stock;
+            $product->increment('quantity_stock', $quantity);
+            $after = $product->quantity_stock;
+            $this->createStockMovement([
                 'product_id' => $productId,
                 'quantity' => $quantity,
                 'type' => 'in',
                 'reason' => $reason,
+                'stock_before' => $before,
+                'stock_after' => $after,
             ]);
         });
     }
@@ -26,20 +30,23 @@ class StockService
     public function removeStock(int $productId, int $quantity, string $reason)
     {
         DB::transaction(function () use ($productId, $quantity, $reason) {
-            $product = Product::findOrFail($productId);
-
+            $product = Product::lockForUpdate()->findOrFail($productId); // lockForUpdate évite les conflits Docker/multi-users
             // Dans une application réelle, on ajouterait une vérification de stock ici.
-            // if ($product->quantity_stock < $quantity) {
-            //     throw new \Exception('Stock insuffisant pour la vente.');
-            // }
+            if ($product->quantity_stock < $quantity) {
+                throw new \Exception('Stock insuffisant pour la vente.');
+            }
 
+            $before = $product->quantity_stock;
             $product->decrement('quantity_stock', $quantity);
+            $after = $product->quantity_stock;
 
-            StockMovement::create([
+            $this->createStockMovement([
                 'product_id' => $productId,
                 'quantity' => -$quantity, // Négatif pour une sortie
                 'type' => 'out',
                 'reason' => $reason,
+                'stock_before' => $before,
+                'stock_after' => $after,
             ]);
         });
     }
@@ -86,5 +93,9 @@ class StockService
         }
 
         return array_reverse($dataPoints);
+    }
+    public function createStockMovement(array $data): StockMovement
+    {
+        return StockMovement::create($data);
     }
 }
