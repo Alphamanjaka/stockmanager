@@ -28,12 +28,12 @@
                         </div>
                         <div class="mb-3">
                             <label for="purchase_date" class="form-label">Date d'achat</label>
-                            <input type="date" name="purchase_date" id="purchase_date" class="form-control"
-                                value="{{ old('purchase_date', $purchase->purchase_date) }}">
+                            <input type="datetime-local" name="purchase_date" id="purchase_date" class="form-control" readonly
+                                value="{{ old('purchase_date', $purchase->created_at->format('Y-m-d H:i')) }}">
                         </div>
                         <div class="mb-3">
                             <label for="total_amount" class="form-label">Montant total</label>
-                            <input type="number" step="0.01" name="total_amount" id="total_amount" class="form-control"
+                            <input type="number" step="0.01" name="total_amount" id="total_amount" class="form-control" readonly
                                 value="{{ old('total_amount', $purchase->total_amount) }}">
                         </div>
                         <div class="d-flex justify-content-between">

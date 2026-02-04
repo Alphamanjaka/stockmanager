@@ -70,6 +70,18 @@ class PurchaseService
     }
 
     /**
+     * Récupère les achats paginés pour un fournisseur spécifique.
+     *
+     * @param integer $supplierId
+     * @param integer $perPage
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function getPurchasesForSupplier(int $supplierId, int $perPage = 10)
+    {
+        return Purchase::where('supplier_id', $supplierId)->latest()->paginate($perPage);
+    }
+
+    /**
      * Get purchase statistics
      */
     public function getPurchaseStatistics()

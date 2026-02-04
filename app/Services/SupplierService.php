@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Supplier;
+use Illuminate\Support\Facades\DB;
 
 class SupplierService
 {
@@ -32,8 +33,62 @@ class SupplierService
 
         return $query->when($filters['search'] ?? null, function ($q, $search) {
             $q->where('name', 'like', "%{$search}%")
-              ->orWhere('email', 'like', "%{$search}%");
+                ->orWhere('email', 'like', "%{$search}%");
         })
             ->orderBy($sort, $order);
+    }
+    public function getSupplierById($id)
+    {
+        return Supplier::findOrFail($id);
+    }
+
+    /**
+     * Récupère les détails et statistiques pour un fournisseur donné.
+     *
+     * @param Supplier $supplier
+     * @return array
+     */
+    public function getSupplierDetails(Supplier $supplier): array
+    {
+        // Statistiques globales pour ce fournisseur
+        $totalSpent = $supplier->purchases()->sum('total_net');
+        $lastPurchase = $supplier->purchases()->latest()->first();
+
+        // Top 5 des produits achetés chez ce fournisseur
+        $topProducts = DB::table('purchase_items')
+            ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
+            ->join('products', 'purchase_items.product_id', '=', 'products.id')
+            ->where('purchases.supplier_id', $supplier->id)
+            ->select(
+                'products.name',
+                DB::raw('SUM(purchase_items.quantity) as total_qty'),
+                DB::raw('SUM(purchase_items.subtotal) as total_cost')
+            )
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_qty')
+            ->limit(5)
+            ->get();
+
+        return compact('totalSpent', 'lastPurchase', 'topProducts');
+    }
+
+    public function updateSupplier(Supplier $supplier, array $data): Supplier
+    {
+        $supplier->update($data);
+        return $supplier;
+    }
+
+    /**
+     * @param Supplier $supplier
+     * @return bool
+     * @throws \Exception
+     */
+    public function deleteSupplier(Supplier $supplier): bool
+    {
+        if ($supplier->purchases()->exists()) {
+            throw new \Exception('Impossible de supprimer ce fournisseur : des achats y sont liés.');
+        }
+
+        return $supplier->delete();
     }
 }

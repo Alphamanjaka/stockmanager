@@ -55,7 +55,7 @@
                                     <td><input type="number" name="products[0][quantity]" class="form-control qty-input"
                                             min="1" required>
                                     </td>
-                                    <td><input type="number" name="products[0][unit_cost]"
+                                    <td><input type="number" name="products[0][unit_price]"
                                             class="form-control unit-price-input" step="0.01" required>
                                     </td>
                                     <td><button type="button" class="btn btn-danger remove-row">X</button></td>

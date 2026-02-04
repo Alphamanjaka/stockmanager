@@ -2,89 +2,112 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSupplierRequest;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use App\Services\SupplierService;
-use App\Http\Requests\StoreSupplierRequest;
+use App\Services\PurchaseService;
 
 class SupplierController extends Controller
 {
     protected $supplierService;
-    public function __construct(SupplierService $supplierService)
+    protected $purchaseService;
+
+    public function __construct(SupplierService $supplierService, PurchaseService $purchaseService)
     {
         $this->supplierService = $supplierService;
+        $this->purchaseService = $purchaseService;
     }
     /**
-     * Display a listing of the resource.
+     * Affiche la liste des fournisseurs avec statistiques.
      */
     public function index(Request $request)
     {
+        // Récupération des filtres depuis la requête
         $filters = [
-            'sort' => $request->get('sort', 'name'),
-            'order' => $request->get('order', 'asc'),
             'search' => $request->get('search'),
-            'per_page' => 10,
+            'sort' => $request->get('sort'),
+            'order' => $request->get('order'),
+            'per_page' => $request->get('per_page', 10),
         ];
-
+        // Récupération des fournisseurs via le service
         $suppliers = $this->supplierService->getAllSuppliers($filters);
+        // Affichage de la vue
         return view('suppliers.index', compact('suppliers'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Formulaire de création.
      */
     public function create()
     {
-        // process to show form for creating a supplier
         return view('suppliers.create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Enregistrement d'un nouveau fournisseur.
      */
     public function store(StoreSupplierRequest $request)
     {
-        // validate request
-        $validatedData = $request->validated();
-        try {
-            $this->supplierService->createSupplier($validatedData);
-            return redirect()->route('admin.suppliers.index')
-                ->with('success', 'Fournisseur ajouté avec succès.');
-        } catch (\Exception $th) {
-            return back()->withInput()
-                ->with('error', "Erreur lors de l'ajout : " . $th->getMessage());
-        }
+        $this->supplierService->createSupplier($request->validated());
+
+        return redirect()->route('admin.suppliers.index')
+            ->with('success', 'Fournisseur créé avec succès.');
     }
 
     /**
-     * Display the specified resource.
+     * Affiche les détails, l'historique et les stats avancées.
      */
     public function show(Supplier $supplier)
     {
-        //
+        // On utilise le service pour récupérer les données complexes (statistiques, etc.)
+        $details = $this->supplierService->getSupplierDetails($supplier);
+
+        // On utilise le PurchaseService pour récupérer les achats paginés de ce fournisseur
+        $purchases = $this->purchaseService->getPurchasesForSupplier($supplier->id, 10);
+
+        // On fusionne toutes les données et on les passe    à la vue
+        return view('suppliers.show', array_merge(compact('supplier', 'purchases'), $details));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Formulaire d'édition.
      */
     public function edit(Supplier $supplier)
     {
-        //
+        return view('suppliers.edit', compact('supplier'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Mise à jour des informations.
      */
     public function update(Request $request, Supplier $supplier)
     {
-        //
+        $validated = $request->validate([
+            'name'    => 'required|string|max:255|unique:suppliers,name,' . $supplier->id,
+            'email'   => 'nullable|email|max:255',
+            'phone'   => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+        ]);
+
+        $this->supplierService->updateSupplier($supplier, $validated);
+
+        return redirect()->route('admin.suppliers.index')
+            ->with('success', 'Fournisseur mis à jour avec succès.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Suppression (si aucun achat lié).
      */
     public function destroy(Supplier $supplier)
     {
-        //
+        try {
+            $this->supplierService->deleteSupplier($supplier);
+
+            return redirect()->route('admin.suppliers.index')
+                ->with('success', 'Fournisseur supprimé.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }
