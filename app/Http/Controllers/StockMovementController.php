@@ -20,10 +20,21 @@ class StockMovementController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $stockMovements = $this->stockService->getAllStockMovements(15);
-        return view('stock_movements.index', compact('stockMovements'));
+        $filters = [
+            'search' => $request->get('search'),
+            'type' => $request->get('type'),
+            'date_from' => $request->get('date_from'),
+            'date_to' => $request->get('date_to'),
+        ];
+
+        $stockMovements = $this->stockService->getAllStockMovements($filters, 15);
+        $dormantProducts = $this->stockService->getDormantProducts();
+        $rotationStats = $this->stockService->getRotationStats();
+        $stockValueEvolution = $this->stockService->getTotalStockValueEvolution();
+
+        return view('stock_movements.index', compact('stockMovements', 'dormantProducts', 'rotationStats', 'stockValueEvolution'));
     }
 
     /**

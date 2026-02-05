@@ -13,7 +13,9 @@ class StockMovement extends Model
         'product_id',
         'quantity',
         'type',
-        'reason'
+        'reason',
+        'stock_before',
+        'stock_after',
     ];
     /**
      * Get the product that owns the stock movement.

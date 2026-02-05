@@ -4,6 +4,13 @@ namespace App\Http\Controllers;
 
 use Maatwebsite\Excel\Validators\ValidationException;
 use Illuminate\Http\Request;
+use App\Imports\ProductsImport;
+use App\Imports\SupplierImport;
+use App\Imports\CategoryImport;
+use App\Imports\PurchaseImport;
+use App\Services\ProductService;
+use App\Services\PurchaseService;
+use App\Services\SupplierService;
 
 class ImportController extends Controller
 {
@@ -22,14 +29,19 @@ class ImportController extends Controller
     {
         $request->validate([
             'file' => 'required|mimes:csv,txt,xls,xlsx',
-            'type' => 'required|in:products,suppliers,categories'
+            'type' => 'required|in:products,suppliers,categories,purchases'
         ]);
 
-        // Mapping entre le type et la classe d'import
+        // Mapping entre le type et la classe d'import avec injection des services
         $importMap = [
-            'products'   => new \App\Imports\ProductsImport,
-            'suppliers'  => new \App\Imports\SupplierImport,
-            'categories' => new \App\Imports\CategoryImport,
+            'products'   => new ProductsImport(app(ProductService::class)),
+            'suppliers'  => new SupplierImport,
+            'categories' => new CategoryImport,
+            'purchases'  => new PurchaseImport(
+                app(PurchaseService::class),
+                app(SupplierService::class),
+                app(ProductService::class)
+            ),
         ];
 
         try {
@@ -57,14 +69,14 @@ class ImportController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Erreur lors de l\'import : ' . $e->getMessage());
         }
-
     }
     public function downloadTemplate($type)
     {
         $headers = match ($type) {
-            'products' => ['nom', 'prix', 'stock', 'category_id'],
-            'categories' => ['nom', 'description'],
-            'suppliers' => ['nom_entreprise', 'contact', 'telephone'],
+            'products' => ['nom', 'prix', 'stock', 'category_id', 'description', 'alert_stock'],
+            'categories' => ['nom', 'description', 'parent_id'],
+            'suppliers' => ['name', 'address', 'contact', 'telephone'],
+            'purchases' => ['reference_groupe', 'email_fournisseur', 'nom_produit', 'quantite', 'cout_unitaire'],
             default => []
         };
 

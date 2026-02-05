@@ -50,11 +50,29 @@ class StockService
             ]);
         });
     }
-    public function getAllStockMovements(int $perPage = 15)
+    public function getAllStockMovements(array $filters = [], int $perPage = 15)
     {
-        return StockMovement::with('product')
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        $query = StockMovement::with('product');
+
+        if (!empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('reason', 'like', "%{$filters['search']}%")
+                    ->orWhereHas('product', function ($sq) use ($filters) {
+                        $sq->where('name', 'like', "%{$filters['search']}%");
+                    });
+            });
+        }
+
+        if (!empty($filters['type'])) {
+            $query->where('type', $filters['type']);
+        }
+
+        if (!empty($filters['date_from']) && !empty($filters['date_to'])) {
+            $query->whereBetween('created_at', [$filters['date_from'], $filters['date_to']]);
+        }
+
+        return $query->orderBy('created_at', 'desc')
+            ->paginate($perPage)->withQueryString();
     }
     public function getStockMovementById(int $id)
     {
@@ -97,5 +115,80 @@ class StockService
     public function createStockMovement(array $data): StockMovement
     {
         return StockMovement::create($data);
+    }
+
+    /**
+     * Récupère les produits "dormants" (stock > 0 mais aucune sortie depuis X jours).
+     */
+    public function getDormantProducts(int $days = 60)
+    {
+        $cutoffDate = now()->subDays($days);
+
+        return Product::where('quantity_stock', '>', 0)
+            ->whereNotExists(function ($query) use ($cutoffDate) {
+                $query->select(DB::raw(1))
+                    ->from('stock_movements')
+                    ->whereColumn('stock_movements.product_id', 'products.id')
+                    ->where('type', 'out')
+                    ->where('created_at', '>=', $cutoffDate);
+            })
+            ->limit(20) // Limite pour ne pas surcharger le dashboard
+            ->get();
+    }
+
+    public function getRotationStats(int $limit = 5)
+    {
+        return StockMovement::select('product_id', DB::raw('SUM(ABS(quantity)) as total_out'))
+            ->where('type', 'out')
+            ->groupBy('product_id')
+            ->orderByDesc('total_out')
+            ->with('product')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Calcule l'évolution de la valeur totale du stock sur les X derniers jours.
+     */
+    public function getTotalStockValueEvolution(int $days = 30): array
+    {
+        // 1. Valeur actuelle du stock global
+        $currentTotalValue = Product::sum(DB::raw('quantity_stock * price'));
+
+        // 2. Récupérer les mouvements des X derniers jours
+        $movements = StockMovement::with('product')
+            ->where('created_at', '>=', now()->subDays($days)->startOfDay())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // 3. Grouper par jour
+        $movementsByDay = $movements->groupBy(function ($m) {
+            return $m->created_at->format('Y-m-d');
+        });
+
+        $dataPoints = [];
+        $runningValue = $currentTotalValue;
+
+        for ($i = 0; $i < $days; $i++) {
+            $date = now()->subDays($i);
+            $dateString = $date->format('Y-m-d');
+
+            $dataPoints[] = [
+                'date' => $date->format('d/m'),
+                'value' => max(0, round($runningValue, 2))
+            ];
+
+            if (isset($movementsByDay[$dateString])) {
+                foreach ($movementsByDay[$dateString] as $movement) {
+                    if ($movement->product) {
+                        // On inverse le mouvement pour retrouver la valeur précédente
+                        // Valeur_Avant = Valeur_Apres - (Quantité_Mouvement * Prix)
+                        $runningValue -= ($movement->quantity * $movement->product->price);
+                    }
+                }
+            }
+        }
+
+        return array_reverse($dataPoints);
     }
 }

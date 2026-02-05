@@ -4,49 +4,59 @@ namespace App\Imports;
 
 use App\Models\Product;
 use App\Models\Category;
-use Maatwebsite\Excel\Concerns\ToModel;
+use App\Services\ProductService;
+use Maatwebsite\Excel\Concerns\OnEachRow;
+use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class ProductsImport implements ToModel, WithHeadingRow, WithValidation
+class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
 {
     private int $created = 0;
     private int $updated = 0;
+    protected $productService;
+
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
 
     /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @param Row $row
      */
-    public function model(array $row)
+    public function onRow(Row $row)
     {
+        $rowData = $row->toArray();
+
         $categoryId = null;
-        if (!empty($row['category_id'])) {
-            $categoryId = $row['category_id'];
-        } else if (!empty($row['category'])) {
-            $category = Category::where('name', $row['category'])->first();
+        if (!empty($rowData['category_id'])) {
+            $categoryId = $rowData['category_id'];
+        } else if (!empty($rowData['category'])) {
+            $category = Category::where('name', $rowData['category'])->first();
             if ($category) {
                 $categoryId = $category->id;
             }
         }
-        $product = Product::updateOrCreate(
-            ['name' => $row['name']],
-            [
-                'description'   => $row['description'] ?? null,
-                'price'         => $row['price'],
-                'quantity_stock' => $row['stock'] ?? 0,
-                'category_id'   => $categoryId,
-                'alert_stock'   => $row['alert_stock'] ?? 10,
-            ]
-        );
 
-        if ($product->wasRecentlyCreated) {
-            $this->created++;
-        } elseif ($product->wasChanged()) {
+        $data = [
+            'name'           => $rowData['name'],
+            'description'    => $rowData['description'] ?? null,
+            'price'          => $rowData['price'],
+            'quantity_stock' => $rowData['stock'] ?? 0,
+            'category_id'    => $categoryId,
+            'alert_stock'    => $rowData['alert_stock'] ?? 10,
+        ];
+
+        // Vérification si le produit existe pour décider de l'action (Create ou Update)
+        $existingProduct = Product::where('name', $rowData['name'])->first();
+
+        if ($existingProduct) {
+            $this->productService->updateProduct($existingProduct->id, $data);
             $this->updated++;
+        } else {
+            $this->productService->createProduct($data);
+            $this->created++;
         }
-
-        return $product;
     }
 
     public function rules(): array
