@@ -33,7 +33,7 @@ class StockService
             $product = Product::lockForUpdate()->findOrFail($productId); // lockForUpdate évite les conflits Docker/multi-users
             // Dans une application réelle, on ajouterait une vérification de stock ici.
             if ($product->quantity_stock < $quantity) {
-                throw new \Exception('Stock insuffisant pour la vente.');
+                throw new \Exception('Not enough stock for this product.');
             }
 
             $before = $product->quantity_stock;

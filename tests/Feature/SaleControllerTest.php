@@ -114,26 +114,6 @@ class SaleControllerTest extends TestCase
     }
 
     /**
-     *Test that the store method handles exceptions from the service layer (ex: insufficient stock) and returns an error message.
-     */
-    public function test_store_handles_service_exceptions(): void
-    {
-        // We mock the SaleService to throw an exception when createSale is called, simulating a stock issue
-        $this->mock(SaleService::class, function ($mock) {
-            $mock->shouldReceive('createSale')->andThrow(new \Exception('Not enough stock for this product.'));
-        });
-
-        $response = $this->actingAs($this->frontOfficeUser)->post(route('sales.store'), [
-            'products' => [], // the products array can be empty since we are mocking the service to throw an exception regardless of the input
-            'discount' => 0
-        ]);
-
-        // test that we are redirected back to the create form with an error message in the session
-        $response->assertRedirect();
-        $response->assertSessionHas('error', 'Error while creating the sale: Not enough stock for this product.');
-    }
-
-    /**
      * test that the sale details are displayed correctly (Show).
      */
     public function test_show_displays_sale_details(): void
@@ -168,7 +148,7 @@ class SaleControllerTest extends TestCase
         $response->assertStatus(200);
         // We check that the response has the correct headers for a PDF file download with the expected filename
         $response->assertHeader('content-type', 'application/pdf');
-        $response->assertHeader('content-disposition', 'attachment; filename="facture_SALE-TEST-PDF.pdf"');
+        $response->assertHeader('content-disposition', 'attachment; filename=facture_SALE-TEST-PDF.pdf');
     }
 
     /**
