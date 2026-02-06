@@ -40,6 +40,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);
         Route::resource('suppliers', SupplierController::class);
         Route::resource('purchases', PurchaseController::class);
+        Route::patch('purchases/{id}/state', [PurchaseController::class, 'updateState'])->name('purchases.updateState');
+        Route::get('purchases/{id}/pdf', [PurchaseController::class, 'exportPdf'])->name('purchases.pdf');
         // Module d'Importation Centralisé
         Route::get('/imports', [ImportController::class, 'index'])->name('imports.index');
         Route::post('/imports', [ImportController::class, 'store'])->name('imports.store');

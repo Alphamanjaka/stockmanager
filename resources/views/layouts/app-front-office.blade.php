@@ -79,7 +79,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('sales*') ? 'active-link' : '' }}"
+                        <a class="nav-link {{ request()->is('sales') ? 'active-link' : '' }}"
                             href="{{ route('sales.index') }}">
                             <i class="fas fa-receipt"></i> Ventes
                         </a>

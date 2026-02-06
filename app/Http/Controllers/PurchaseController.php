@@ -6,7 +6,9 @@ use App\Http\Requests\StorePurchaseRequest;
 use App\Services\PurchaseService;
 use App\Services\SupplierService;
 use App\Services\ProductService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class PurchaseController extends Controller
 {
@@ -27,10 +29,10 @@ class PurchaseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        
-        $purchases = $this->purchaseService->getAllPurchases(15);
+
+        $purchases = $this->purchaseService->getAllPurchases(15, $request->only(['search', 'state']));
         $stats = $this->purchaseService->getPurchaseStatistics();
 
         return view('purchases.index', array_merge(
@@ -103,9 +105,54 @@ class PurchaseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request)
+    public function update(Request $request, $id)
     {
-        $this->purchaseService->updatePurchase($request->validated());
-        return redirect()->route('admin.purchases.index')->with('success', 'Purchase updated successfully.');
+        $validated = $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+        ]);
+
+        try {
+            $this->purchaseService->updatePurchase($id, $validated);
+            return redirect()->route('admin.purchases.show', $id)->with('success', 'L\'achat a été mis à jour.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erreur lors de la mise à jour de l\'achat.');
+        }
+    }
+
+    /**
+     * Export the specified purchase to PDF.
+     */
+    public function exportPdf($id)
+    {
+        $purchase = $this->purchaseService->getPurchaseById($id);
+
+        $pdf = Pdf::loadView('purchases.pdf', compact('purchase'));
+
+        return $pdf->download('achat_' . $purchase->reference . '.pdf');
+    }
+
+    /**
+     * Update the state of the specified purchase.
+     */
+    public function updateState(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'state' => ['required', Rule::in(['Draft', 'Ordered', 'Received', 'Paid'])],
+        ]);
+
+        $purchase = $this->purchaseService->getPurchaseById($id);
+
+        try {
+            // Special logic for 'Received' state to update stock
+            if ($validated['state'] === 'Received' && $purchase->state !== 'Received') {
+                $this->purchaseService->markAsReceived($purchase);
+            } else {
+                $purchase->update(['state' => $validated['state']]);
+            }
+
+            return back()->with('success', "Le statut de l'achat #{$purchase->reference} a été mis à jour.");
+        } catch (\Exception $e) {
+            return back()->with('error', "Erreur lors du changement de statut : " . $e->getMessage());
+        }
     }
 }

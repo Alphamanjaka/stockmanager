@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app-front-office')
 
 @section('title', "Détail de la Vente : " . $sale->reference)
 

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app-front-office')
 
 @section('title', 'Historique des Ventes')
 
@@ -49,6 +49,7 @@
                             <td class="text-danger">-{{ number_format($sale->discount, 2) }} €</td>
                             <td class="fw-bold text-success">{{ number_format($sale->total_net, 2) }} €</td>
                             <td class="text-center">
+                                
                                 <a href="{{ route('sales.show', $sale->id) }}" class="btn btn-sm btn-outline-info">
                                     <i class="bi bi-eye"></i> Détails
                                 </a>

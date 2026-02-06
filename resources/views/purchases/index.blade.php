@@ -41,12 +41,21 @@
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
             <form action="{{ url('/admin/purchases') }}" method="GET" class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" name="search" class="form-control" placeholder="Looking for a purchase..."
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Référence, Fournisseur..."
                         value="{{ request('search') }}">
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrer</button>
+                    <select name="state" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        <option value="Draft" @selected(request('state') == 'Draft')>Brouillon</option>
+                        <option value="Ordered" @selected(request('state') == 'Ordered')>Commandé</option>
+                        <option value="Received" @selected(request('state') == 'Received')>Reçu</option>
+                        <option value="Paid" @selected(request('state') == 'Paid')>Payé</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Rechercher</button>
                     <a href="{{ url('/admin/purchases') }}" class="btn btn-outline-secondary"
                         rel="noopener">Réinitialiser</a>
                 </div>
@@ -67,6 +76,7 @@
                         <th>Référence</th>
                         <th>Montant Total</th>
                         <th>Remise</th>
+                        <th>Statut</th>
                         <th>Total Net</th>
                         <th>Date d'Achat</th>
                         <th>Actions</th>
@@ -78,12 +88,41 @@
                             <td>{{ $purchase->id }}</td>
                             <td>{{ $purchase->reference }}</td>
                             <td>{{ number_format($purchase->total_amount, 2) }} €</td>
-                            <td class="text-danger">-{{ number_format($purchase->discount, 2) }} €</td>
+                            <td class="text-danger">{{ number_format($purchase->discount, 2) }} €</td>
+                            <td>
+                                @php
+                                    $badgeClass = match ($purchase->state) {
+                                        'Draft' => 'bg-secondary',
+                                        'Ordered' => 'bg-info',
+                                        'Received' => 'bg-success',
+                                        'Paid' => 'bg-primary',
+                                        default => 'bg-light text-dark',
+                                    };
+                                    $stateText = match ($purchase->state) {
+                                        'Draft' => 'Brouillon',
+                                        'Ordered' => 'Commandé',
+                                        'Received' => 'Reçu',
+                                        'Paid' => 'Payé',
+                                        default => $purchase->state,
+                                    };
+                                @endphp
+                                <span class="badge {{ $badgeClass }}">{{ $stateText }}</span>
+                            </td>
                             <td class="fw-bold text-success">{{ number_format($purchase->total_net, 2) }} €</td>
                             <td>{{ $purchase->created_at->format('d/m/Y H:i') }}</td>
                             <td>
-                                <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
-                                    class="btn btn-sm btn-primary">Éditer</a>
+                                <a href="{{ route('admin.purchases.show', $purchase->id) }}" class="btn btn-sm btn-info"
+                                    title="Voir"><i class="bi bi-eye"></i></a>
+                                <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-sm btn-primary"
+                                    title="Modifier"><i class="bi bi-pencil"></i></a>
+                                <form action="{{ route('admin.purchases.destroy', $purchase->id) }}" method="POST"
+                                    class="d-inline"
+                                    onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer"><i
+                                            class="bi bi-trash"></i></button>
+                                </form>
                             </td>
                         </tr>
                     @endforeach

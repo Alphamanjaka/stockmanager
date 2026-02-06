@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('total_amount', 10, 2);
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('total_net', 10, 2);
+            
             $table->timestamps();
         });
         Schema::create('purchase_items', function (Blueprint $table) {

@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
     {
         // Créer un utilisateur Back Office
         User::firstOrCreate(
-            ['email' => 'backoffice@example.com'],
+            ['email' => 'alphamanjaka@gmail.com'],
             [
                 'name' => 'Admin BackOffice',
                 'password' => bcrypt('password123'),

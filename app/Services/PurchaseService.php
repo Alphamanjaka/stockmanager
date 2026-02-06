@@ -9,11 +9,30 @@ class PurchaseService
 {
     protected $stockService;
 
+    // Injecter StockService pour gérer les mouvements de stock lors des achats
     public function __construct(StockService $stockService)
     {
         $this->stockService = $stockService;
     }
 
+
+    // Make a purchase as received: update stock and purchase state
+    public function markAsReceived(Purchase $purchase)
+    {
+        DB::transaction(function () use ($purchase) {
+            foreach ($purchase->items as $item) {
+                //We increase stock for each item in the purchase
+                $this->stockService->addStock(
+                    $item->product_id,
+                    $item->quantity,
+                    "Réception Achat #{$purchase->reference}"
+                );
+            }
+            $purchase->update(['state' => 'Received']);
+        });
+    }
+
+    // Traite un achat : création de l'achat, des lignes d'achat et mise à jour du stock
     public function processPurchase(int $supplierId, array $items)
     {
         return DB::transaction(function () use ($supplierId, $items) {
@@ -41,8 +60,8 @@ class PurchaseService
                     'subtotal' => $subtotal,
                 ]);
 
-                // 3. AUGMENTER le stock via StockService
-                $this->stockService->addStock($item['product_id'], $item['quantity'], "Achat {$purchase->reference}");
+                // 3. Le stock est maintenant augmenté uniquement lors du passage au statut "Reçu"
+                // $this->stockService->addStock($item['product_id'], $item['quantity'], "Achat {$purchase->reference}");
             }
 
             $purchase->update([
@@ -56,9 +75,15 @@ class PurchaseService
     /**
      * Get all purchases with pagination
      */
-    public function getAllPurchases($perPage = 15)
+    public function getAllPurchases(int $perPage = 15, array $filters = [])
     {
-        return Purchase::latest()->paginate($perPage);
+        $query = Purchase::with('supplier')->latest();
+
+        if (!empty($filters['search'])) {
+            $query->where('reference', 'like', "%{$filters['search']}%")
+                ->orWhereHas('supplier', fn($q) => $q->where('name', 'like', "%{$filters['search']}%"));
+        }
+        return $this->applyFilters($query, $filters)->paginate($perPage)->withQueryString();
     }
 
     /**
@@ -93,9 +118,9 @@ class PurchaseService
             'totalDiscounts' => Purchase::sum('discount'), // Total des remises accordées.
         ];
     }
-    public function updatePurchase($data)
+    public function updatePurchase(int $id, array $data): Purchase
     {
-        $purchase = Purchase::findOrFail($data['id']);
+        $purchase = $this->getPurchaseById($id);
         $purchase->update($data);
         return $purchase;
     }
@@ -109,6 +134,9 @@ class PurchaseService
         }
         if (!empty($filters['supplier_id'])) {
             $query->where('supplier_id', $filters['supplier_id']);
+        }
+        if (!empty($filters['state'])) {
+            $query->where('state', $filters['state']);
         }
         return $query;
     }
