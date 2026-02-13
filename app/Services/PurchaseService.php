@@ -118,12 +118,14 @@ class PurchaseService
             'totalDiscounts' => Purchase::sum('discount'), // Total des remises accordées.
         ];
     }
+    // Update purchase details (like changing supplier or reference)
     public function updatePurchase(int $id, array $data): Purchase
     {
         $purchase = $this->getPurchaseById($id);
         $purchase->update($data);
         return $purchase;
     }
+    // Method to apply filters to the purchase query
     public function applyFilters($query, $filters)
     {
         if (!empty($filters['date_from'])) {

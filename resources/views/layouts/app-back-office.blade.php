@@ -110,6 +110,10 @@
                     class="{{ request()->is('admin/imports*') ? 'active-link' : '' }}">
                     <i class="fas fa-file-import"></i> Imports
                 </a>
+                <a href="{{ route('admin.settings.index') }}"
+                    class="{{ request()->is('admin/settings*') ? 'active-link' : '' }}">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
                 <hr>
                 <a href="{{ route('logout') }}"
                     onclick="event.preventDefault(); document.getElementById('logout-form').submit();"

@@ -10,6 +10,7 @@ use App\Http\Controllers\ImportController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SettingsController;
 
 // Routes d'authentification (publiques)
 Route::middleware('guest')->group(function () {
@@ -39,6 +40,7 @@ Route::middleware('auth')->group(function () {
         // On limite aux méthodes existantes pour éviter les erreurs
         Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);
         Route::resource('suppliers', SupplierController::class);
+        Route::resource('settings', SettingsController::class);
         Route::resource('purchases', PurchaseController::class);
         Route::patch('purchases/{id}/state', [PurchaseController::class, 'updateState'])->name('purchases.updateState');
         Route::get('purchases/{id}/pdf', [PurchaseController::class, 'exportPdf'])->name('purchases.pdf');

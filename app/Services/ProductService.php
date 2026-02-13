@@ -104,6 +104,8 @@ class ProductService
         $product = Product::findOrFail($productId);
         return $product->quantity_stock >= $quantity;
     }
+
+    // filter method for products list
     protected function applyFilters($query, $filters)
     {
         // On réutilise ta logique de colonnes autorisées
