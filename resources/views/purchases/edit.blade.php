@@ -1,5 +1,5 @@
 @extends('layouts.app-back-office')
-@section('title', 'Modifier l\'Achat ' . $purchase->reference)
+@section('title', 'edit purchase #' . $purchase->reference)
 
 @section('content')
     @if (session('error'))
@@ -19,7 +19,7 @@
         <div class="col-md-10">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Modification de l'achat #{{ $purchase->reference }}</h5>
+                    <h5 class="mb-0">Edit a Purchase #{{ $purchase->reference }}</h5>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('admin.purchases.update', $purchase->id) }}" method="POST">
@@ -27,7 +27,7 @@
                         @method('PUT')
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="supplier_id" class="form-label">Fournisseur</label>
+                                <label for="supplier_id" class="form-label">Supplier</label>
                                 <select name="supplier_id" id="supplier_id" class="form-select">
                                     @foreach ($suppliers as $supplier)
                                         <option value="{{ $supplier->id }}"
@@ -45,15 +45,15 @@
                         </div>
 
                         <hr>
-                        <h5 class="mt-4 mb-3">Articles de l'achat (non modifiables)</h5>
+                        <h5 class="mt-4 mb-3">Purchase Items (unmodified)</h5>
                         <div class="table-responsive">
                             <table class="table table-bordered">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Produit</th>
-                                        <th class="text-center">Quantité</th>
-                                        <th class="text-end">Coût Unitaire</th>
-                                        <th class="text-end">Sous-total</th>
+                                        <th>Product</th>
+                                        <th class="text-center">Quantity</th>
+                                        <th class="text-end">Unit Cost (Mga)</th>
+                                        <th class="text-end">Subtotal (Mga)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -61,8 +61,8 @@
                                         <tr>
                                             <td>{{ $item->product->name }}</td>
                                             <td class="text-center">{{ $item->quantity }}</td>
-                                            <td class="text-end">{{ number_format($item->unit_price, 2) }} €</td>
-                                            <td class="text-end">{{ number_format($item->subtotal, 2) }} €</td>
+                                            <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
+                                            <td class="text-end">{{ number_format($item->subtotal, 2) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -71,8 +71,8 @@
 
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{{ route('admin.purchases.index') }}" class="btn btn-secondary">
-                                Annuler</a>
-                            <button type="submit" class="btn btn-success px-4">Mettre à jour l'achat</button>
+                                Cancel</a>
+                            <button type="submit" class="btn btn-success px-4">Update Purchase</button>
                         </div>
                     </form>
                 </div>

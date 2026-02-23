@@ -2,14 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Supplier;
-use App\Services\SaleService;
-use App\Services\PurchaseService;
-use App\Services\ProductService;
-use App\Services\SupplierService;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,11 +16,12 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
+            CategorySeeder::class,
             SupplierSeeder::class,
             ProductSeeder::class,
-            // Ajout du SaleSeeder pour les ventes
+            // add sales data
             SaleSeeder::class,
-            // Ajout du PurchaseSeeder pour les achats
+            // add  PurchaseSeeder for purchases
             PurchaseSeeder::class,
         ]);
 

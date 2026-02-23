@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Achat {{ $purchase->reference }}</title>
+    <title>Purchase {{ $purchase->reference }}</title>
     <style>
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
@@ -88,26 +88,26 @@
     <div class="container">
         <div class="header">
             <div class="header-left">
-                <h1>BON DE COMMANDE</h1>
-                <strong>Référence :</strong> {{ $purchase->reference }}<br>
+                <h1>PURCHASE ORDER</h1>
+                <strong>Reference :</strong> {{ $purchase->reference }}<br>
                 <strong>Date :</strong> {{ $purchase->created_at->format('d/m/Y') }}
             </div>
             <div class="header-right">
-                <strong>Fournisseur :</strong><br>
+                <strong>Supplier :</strong><br>
                 {{ $purchase->supplier->name }}<br>
                 {{ $purchase->supplier->email }}<br>
                 {{ $purchase->supplier->phone }}
             </div>
         </div>
 
-        <h2>Détails des articles</h2>
+        <h2>Product Details</h2>
         <table>
             <thead>
                 <tr>
-                    <th>Produit</th>
-                    <th class="text-right">Quantité</th>
-                    <th class="text-right">Coût Unitaire</th>
-                    <th class="text-right">Sous-total</th>
+                    <th>Product</th>
+                    <th class="text-right">Quantity</th>
+                    <th class="text-right">Unit Cost</th>
+                    <th class="text-right">Subtotal</th>
                 </tr>
             </thead>
             <tbody>
@@ -115,8 +115,8 @@
                     <tr>
                         <td>{{ $item->product->name }}</td>
                         <td class="text-right">{{ $item->quantity }}</td>
-                        <td class="text-right">{{ number_format($item->unit_price, 2, ',', ' ') }} €</td>
-                        <td class="text-right">{{ number_format($item->subtotal, 2, ',', ' ') }} €</td>
+                        <td class="text-right">{{ number_format($item->unit_price, 2, ',', ' ') }} Mga</td>
+                        <td class="text-right">{{ number_format($item->subtotal, 2, ',', ' ') }} Mga</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -125,15 +125,15 @@
         <table class="totals">
             <tr>
                 <td>Total Brut</td>
-                <td class="text-right">{{ number_format($purchase->total_amount, 2, ',', ' ') }} €</td>
+                <td class="text-right">{{ number_format($purchase->total_amount, 2, ',', ' ') }} Mga</td>
             </tr>
             <tr>
-                <td>Remise</td>
-                <td class="text-right">-{{ number_format($purchase->discount, 2, ',', ' ') }} €</td>
+                <td>Discount</td>
+                <td class="text-right">-{{ number_format($purchase->discount, 2, ',', ' ') }} Mga</td>
             </tr>
             <tr class="total-net">
                 <td>Total Net</td>
-                <td class="text-right">{{ number_format($purchase->total_net, 2, ',', ' ') }} €</td>
+                <td class="text-right">{{ number_format($purchase->total_net, 2, ',', ' ') }} Mga</td>
             </tr>
         </table>
     </div>

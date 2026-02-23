@@ -25,7 +25,7 @@ class MonitorStockDropTest extends TestCase
         Mail::fake();
 
         // Créer un utilisateur admin qui recevra l'alerte
-        $admin = User::factory()->create(['role' => 'back_office', 'email' => 'admin@test.com']);
+        $admin = User::factory()->create(['role' => 'back_office', 'email' => 'alphamanjaka@gmail.com']);
 
         // On simule le StockService pour contrôler sa réponse
         $this->mock(StockService::class, function (MockInterface $mock) {

@@ -1,14 +1,14 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Gestion des Produits')
+@section('title', 'Products Management')
 
 @section('content')
     <div class="container-fluid py-4">
         {{-- Header --}}
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 text-gray-800">Produits</h1>
+            <h1 class="h3 text-gray-800">Products</h1>
             <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nouveau Produit
+                <i class="fas fa-plus"></i> New Product
             </a>
         </div>
 
@@ -19,13 +19,13 @@
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Top Vente</div>
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Top Selling</div>
                                 @if ($mostSoldProduct && $mostSoldProduct->product)
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">
                                         {{ $mostSoldProduct->product->name }}</div>
-                                    <div class="small text-muted">Vendu {{ $mostSoldProduct->total_sold }} fois</div>
+                                    <div class="small text-muted">Sold {{ $mostSoldProduct->total_sold }} times</div>
                                 @else
-                                    <div class="text-muted small">Aucune vente enregistrée</div>
+                                    <div class="text-muted small">No sales recorded</div>
                                 @endif
                             </div>
                             <div class="col-auto">
@@ -40,13 +40,13 @@
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Moins Vendu</div>
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Least Sold</div>
                                 @if ($leastSoldProduct && $leastSoldProduct->product)
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">
                                         {{ $leastSoldProduct->product->name }}</div>
-                                    <div class="small text-muted">Vendu {{ $leastSoldProduct->total_sold }} fois</div>
+                                    <div class="small text-muted">Sold {{ $leastSoldProduct->total_sold }} times</div>
                                 @else
-                                    <div class="text-muted small">Aucune vente enregistrée</div>
+                                    <div class="text-muted small">No sales recorded</div>
                                 @endif
                             </div>
                             <div class="col-auto">
@@ -61,23 +61,23 @@
         {{-- Filters --}}
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Filtres & Recherche</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Filters & Search</h6>
             </div>
             <div class="card-body bg-light">
                 <form action="{{ url('admin/products') }}" method="GET" class="row g-3 align-items-end">
                     <div class="col-md-5">
-                        <label class="form-label small text-muted">Recherche</label>
+                        <label class="form-label small text-muted">Search</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                            <input type="text" name="search" class="form-control" placeholder="Nom, référence..."
+                            <input type="text" name="search" class="form-control" placeholder="Name, reference..."
                                 value="{{ request('search') }}">
                         </div>
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label small text-muted">Catégorie</label>
+                        <label class="form-label small text-muted">Category</label>
                         <select name="category" class="form-select">
-                            <option value="">Toutes les catégories</option>
+                            <option value="">All Categories</option>
                             @foreach ($categories as $cat)
                                 <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
                                     {{ $cat->name }}
@@ -88,7 +88,7 @@
 
                     <div class="col-md-3">
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                            <button type="submit" class="btn btn-primary w-100">Filter</button>
                             <a href="{{ url('admin/products') }}" class="btn btn-outline-secondary w-100">Reset</a>
                         </div>
                     </div>
@@ -147,14 +147,14 @@
                                             <span
                                                 class="badge bg-light text-dark border">{{ $product->category->name }}</span>
                                         @else
-                                            <span class="text-muted small">Non classé</span>
+                                            <span class="text-muted small">Unassigned</span>
                                         @endif
                                     </td>
                                     <td>
                                         @if ($product->quantity_stock <= 0)
-                                            <span class="badge bg-danger">Rupture</span>
+                                            <span class="badge bg-danger">Out of Stock</span>
                                         @elseif($product->quantity_stock <= ($product->alert_stock ?? 5))
-                                            <span class="badge bg-warning text-dark">Faible
+                                            <span class="badge bg-warning text-dark">Low Stock</span>
                                                 ({{ $product->quantity_stock }})</span>
                                         @else
                                             <span class="badge bg-success">{{ $product->quantity_stock }}</span>
@@ -173,11 +173,11 @@
                                             </a>
                                             <form action="{{ route('admin.products.destroy', $product->id) }}"
                                                 method="POST" class="d-inline"
-                                                onsubmit="return confirm('Supprimer ce produit ?');">
+                                                onsubmit="return confirm('Delete this product ?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                    title="Supprimer">
+                                                    title="delete">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
@@ -188,7 +188,7 @@
                                 <tr>
                                     <td colspan="6" class="text-center py-5 text-muted">
                                         <i class="fas fa-box-open fa-3x mb-3"></i><br>
-                                        Aucun produit trouvé.
+                                        No product found.
                                     </td>
                                 </tr>
                             @endforelse

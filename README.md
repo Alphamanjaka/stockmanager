@@ -1,244 +1,174 @@
-# Laravel Docker Examples Project
+# Projet Vitrine - Gestion de Stock
 
-## Table of Contents
+**Vitrine** est une application web développée avec le framework Laravel, conçue pour la gestion complète des produits, des stocks, des fournisseurs et des achats. Elle offre une interface pour suivre les mouvements de stock, automatiser les alertes et faciliter la gestion commerciale.
 
-- [Overview](#overview)
-- [Project Structure](#project-structure)
-    - [Directory Structure](#directory-structure)
-    - [Development Environment](#development-environment)
-    - [Production Environment](#production-environment)
-- [Getting Started](#getting-started)
-    - [Clone the Repository](#clone-the-repository)
-    - [Setting Up the Development Environment](#setting-up-the-development-environment)
-- [Usage](#usage)
-- [Production Environment](#production-environment-1)
-    - [Building and Running the Production Environment](#building-and-running-the-production-environment)
-- [Technical Details](#technical-details)
-- [Contributing](#contributing)
-    - [How to Contribute](#how-to-contribute)
-- [License](#license)
+## Table des matières
 
-## Overview
+1.  Fonctionnalités principales
+2.  Architecture technique
+3.  Modèle de données (Base de données)
+4.  Installation et configuration
+5.  Système de sécurité
+6.  Frontend
+7.  Tâches planifiées (Cron)
+8.  Imports de données
+9.  Dépannage
 
-The **Laravel Docker Examples Project** offers practical and modular examples for Laravel developers to create efficient Docker environments for development and production. This project demonstrates modern Docker best practices, including multi-stage builds, modular configurations, and environment-specific customization. It is designed to be educational, flexible, and extendable, providing a solid foundation for Dockerizing Laravel applications.
+## Fonctionnalités principales
 
-## Project Structure
+- **Gestion des Produits** : CRUD complet pour les produits, incluant le nom, la description, le prix de vente, la quantité en stock et un seuil d'alerte.
+- **Catégorisation** : Organisation des produits en catégories hiérarchiques (parent/enfant).
+- **Gestion des Fournisseurs** : Suivi des informations relatives aux fournisseurs.
+- **Gestion des Achats** :
+    - Création de bons de commande associés à un fournisseur.
+    - Processus de statut d'achat (ex: "En attente", "Reçu").
+    - Mise à jour automatique des stocks uniquement lorsque l'achat est marqué comme "Reçu".
+- **Import de Données** : Possibilité d'importer des achats en masse depuis un fichier Excel, avec validation des données.
+- **Surveillance Automatisée** : Une commande `artisan` surveille la valeur totale du stock et envoie une alerte par e-mail aux administrateurs en cas de chute brutale.
+- **Reporting** : Statistiques sur les achats (dépenses totales, valeur moyenne, etc.).
 
-The project is organized as a typical Laravel application, with the addition of a `docker` directory containing the Docker configurations and scripts. These are separated by environments and services. There are two main Docker Compose projects in the root directory:
+## Architecture technique
 
-- **compose.dev.yaml**: Orchestrates the development environment.
-- **compose.prod.yaml**: Orchestrates the production environment.
+Le projet est bâti sur une architecture robuste et modulaire.
 
-### Directory Structure
+- **Framework** : PHP 8.x / Laravel 10.x.
+- **Architecture Applicative** : L'application suit un modèle **MVC (Modèle-Vue-Contrôleur)** enrichi par une **Architecture Orientée Services**. La logique métier complexe est isolée dans des classes de service (ex: `PurchaseService`, `StockService`).
+    - **Contrôleurs** : Gèrent les requêtes HTTP et font le lien avec les services.
+    - **Services** : Centralisent la logique métier (ex: `processPurchase` dans `PurchaseService`). Cela garantit que les mêmes règles sont appliquées, que l'action provienne d'un contrôleur web, d'un import ou d'un seeder.
+    - **Modèles (Eloquent)** : Interagissent avec la base de données.
+- **Dépendances Notables** :
+    - `maatwebsite/excel` : Pour l'import et l'export de fichiers Excel.
+    - `fakerphp/faker` : Pour la génération de données de test (seeders).
 
-```
-project-root/
-├── app/ # Laravel app folder
-├── ...  # Other Laravel files and directories
-├── docker/
-│   ├── common/ # Shared configurations
-│   ├── development/ # Development-specific configurations
-│   ├── production/ # Production-specific configurations
-├── compose.dev.yaml # Docker Compose for development
-├── compose.prod.yaml # Docker Compose for production
-└── .env.example # Example environment configuration
-```
+## Modèle de données (Base de données)
 
-This modular structure ensures shared logic between environments while allowing environment-specific customizations.
+La structure de la base de données est gérée via les migrations Laravel. Les tables principales sont :
 
-### Production Environment
+- `users` : Gère les utilisateurs et leurs rôles (ex: `back_office` pour les administrateurs).
+- `products` : Contient les informations des produits (`name`, `price`, `quantity_stock`, `alert_stock`, `category_id`).
+- `categories` : Stocke les catégories de produits avec une relation `parent_id` pour la hiérarchie.
+- `suppliers` : Répertoire des fournisseurs.
+- `purchases` : Enregistre les en-têtes des achats (`reference`, `supplier_id`, `total_amount`, `state`).
+- `purchase_items` : Lignes de détail pour chaque achat (`product_id`, `quantity`, `unit_price`).
+- `stock_movements` (supposé) : Table pour tracer chaque entrée et sortie de stock pour une meilleure auditabilité, utilisée par le `StockService`.
 
-The production environment is configured using the `compose.prod.yaml` file. It is optimized for performance and security, using multi-stage builds and runtime-only dependencies. It uses a shared PHP-FPM multi-stage build with the target `production`.
+## Installation et configuration
 
-- **Optimized Images**: Multi-stage builds ensure minimal image size and enhanced security.
-- **Pre-Built Assets**: Assets are compiled during the build process, ensuring the container is ready to serve content immediately upon deployment.
-- **Health Checks**: Built-in health checks monitor service statuses and ensure smooth operation.
-- **Security Best Practices**: Minimizes the attack surface by excluding unnecessary packages and users.
-- **Docker Compose for Production**: Tailored for deploying Laravel applications with Nginx, PHP-FPM, Redis, and PostgreSQL.
+Pour déployer le projet en local, suivez ces étapes :
 
-This environment is designed for easy deployment to any Docker-compatible hosting platform.
+1.  **Cloner le dépôt**
 
-### Development Environment
+    ```bash
+    git clone [URL_DU_DEPOT]
+    cd vitrine
+    ```
 
-The development environment is configured using the `compose.dev.yaml` file and is built on top of the production version. This ensures the development environment is as close to production as possible while still supporting tools like Xdebug and writable permissions.
+2.  **Installer les dépendances**
 
-Key features include:
+    ```bash
+    composer install
+    npm install
+    ```
 
-- **Close Parity with Production**: Mirrors the production environment to minimize deployment issues.
-- **Development Tools**: Includes Xdebug for debugging and writable permissions for mounted volumes.
-- **Hot Reloading**: Volume mounts enable real-time updates to the codebase without rebuilding containers.
-- **Services**: PHP-FPM, Nginx, Redis, PostgreSQL, and Node.js (via NVM).
-- **Custom Dockerfiles**: Extends shared configurations to include development-specific tools.
+3.  **Configurer l'environnement**
 
-To set up the development environment, follow the steps in the **Getting Started** section.
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
 
-## Getting Started
+    Modifiez le fichier `.env` pour configurer la base de données (`DB_*`) et le serveur de messagerie (`MAIL_*`).
 
-Follow these steps to set up and run the Laravel Docker Examples Project:
+4.  **Base de données et données de test**
 
-### Prerequisites
+    ```bash
+    php artisan migrate --seed
+    ```
 
-Ensure you have Docker and Docker Compose installed. You can verify by running:
+    Cette commande exécute les migrations et les seeders, peuplant la base de données avec des données de démonstration (produits, fournisseurs, achats...).
 
-```bash
-docker --version
-docker compose version
-```
+5.  **Compiler les assets frontend**
 
-If these commands do not return the versions, install Docker and Docker Compose using the official documentation: [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/).
+    ```bash
+    npm run dev
+    ```
 
-### Clone the Repository
+6.  **Lancer le serveur**
+    ```bash
+    php artisan serve
+    ```
+    L'application sera accessible à l'adresse `http://127.0.0.1:8000`.
 
-```bash
-git clone https://github.com/rw4lll/laravel-docker-examples.git
-cd laravel-docker-examples
-```
+## Système de sécurité
 
-### Setting Up the Development Environment
+La sécurité est un aspect central de l'application, gérée via plusieurs mécanismes Laravel.
 
-1. Copy the .env.example file to .env and adjust any necessary environment variables:
+- **Authentification** : Gérée par le système d'authentification intégré de Laravel.
+- **Autorisation** :
+    - Les `FormRequest` (ex: `UpdateCategoryRequest`) contiennent une méthode `authorize()` pour vérifier les permissions, bien qu'actuellement permissive (`return true;`).
+    - Un système de rôles est en place (ex: le rôle `back_office` est utilisé pour l'envoi d'alertes), suggérant une logique de contrôle d'accès basée sur les rôles (RBAC).
+- **Validation des données** :
+    - Les requêtes entrantes sont validées par des classes `FormRequest` dédiées (ex: `StoreProductRequest`). Cela protège contre les données invalides avant même d'atteindre la logique métier.
+    - L'import Excel utilise également un système de validation (`WithValidation`) pour garantir l'intégrité des données importées.
+- **Protections standards** :
+    - **CSRF** : Protection automatique sur toutes les routes web via le middleware `VerifyCsrfToken`.
+    - **Injection SQL** : Prévenue par l'utilisation de l'ORM Eloquent qui utilise des requêtes préparées.
 
-```bash
-cp .env.example .env
-```
+## Frontend
 
-Hint: adjust the `UID` and `GID` variables in the `.env` file to match your user ID and group ID. You can find these by running `id -u` and `id -g` in the terminal.
+Les fichiers fournis concernent principalement le backend. Le frontend est probablement construit avec :
 
-2. Start the Docker Compose Services:
+- **Laravel Blade** : Le moteur de template natif de Laravel pour construire les vues HTML.
+- **Tailwind CSS / Bootstrap** : (Hypothèse) Un framework CSS pour le style des composants.
+- **JavaScript / Alpine.js / Vue.js** : Pour l'interactivité côté client.
 
-```bash
-docker compose -f compose.dev.yaml up -d
-```
+Les vues Blade sont utilisées pour afficher les formulaires, les listes de données (produits, achats) et les tableaux de bord. Les e-mails transactionnels (comme `StockDropAlert`) sont également rendus via des vues Blade.
 
-3. Install Laravel Dependencies:
+## Tâches planifiées (Cron)
 
-```bash
-docker compose -f compose.dev.yaml exec workspace bash
-composer install
-npm install
-npm run dev
-```
+Une tâche planifiée est définie pour surveiller la valeur du stock.
 
-4. Run Migrations:
+- **Commande** : `php artisan stock:monitor-drop --threshold=15`
+- **Description** : Calcule la variation de la valeur totale du stock par rapport à la veille. Si la chute dépasse le seuil (`threshold`), une alerte est envoyée.
+- **Configuration** : Pour l'activer en production, ajoutez la ligne suivante à votre crontab sur le serveur :
 
-```bash
-docker compose -f compose.dev.yaml exec workspace php artisan migrate
-```
+    ```cron
+    * * * * * cd /chemin/vers/votre/projet && php artisan schedule:run >> /dev/null 2>&1
+    ```
 
-5. Access the Application:
+    La fréquence exacte peut être ajustée dans `app/Console/Kernel.php`.
 
-Open your browser and navigate to [http://localhost](http://localhost).
+## Imports de données
 
-## Usage
+Le système permet d'importer des achats groupés via un fichier Excel.
 
-Here are some common commands and tips for using the development environment:
+- **Logique** : La classe `App\Imports\PurchaseImport` gère le traitement du fichier.
+- **Format attendu** : Le fichier doit contenir les colonnes suivantes :
+    - `reference_groupe` : Un identifiant unique pour regrouper plusieurs lignes en un seul achat.
+    - `email_fournisseur` : L'email d'un fournisseur existant.
+    - `nom_produit` : Le nom d'un produit existant.
+    - `quantite` : La quantité achetée.
+    - `cout_unitaire` : Le prix d'achat unitaire du produit.
+- **Processus** : L'import valide chaque ligne, regroupe les articles par `reference_groupe`, puis utilise le `PurchaseService` pour créer l'achat, garantissant ainsi que toutes les règles métier sont respectées.
 
-### Accessing the Workspace Container
+## Dépannage
 
-The workspace sidecar container includes Composer, Node.js, NPM, and other tools necessary for Laravel development (e.g. assets building).
+Voici quelques solutions aux problèmes courants rencontrés lors de l'utilisation ou du développement de l'application.
 
-```bash
-docker compose -f compose.dev.yaml exec workspace bash
-```
+### 1. Erreurs lors de l'import Excel
+*   **Symptôme** : L'import échoue ou ne crée aucune donnée.
+*   **Solution** :
+    *   Vérifiez que les en-têtes de colonnes correspondent exactement à : `reference_groupe`, `email_fournisseur`, `nom_produit`, `quantite`, `cout_unitaire`.
+    *   Assurez-vous que le fournisseur (`email_fournisseur`) et le produit (`nom_produit`) existent déjà dans la base de données.
+    *   Vérifiez les logs Laravel (`storage/logs/laravel.log`) pour des détails précis sur l'erreur.
 
-### Run Artisan Commands:
+### 2. Les emails d'alerte ne partent pas
+*   **Symptôme** : La commande `stock:monitor-drop` indique un envoi, mais rien n'est reçu.
+*   **Solution** :
+    *   Vérifiez la configuration `MAIL_*` dans votre fichier `.env`.
+    *   Pour le développement local, utilisez `MAIL_MAILER=log` pour voir les emails dans `storage/logs/laravel.log` ou un outil comme Mailpit/Mailhog.
 
-```bash
-docker compose -f compose.dev.yaml exec workspace php artisan migrate
-```
-
-### Rebuild Containers:
-
-```bash
-docker compose -f compose.dev.yaml up -d --build
-```
-
-### Stop Containers:
-
-```bash
-docker compose -f compose.dev.yaml down
-```
-
-### View Logs:
-
-```bash
-docker compose -f compose.dev.yaml logs -f
-```
-
-For specific services, you can use:
-
-```bash
-docker compose -f compose.dev.yaml logs -f web
-```
-
-## Production Environment
-
-The production environment is designed with security and efficiency in mind:
-
-- **Optimized Docker Images**: Uses multi-stage builds to minimize the final image size, reducing the attack surface.
-- **Environment Variables Management**: Sensitive data such as passwords and API keys are managed carefully to prevent exposure.
-- **User Permissions**: Containers run under non-root users where possible to follow the principle of least privilege.
-- **Health Checks**: Implemented to monitor the status of services and ensure they are functioning correctly.
-- **HTTPS Setup**: While not included in this example, it's recommended to configure SSL certificates and use HTTPS in a production environment.
-
-### Deploying
-
-The production image can be deployed to any Docker-compatible hosting environment, such as AWS ECS, Kubernetes, or a traditional VPS.
-
-## Technical Details
-
-- **PHP**: Version **8.4 FPM** is used for optimal performance in both development and production environments.
-- **Node.js**: Version **22.x** is used in the development environment for building frontend assets with Vite.
-- **PostgreSQL**: Version **16** is used as the database in the examples, but you can adjust the configuration to use MySQL if preferred.
-- **Redis**: Used for caching and session management, integrated into both development and production environments.
-- **Nginx**: Used as the web server to serve the Laravel application and handle HTTP requests.
-- **Docker Compose**: Orchestrates the services, simplifying the process of starting and stopping the environment.
-- **Health Checks**: Implemented in the Docker Compose configurations and Laravel application to ensure all services are operational.
-
-## Contributing
-
-Contributions are welcome! Whether you find a bug, have an idea for improvement, or want to add a new feature, your input is valuable.
-
-### How to Contribute
-
-1. **Fork the Repository:**
-
-    Click the "Fork" button at the top right of this page to create your own copy of the repository.
-
-2. **Clone Your Fork:**
-
-```bash
-    git clone https://github.com/your-user-name/laravel-docker-examples.git
-    cd laravel-docker-examples
-```
-
-3. Create a Branch:
-
-```bash
-    git checkout -b your-feature-branch
-```
-
-4. Make Your Changes.
-
-    Implement your changes or additions.
-
-5. Commit Your Changes:
-
-```bash
-git commit -m "Description of changes"
-```
-
-6. Push to Your Fork:
-
-```bash
-    git push origin feature-branch
-```
-
-7. Submit a Pull Request:
-    - Go to the original repository.
-    - Click on "Pull Requests" and then "New Pull Request."
-    - Select your fork and branch, and submit your pull request.
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for more details.
+### 3. Problèmes de styles / Assets manquants
+*   **Symptôme** : La page s'affiche sans CSS ou JavaScript.
+*   **Solution** :
+    *   Assurez-vous d'avoir lancé `npm install` et `npm run dev` (pour le développement) ou `npm run build` (pour la production).

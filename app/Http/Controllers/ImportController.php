@@ -4,19 +4,25 @@ namespace App\Http\Controllers;
 
 use Maatwebsite\Excel\Validators\ValidationException;
 use Illuminate\Http\Request;
-use App\Imports\ProductsImport;
-use App\Imports\SupplierImport;
-use App\Imports\CategoryImport;
-use App\Imports\PurchaseImport;
-use App\Services\ProductService;
-use App\Services\PurchaseService;
-use App\Services\SupplierService;
+use App\Imports\{
+    ProductsImport,
+    SupplierImport,
+    CategoryImport,
+    PurchaseImport
+};
+use App\Services\{
+    ProductService,
+    PurchaseService,
+    SupplierService,
+    ImportService
+};
+
 
 class ImportController extends Controller
 {
     protected $importService;
 
-    public function __construct(\App\Services\ImportService $importService)
+    public function __construct(ImportService $importService)
     {
         $this->importService = $importService;
     }

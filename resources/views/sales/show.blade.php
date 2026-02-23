@@ -1,15 +1,15 @@
 @extends('layouts.app-front-office')
 
-@section('title', "Détail de la Vente : " . $sale->reference)
+@section('title', "Sale Details : " . $sale->reference)
 
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <a href="{{ route('sales.index') }}" class="btn btn-secondary shadow-sm">
-            <i class="bi bi-arrow-left"></i> Retour à l'historique
+            <i class="bi bi-arrow-left"></i> Back to History
         </a>
         <a href="{{ route('sales.pdf', $sale->id) }}" class="btn btn-danger shadow-sm">
-            <i class="bi bi-file-earmark-pdf"></i> Télécharger en PDF
+            <i class="bi bi-file-earmark-pdf"></i> Download as PDF
         </a>
     </div>
 
@@ -33,10 +33,10 @@
                 <table class="table table-striped">
                     <thead class="table-dark">
                         <tr>
-                            <th>Produit</th>
-                            <th class="text-center">Quantité</th>
-                            <th class="text-end">Prix Unitaire</th>
-                            <th class="text-end">Sous-total</th>
+                            <th>Product</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-end">Unit Price</th>
+                            <th class="text-end">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,11 +57,11 @@
                     <table class="table table-clear">
                         <tbody>
                             <tr>
-                                <td><strong>Total Brut</strong></td>
+                                <td><strong>Total Gross</strong></td>
                                 <td class="text-end">{{ number_format($sale->total_brut, 2) }} €</td>
                             </tr>
                             <tr>
-                                <td><strong>Remise</strong></td>
+                                <td><strong>Discount</strong></td>
                                 <td class="text-end text-danger">-{{ number_format($sale->discount, 2) }} €</td>
                             </tr>
                             <tr class="table-light">

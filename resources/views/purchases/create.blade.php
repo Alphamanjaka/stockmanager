@@ -22,9 +22,9 @@
             <div class="col-md-8">
                 <div class="card mb-4">
                     <div class="card-body">
-                        <label class="form-label fw-bold">Sélectionner le Fournisseur</label>
+                        <label class="form-label fw-bold">Select a Supplier</label>
                         <select name="supplier_id" class="form-select select2" required>
-                            <option value="">-- Choisir un fournisseur --</option>
+                            <option value="">-- Choose a supplier --</option>
                             @foreach ($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
                             @endforeach
@@ -32,14 +32,14 @@
                     </div>
                 </div>
                 <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-dark text-white fw-bold">Ajouter des Produits à l'Approvisionnement</div>
+                    <div class="card-header bg-dark text-white fw-bold">Add Products to Purchase</div>
                     <div class="card-body">
                         <table class="table" id="purchase-table">
                             <thead>
                                 <tr>
-                                    <th>Produit</th>
-                                    <th>Quantité</th>
-                                    <th>Prix d'Achat Unitaire</th>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Purchase Price</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -63,21 +63,21 @@
                             </tbody>
                         </table>
 
-                        <button type="button" class="btn btn-primary" id="add-product">+ Ajouter un produit</button>
+                        <button type="button" class="btn btn-primary" id="add-product">+ Add a Product</button>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card shadow-sm sticky-top" style="top: 20px;">
-                    <div class="card-header bg-dark text-white fw-bold">Résumé de la transaction</div>
+                    <div class="card-header bg-dark text-white fw-bold">Transaction Details</div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Total Brut :</span>
-                            <span id="display-brut" class="fw-bold">0.00 €</span>
+                            <span id="display-brut" class="fw-bold">0.00 Mga</span>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label small">Remise (€)</label>
+                            <label class="form-label small">Discount (Mga)</label>
                             <input type="number" name="discount" id="discount-input" class="form-control" value="0"
                                 min="0">
                         </div>
@@ -86,11 +86,11 @@
 
                         <div class="d-flex justify-content-between mb-4">
                             <span class="h5">Total Net :</span>
-                            <span id="display-net" class="h5 text-success fw-bold">0.00 €</span>
+                            <span id="display-net" class="h5 text-success fw-bold">0.00 Mga</span>
                         </div>
 
                         <button type="submit" class="btn btn-success w-100 btn-lg shadow">
-                            Valider la transaction
+                            Validate the transaction
                         </button>
                     </div>
                 </div>
@@ -118,7 +118,7 @@
             function initSelect2(element) {
                 element.select2({
                     theme: 'bootstrap-5',
-                    placeholder: 'Chercher un produit...',
+                    placeholder: 'Search for a product...',
                     width: '100%'
                 });
             }
@@ -149,7 +149,7 @@
                 $('.product-select').each(function() {
                     $(this).select2({
                         theme: 'bootstrap-5',
-                        placeholder: 'Chercher un produit...',
+                        placeholder: 'Search for a product...',
                         width: '100%'
                     });
                 });
@@ -184,8 +184,8 @@
                 const discount = parseFloat(discountInput.val() || 0);
                 const totalNet = Math.max(0, totalBrut - discount);
 
-                $('#display-brut').text(totalBrut.toFixed(2) + ' €');
-                $('#display-net').text(totalNet.toFixed(2) + ' €');
+                $('#display-brut').text(totalBrut.toFixed(2) + ' Mga');
+                $('#display-net').text(totalNet.toFixed(2) + ' Mga');
 
                 // 3. Gestion de l'état global (avertissement et bouton de soumission)
                 submitButton.prop('disabled', !hasProducts);

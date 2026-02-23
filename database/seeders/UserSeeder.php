@@ -31,10 +31,5 @@ class UserSeeder extends Seeder
                 'role' => 'front_office',
             ]
         );
-
-        // Créer 5 utilisateurs aléatoires s'il en manque
-        if (User::count() < 7) {
-            User::factory(5)->create();
-        }
     }
 }

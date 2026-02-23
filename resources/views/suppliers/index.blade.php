@@ -3,7 +3,7 @@
 @section('title', 'Suppliers')
 
 @section('content')
-    <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary mb-3">+ Ajouter</a>
+    <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary mb-3"><i class="bi bi-plus-circle"></i> Add Supplier</a>
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
             <form action="{{ url('admin/suppliers') }}" method="GET" class="row g-3">
@@ -13,22 +13,22 @@
                 </div>
 
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrer</button>
-                    <a href="{{ url('admin/suppliers') }}" class="btn btn-outline-secondary" rel="noopener">Réinitialiser</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filter</button>
+                    <a href="{{ url('admin/suppliers') }}" class="btn btn-outline-secondary" rel="noopener">Reset</a>
                 </div>
             </form>
         </div>
     </div>
     <div class="container">
-        <h1>Liste des Fournisseurs</h1>
+        <h1>List of Suppliers</h1>
         <table class="table table-bordered">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Nom</th>
+                    <th>Name</th>
                     <th>Email</th>
-                    <th>Téléphone</th>
-                    <th>Adresse</th>
+                    <th>Phone</th>
+                    <th>Address</th>
                     <th>Actions</th>
                 </tr>
             </thead>

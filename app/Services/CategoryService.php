@@ -71,6 +71,18 @@ class CategoryService
         ];
     }
 
+    public function getParentCategoryDistribution()
+    {
+        $categories = Category::whereNull('parent_id')
+            ->withCount('products')
+            ->get();
+
+        return [
+            'labels' => $categories->pluck('name'),
+            'data' => $categories->pluck('products_count'),
+        ];
+    }
+
     public function update($id, $data)
     {
         $category = DB::transaction(function () use ($id, $data) {
@@ -120,7 +132,7 @@ class CategoryService
     }
 
     /**
-     * Met à jour les relations parent/enfant.
+     * update category children relationships
      */
     protected function syncChildren($parentId, $childrenIds)
     {

@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePurchaseRequest;
-use App\Services\PurchaseService;
-use App\Services\SupplierService;
-use App\Services\ProductService;
+use App\Services\{
+    PurchaseService,
+    SupplierService,
+    ProductService
+};
+use App\Http\Resources\PurchaseApiResourceCollection;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -25,6 +28,23 @@ class PurchaseController extends Controller
         $this->supplierService = $supplierService;
         $this->productService = $productService;
     }
+    // Dans app/Http/Controllers/PurchaseController.php
+
+    public function getPurchasesApi(Request $request)
+    {
+        // Délégation de la logique métier au service
+        $filters = [
+            'search' => $request->get('search'),
+            'sort' => $request->get('sort'),
+        ];
+        $purchases = $this->purchaseService->getPurchasesForApi($filters, $request->get('size', 10));
+
+        // On utilise une collection de ressources personnalisée qui retourne le format exact attendu par Tabulator.
+        return new PurchaseApiResourceCollection($purchases);
+    }
+
+
+
 
     /**
      * Display a listing of the resource.

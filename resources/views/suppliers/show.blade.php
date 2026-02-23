@@ -6,11 +6,11 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <a href="{{ route('admin.suppliers.index') }}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left"></i> Retour à la liste
+                <i class="bi bi-arrow-left"></i> back to Suppliers
             </a>
             <div>
                 <a href="{{ route('admin.suppliers.edit', $supplier->id) }}" class="btn btn-primary">
-                    <i class="bi bi-pencil-square"></i> Modifier
+                    <i class="bi bi-pencil-square"></i> Update
                 </a>
             </div>
         </div>
@@ -29,15 +29,15 @@
                                 <span>{{ $supplier->email ?? 'Non renseigné' }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
-                                <strong><i class="bi bi-telephone"></i> Téléphone:</strong>
+                                <strong><i class="bi bi-telephone"></i> Phone:</strong>
                                 <span>{{ $supplier->phone }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
-                                <strong><i class="bi bi-geo-alt"></i> Adresse:</strong>
+                                <strong><i class="bi bi-geo-alt"></i> Address:</strong>
                                 <span>{{ $supplier->address ?? 'Non renseignée' }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
-                                <strong>Date d'ajout:</strong>
+                                <strong>Adding Date:</strong>
                                 <span>{{ $supplier->created_at->format('d/m/Y') }}</span>
                             </li>
                         </ul>
@@ -47,17 +47,17 @@
             <div class="col-md-4">
                 <div class="card shadow-sm h-100 bg-light">
                     <div class="card-body text-center d-flex flex-column justify-content-center">
-                        <h6 class="text-muted text-uppercase small">Volume d'Affaires</h6>
+                        <h6 class="text-muted text-uppercase small">Business Volume</h6>
                         <h1 class="display-5 fw-bold text-primary">{{ number_format($totalSpent, 2) }} €</h1>
-                        <p class="mb-3 text-muted">sur {{ $purchases->total() }} commandes</p>
+                        <p class="mb-3 text-muted">on {{ $purchases->total() }} purchases</p>
 
                         @if ($lastPurchase)
                             <div class="alert alert-white border shadow-sm py-2 mb-0">
-                                <small class="text-muted d-block">Dernier achat le</small>
+                                <small class="text-muted d-block">Last purchase on</small>
                                 <strong>{{ $lastPurchase->created_at->format('d/m/Y') }}</strong>
                             </div>
                         @else
-                            <span class="badge bg-secondary">Aucun achat</span>
+                            <span class="badge bg-secondary">No purchases</span>
                         @endif
                     </div>
                 </div>
@@ -69,16 +69,16 @@
                 <div class="col-12">
                     <div class="card shadow-sm">
                         <div class="card-header bg-white">
-                            <h5 class="mb-0"><i class="bi bi-trophy"></i> Top Produits achetés</h5>
+                            <h5 class="mb-0"><i class="bi bi-trophy"></i> Top Products Purchased</h5>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover mb-0">
                                     <thead class="table-light">
                                         <tr>
-                                            <th>Produit</th>
-                                            <th class="text-center">Quantité Totale</th>
-                                            <th class="text-end">Coût Total</th>
+                                            <th>Product</th>
+                                            <th class="text-center">Total Quantity</th>
+                                            <th class="text-end">Total Cost</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -100,16 +100,16 @@
 
             <div class="card shadow-sm">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="bi bi-receipt"></i> Historique des Achats</h5>
+                    <h5 class="mb-0"><i class="bi bi-receipt"></i> Purchase History</h5>
                 </div>
                 <div class="card-body">
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th>Référence</th>
+                                <th>Reference</th>
                                 <th>Date</th>
-                                <th>Montant Total</th>
-                                <th>Statut</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -119,13 +119,12 @@
                                     <td>{{ $purchase->reference }}</td>
                                     <td>{{ $purchase->created_at->format('d/m/Y H:i') }}</td>
                                     <td class="fw-bold">{{ number_format($purchase->total_net, 2) }} €</td>
-                                    <td><span class="badge bg-success">Validé</span></td>
-                                    <td><button class="btn btn-sm btn-outline-secondary" disabled>Détails</button></td>
+                                    <td><span class="badge bg-success">Validated</span></td>
+                                    <td><button class="btn btn-sm btn-outline-secondary" disabled>Details</button></td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted">Aucun achat enregistré pour ce
-                                        fournisseur.</td>
+                                    <td colspan="5" class="text-center text-muted">No purchases recorded for this supplier.</td>
                                 </tr>
                             @endforelse
                         </tbody>

@@ -19,8 +19,8 @@ class SupplierFactory extends Factory
         return [
             // Define default values for supplier attributes
             'name' => $this->faker->company(), // Génère un nom d'entreprise
-            'contact_email' => $this->faker->unique()->companyEmail(),
-            'phone_number' => $this->faker->phoneNumber(),
+            'email' => $this->faker->unique()->companyEmail(),
+            'phone' => $this->faker->phoneNumber(),
             'address' => $this->faker->address(),
         ];
     }

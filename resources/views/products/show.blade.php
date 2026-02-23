@@ -1,15 +1,15 @@
 @extends('layouts.app-back-office')
-@section('title', 'Détail du Produit : ' . $product->name)
+@section('title', 'Detail of Product : ' . $product->name)
 
 @section('content')
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <a href="{{ route('admin.products.index') }}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left"></i> Retour à la liste
+                <i class="bi bi-arrow-left"></i> Back to list
             </a>
             <div>
                 <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-primary">
-                    <i class="bi bi-pencil-square"></i> Modifier
+                    <i class="bi bi-pencil-square"></i> Edit
                 </a>
             </div>
         </div>
@@ -19,25 +19,25 @@
             <div class="col-lg-6">
                 <div class="card shadow-sm mb-4 h-100">
                     <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="fas fa-box"></i> Informations sur le Produit</h5>
+                        <h5 class="mb-0"><i class="fas fa-box"></i> Product Information</h5>
                     </div>
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item d-flex justify-content-between">
-                                <strong>Nom:</strong>
+                                <strong>Name:</strong>
                                 <span>{{ $product->name }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
-                                <strong>Catégorie:</strong>
-                                <span>{{ $product->category->name ?? 'Non définie' }}</span>
+                                <strong>Category:</strong>
+                                <span>{{ $product->category->name ?? 'Not defined' }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
-                                <strong>Prix de vente:</strong>
+                                <strong>Selling Price:</strong>
                                 <span class="fw-bold text-success">{{ number_format($product->price, 2) }} €</span>
                             </li>
                             <li class="list-group-item">
                                 <strong>Description:</strong>
-                                <p class="mt-2 text-muted">{{ $product->description ?? 'Aucune description' }}</p>
+                                <p class="mt-2 text-muted">{{ $product->description ?? 'No description available' }}</p>
                             </li>
                         </ul>
                     </div>
@@ -48,27 +48,27 @@
             <div class="col-lg-6">
                 <div class="card shadow-sm mb-4 h-100">
                     <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="fas fa-warehouse"></i> État du Stock</h5>
+                        <h5 class="mb-0"><i class="fas fa-warehouse"></i> Stock Status</h5>
                     </div>
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <strong>Stock Actuel:</strong>
+                                <strong>Current Stock:</strong>
                                 <span
                                     class="badge fs-6 {{ $product->quantity_stock <= $product->alert_stock ? 'bg-danger' : 'bg-success' }}">
-                                    {{ $product->quantity_stock }} unités
+                                    {{ $product->quantity_stock }} units
                                 </span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
-                                <strong>Seuil d'alerte:</strong>
-                                <span>{{ $product->alert_stock }} unités</span>
+                                <strong>Alert Threshold:</strong>
+                                <span>{{ $product->alert_stock }} units</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
-                                <strong>Créé le:</strong>
+                                <strong>Created on:</strong>
                                 <span>{{ $product->created_at->format('d/m/Y H:i') }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
-                                <strong>Mis à jour le:</strong>
+                                <strong>Last Updated:</strong>
                                 <span>{{ $product->updated_at->format('d/m/Y H:i') }}</span>
                             </li>
                         </ul>
@@ -77,20 +77,20 @@
             </div>
         </div>
 
-    {{-- Stock Evolution Chart --}}
-    <div class="card shadow-sm mt-4">
-        <div class="card-header bg-dark text-white">
-            <h5 class="mb-0"><i class="fas fa-chart-line"></i> Évolution du Stock</h5>
+        {{-- Stock Evolution Chart --}}
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Stock Evolution</h5>
+            </div>
+            <div class="card-body" style="position: relative; height: 300px; width: 100%;">
+                <canvas id="stockChart"></canvas>
+            </div>
         </div>
-        <div class="card-body" style="height: 300px;">
-            <canvas id="stockChart"></canvas>
-        </div>
-    </div>
 
         {{-- Stock Movements History --}}
         <div class="card shadow-sm mt-4">
             <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="fas fa-arrows-alt"></i> Historique des Mouvements</h5>
+                <h5 class="mb-0"><i class="fas fa-arrows-alt"></i> Stock Movements History</h5>
             </div>
             <div class="card-body">
                 <table class="table table-hover">
@@ -98,8 +98,8 @@
                         <tr>
                             <th>Date</th>
                             <th>Type</th>
-                            <th>Quantité</th>
-                            <th>Raison</th>
+                            <th>Quantity</th>
+                            <th>Reason</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -107,15 +107,16 @@
                             <tr>
                                 <td>{{ $movement->created_at->format('d/m/Y H:i') }}</td>
                                 <td>{!! $movement->type === 'in'
-                                    ? '<span class="badge bg-success">Entrée</span>'
-                                    : '<span class="badge bg-danger">Sortie</span>' !!}</td>
+                                    ? '<span class="badge bg-success">Entry</span>'
+                                    : '<span class="badge bg-danger">Exit</span>' !!}</td>
                                 <td class="fw-bold {{ $movement->quantity > 0 ? 'text-success' : 'text-danger' }}">
                                     {{ $movement->quantity }}</td>
                                 <td>{{ $movement->reason }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center py-4">Aucun mouvement de stock pour ce produit.</td>
+                                <td colspan="4" class="text-center py-4">No stock movements recorded for this product.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -127,46 +128,76 @@
 @endsection
 
 @push('scripts')
-{{-- Nous avons besoin de Chart.js et de son adaptateur de date pour dessiner le graphique --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        console.log('Initialisation du graphique de l\'évolution du stock...');
+<script type="module">
+    $(function() {
         const ctx = document.getElementById('stockChart').getContext('2d');
-
-        // Les données sont passées depuis le contrôleur en JSON
-        const chartLabels = {!! $chartLabels !!};
-        const chartData = {!! $chartData !!};
+        const alertThreshold = {!! $product->alert_stock !!}; // On pourrait passer cette valeur depuis le PHP ($product->min_stock)
 
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: chartLabels,
+                labels: {!! $chartLabels !!},
                 datasets: [{
-                    label: 'Quantité en Stock',
-                    data: chartData,
-                    borderColor: 'rgba(23, 162, 184, 1)', // Un joli bleu/vert
-                    backgroundColor: 'rgba(23, 162, 184, 0.2)',
-                    borderWidth: 2,
-                    stepped: true, // Parfait pour montrer des niveaux de stock constants entre les changements
+                    label: 'Niveau du stock',
+                    data: {!! $chartData !!},
+                    borderColor: '#17a2b8',
+                    backgroundColor: (context) => {
+                        const chart = context.chart;
+                        const {ctx, chartArea} = chart;
+                        if (!chartArea) return null;
+
+                        // Dégradé qui change de couleur si on passe sous le seuil
+                        const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                        gradient.addColorStop(0, 'rgba(220, 53, 69, 0.2)'); // Rouge en bas
+                        gradient.addColorStop(alertThreshold / 100, 'rgba(23, 162, 184, 0.2)'); // Transition
+                        return gradient;
+                    },
+                    borderWidth: 3,
+                    stepped: true,
                     fill: true,
+                    pointRadius: (context) => context.raw === 0 ? 6 : 3, // Point plus gros si stock à zéro
+                    pointBackgroundColor: (context) => context.raw < alertThreshold ? '#dc3545' : '#17a2b8'
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    annotation: {
+                        annotations: {
+                            line1: {
+                                type: 'line',
+                                yMin: alertThreshold,
+                                yMax: alertThreshold,
+                                borderColor: 'rgba(220, 53, 69, 0.8)',
+                                borderWidth: 2,
+                                borderDash: [6, 6],
+                                label: {
+                                    display: true,
+                                    content: 'Seuil d\'alerte',
+                                    position: 'end'
+                                }
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => ` Quantité : ${context.parsed.y} unités`,
+                            footer: (context) => {
+                                if (context[0].parsed.y < alertThreshold) return '⚠️ Stock critique !';
+                            }
+                        }
+                    }
+                },
                 scales: {
                     x: {
-                        type: 'time', // Indique à Chart.js d'utiliser une échelle de temps
-                        time: {
-                            unit: 'day',
-                            tooltipFormat: 'dd/MM/yyyy HH:mm' // Format pour l'infobulle
-                        },
-                        title: { display: true, text: 'Date' }
+                        type: 'time',
+                        time: { unit: 'day' },
+                        grid: { display: false }
                     },
                     y: {
                         beginAtZero: true,
-                        title: { display: true, text: 'Quantité' }
+                        suggestedMax: alertThreshold + 20 // Pour toujours voir le seuil
                     }
                 }
             }

@@ -112,10 +112,10 @@ class PurchaseService
     public function getPurchaseStatistics()
     {
         return [
-            'totalSpent' => Purchase::sum('total_net'), // Montant total dépensé pour les achats.
-            'totalPurchases' => Purchase::count(),
-            'averagePurchaseValue' => Purchase::avg('total_net'), // Valeur moyenne des achats.
-            'totalDiscounts' => Purchase::sum('discount'), // Total des remises accordées.
+            'totalSpent' => Purchase::where('state', 'Received')->sum('total_net'), // Montant total dépensé pour les achats.
+            'totalPurchases' => Purchase::where('state', 'Received')->count(),
+            'averagePurchaseValue' => Purchase::where('state', 'Received')->avg('total_net'), // Valeur moyenne des achats.
+            'totalDiscounts' => Purchase::where('state', 'Received')->sum('discount'), // Total des remises accordées.
         ];
     }
     // Update purchase details (like changing supplier or reference)
@@ -141,5 +141,32 @@ class PurchaseService
             $query->where('state', $filters['state']);
         }
         return $query;
+    }
+
+    /**
+     * Récupère les achats pour l'API (Tabulator) avec tri dynamique et recherche.
+     */
+    public function getPurchasesForApi(array $filters = [], int $perPage = 10)
+    {
+        $query = Purchase::with('supplier');
+
+        // Recherche (Reference ou Nom du fournisseur)
+        if (!empty($filters['search'])) {
+            $query->where('reference', 'like', "%{$filters['search']}%")
+                ->orWhereHas('supplier', fn($q) => $q->where('name', 'like', "%{$filters['search']}%"));
+        }
+
+        // Tri dynamique
+        if (!empty($filters['sort']) && is_array($filters['sort'])) {
+            foreach ($filters['sort'] as $s) {
+                if (isset($s['field']) && isset($s['dir'])) {
+                    $query->orderBy($s['field'], $s['dir']);
+                }
+            }
+        } else {
+            $query->latest(); // Tri par défaut
+        }
+
+        return $query->paginate($perPage);
     }
 }

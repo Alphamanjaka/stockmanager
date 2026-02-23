@@ -47,6 +47,7 @@ class DashboardController extends Controller
         $period = $request->get('period', '7days');
         $data = $this->dashboardService->getBackOfficeData($period);
 
+        // Les données du graphique ('labels', 'values') sont maintenant chargées via API.
         return view('back-office.dashboard', [
             'salesToday' => $data['salesToday'],
             'salesThisMonth' => $data['salesThisMonth'],
@@ -58,8 +59,6 @@ class DashboardController extends Controller
             'mostSoldProduct' => $data['mostSoldProduct'],
             'leastSoldProduct' => $data['leastSoldProduct'],
             'period' => $data['period'],
-            'labels' => $data['chartData']['labels'],
-            'values' => $data['chartData']['values'],
         ]);
     }
 
@@ -80,5 +79,24 @@ class DashboardController extends Controller
             'salesThisMonth' => $data['salesThisMonth'],
             'totalSales' => $data['totalSales'],
         ]);
+    }
+
+    /**
+     * Fournit les données du graphique des ventes pour le back-office via une API.
+     */
+    public function getChartDataApi(Request $request)
+    {
+        if (!auth()->user()->isBackOffice()) {
+            return response()->json(['error' => 'Accès non autorisé'], 403);
+        }
+
+        $request->validate([
+            'period' => 'in:7days,1month,1year'
+        ]);
+
+        $period = $request->get('period', '7days');
+        $chartData = $this->dashboardService->getChartData($period);
+
+        return response()->json($chartData);
     }
 }

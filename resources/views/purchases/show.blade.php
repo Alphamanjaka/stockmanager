@@ -5,14 +5,14 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary shadow-sm">
-                <i class="bi bi-arrow-left"></i> Retour à la liste
+                <i class="bi bi-arrow-left"></i> Back to Purchases
             </a>
             <div>
                 <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-primary shadow-sm">
-                    <i class="bi bi-pencil"></i> Modifier
+                    <i class="bi bi-pencil"></i> Update
                 </a>
                 <a href="{{ route('admin.purchases.pdf', $purchase->id) }}" class="btn btn-danger shadow-sm" target="_blank">
-                    <i class="bi bi-file-earmark-pdf"></i> Télécharger en PDF
+                    <i class="bi bi-file-earmark-pdf"></i> Download as PDF
                 </a>
             </div>
         </div>
@@ -22,17 +22,17 @@
             <div class="col-md-8">
                 <div class="card shadow-sm">
                     <div class="card-header bg-white">
-                        <h5 class="mb-0">Contenu de l'achat</h5>
+                        <h5 class="mb-0">Purchase Details</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Produit</th>
-                                        <th class="text-center">Quantité</th>
-                                        <th class="text-end">Coût Unitaire</th>
-                                        <th class="text-end">Sous-total</th>
+                                        <th>Product</th>
+                                        <th class="text-center">Quantity</th>
+                                        <th class="text-end">Unit Cost (Mga)</th>
+                                        <th class="text-end">Subtotal (Mga)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -40,8 +40,8 @@
                                         <tr>
                                             <td>{{ $item->product->name }}</td>
                                             <td class="text-center">{{ $item->quantity }}</td>
-                                            <td class="text-end">{{ number_format($item->unit_price, 2) }} €</td>
-                                            <td class="text-end">{{ number_format($item->subtotal, 2) }} €</td>
+                                            <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
+                                            <td class="text-end">{{ number_format($item->subtotal, 2) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -55,18 +55,19 @@
                                     <tbody>
                                         <tr>
                                             <td><strong>Total Brut</strong></td>
-                                            <td class="text-end">{{ number_format($purchase->total_amount, 2) }} €</td>
+                                            <td class="text-end">{{ number_format($purchase->total_amount, 2) }} Mga</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Remise</strong></td>
-                                            <td class="text-end text-danger">-{{ number_format($purchase->discount, 2) }} €
+                                            <td><strong>Discount</strong></td>
+                                            <td class="text-end text-danger">-{{ number_format($purchase->discount, 2) }}
+                                                Mga
                                             </td>
                                         </tr>
                                         <tr class="table-light">
                                             <td><span class="h5">Total Net</span></td>
                                             <td class="text-end"><span
                                                     class="h5 text-success">{{ number_format($purchase->total_net, 2) }}
-                                                    €</span></td>
+                                                    Mga</span></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -121,4 +122,3 @@
         </div>
     </div>
 @endsection
-

@@ -57,6 +57,8 @@ class MonitorStockDrop extends Command
             $admins = User::where('role', 'back_office')->get();
             foreach ($admins as $admin) {
                 Mail::to($admin->email)->send(new StockDropAlert($currentValue, $previousValue, $variation));
+                // Pause de 2 secondes entre chaque email pour éviter le "Rate Limit" de Mailtrap
+                sleep(2);
             }
         } else {
             $this->info("✅ Variation normale (" . number_format($variation, 2) . "%). Seuil d'alerte : -{$threshold}%");

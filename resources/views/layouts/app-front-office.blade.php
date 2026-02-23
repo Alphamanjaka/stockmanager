@@ -1,19 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockMaster - Ventes @yield('title')</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <title>StockMaster - Selling @yield('title')</title>
+    @vite(['resources/css/custom.css', 'resources/js/app.js'])
+    @stack('css')
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -65,7 +58,7 @@
     <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container-fluid">
             <a class="navbar-brand text-white fw-bold" href="{{ route('sales.dashboard') }}">
-                <i class="fas fa-shopping-cart"></i> Front Office - Gestion des Ventes
+                <i class="fas fa-shopping-cart"></i> Front Office - Selling Management
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -75,19 +68,19 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('sales/dashboard*') ? 'active-link' : '' }}"
                             href="{{ route('sales.dashboard') }}">
-                            <i class="fas fa-home"></i> Accueil
+                            <i class="fas fa-home"></i> Home
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('sales') ? 'active-link' : '' }}"
                             href="{{ route('sales.index') }}">
-                            <i class="fas fa-receipt"></i> Ventes
+                            <i class="fas fa-receipt"></i> Sales
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('sales/create') ? 'active-link' : '' }}"
                             href="{{ route('sales.create') }}">
-                            <i class="fas fa-plus-circle"></i> Nouvelle Vente
+                            <i class="fas fa-plus-circle"></i> New Sale
                         </a>
                     </li>
                     <li class="nav-item dropdown">
@@ -97,7 +90,7 @@
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('logout') }}"
                                     onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                    <i class="fas fa-sign-out-alt"></i> Logout
                                 </a></li>
                         </ul>
                     </li>
@@ -134,7 +127,7 @@
         @csrf
     </form>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @stack('scripts')
 </body>
 
 </html>

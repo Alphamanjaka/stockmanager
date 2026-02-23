@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use Barryvdh\DomPDF\Facade\Pdf;
-use App\Services\SaleService;
-use App\Services\ProductService;
+use App\Services\{
+    SaleService,
+    ProductService
+};
 use App\Http\Requests\StoreSaleRequest;
 
 class SaleController extends Controller

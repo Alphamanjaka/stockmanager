@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
-use App\Services\ProductService;
-use App\Services\StockService;
+use App\Services\{
+    ProductService,
+    StockService,
+};
 use Illuminate\Http\Request;
 
 class ProductController extends Controller

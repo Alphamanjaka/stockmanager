@@ -85,7 +85,7 @@ class DashboardService
     /**
      * Get chart data for specified period
      */
-    private function getChartData($period)
+    public function getChartData($period)
     {
         Carbon::setLocale('fr');
 
@@ -173,9 +173,12 @@ class DashboardService
         $startDate = now()->subMonths(11)->startOfMonth();
         $endDate = now()->endOfMonth();
 
-        $monthExpression = DB::connection()->getDriverName() === 'sqlite'
-            ? "strftime('%Y-%m', created_at)"
-            : "DATE_FORMAT(created_at, '%Y-%m')";
+        $monthExpression = match (DB::connection()->getDriverName()) {
+            'sqlite' => "strftime('%Y-%m', created_at)",
+            'pgsql' => "TO_CHAR(created_at, 'YYYY-MM')",
+            'sqlsrv' => "FORMAT(created_at, 'yyyy-MM')",
+            default => "DATE_FORMAT(created_at, '%Y-%m')", // default for mysql/mariadb
+        };
 
         $salesData = Sale::select(
             DB::raw("$monthExpression as sale_month"),

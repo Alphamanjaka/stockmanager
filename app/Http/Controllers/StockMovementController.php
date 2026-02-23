@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\StockService;
-use App\Services\ProductService;
+use App\Services\{
+    StockService,
+    ProductService
+};
 use Illuminate\Http\Request;
 
 class StockMovementController extends Controller

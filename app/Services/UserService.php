@@ -10,7 +10,12 @@ class UserService
 
     public function create(array $data)
     {
-        throw new \Exception("");
+        return User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role' => $data['role'] ?? 'front_office',
+        ]);
     }
     public function login(array $credentials)
     {
@@ -28,27 +33,40 @@ class UserService
     }
     public function logout()
     {
-        throw new \Exception("");
+        auth()->logout();
     }
     public function update($id, $data)
     {
-        throw new \Exception("");
+        $user = $this->getUserById($id);
+
+        if (!empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
+            unset($data['password']);
+        }
+
+        $user->update($data);
+        return $user->fresh();
     }
     public function delete($id)
     {
-        throw new \Exception("");
+        $user = $this->getUserById($id);
+        return $user->delete();
     }
     public function getAllUsers()
     {
-        throw new \Exception("");
+        return User::latest()->paginate(15);
     }
     public function getUserById($id)
     {
-        throw new \Exception("");
+        $user = User::find($id);
+        if (!$user) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Utilisateur non trouvé.');
+        }
+        return $user;
     }
     public function register(array $data)
     {
-        // let's create the user
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],

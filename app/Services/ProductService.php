@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\SaleItem;
 use App\Models\Category;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class ProductService
