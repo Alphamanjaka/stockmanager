@@ -112,10 +112,10 @@ class PurchaseService
     public function getPurchaseStatistics()
     {
         return [
-            'totalSpent' => Purchase::where('state', 'Received')->sum('total_net'), // Montant total dépensé pour les achats.
-            'totalPurchases' => Purchase::where('state', 'Received')->count(),
-            'averagePurchaseValue' => Purchase::where('state', 'Received')->avg('total_net'), // Valeur moyenne des achats.
-            'totalDiscounts' => Purchase::where('state', 'Received')->sum('discount'), // Total des remises accordées.
+            'totalSpent' => Purchase::where('state', 'Received')->orWhere('state','Paid')->sum('total_net'), // Montant total dépensé pour les achats.
+            'totalPurchases' => Purchase::where('state', 'Received')->orWhere('state', 'Paid')->count(),
+            'averagePurchaseValue' => Purchase::where('state', 'Received')->orWhere('state', 'Paid')->avg('total_net'), // Valeur moyenne des achats.
+            'totalDiscounts' => Purchase::where('state', 'Received')->orWhere('state', 'Paid')->sum('discount'), // Total des remises accordées.
         ];
     }
     // Update purchase details (like changing supplier or reference)

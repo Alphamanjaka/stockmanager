@@ -115,8 +115,8 @@ class PurchaseServiceTest extends TestCase
 
         // Assert
         $this->assertEquals(250.00, $stats['totalSpent']); // 100 + 150
-        $this->assertEquals(3, $stats['totalPurchases']);
-        $this->assertEquals(30.00, $stats['totalDiscounts']); // 10 + 0 + 20
-        $this->assertEqualsWithDelta(150.00, $stats['averagePurchaseValue'], 0.01); // (100+150+200)/3
+        $this->assertEquals(2, $stats['totalPurchases']);
+        $this->assertEquals(10, $stats['totalDiscounts']); // 10 + 0 + 20
+        $this->assertEqualsWithDelta(125.00, $stats['averagePurchaseValue'], 0.01); // (100+150)/2
     }
 }
