@@ -77,12 +77,12 @@
                 </div>
             </div>
 
-            <!-- Colonne de droite : Statut et Fournisseur -->
+            <!-- Colonne de droite : Statut et suppliers -->
             <div class="col-md-4">
-                <!-- Statut -->
+                <!-- State -->
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-white">
-                        <h5 class="mb-0">Statut</h5>
+                        <h5 class="mb-0 capitalize">state</h5>
                     </div>
                     <div class="card-body">
                         <form action="{{ route('admin.purchases.updateState', $purchase->id) }}" method="POST">
@@ -90,23 +90,23 @@
                             @method('PATCH')
                             <div class="input-group">
                                 <select name="state" class="form-select">
-                                    <option value="Draft" @selected($purchase->state == 'Draft')>Brouillon</option>
-                                    <option value="Ordered" @selected($purchase->state == 'Ordered')>Commandé</option>
-                                    <option value="Received" @selected($purchase->state == 'Received')>Reçu</option>
-                                    <option value="Paid" @selected($purchase->state == 'Paid')>Payé</option>
+                                    <option value="Draft" @selected($purchase->state == 'Draft')>Draft</option>
+                                    <option value="Ordered" @selected($purchase->state == 'Ordered')>Ordered</option>
+                                    <option value="Received" @selected($purchase->state == 'Received')>received</option>
+                                    <option value="Paid" @selected($purchase->state == 'Paid')>Paid</option>
                                 </select>
                                 <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-circle"></i> Mettre à jour
+                                    <i class="bi bi-check-circle"></i>update
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
 
-                <!-- Fournisseur -->
+                <!-- suppliers -->
                 <div class="card shadow-sm">
                     <div class="card-header bg-white">
-                        <h5 class="mb-0">Fournisseur</h5>
+                        <h5 class="mb-0">suppliers</h5>
                     </div>
                     <div class="card-body">
                         <h5 class="card-title">{{ $purchase->supplier->name }}</h5>
@@ -115,7 +115,7 @@
                         <p class="card-text"><i class="bi bi-telephone-fill text-muted"></i>
                             {{ $purchase->supplier->phone ?? 'Non renseigné' }}</p>
                         <a href="{{ route('admin.suppliers.show', $purchase->supplier->id) }}"
-                            class="btn btn-sm btn-outline-primary">Voir le fournisseur</a>
+                            class="btn btn-sm btn-outline-primary">more</a>
                     </div>
                 </div>
             </div>

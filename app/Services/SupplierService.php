@@ -50,15 +50,18 @@ class SupplierService
      */
     public function getSupplierDetails(Supplier $supplier): array
     {
+        $purchases=$supplier->purchases()->where('state', 'Received')->orWhere('state', 'Paid');
         // Statistiques globales pour ce fournisseur
-        $totalSpent = $supplier->purchases()->sum('total_net');
-        $lastPurchase = $supplier->purchases()->latest()->first();
+        $totalSpent = $purchases->sum('total_net');
+        $lastPurchase = $purchases->latest()->first();
 
         // Top 5 des produits achetés chez ce fournisseur
         $topProducts = DB::table('purchase_items')
             ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
             ->join('products', 'purchase_items.product_id', '=', 'products.id')
             ->where('purchases.supplier_id', $supplier->id)
+            ->where('purchases.state', 'Received')
+            ->orWhere('purchases.state', 'Paid')
             ->select(
                 'products.name',
                 DB::raw('SUM(purchase_items.quantity) as total_qty'),

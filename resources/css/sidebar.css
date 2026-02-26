@@ -1,0 +1,231 @@
+/* ==========================================================================
+   Variables de Thème
+   ========================================================================== */
+:root {
+    --sidebar-width-expanded: 250px;
+    --sidebar-width-collapsed: 70px;
+    --sidebar-bg: #ffffff;
+    --sidebar-accent-color: #0d6efd;
+    /* Bleu (Bootstrap Primary) au lieu du Rouge */
+    --sidebar-accent-active-border: #0a58ca;
+    --sidebar-link-color: #495057;
+    --sidebar-link-hover-bg: #f1f3f5;
+    --sidebar-link-hover-color: var(--sidebar-accent-color);
+    --sidebar-text-color: #212529;
+    --body-bg: #f8f9fa;
+    --transition-main: margin-left 0.3s ease-in-out;
+    --transition-sidebar: width 0.3s ease-in-out;
+    --transition-icon: transform 0.3s ease-in-out;
+}
+
+/* ==========================================================================
+   Layout Principal (Body & Main)
+   ========================================================================== */
+body {
+    background-color: var(--body-bg);
+}
+
+main {
+    background-color: var(--body-bg);
+    padding: 20px;
+    margin-left: var(--sidebar-width-expanded);
+    /* La largeur est maintenant gérée automatiquement par le navigateur pour éviter les débordements. */
+    transition: var(--transition-main);
+}
+
+/* ==========================================================================
+   Sidebar - Styles de Base
+   ========================================================================== */
+.sidebar {
+    width: var(--sidebar-width-expanded);
+    min-height: 100vh;
+    position: fixed;
+    z-index: 1000;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text-color);
+    border-right: 1px solid #dee2e6;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: var(--transition-sidebar);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar h4 {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar hr {
+    border-color: var(--sidebar-accent-color);
+    opacity: 0.3;
+}
+
+/* ==========================================================================
+   Sidebar - Liens de Navigation
+   ========================================================================== */
+.sidebar a {
+    color: var(--sidebar-link-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-left: 3px solid transparent;
+    transition: var(--transition-main);
+    justify-content: space-between;
+    /* Pour pousser le badge à droite */
+}
+
+.sidebar a:hover {
+    background: var(--sidebar-link-hover-bg);
+    color: var(--sidebar-link-hover-color);
+    border-left-color: var(--sidebar-accent-color);
+}
+
+/* En-têtes de section (ex: GESTION STOCK) */
+.sidebar-header {
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    color: #6c757d;
+    padding: 1.5rem 1.25rem 0.5rem;
+    font-weight: 700;
+}
+
+/* Badges de raccourcis clavier */
+.shortcut-badge {
+    font-size: 0.65rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #6c757d;
+    font-family: monospace;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: var(--transition-main);
+}
+
+.sidebar a:hover .shortcut-badge {
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Remplacement de .active-link pour une meilleure spécificité */
+.sidebar a.active-link {
+    background: var(--sidebar-accent-color);
+    color: white;
+    border-left-color: var(--sidebar-accent-active-border);
+    font-weight: bold;
+}
+
+/* ==========================================================================
+   Sidebar - État Réduit (Collapsed)
+   ========================================================================== */
+.sidebar.collapsed {
+    width: var(--sidebar-width-collapsed);
+    overflow: visible;
+    /* Indispensable pour laisser dépasser les menus flottants */
+}
+
+.sidebar.collapsed+main {
+    margin-left: var(--sidebar-width-collapsed);
+}
+
+.sidebar.collapsed .sidebar-text,
+.sidebar.collapsed h4,
+.sidebar.collapsed small {
+    display: none;
+}
+
+/* Cacher les headers et badges en mode réduit */
+.sidebar.collapsed .sidebar-header,
+.sidebar.collapsed .shortcut-badge {
+    display: none;
+}
+
+/* Masquer les sous-menus statiques en mode réduit */
+.sidebar.collapsed .collapse.show {
+    display: none !important;
+}
+
+/* --- MENUS FLOTTANTS (Au survol) --- */
+.sidebar.collapsed .menu-group {
+    position: relative;
+    /* Point d'ancrage pour le menu flottant */
+}
+
+/* Afficher le sous-menu sur le côté au survol */
+.sidebar.collapsed .menu-group:hover .collapse {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 100%;
+    /* Juste à droite de la sidebar */
+    width: 220px;
+    background: var(--sidebar-bg);
+    border-left: 3px solid var(--sidebar-accent-color);
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+    border-radius: 0 6px 6px 0;
+    padding: 0.5rem 0;
+    z-index: 1050;
+    /* Gestion du débordement vertical */
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Scrollbar fine pour le menu flottant */
+.sidebar.collapsed .menu-group:hover .collapse::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar.collapsed .menu-group:hover .collapse::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar.collapsed .menu-group:hover .collapse::-webkit-scrollbar-thumb {
+    background: var(--sidebar-accent-color);
+    border-radius: 4px;
+}
+
+/* Rétablir le style des liens dans le menu flottant */
+.sidebar.collapsed .menu-group:hover .collapse a {
+    text-align: left;
+    padding: 10px 20px !important;
+    justify-content: flex-start !important;
+}
+
+/* Rétablir l'affichage du texte dans le menu flottant */
+.sidebar.collapsed .menu-group:hover .collapse .sidebar-text {
+    display: inline !important;
+}
+
+.sidebar.collapsed a {
+    text-align: center;
+    padding: 15px 0 !important;
+    justify-content: center !important;
+    /* Centre l'icône horizontalement */
+}
+
+/* ==========================================================================
+   Sidebar - Sous-menus
+   ========================================================================== */
+.sidebar .collapse {
+    background: #f8f9fa;
+}
+
+.sidebar .collapse a {
+    font-size: 0.85rem;
+    /* Le !important est conservé car il surcharge probablement un style de Bootstrap plus spécifique */
+    padding: 8px 20px 8px 45px !important;
+    justify-content: flex-start;
+    /* Alignement gauche pour sous-menus */
+}
+
+.sidebar .menu-group a[data-bs-toggle="collapse"] {
+    cursor: pointer;
+}
+
+.sidebar .menu-group a[aria-expanded="true"] .fa-chevron-down {
+    transform: rotate(180deg);
+    transition: var(--transition-icon);
+}

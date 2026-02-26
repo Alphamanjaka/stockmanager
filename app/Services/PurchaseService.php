@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Purchase;
 use Illuminate\Support\Facades\DB;
+use App\Services\ProductService;
 
 class PurchaseService
 {
@@ -13,6 +14,23 @@ class PurchaseService
     public function __construct(StockService $stockService)
     {
         $this->stockService = $stockService;
+    }
+    public function deletePurchase(int $id)
+    {
+        $purchase = Purchase::findOrFail($id);
+
+        // Si l'achat est déjà reçu, il faut d'abord retirer le stock avant de supprimer l'achat
+        if ($purchase->state === 'Received') {
+            foreach ($purchase->items as $item) {
+                $this->stockService->removeStock(
+                    $item->product_id,
+                    $item->quantity,
+                    "Annulation Réception Achat #{$purchase->reference}"
+                );
+            }
+        }
+
+        $purchase->delete();
     }
 
 
@@ -112,7 +130,7 @@ class PurchaseService
     public function getPurchaseStatistics()
     {
         return [
-            'totalSpent' => Purchase::where('state', 'Received')->orWhere('state','Paid')->sum('total_net'), // Montant total dépensé pour les achats.
+            'totalSpent' => Purchase::where('state', 'Received')->orWhere('state', 'Paid')->sum('total_net'), // Montant total dépensé pour les achats.
             'totalPurchases' => Purchase::where('state', 'Received')->orWhere('state', 'Paid')->count(),
             'averagePurchaseValue' => Purchase::where('state', 'Received')->orWhere('state', 'Paid')->avg('total_net'), // Valeur moyenne des achats.
             'totalDiscounts' => Purchase::where('state', 'Received')->orWhere('state', 'Paid')->sum('discount'), // Total des remises accordées.
@@ -144,21 +162,48 @@ class PurchaseService
     }
 
     /**
+     * Get the count of purchases for each state, plus a total.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getPurchaseStateCounts()
+    {
+        $counts = Purchase::query()
+            ->select('state', DB::raw('count(*) as count'))
+            ->groupBy('state')
+            ->get()
+            ->pluck('count', 'state');
+
+        // Add the total count for the "All" tab
+        $counts['All'] = Purchase::count();
+
+        return $counts;
+    }
+
+    /**
      * Récupère les achats pour l'API (Tabulator) avec tri dynamique et recherche.
      */
-    public function getPurchasesForApi(array $filters = [], int $perPage = 10)
+    public function getPurchasesForApi(array $params = [], int $perPage = 15)
     {
         $query = Purchase::with('supplier');
 
-        // Recherche (Reference ou Nom du fournisseur)
-        if (!empty($filters['search'])) {
-            $query->where('reference', 'like', "%{$filters['search']}%")
-                ->orWhereHas('supplier', fn($q) => $q->where('name', 'like', "%{$filters['search']}%"));
+        // Traitement des filtres de Tabulator (onglets et recherche par colonne)
+        if (!empty($params['filter']) && is_array($params['filter'])) {
+            foreach ($params['filter'] as $filter) {
+                if (isset($filter['field']) && isset($filter['value']) && $filter['value'] !== null) {
+                    if ($filter['field'] === 'state') {
+                        $query->where('state', '=', $filter['value']);
+                    }
+                    if ($filter['field'] === 'reference') {
+                        $query->where('reference', 'like', '%' . $filter['value'] . '%');
+                    }
+                }
+            }
         }
 
         // Tri dynamique
-        if (!empty($filters['sort']) && is_array($filters['sort'])) {
-            foreach ($filters['sort'] as $s) {
+        if (!empty($params['sort']) && is_array($params['sort'])) {
+            foreach ($params['sort'] as $s) {
                 if (isset($s['field']) && isset($s['dir'])) {
                     $query->orderBy($s['field'], $s['dir']);
                 }
@@ -168,5 +213,72 @@ class PurchaseService
         }
 
         return $query->paginate($perPage);
+    }
+
+    /**
+     * Regroupe les produits en rupture de stock par leur dernier fournisseur connu.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getShortageProductsGroupedBySupplier()
+    {
+        $productService = app(ProductService::class);
+        $shortageProducts = $productService->getShortageProducts();
+
+        if ($shortageProducts->isEmpty()) {
+            return collect();
+        }
+
+        $productIds = $shortageProducts->pluck('id');
+
+        // Requête optimisée pour trouver le dernier achat pour chaque produit
+        $subQuery = DB::table('purchase_items')
+            ->select('product_id', DB::raw('MAX(created_at) as last_purchase_date'))
+            ->whereIn('product_id', $productIds)
+            ->groupBy('product_id');
+
+        $lastPurchases = DB::table('purchase_items as pi')
+            ->joinSub($subQuery, 'latest_pi', function ($join) {
+                $join->on('pi.product_id', '=', 'latest_pi.product_id')
+                    ->on('pi.created_at', '=', 'latest_pi.last_purchase_date');
+            })
+            ->join('purchases as p', 'pi.purchase_id', '=', 'p.id')
+            ->join('suppliers as s', 'p.supplier_id', '=', 's.id')
+            ->select('pi.product_id', 'pi.unit_price', 's.id as supplier_id', 's.name as supplier_name')
+            ->get()
+            ->keyBy('product_id');
+
+        // Associer les informations de fournisseur à chaque produit
+        $productsWithSupplier = $shortageProducts->map(function ($product) use ($lastPurchases) {
+            if (isset($lastPurchases[$product->id])) {
+                $purchaseInfo = $lastPurchases[$product->id];
+                $product->last_supplier_id = $purchaseInfo->supplier_id;
+                $product->last_supplier_name = $purchaseInfo->supplier_name;
+                $product->last_unit_price = $purchaseInfo->unit_price;
+            } else {
+                $product->last_supplier_id = null;
+                $product->last_supplier_name = 'Aucun historique d\'achat';
+                $product->last_unit_price = $product->price * 0.75; // Prix de repli
+            }
+
+            // Suggérer une quantité à commander
+            $deficit = $product->alert_stock - $product->quantity_stock;
+            $product->suggested_quantity = (int) ceil($deficit + ($product->alert_stock * 0.5));
+            if ($product->suggested_quantity <= 0) {
+                $product->suggested_quantity = $product->alert_stock > 0 ? $product->alert_stock : 10;
+            }
+
+            return $product;
+        });
+
+        // Grouper par fournisseur pour la vue
+        return $productsWithSupplier->groupBy('last_supplier_id')
+            ->map(function ($products, $supplierId) {
+                return [
+                    'supplier_name' => $products->first()->last_supplier_name,
+                    'supplier_id' => $supplierId,
+                    'products' => $products
+                ];
+            });
     }
 }

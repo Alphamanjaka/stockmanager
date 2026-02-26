@@ -1,0 +1,31 @@
+/* Style pour le tableau de produits */
+#purchase-table thead th {
+    background-color: #f8f9fa;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* Effet de focus sur la ligne active */
+.product-row:hover {
+    background-color: rgba(0, 123, 255, 0.03);
+}
+
+/* Inputs plus discrets et alignés */
+.product-row input {
+    border: 1px solid #ced4da;
+    transition: all 0.2s;
+}
+
+.product-row input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* Pour les champs en lecture seule */
+input[readonly] {
+    background-color: #fdfdfd !important;
+    border-color: #e9ecef;
+    color: #6c757d;
+    font-weight: bold;
+}

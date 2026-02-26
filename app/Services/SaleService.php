@@ -20,43 +20,47 @@ class SaleService
     public function createSale(array $productsData, float $discount = 0): Sale
     {
         return DB::transaction(function () use ($productsData, $discount) {
-            // 1. Créer la vente d'abord (avec des montants temporaires)
-            $sale = Sale::create([
-                'reference'    => 'SALE-' . strtoupper(Str::random(8)),
-                'total_brut' => 0,
-                'discount'     => $discount,
-                'total_net' => 0,
+            // 1. On prépare la vente
+            $sale = new Sale([
+                'reference'  => 'SALE-' . strtoupper(Str::random(8)),
+                'discount'   => $discount,
+                'user_id'    => auth()->id(), // Toujours mieux de savoir qui a vendu
             ]);
 
-            $totalAmount = 0;
+            $totalBrut = 0;
+            $itemsToCreate = [];
 
             foreach ($productsData as $item) {
-                $product = Product::findOrFail($item['product_id']);
+                // VERROUILLAGE : lockForUpdate empêche d'autres transactions de lire/modifier ce produit
+                $product = Product::lockForUpdate()->findOrFail($item['product_id']);
 
                 if ($product->quantity_stock < $item['quantity']) {
-                    throw new \Exception("Stock insuffisant pour : {$product->name} ");
+                    throw new \Exception("Stock insuffisant pour : {$product->name} (Disponible: {$product->quantity_stock})");
                 }
 
                 $subtotal = $product->price * $item['quantity'];
-                $totalAmount += $subtotal;
+                $totalBrut += $subtotal;
 
-                // 2. Créer les lignes de vente via la relation hasMany 'items'
-                $sale->items()->create([
+                // On prépare les données pour une insertion groupée (plus rapide)
+                $itemsToCreate[] = [
                     'product_id' => $product->id,
-                    'quantity' => $item['quantity'],
+                    'quantity'   => $item['quantity'],
                     'unit_price' => $product->price,
-                    'subtotal' => $subtotal,
-                ]);
+                    'subtotal'   => $subtotal,
+                ];
 
-                // 3. DÉCRÉMENTER le stock via StockService
-                $this->stockService->removeStock($product->id, $item['quantity'],   "Vente {$sale->reference}");
+                // 2. DÉCRÉMENTER via ton StockService
+                // Ton StockService doit idéalement mettre à jour le champ quantity_stock du produit
+                $this->stockService->removeStock($product->id, $item['quantity'], "Vente {$sale->reference}");
             }
 
-            // 4. Mettre à jour les totaux de la vente
-            $sale->update([
-                'total_brut' => $totalAmount,
-                'total_net' => $totalAmount - $discount,
-            ]);
+            // 3. Sauvegarde de la vente avec les vrais totaux du premier coup
+            $sale->total_brut = $totalBrut;
+            $sale->total_net = max(0, $totalBrut - $discount);
+            $sale->save();
+
+            // 4. Création groupée des lignes (une seule requête SQL au lieu d'une par produit)
+            $sale->items()->createMany($itemsToCreate);
 
             return $sale;
         });
@@ -87,7 +91,7 @@ class SaleService
             'today_sales_count' => Sale::whereDate('created_at', today())->count(),
             'total_revenue'     => Sale::sum('total_net'),
             'average_sale'      => Sale::avg('total_net') ?? 0,
-            'total_discount' => Sale::sum('discount') ??0,
+            'total_discount' => Sale::sum('discount') ?? 0,
         ];
     }
 }

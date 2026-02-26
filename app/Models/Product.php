@@ -18,6 +18,7 @@ class Product extends Model
         'price',
         'category_id',
         'quantity_stock',
+        'alert_stock',
     ];
     public function category()
     {
@@ -27,8 +28,8 @@ class Product extends Model
     {
         return $this->hasMany(StockMovement::class);
     }
-    public function scopeFilter($query, $filter) {
+    public function scopeFilter($query, $filter)
+    {
         $query->where('name', 'like', "%$filter%");
-        
     }
 }

@@ -253,9 +253,7 @@
 
 
 @push('scripts')
-    <!-- Chart.js Script -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
+    <script type="module">
         document.addEventListener("DOMContentLoaded", function() {
             const ctx = document.getElementById('stockValueChart').getContext('2d');
             const data = @json($stockValueEvolution);

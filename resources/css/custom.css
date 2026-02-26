@@ -56,3 +56,41 @@ h6 {
 .card-body {
     padding: 1rem;
 }
+
+
+/* Variables par défaut (Mode Clair) */
+:root {
+    --bg-main: #f8f9fa;
+    --text-main: #212529;
+    --card-bg: #ffffff;
+    --border-color: #dee2e6;
+}
+
+/* Variables pour le Mode Sombre */
+[data-theme="dark"] {
+    --bg-main: #121212;
+    --text-main: #e9ecef;
+    --card-bg: #1e1e1e;
+    --border-color: #333;
+}
+
+/* Application des variables */
+body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+main {
+    background-color: var(--bg-main) !important;
+}
+
+/* On force la bordure du bas à s'adapter */
+.border-bottom {
+    border-bottom-color: var(--border-color) !important;
+}
+
+/* Optionnel : On adapte les liens du fil d'Ariane */
+[data-theme="dark"] .breadcrumb-item.active {
+    color: #adb5bd !important;
+}

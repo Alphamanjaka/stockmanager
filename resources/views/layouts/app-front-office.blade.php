@@ -5,51 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StockMaster - Selling @yield('title')</title>
-    @vite(['resources/css/custom.css', 'resources/js/app.js'])
+    {{-- Chargement des assets spécifiques au Front-Office --}}
+    @vite(['resources/css/front.css', 'resources/js/app.js'])
     @stack('css')
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-
-        .navbar-custom {
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar-custom .nav-link {
-            color: white !important;
-            margin: 0 10px;
-            transition: all 0.3s ease;
-        }
-
-        .navbar-custom .nav-link:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-        }
-
-        .navbar-custom h3 {
-            color: white;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        main {
-            background-color: white;
-            border-radius: 10px;
-            margin: 20px;
-            padding: 30px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .active-link {
-            background: rgba(255, 255, 255, 0.3) !important;
-            border-bottom: 3px solid white;
-        }
-    </style>
 </head>
 
 <body>
@@ -104,19 +62,6 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3">@yield('title')</h1>
             </div>
-
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show"><i class="fas fa-check-circle"></i>
-                    {{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show"><i class="fas fa-exclamation-circle"></i>
-                    {{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
             <div class="content">
                 @yield('content')
             </div>
@@ -126,7 +71,27 @@
     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
         @csrf
     </form>
+    <script type="module">
+        $(document).ready(function() {
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès !',
+                    text: "{{ session('success') }}",
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            @endif
 
+            @if (session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oups...',
+                    text: "{{ session('error') }}",
+                });
+            @endif
+        });
+    </script>
     @stack('scripts')
 </body>
 

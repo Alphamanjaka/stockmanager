@@ -1,29 +1,15 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Achats')
-
+@section('title', 'New Purchase')
 @section('content')
-    @if (session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
     <form action="{{ route('admin.purchases.store') }}" method="POST" id="purchase-form">
         @csrf
         <div class="row">
             <div class="col-md-8">
-                <div class="card mb-4">
+                <div class="card mb-4 shadow-sm border-0">
                     <div class="card-body">
                         <label class="form-label fw-bold">Select a Supplier</label>
-                        <select name="supplier_id" class="form-select select2" required>
+                        <select name="supplier_id" id="supplier-select" class="form-select" required>
                             <option value="">-- Choose a supplier --</option>
                             @foreach ($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
@@ -31,220 +17,215 @@
                         </select>
                     </div>
                 </div>
-                <div class="card shadow-sm mb-4">
+
+                <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-dark text-white fw-bold">Add Products to Purchase</div>
                     <div class="card-body">
-                        <table class="table" id="purchase-table">
+                        <table class="table align-middle" id="purchase-table">
                             <thead>
                                 <tr>
-                                    <th>Product</th>
+                                    <th style="width: 40%;">Product</th>
                                     <th>Quantity</th>
-                                    <th>Unit Purchase Price</th>
-                                    <th>Action</th>
+                                    <th>Unit Cost (Mga)</th>
+                                    <th>Subtotal</th>
+                                    <th style="width: 50px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="product-list">
                                 <tr class="product-row">
                                     <td>
                                         <select name="products[0][product_id]" class="form-select product-select" required>
+                                            <option value="">Choose product...</option>
                                             @foreach ($products as $product)
                                                 <option value="{{ $product->id }}">{{ $product->name }}</option>
                                             @endforeach
                                         </select>
                                     </td>
                                     <td><input type="number" name="products[0][quantity]" class="form-control qty-input"
-                                            min="1" required>
-                                    </td>
+                                            min="1" value="1" required></td>
                                     <td><input type="number" name="products[0][unit_price]"
-                                            class="form-control unit-price-input" step="0.01" required>
-                                    </td>
-                                    <td><button type="button" class="btn btn-danger remove-row">X</button></td>
+                                            class="form-control price-input" step="0.01" value="0" required></td>
+                                    <td><input type="text" class="form-control subtotal-display" readonly
+                                            value="0.00 Mga"></td>
+                                    <td><button type="button" class="btn btn-outline-danger btn-sm remove-row"><i
+                                                class="bi bi-trash"></i></button></td>
                                 </tr>
                             </tbody>
                         </table>
-
-                        <button type="button" class="btn btn-primary" id="add-product">+ Add a Product</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="add-product">
+                            <i class="bi bi-plus-circle"></i> Add a Product
+                        </button>
                     </div>
                 </div>
             </div>
+
             <div class="col-md-4">
-                <div class="card shadow-sm sticky-top" style="top: 20px;">
-                    <div class="card-header bg-dark text-white fw-bold">Transaction Details</div>
+                <div class="card shadow-sm sticky-top border-0" style="top: 20px;">
+                    <div class="card-header bg-primary text-white fw-bold">Purchase Summary</div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-2">
-                            <span>Total Brut :</span>
+                            <span>Total Gross :</span>
                             <span id="display-brut" class="fw-bold">0.00 Mga</span>
                         </div>
-
                         <div class="mb-3">
                             <label class="form-label small">Discount (Mga)</label>
                             <input type="number" name="discount" id="discount-input" class="form-control" value="0"
                                 min="0">
                         </div>
-
                         <hr>
-
                         <div class="d-flex justify-content-between mb-4">
-                            <span class="h5">Total Net :</span>
-                            <span id="display-net" class="h5 text-success fw-bold">0.00 Mga</span>
+                            <span class="h5 text-primary">Total Net :</span>
+                            <span id="display-net" class="h5 text-primary fw-bold">0.00 Mga</span>
                         </div>
-
-                        <button type="submit" class="btn btn-success w-100 btn-lg shadow">
-                            Validate the transaction
+                        <button type="submit" class="btn btn-success w-100 btn-lg shadow-sm" id="btn-submit">
+                            Validate Purchase
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     </form>
+@endsection
 
-    <script>
+@push('scripts')
+    <script type="module">
         $(document).ready(function() {
-            // --- CONSTANTES ET VARIABLES ---
             const productList = $('#product-list');
-            const discountInput = $('#discount-input');
-            const addProductBtn = $('#add-product');
-            const purchaseForm = $('#purchase-form');
-            const submitButton = purchaseForm.find('button[type="submit"]');
-            // On clone la première ligne pour s'en servir de modèle
-            const productRowTemplate = productList.find('.product-row').first().clone(true);
+            const originalOptions = $('.product-select').first().html();
 
-            // --- FONCTIONS ---
-
-            /**
-             * Initialise Select2 sur un élément select.
-             * @param {jQuery} element L'élément select à initialiser.
-             */
-            function initSelect2(element) {
-                element.select2({
+            function initS2(el) {
+                el.select2({
                     theme: 'bootstrap-5',
-                    placeholder: 'Search for a product...',
-                    width: '100%'
+                    width: '100%',
+                    placeholder: 'Search product...'
                 });
             }
 
-            /**
-             * Met à jour les produits disponibles dans les listes déroulantes pour éviter les doublons.
-             */
-            function updateAvailableProducts() {
-                const selectedIds = $('.product-select').map((_, el) => $(el).val()).get();
+            $('#supplier-select').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
 
-                $('.product-select').each(function() {
-                    const currentSelectedId = $(this).val();
-                    $(this).find('option').each(function() {
-                        const option = $(this);
-                        const optionValue = option.val();
-
-                        // Désactive une option si elle est sélectionnée dans une AUTRE ligne.
-                        if (optionValue && selectedIds.includes(optionValue) && optionValue !==
-                            currentSelectedId) {
-                            option.prop('disabled', true);
-                        } else {
-                            option.prop('disabled', false);
-                        }
-                    });
-                });
-
-                // Rafraîchir l'affichage de chaque Select2 pour prendre en compte les options désactivées.
-                $('.product-select').each(function() {
-                    $(this).select2({
-                        theme: 'bootstrap-5',
-                        placeholder: 'Search for a product...',
-                        width: '100%'
-                    });
-                });
-            }
-
-            /**
-             * Calcule tous les totaux (lignes et résumé) et met à jour l'état du formulaire.
-             */
-            function updateFormState() {
+            function fastUpdate() {
                 let totalBrut = 0;
-                let hasProducts = false;
+                const selectedIds = [];
 
-                // 1. Mise à jour de chaque ligne de produit
                 $('.product-row').each(function() {
                     const row = $(this);
                     const select = row.find('.product-select');
-                    const qtyInput = row.find('.qty-input');
-                    const priceInput = row.find('.unit-price-input');
+                    const val = select.val();
 
-                    if (select.val()) {
-                        hasProducts = true;
+                    if (val) {
+                        selectedIds.push(val);
+                        const qty = parseFloat(row.find('.qty-input').val() || 0);
+                        const cost = parseFloat(row.find('.price-input').val() || 0);
+                        const subtotal = qty * cost;
+                        totalBrut += subtotal;
+
+                        row.find('.subtotal-display').val(subtotal.toLocaleString('fr-FR', {
+                            minimumFractionDigits: 2
+                        }) + ' Mga');
                     }
-
-                    const qty = parseFloat(qtyInput.val() || 0);
-                    const price = parseFloat(priceInput.val() || 0);
-
-                    const subtotal = price * qty;
-                    totalBrut += subtotal;
                 });
 
-                // 2. Mise à jour du résumé de la transaction
-                const discount = parseFloat(discountInput.val() || 0);
+                const discount = parseFloat($('#discount-input').val() || 0);
                 const totalNet = Math.max(0, totalBrut - discount);
 
-                $('#display-brut').text(totalBrut.toFixed(2) + ' Mga');
-                $('#display-net').text(totalNet.toFixed(2) + ' Mga');
+                $('#display-brut').text(totalBrut.toLocaleString('fr-FR', {
+                    minimumFractionDigits: 2
+                }) + ' Mga');
+                $('#display-net').text(totalNet.toLocaleString('fr-FR', {
+                    minimumFractionDigits: 2
+                }) + ' Mga');
 
-                // 3. Gestion de l'état global (avertissement et bouton de soumission)
-                submitButton.prop('disabled', !hasProducts);
-
-                // 4. Mettre à jour les produits sélectionnables pour éviter les doublons
-                updateAvailableProducts();
+                $('#btn-submit').prop('disabled', selectedIds.length === 0);
+                return selectedIds;
             }
 
-            // --- GESTION DES ÉVÉNEMENTS ---
+            $('#add-product').on('click', function() {
+                const selectedIds = fastUpdate();
+                const index = Date.now();
 
-            // Initialisation au chargement de la page
-            initSelect2($('.product-select'));
-            updateFormState(); // Calcul initial
+                const newRow = $(`
+                <tr class="product-row">
+                    <td><select name="products[${index}][product_id]" class="form-select product-select" required>${originalOptions}</select></td>
+                    <td><input type="number" name="products[${index}][quantity]" class="form-control qty-input" min="1" value="1" required></td>
+                    <td><input type="number" name="products[${index}][unit_price]" class="form-control price-input" step="0.01" value="0" required></td>
+                    <td><input type="text" class="form-control subtotal-display" readonly value="0.00 Mga"></td>
+                    <td><button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
+                </tr>`);
 
-            // Recalculer à chaque changement sur une ligne ou sur la remise
-            productList.on('change', '.product-select', updateFormState);
-            productList.on('input', '.qty-input', updateFormState);
-            productList.on('input', '.unit-price-input', updateFormState);
-            discountInput.on('input', updateFormState);
-
-            // Ajout d'une nouvelle ligne de produit
-            addProductBtn.on('click', function() {
-                const index = Date.now(); // Index unique basé sur le timestamp
-                const newRow = productRowTemplate.clone(true);
-
-                // Nettoyage du clone pour éviter les conflits
-                newRow.find('.select2-container').remove();
-                newRow.find('select').removeClass('select2-hidden-accessible').removeAttr('data-select2-id')
-                    .show();
-                newRow.find('select, input').each(function() {
-                    const el = $(this);
-                    const name = el.attr('name');
-                    if (name) {
-                        el.attr('name', name.replace(/\[.*?\]/, `[${index}]`));
-                    }
-                    el.removeClass('is-invalid');
-                    if (el.hasClass('qty-input')) {
-                        el.val(1);
-                    } else {
-                        el.val('');
-                    }
+                // Retirer les produits déjà sélectionnés
+                selectedIds.forEach(id => {
+                    if (id) newRow.find(`option[value="${id}"]`).remove();
                 });
 
                 productList.append(newRow);
                 const newSelect = newRow.find('.product-select');
-                initSelect2(newSelect);
-                updateFormState();
+                initS2(newSelect);
 
-                // Amélioration UX : ouvrir le select pour une saisie rapide
-                newSelect.select2('open');
+                // Ouvre le select et permet de taper immédiatement
+                setTimeout(() => {
+                    newSelect.select2('open');
+                }, 100);
             });
 
-            // Suppression d'une ligne de produit
+            // --- RACCOURCIS CLAVIER ---
+            $(document).on('keydown', function(e) {
+                // F2 pour ajouter une ligne
+                if (e.key === "F2") {
+                    e.preventDefault();
+                    $('#add-product').click();
+                }
+                // Entrée dans le dernier champ prix passe à la ligne suivante
+                if (e.key === "Enter" && $(e.target).hasClass('price-input')) {
+                    e.preventDefault();
+                    $('#add-product').click();
+                }
+            });
+
+            // Event Delegation
+            productList.on('change', '.product-select', fastUpdate);
+            productList.on('input', '.qty-input, .price-input', fastUpdate);
+            $('#discount-input').on('input', fastUpdate);
+
             productList.on('click', '.remove-row', function() {
                 if ($('.product-row').length > 1) {
                     $(this).closest('tr').remove();
-                    updateFormState(); // Recalculer et mettre à jour les options
+                    fastUpdate();
                 }
+            });
+
+            initS2($('.product-select'));
+            // Alerte avant de quitter si le panier n'est pas vide
+            let isDirty = false;
+            $(document).on('change', 'input, select', () => isDirty = true);
+
+            $(window).on('beforeunload', function() {
+                if (isDirty && $('.product-row').length > 1) {
+                    return "You have unsaved changes. Are you sure you want to leave?";
+                }
+            });
+
+            $('#purchase-form').on('submit', () => isDirty = false);
+            $('#purchase-form').on('submit', function(e) {
+                e.preventDefault();
+                const total = $('#display-net').text();
+
+                Swal.fire({
+                    title: 'Confirm Purchase?',
+                    text: `Total amount is ${total}. This will update your stock levels.`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    confirmButtonText: 'Yes, validate!',
+                    cancelButtonText: 'Review'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
             });
         });
     </script>
-@endsection
+@endpush

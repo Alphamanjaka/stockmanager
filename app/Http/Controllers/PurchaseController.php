@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePurchaseRequest;
 use App\Services\{
     PurchaseService,
+    StockService,
     SupplierService,
     ProductService
 };
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Resources\PurchaseApiResourceCollection;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -28,18 +31,84 @@ class PurchaseController extends Controller
         $this->supplierService = $supplierService;
         $this->productService = $productService;
     }
-    // Dans app/Http/Controllers/PurchaseController.php
+
+    /**
+     * Affiche la page de création de commandes à partir des ruptures de stock.
+     */
+    public function createFromShortage()
+    {
+        $groupedProducts = $this->purchaseService->getShortageProductsGroupedBySupplier();
+
+        return view('purchases.create_from_shortage', [
+            'groupedProducts' => $groupedProducts
+        ]);
+    }
+
+    /**
+     * Crée les commandes soumises depuis la page de suggestion.
+     */
+    public function storeFromShortage(Request $request)
+    {
+        $submittedItems = $request->input('items', []);
+        $itemsToOrder = [];
+
+        // Filtrer et valider les produits sélectionnés par l'utilisateur
+        foreach ($submittedItems as $productId => $item) {
+            if (isset($item['selected']) && filter_var($item['quantity'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])) {
+                $itemsToOrder[] = [
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'supplier_id' => $item['supplier_id'],
+                ];
+            }
+        }
+
+        if (empty($itemsToOrder)) {
+            return redirect()->back()->with('warning', 'Aucun produit n\'a été sélectionné ou les quantités étaient invalides.');
+        }
+
+        // Regrouper par fournisseur pour créer un bon de commande par fournisseur
+        $itemsBySupplier = collect($itemsToOrder)->groupBy('supplier_id');
+
+        $createdPurchases = [];
+        $skippedCount = 0;
+
+        DB::beginTransaction();
+        try {
+            foreach ($itemsBySupplier as $supplierId => $items) {
+                // Ignorer les produits sans fournisseur valide
+                if (empty($supplierId)) {
+                    $skippedCount += $items->count();
+                    continue;
+                }
+
+                $purchase = $this->purchaseService->processPurchase($supplierId, $items->toArray());
+                $createdPurchases[] = $purchase;
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Échec de la création des commandes depuis la rupture de stock: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de la création des commandes. Veuillez réessayer.');
+        }
+
+        $message = count($createdPurchases) . ' commande(s) d\'achat créée(s) avec succès.';
+        if ($skippedCount > 0) {
+            $message .= " $skippedCount produit(s) ont été ignorés car aucun fournisseur n'était associé.";
+        }
+
+        // Rediriger vers la liste des achats avec un message de succès
+        return redirect()->route('admin.purchases.index')->with('success', $message);
+    }
+
 
     public function getPurchasesApi(Request $request)
     {
-        // Délégation de la logique métier au service
-        $filters = [
-            'search' => $request->get('search'),
-            'sort' => $request->get('sort'),
-        ];
-        $purchases = $this->purchaseService->getPurchasesForApi($filters, $request->get('size', 10));
+        // On passe tous les paramètres de la requête (filtres, tri, page) au service
+        $params = $request->all();
+        $purchases = $this->purchaseService->getPurchasesForApi($params, $request->get('size', 15));
 
-        // On utilise une collection de ressources personnalisée qui retourne le format exact attendu par Tabulator.
         return new PurchaseApiResourceCollection($purchases);
     }
 
@@ -51,12 +120,11 @@ class PurchaseController extends Controller
      */
     public function index(Request $request)
     {
-
-        $purchases = $this->purchaseService->getAllPurchases(15, $request->only(['search', 'state']));
         $stats = $this->purchaseService->getPurchaseStatistics();
+        $stateCounts = $this->purchaseService->getPurchaseStateCounts();
 
         return view('purchases.index', array_merge(
-            compact('purchases'),
+            compact('stateCounts'),
             $stats
         ));
     }
@@ -118,8 +186,8 @@ class PurchaseController extends Controller
      */
     public function destroy($id)
     {
-        // Delete logic can be added to PurchaseService if needed
-        return back()->with('info', 'Delete not fully implemented yet.');
+        $this->purchaseService->deletePurchase($id);
+        return redirect()->route('admin.purchases.index')->with('success', 'L\'achat a été supprimé avec succès.');
     }
 
     /**
@@ -170,8 +238,21 @@ class PurchaseController extends Controller
                 $purchase->update(['state' => $validated['state']]);
             }
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Le statut de l'achat #{$purchase->reference} a été mis à jour."
+                ]);
+            }
+
             return back()->with('success', "Le statut de l'achat #{$purchase->reference} a été mis à jour.");
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Erreur lors du changement de statut : " . $e->getMessage()
+                ], 500);
+            }
             return back()->with('error', "Erreur lors du changement de statut : " . $e->getMessage());
         }
     }

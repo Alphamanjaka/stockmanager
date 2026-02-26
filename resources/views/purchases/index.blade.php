@@ -21,14 +21,18 @@
         }
     </style>
 
-    <div class="container-fluid py-4">
+    <div class="py-4">
         {{-- Header --}}
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nouvel Achat
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.purchases.createFromShortage') }}" class="btn btn-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Commande par rupture
+                </a>
+                <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nouvel Achat
+                </a>
+            </div>
         </div>
-
         <!-- Nav Tabs -->
         <ul class="nav nav-tabs" id="purchaseTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -49,51 +53,39 @@
         <div class="tab-content" id="purchaseTabsContent">
             {{-- Tab 1: Liste des Achats --}}
             <div class="tab-pane fade show active" id="list-pane" role="tabpanel" aria-labelledby="list-tab" tabindex="0">
-                <div class="py-4">
-                    {{-- Filters --}}
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Filtres & Recherche</h6>
-                        </div>
-                        <div class="card-body bg-light">
-                            <form action="{{ url('/admin/purchases') }}" method="GET" class="row g-3 align-items-end">
-                                <div class="col-md-5">
-                                    <label class="form-label small text-muted">Recherche</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                                        <input type="text" name="search" class="form-control"
-                                            placeholder="Référence, Fournisseur..." value="{{ request('search') }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small text-muted">Statut</label>
-                                    <select name="state" class="form-select">
-                                        <option value="">Tous les statuts</option>
-                                        <option value="Draft" @selected(request('state') == 'Draft')>Brouillon</option>
-                                        <option value="Ordered" @selected(request('state') == 'Ordered')>Commandé</option>
-                                        <option value="Received" @selected(request('state') == 'Received')>Reçu</option>
-                                        <option value="Paid" @selected(request('state') == 'Paid')>Payé</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="d-flex gap-2">
-                                        <button type="submit" class="btn btn-primary w-100">Filtrer</button>
-                                        <a href="{{ url('/admin/purchases') }}"
-                                            class="btn btn-outline-secondary w-100">Reset</a>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                <div class="pt-3">
+                    {{-- State Tabs --}}
+                    <ul class="nav nav-pills mb-3" id="state-tabs" role="tablist">
+                        @php
+                            $states = [
+                                'All' => ['label' => 'Tous', 'badge' => 'light text-dark'],
+                                'Draft' => ['label' => 'Brouillons', 'badge' => 'secondary'],
+                                'Ordered' => ['label' => 'Commandés', 'badge' => 'info'],
+                                'Received' => ['label' => 'Reçus', 'badge' => 'success'],
+                                'Paid' => ['label' => 'Payés', 'badge' => 'primary'],
+                            ];
+                        @endphp
+                        @foreach ($states as $stateKey => $details)
+                            @php
+                                $count = $stateCounts[$stateKey] ?? 0;
+                            @endphp
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link {{ $loop->first ? 'active' : '' }} position-relative"
+                                    data-bs-toggle="pill" type="button" role="tab"
+                                    data-state="{{ $stateKey === 'All' ? '' : $stateKey }}">
+                                    {{ $details['label'] }}
+                                    <span
+                                        class="badge rounded-pill bg-{{ $details['badge'] }} ms-1">{{ $count }}</span>
+                                </button>
+                            </li>
+                        @endforeach
+                    </ul>
 
                     {{-- Table --}}
                     <div class="card shadow">
-                        <div class="card-header py-3 bg-white border-bottom-0">
-                            <h6 class="m-0 font-weight-bold text-secondary">Transactions Récentes</h6>
-                        </div>
                         <div class="card-body p-2">
                             {{-- Tabulator Container --}}
-                            <div id="purchases-table"></div>
+                            <div id="purchases-table" data-url="{{ route('admin.purchases.get-purchases-api') }}"></div>
                         </div>
                     </div>
                 </div>
@@ -183,108 +175,6 @@
 @endsection
 
 @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialisation de Tabulator
-            var table = new Tabulator("#purchases-table", {
-                ajaxURL: "{{ route('admin.purchases.get-purchases-api') }}", // URL de l'API
-                ajaxConfig: "GET", // Méthode HTTP
-                pagination: "remote", // Active la pagination côté serveur
-                paginationSize: 10, // Nombre d'éléments par page
-                paginationMode: "remote", // Indispensable pour que Tabulator accepte l'objet JSON de pagination
-                paginationSizeSelector: [10, 25, 50, 100], // Sélecteur de taille
-                filterMode: "remote", // Filtrage côté serveur
-                sortMode: "remote", // Tri côté serveur
-                // Avec la PurchaseApiResourceCollection, le backend retourne EXACTEMENT
-                // le format { "last_page": ..., "data": [...] } attendu par Tabulator.
-                // Il n'y a donc plus besoin de 'ajaxResponse' ou 'dataReceiveParams'.
-                layout: "fitColumns",
-                responsiveLayout: "collapse",
-                placeholder: "Aucun achat trouvé",
-                columns: [{
-                        title: "Reference",
-                        field: "reference",
-                        headerFilter: "input"
-                    },
-                    {
-                        title: "Date",
-                        field: "date",
-                        hozAlign: "center"
-                    },
-                    {
-                        title: "State",
-                        field: "state",
-                        formatter: function(cell) {
-                            var value = cell.getValue();
-                            var badgeClass = 'bg-secondary';
-                            var label = value;
-
-                            if (value === 'Draft') {
-                                badgeClass = 'bg-secondary';
-                            } else if (value === 'Ordered') {
-                                badgeClass = 'bg-info text-dark';
-                            } else if (value === 'Received') {
-                                badgeClass = 'bg-success';
-                            } else if (value === 'Paid') {
-                                badgeClass = 'bg-primary';
-                            }
-
-                            return `<span class="badge ${badgeClass}">${value}</span>`;
-                        },
-                        hozAlign: "center"
-                    },
-                    {
-                        title: "Montant Total",
-                        field: "total_amount",
-                        hozAlign: "right"
-                    },
-                    {
-                        title: "Remise",
-                        field: "discount",
-                        formatter: function(cell) {
-                            var val = cell.getValue();
-                            return val > 0 ?
-                                `<span class="text-danger">-${new Intl.NumberFormat('fr-FR').format(val)} Mga</span>` :
-                                '-';
-                        },
-                        hozAlign: "right"
-                    },
-                    {
-                        title: "Total Net",
-                        field: "total_net",
-                        hozAlign: "right",
-                        formatter: function(cell) {
-                            return `<span class="fw-bold text-success">${cell.getValue()}</span>`;
-                        }
-                    },
-                    {
-                        title: "Actions",
-                        field: "urls",
-                        formatter: function(cell) {
-                            var urls = cell.getValue();
-                            return `
-                            <div class="btn-group">
-                                <a href="${urls.show}" class="btn btn-sm btn-outline-secondary" title="Voir">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="${urls.edit}" class="btn btn-sm btn-outline-primary" title="Modifier">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="${urls.destroy}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet achat ?');">
-                                    <input type="hidden" name="_token" value="${urls.csrf}">
-                                    <input type="hidden" name="_method" value="DELETE">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        `;
-                        },
-                        hozAlign: "center",
-                        headerSort: false
-                    }
-                ],
-            });
-        });
-    </script>
+    {{-- On charge le script spécifique à cette page --}}
+    @vite('resources/js/purchases-index.js')
 @endpush

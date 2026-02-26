@@ -98,39 +98,47 @@
             </div>
         @endif
 
-            <div class="card shadow-sm">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="bi bi-receipt"></i> Purchase History</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Reference</th>
-                                <th>Date</th>
-                                <th>Total Amount</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($purchases as $purchase)
-                                <tr>
-                                    <td>{{ $purchase->reference }}</td>
-                                    <td>{{ $purchase->created_at->format('d/m/Y H:i') }}</td>
-                                    <td class="fw-bold">{{ number_format($purchase->total_net, 2) }} €</td>
-                                    <td><span class="badge bg-success">Validated</span></td>
-                                    <td><button class="btn btn-sm btn-outline-secondary" disabled>Details</button></td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted">No purchases recorded for this supplier.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                    <div class="d-flex justify-content-center mt-3">{{ $purchases->links() }}</div>
-                </div>
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-receipt"></i> Purchase History</h5>
             </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Reference</th>
+                            <th>Date</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($purchases as $purchase)
+                            <tr>
+                                <td>{{ $purchase->reference }}</td>
+                                <td>{{ $purchase->created_at->format('d/m/Y H:i') }}</td>
+                                <td class="fw-bold">{{ number_format($purchase->total_net, 2) }} €</td>
+                                <td>
+                                    <span class="badge bg-success">{{ $purchase->state }}</span>
+                                </td>
+                                <td>
+                                    <a href="{{ route('admin.purchases.show', $purchase->id) }}"
+                                        class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No purchases recorded for this supplier.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+                <div class="d-flex justify-content-center mt-3">{{ $purchases->links() }}</div>
+            </div>
+        </div>
     </div>
 @endsection

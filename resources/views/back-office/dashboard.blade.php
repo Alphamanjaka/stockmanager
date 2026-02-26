@@ -195,7 +195,7 @@
                                     return context.dataset.label + ': ' + new Intl.NumberFormat(
                                         'fr-FR', {
                                             style: 'currency',
-                                            currency: 'EUR'
+                                            currency: 'MGA'
                                         }).format(context.parsed.y);
                                 }
                             }

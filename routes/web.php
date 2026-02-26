@@ -11,7 +11,8 @@ use App\Http\Controllers\{
     StockMovementController,
     SupplierController,
     PurchaseController,
-    SettingsController
+    SettingsController,
+    UserController
 };
 
 // Routes d'authentification (publiques)
@@ -45,12 +46,14 @@ Route::middleware('auth')->group(function () {
         Route::resource('suppliers', SupplierController::class);
         Route::resource('settings', SettingsController::class);
 
-        // Cette route doit être définie AVANT la ressource pour éviter que "get-purchases-api" ne soit interprété comme un ID
+        // Les routes spécifiques comme 'create-from-shortage' ou 'get-purchases-api' doivent être définies
+        // AVANT la route ressource pour éviter que Laravel ne les interprète comme un paramètre {id}.
         Route::get('/purchases/get-purchases-api', [PurchaseController::class, 'getPurchasesApi'])->name('purchases.get-purchases-api');
+        Route::get('/purchases/create-from-shortage', [PurchaseController::class, 'createFromShortage'])->name('purchases.createFromShortage');
+        Route::post('/purchases/store-from-shortage', [PurchaseController::class, 'storeFromShortage'])->name('purchases.storeFromShortage');
         Route::resource('purchases', PurchaseController::class);
         Route::patch('purchases/{id}/state', [PurchaseController::class, 'updateState'])->name('purchases.updateState');
         Route::get('purchases/{id}/pdf', [PurchaseController::class, 'exportPdf'])->name('purchases.pdf');
-
         // Module d'Importation Centralisé
         Route::get('/imports', [ImportController::class, 'index'])->name('imports.index');
         Route::post('/imports', [ImportController::class, 'store'])->name('imports.store');

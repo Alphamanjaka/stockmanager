@@ -97,178 +97,125 @@
     <script type="module">
         $(document).ready(function() {
             const productList = $('#product-list');
-            const discountInput = $('#discount-input');
-            const addProductBtn = $('#add-product');
             const saleForm = $('#sale-form');
-            const submitButton = saleForm.find('button[type="submit"]');
-            const stockWarning = $('#stock-warning');
 
-            // Configuration Select2 globale
-            const select2Config = {
-                theme: 'bootstrap-5',
-                placeholder: 'Choose a product...',
-                width: '100%'
-            };
+            // On stocke le HTML des options UNE SEULE FOIS au chargement
+            const originalOptionsHtml = $('.product-select').first().html();
 
-            function initSelect2(element) {
-                element.select2(select2Config);
+            // Initialisation légère
+            function initS2(el) {
+                el.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%'
+                });
             }
 
-            function updateFormState() {
+            // --- CALCULS OPTIMISÉS ---
+            function fastUpdate() {
                 let totalBrut = 0;
-                let hasStockError = false;
-                let hasProducts = false;
+                const selectedIds = [];
 
-                // On récupère tous les IDs sélectionnés pour la gestion des doublons
-                const selectedIds = $('.product-select').map((_, el) => $(el).val()).get().filter(id => id !== "");
-
+                // Une seule boucle pour tout faire
                 $('.product-row').each(function() {
                     const row = $(this);
                     const select = row.find('.product-select');
-                    const qtyInput = row.find('.qty-input');
-                    const selectedOption = select.find(':selected');
+                    const val = select.val();
 
-                    // Gestion des options désactivées (doublons)
-                    select.find('option').each(function() {
-                        const option = $(this);
-                        const val = option.val();
-                        if (val && selectedIds.includes(val) && val !== select.val()) {
-                            option.prop('disabled', true);
-                        } else {
-                            option.prop('disabled', false);
-                        }
-                    });
+                    if (val) {
+                        selectedIds.push(val);
+                        const opt = select.find(':selected');
+                        const qty = parseInt(row.find('.qty-input').val() || 0);
+                        const price = parseFloat(opt.data('price') || 0);
+                        const stock = parseInt(opt.data('stock') || 0);
+                        const remaining = stock - qty;
+                        row.find('.stock-feedback').text(`${remaining} restants`).toggleClass('text-danger',
+                            remaining < 5);
 
-                    if (select.val()) {
-                        hasProducts = true;
-                        const price = parseFloat(selectedOption.data('price') || 0);
-                        const stock = parseInt(selectedOption.data('stock') || 0);
-                        const qty = parseInt(qtyInput.val() || 0);
-
-                        const isStockError = qty > stock;
-                        qtyInput.toggleClass('is-invalid', isStockError);
-                        if (isStockError) hasStockError = true;
-
+                        // Calcul direct
                         const subtotal = price * qty;
                         totalBrut += subtotal;
 
-                        row.find('.price-display').val(price.toFixed(2) + ' €');
+                        // Update UI minimaliste (uniquement si nécessaire)
                         row.find('.subtotal-display').val(subtotal.toFixed(2) + ' €');
+                        row.find('.qty-input').toggleClass('is-invalid', qty > stock);
                     }
                 });
 
-                const discount = parseFloat(discountInput.val() || 0);
-                const totalNet = Math.max(0, totalBrut - discount);
+                const net = Math.max(0, totalBrut - parseFloat($('#discount-input').val() || 0));
+                $('#display-brut').text(totalBrut.toFixed(2) + ' €');
+                $('#display-net').text(net.toFixed(2) + ' €');
 
-                $('#display-brut').text(totalBrut.toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2
-                }) + ' €');
-                $('#display-net').text(totalNet.toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2
-                }) + ' €');
-
-                stockWarning.toggleClass('d-none', !hasStockError);
-                submitButton.prop('disabled', hasStockError || !hasProducts);
-                updateFormState();
+                // On désactive le bouton si stock error
+                saleForm.find('button[type="submit"]').prop('disabled', $('.is-invalid').length > 0 || selectedIds
+                    .length === 0);
+                return selectedIds;
             }
 
-            // Ajout ligne
-            addProductBtn.on('click', function() {
-                // 1. Récupérer tous les IDs déjà sélectionnés
-                const selectedIds = $('.product-select').map((_, el) => $(el).val()).get().filter(id =>
-                    id !== "");
-
-                // 2. Vérifier s'il reste des produits à ajouter
-                const totalAvailableOptions = $('.product-select').first().find('option').length -
-                    1; // -1 pour l'option "Choose..."
-                if (selectedIds.length >= totalAvailableOptions) {
-                    alert("All available products are already in the cart.");
-                    return;
-                }
-
+            // --- AJOUT DE LIGNE ULTRA-RAPIDE ---
+            $('#add-product').on('click', function() {
+                const selectedIds = fastUpdate();
                 const index = Date.now();
-                const firstRow = $('.product-row').first();
-                const newRow = firstRow.clone();
 
-                // 3. Nettoyage complet du clone
-                newRow.find('.select2-container').remove();
-                const newSelect = newRow.find('select');
-                newSelect.removeClass('select2-hidden-accessible').removeAttr('data-select2-id').empty();
+                // On crée le HTML en string (beaucoup plus rapide que .clone())
+                const newRowHtml = `
+                <tr class="product-row">
+                    <td>
+                        <select name="products[${index}][product_id]" class="form-select product-select" required>
+                            ${originalOptionsHtml}
+                        </select>
+                    </td>
+                    <td><input type="number" name="products[${index}][quantity]" class="form-control qty-input" min="1" value="1" required></td>
+                    <td><input type="text" class="form-control price-display" readonly value="0.00 €"></td>
+                    <td><input type="text" class="form-control subtotal-display" readonly value="0.00 €"></td>
+                    <td><button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
+                </tr>`;
 
-                // 4. Reconstruction sélective des options
-                // On reprend les options de la première ligne mais on exclut les IDs déjà pris
-                firstRow.find('select option').each(function() {
-                    const option = $(this).clone();
-                    const val = option.val();
+                const $newRow = $(newRowHtml);
 
-                    // On n'ajoute l'option que si elle n'est pas sélectionnée ailleurs (sauf l'option vide)
-                    if (val === "" || !selectedIds.includes(val)) {
-                        newSelect.append(option);
-                    }
+                // On retire les options déjà prises AVANT d'injecter dans le DOM
+                selectedIds.forEach(id => {
+                    if (id) $newRow.find(`option[value="${id}"]`).remove();
                 });
 
-                // 5. Mise à jour des index et réinitialisation des champs
-                newRow.find('select, input').each(function() {
-                    const el = $(this);
-                    const name = el.attr('name');
-                    if (name) el.attr('name', name.replace(/\[\d+\]/, `[${index}]`));
-                    el.val(el.is('input[type="number"]') ? 1 : '');
-                    el.removeClass('is-invalid');
-                });
-
-                productList.append(newRow);
-                initSelect2(newSelect);
-                updateFormState();
-
-                // Ouvrir automatiquement pour gagner du temps
-                newSelect.select2('open');
+                productList.append($newRow);
+                initS2($newRow.find('.product-select'));
+                $newRow.find('.product-select').select2('open');
             });
 
-            // Suppression ligne
+            // --- DÉLÉGATION D'ÉVÉNEMENTS (Un seul écouteur pour toute la table) ---
+            productList.on('change', '.product-select', function() {
+                const row = $(this).closest('tr');
+                const price = $(this).find(':selected').data('price') || 0;
+                row.find('.price-display').val(parseFloat(price).toFixed(2) + ' €');
+                fastUpdate();
+            });
+
+            productList.on('input', '.qty-input', fastUpdate);
+            $('#discount-input').on('input', fastUpdate);
+
             productList.on('click', '.remove-row', function() {
                 if ($('.product-row').length > 1) {
                     $(this).closest('tr').remove();
-                    updateFormState();
-                } else {
-                    alert("At least one product is required.");
+                    fastUpdate();
                 }
             });
 
-            // Events
-            productList.on('change', '.product-select', updateFormState);
-            productList.on('input', '.qty-input', updateFormState);
-            discountInput.on('input', updateFormState);
-
-            // Initialisation
-            initSelect2($('.product-select'));
-
-            // Si un produit change, on pourrait techniquement rafraîchir les autres SELECT,
-            // mais le plus simple est de reconstruire les options au clic sur "Add Product"
-            // comme nous venons de le faire ci-dessus.
-
-            // Pour une sécurité maximale, on peut aussi désactiver les options dans les selects existants :
-            function refreshAllSelects() {
-                const selectedIds = $('.product-select').map((_, el) => $(el).val()).get();
-
-                $('.product-select').each(function() {
-                    const currentSelect = $(this);
-                    const currentVal = currentSelect.val();
-
-                    currentSelect.find('option').each(function() {
-                        const option = $(this);
-                        if (option.val() !== "" && selectedIds.includes(option.val()) && option
-                            .val() !== currentVal) {
-                            option.prop('disabled', true);
-                        } else {
-                            option.prop('disabled', false);
-                        }
-                    });
-                    // On force Select2 à rafraîchir l'affichage visuel des options grisées
-                    currentSelect.trigger('change.select2');
-                });
+            // Init première ligne
+            initS2($('.product-select'));
+            $('#reset-cart').on('click', function() {
+                if (confirm('Voulez-vous vider le panier ?')) {
+                    $('.product-row').not(':first').remove(); // Garde une ligne
+                    $('.product-select').val('').trigger('change');
+                    $('.qty-input').val(1);
+                    fastUpdate();
+                }
+            });
+        });
+        $(document).on('keydown', function(e) {
+            // F2 pour ajouter un produit
+            if (e.key === "F2") {
+                $('#add-product').click();
             }
-
-            // Appelle refreshAllSelects() à la fin de ton updateFormState()
         });
     </script>
 @endpush

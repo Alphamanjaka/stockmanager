@@ -25,7 +25,8 @@ class StoreSaleRequest extends FormRequest
         return [
             'discount' => 'nullable|numeric|min:0',
             'products' => 'required|array|min:1',
-            'products.*.product_id' => 'required|exists:products,id',
+            // 'distinct' empêche d'envoyer deux fois le même product_id
+            'products.*.product_id' => 'required|exists:products,id|distinct',
             'products.*.quantity'   => 'required|integer|min:1',
         ];
     }

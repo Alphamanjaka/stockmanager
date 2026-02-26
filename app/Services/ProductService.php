@@ -10,6 +10,15 @@ use Illuminate\Support\Facades\DB;
 class ProductService
 {
     /**
+     * Récupère les produits dont le stock est inférieur ou égal au seuil d'alerte.
+     */
+    public function getShortageProducts()
+    {
+        return Product::where('quantity_stock', '<=', DB::raw('alert_stock'))
+            ->where('alert_stock', '>', 0) // On ne veut pas les produits où l'alerte n'est pas configurée
+            ->get();
+    }
+    /**
      * Get all products with filtering, sorting and pagination
      */
     public function getAllProducts($filters = [])
