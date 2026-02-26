@@ -25,7 +25,6 @@ class SaleServiceTest extends TestCase
         // On mock le StockService pour isoler nos tests de SaleService
         $this->stockServiceMock = Mockery::mock(StockService::class);
         $this->app->instance(StockService::class, $this->stockServiceMock);
-
         // On injecte le mock dans notre service
         $this->service = new SaleService($this->stockServiceMock);
     }
@@ -35,6 +34,8 @@ class SaleServiceTest extends TestCase
     {
         // Arrange
         $product = Product::factory()->create(['price' => 100.00, 'quantity_stock' => 50]);
+        $user = \App\Models\User::factory()->create();
+
         $productsData = [
             ['product_id' => $product->id, 'quantity' => 2]
         ];
@@ -49,7 +50,7 @@ class SaleServiceTest extends TestCase
             }));
 
         // Act
-        $sale = $this->service->createSale($productsData, $discount);
+        $sale = $this->service->createSale($productsData, $discount,$user->id);
 
         // Assert
         $this->assertInstanceOf(Sale::class, $sale);
@@ -81,8 +82,8 @@ class SaleServiceTest extends TestCase
         // Assert & Act
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage("Stock insuffisant pour : {$product->name}");
-
-        $this->service->createSale($productsData);
+        $user = \App\Models\User::factory()->create();
+        $this->service->createSale($productsData,0,$user->id);
     }
 
     /** @test */
