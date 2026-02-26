@@ -25,7 +25,11 @@ class SaleSeeder extends Seeder
 
         // --- SEEDING DES VENTES (SALES) ---
         $saleService = app(SaleService::class);
-
+        $user = \App\Models\User::where('email', 'alphamanjaka@gmail.com')->first();
+            if (!$user) {
+                $this->command->info('Skipping sale seeding because no user found.');
+                return;
+            }
         // On crée 30 ventes complètes
         for ($i = 0; $i < 30; $i++) {
             $saleItems = [];
@@ -47,7 +51,8 @@ class SaleSeeder extends Seeder
             if (empty($saleItems)) continue;
 
             $discount = rand(0, 1) ? rand(5, 50) : 0; // Une chance sur deux d'avoir une remise
-            $saleService->createSale($saleItems, $discount, 1); // On associe toutes les ventes à l'utilisateur admin (id=1)
+
+            $saleService->createSale($saleItems, $discount, $user->id); // On associe toutes les ventes à l'utilisateur admin (id=1)
         }
     }
 }

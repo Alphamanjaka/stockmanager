@@ -15,16 +15,23 @@ class SaleService
         $this->stockService = $stockService;
     }
     /**
-     * Crée une vente sans utilisateur associé.
+     * Crée une vente en l'associant à un utilisateur.
+     * Si l'ID utilisateur n'est pas fourni, il utilise l'utilisateur authentifié.
      */
-    public function createSale(array $productsData, float $discount = 0, int $user_id ): Sale
+    public function createSale(array $productsData, float $discount = 0, ?int $user_id = null): Sale
     {
-        return DB::transaction(function () use ($productsData, $discount, $user_id) {
+        $userId = $user_id ?? auth()->id();
+
+        if (is_null($userId)) {
+            throw new \Exception("Impossible de créer une vente : aucun utilisateur n'est authentifié ou fourni.");
+        }
+
+        return DB::transaction(function () use ($productsData, $discount, $userId) {
             // 1. On prépare la vente
             $sale = new Sale([
                 'reference'  => 'SALE-' . strtoupper(Str::random(8)),
                 'discount'   => $discount,
-                'user_id'    => $user_id, // Toujours mieux de savoir qui a vendu
+                'user_id'    => $userId, // Toujours mieux de savoir qui a vendu
             ]);
 
             $totalBrut = 0;
