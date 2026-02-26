@@ -54,7 +54,53 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             });
     };
-
+    /**
+     * Supprime un achat via une requête AJAX après confirmation.
+     * @param {string} url - L'URL pour la suppression.
+     * @param {string} token - Le jeton CSRF.
+     * @param {function} successCallback - Fonction à appeler en cas de succès.
+     */
+    const deletePurchase = (url, token, successCallback) => {
+        Swal.fire({
+            title: "Êtes-vous sûr?",
+            text: "Cette action est irréversible!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Oui, supprimer!",
+            cancelButtonText: "Annuler",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(url, {
+                    method: "DELETE",
+                    headers: {
+                        "X-CSRF-TOKEN": token,
+                        Accept: "application/json",
+                    },
+                })
+                    .then((response) =>
+                        response
+                            .json()
+                            .then((data) => ({ ok: response.ok, data })),
+                    )
+                    .then(({ ok, data }) => {
+                        if (ok) {
+                            Swal.fire("Supprimé!", data.message, "success");
+                            successCallback();
+                        } else {
+                            throw new Error(
+                                data.message ||
+                                    "Une erreur inconnue est survenue.",
+                            );
+                        }
+                    })
+                    .catch((error) => {
+                        Swal.fire("Erreur!", error.message, "error");
+                    });
+            }
+        });
+    };
     /**
      * Formateur pour la colonne "Actions" de Tabulator, affichant des boutons contextuels.
      */
@@ -70,13 +116,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     <a href="${urls.edit}" class="btn btn-sm btn-outline-primary" title="Modifier">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <form action="${urls.destroy}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet achat ?');">
-                        <input type="hidden" name="_token" value="${urls.csrf}">
-                        <input type="hidden" name="_method" value="DELETE">
-                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </form>
+                    <button class="btn btn-sm btn-outline-danger quick-delete" data-url="${urls.destroy}" data-token="${urls.csrf}" title="Supprimer">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 `;
                 break;
             case "Ordered":
@@ -111,7 +153,6 @@ document.addEventListener("DOMContentLoaded", function () {
         ajaxURL: tableElement.dataset.url,
         pagination: "remote",
         paginationSize: 15,
-        paginationMode: "remote",
         paginationSizeSelector: [10, 15, 25, 50],
         filterMode: "remote",
         sortMode: "remote",
@@ -123,25 +164,44 @@ document.addEventListener("DOMContentLoaded", function () {
                 title: "Reference",
                 field: "reference",
                 headerFilter: "input",
+                width: 200,
             },
             {
-                title: "Supplier", field: "supplier_name",
+                title: "Fournisseur",
+                field: "supplier.name", // Utilise la notation "dot" pour les objets imbriqués
                 headerFilter: "input",
                 width: 200,
-             },
-            { title: "Date", field: "date", hozAlign: "center", width: 120 },
+            },
+            {
+                title: "Date",
+                field: "date",
+                hozAlign: "center",
+                width: 120,
+                formatter: "datetime", // Formateur de date
+                formatterParams: {
+                    outputFormat: "dd/MM/yyyy",
+                    invalidPlaceholder: "(date invalide)",
+                },
+            },
             {
                 title: "Statut",
                 field: "state",
                 hozAlign: "center",
                 formatter: "html",
-                width: 100,
+                width: 120,
             },
             {
                 title: "Total Net",
                 field: "total_net",
                 hozAlign: "right",
-                formatter: "html",
+                formatter: "money", // Formateur monétaire
+                formatterParams: {
+                    decimal: ",",
+                    thousand: " ",
+                    symbol: " Mga",
+                    symbolAfter: true,
+                    precision: 2,
+                },
                 width: 150,
             },
             {
@@ -150,7 +210,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 formatter: actionsFormatter,
                 hozAlign: "center",
                 headerSort: false,
-                width: 150,
+                width: 180,
             },
         ],
     });
@@ -175,6 +235,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const newState = quickButton.dataset.newState;
 
             updatePurchaseState(url, token, newState, () => {
+                table.setData(); // Recharge les données du tableau
+            });
+        }
+
+        const deleteButton = e.target.closest("button.quick-delete");
+        if (deleteButton) {
+            const url = deleteButton.dataset.url;
+            const token = deleteButton.dataset.token;
+            deletePurchase(url, token, () => {
                 table.setData(); // Recharge les données du tableau
             });
         }

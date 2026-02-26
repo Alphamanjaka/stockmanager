@@ -184,10 +184,23 @@ class PurchaseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $this->purchaseService->deletePurchase($id);
-        return redirect()->route('admin.purchases.index')->with('success', 'L\'achat a été supprimé avec succès.');
+        try {
+            $this->purchaseService->deletePurchase($id);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'L\'achat a été supprimé avec succès.']);
+            }
+
+            return redirect()->route('admin.purchases.index')->with('success', 'L\'achat a été supprimé avec succès.');
+        } catch (\Exception $e) {
+            Log::error("Purchase Deletion Error: " . $e->getMessage());
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Une erreur est survenue lors de la suppression.'], 500);
+            }
+            return back()->with('error', 'Une erreur est survenue lors de la suppression.');
+        }
     }
 
     /**

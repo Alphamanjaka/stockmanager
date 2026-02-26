@@ -197,6 +197,11 @@ class PurchaseService
                     if ($filter['field'] === 'reference') {
                         $query->where('reference', 'like', '%' . $filter['value'] . '%');
                     }
+                    if ($filter['field'] === 'supplier.name') {
+                        $query->whereHas('supplier', function ($q) use ($filter) {
+                            $q->where('name', 'like', '%' . $filter['value'] . '%');
+                        });
+                    }
                 }
             }
         }
