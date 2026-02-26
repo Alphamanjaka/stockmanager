@@ -47,7 +47,7 @@ class SaleSeeder extends Seeder
             if (empty($saleItems)) continue;
 
             $discount = rand(0, 1) ? rand(5, 50) : 0; // Une chance sur deux d'avoir une remise
-            $saleService->createSale($saleItems, $discount);
+            $saleService->createSale($saleItems, $discount, 1); // On associe toutes les ventes à l'utilisateur admin (id=1)
         }
     }
 }

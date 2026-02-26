@@ -153,6 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ajaxURL: tableElement.dataset.url,
         pagination: "remote",
         paginationSize: 15,
+        paginationMode: "remote",
         paginationSizeSelector: [10, 15, 25, 50],
         filterMode: "remote",
         sortMode: "remote",
@@ -164,24 +165,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 title: "Reference",
                 field: "reference",
                 headerFilter: "input",
-                width: 200,
-            },
-            {
-                title: "Fournisseur",
-                field: "supplier.name", // Utilise la notation "dot" pour les objets imbriqués
-                headerFilter: "input",
-                width: 200,
-            },
-            {
-                title: "Date",
-                field: "date",
-                hozAlign: "center",
-                width: 120,
-                formatter: "datetime", // Formateur de date
-                formatterParams: {
-                    outputFormat: "dd/MM/yyyy",
-                    invalidPlaceholder: "(date invalide)",
-                },
             },
             {
                 title: "Statut",
@@ -194,16 +177,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 title: "Total Net",
                 field: "total_net",
                 hozAlign: "right",
-                formatter: "money", // Formateur monétaire
-                formatterParams: {
-                    decimal: ",",
-                    thousand: " ",
-                    symbol: " Mga",
-                    symbolAfter: true,
-                    precision: 2,
-                },
                 width: 150,
             },
+            {
+                title: "Fournisseur",
+                field: "supplier", // Utilise la notation "dot" pour les objets imbriqués
+                headerFilter: "input",
+                width: 200,
+            },
+            {
+                title: "Date",
+                field: "date",
+                hozAlign: "center",
+                width: 120,
+            },
+
             {
                 title: "Actions",
                 field: "urls",

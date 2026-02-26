@@ -21,6 +21,7 @@ class PurchaseApiResource extends JsonResource
             'state' => $this->state,
             'total_amount' => number_format($this->total_amount, 2) . ' Mga',
             'discount' => $this->discount,
+            'supplier' => $this->supplier ? $this->supplier->name : null,
             'total_net' => number_format($this->total_net, 2) . ' Mga',
             'urls' => [
                 'show' => route('admin.purchases.show', $this->id),

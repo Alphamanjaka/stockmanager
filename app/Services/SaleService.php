@@ -17,14 +17,14 @@ class SaleService
     /**
      * Crée une vente sans utilisateur associé.
      */
-    public function createSale(array $productsData, float $discount = 0): Sale
+    public function createSale(array $productsData, float $discount = 0, int $user_id ): Sale
     {
-        return DB::transaction(function () use ($productsData, $discount) {
+        return DB::transaction(function () use ($productsData, $discount, $user_id) {
             // 1. On prépare la vente
             $sale = new Sale([
                 'reference'  => 'SALE-' . strtoupper(Str::random(8)),
                 'discount'   => $discount,
-                'user_id'    => auth()->id(), // Toujours mieux de savoir qui a vendu
+                'user_id'    => $user_id, // Toujours mieux de savoir qui a vendu
             ]);
 
             $totalBrut = 0;

@@ -39,7 +39,8 @@ class SaleController extends Controller
 
             $sale = $this->saleService->createSale(
                 $validated['products'],
-                $validated['discount'] ?? 0
+                $validated['discount'] ?? 0,
+                auth()->id() // Associer la vente à l'utilisateur connecté
             );
 
             return redirect()
