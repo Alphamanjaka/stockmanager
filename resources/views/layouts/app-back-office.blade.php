@@ -83,6 +83,12 @@
         </div>
 
         <div class="mt-auto border-top border-secondary pt-2">
+            <a href="{{ route('admin.imports.index') }}" class="{{ request()->is('admin/imports*') ? 'active-link' : '' }}" data-shortcut="i">
+                <i class="fas fa-file-import"></i>
+                <span><span class="sidebar-text">Import</span></span>
+                <span class="shortcut-badge">Alt+I</span>
+            </a>
+
             <a href="{{ route('admin.settings.index') }}"
                 class="{{ request()->is('admin/settings*') ? 'active-link' : '' }}" data-shortcut="s">
                 <span><i class="fas fa-cog fa-fw me-2"></i> <span class="sidebar-text">Paramètres</span></span>

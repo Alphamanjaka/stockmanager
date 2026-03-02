@@ -240,6 +240,59 @@
                                         <p class="mb-0 mt-2 small text-muted">La tâche sera exécutée en arrière-plan. Le
                                             fichier SQL sera stocké dans le dossier de stockage de l'application.</p>
                                     </div>
+
+                                    @if (isset($backups) && count($backups) > 0)
+                                        <h6 class="text-muted mb-3 mt-4">Historique des sauvegardes</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-hover border">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Fichier</th>
+                                                        <th>Taille</th>
+                                                        <th>Date</th>
+                                                        <th class="text-end">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($backups as $backup)
+                                                        <tr>
+                                                            <td><i class="fas fa-file-archive text-warning me-2"></i>
+                                                                {{ $backup['name'] }}</td>
+                                                            <td>{{ $backup['size'] }}</td>
+                                                            <td>{{ $backup['date'] }}</td>
+                                                            <td class="text-end">
+                                                                <a href="{{ route('admin.settings.download-backup', ['path' => $backup['path']]) }}"
+                                                                    class="btn btn-xs btn-outline-primary"
+                                                                    title="Télécharger">
+                                                                    <i class="fas fa-download"></i>
+                                                                </a>
+                                                        <form action="{{ route('admin.settings.verify-backup') }}" method="POST" class="d-inline">
+                                                            @csrf
+                                                            <input type="hidden" name="path" value="{{ $backup['path'] }}">
+                                                            <button type="submit" class="btn btn-xs btn-outline-success" title="Vérifier l'intégrité">
+                                                                <i class="fas fa-check-circle"></i>
+                                                            </button>
+                                                        </form>
+                                                                <form action="{{ route('admin.settings.delete-backup') }}"
+                                                                    method="POST" class="d-inline"
+                                                                    onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette sauvegarde ?');">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <input type="hidden" name="path"
+                                                                        value="{{ $backup['path'] }}">
+                                                                    <button type="submit"
+                                                                        class="btn btn-xs btn-outline-danger"
+                                                                        title="Supprimer">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>

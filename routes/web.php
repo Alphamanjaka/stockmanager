@@ -46,6 +46,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('suppliers', SupplierController::class);
         Route::resource('settings', SettingController::class);
         Route::post('settings/backup', [SettingController::class, 'runBackup'])->name('settings.backup');
+        Route::get('settings/backup/download', [SettingController::class, 'downloadBackup'])->name('settings.download-backup');
+        Route::delete('settings/backup/delete', [SettingController::class, 'deleteBackup'])->name('settings.delete-backup');
+        Route::post('settings/backup/verify', [SettingController::class, 'verifyBackup'])->name('settings.verify-backup');
 
         // Les routes spécifiques comme 'create-from-shortage' ou 'get-purchases-api' doivent être définies
         // AVANT la route ressource pour éviter que Laravel ne les interprète comme un paramètre {id}.
