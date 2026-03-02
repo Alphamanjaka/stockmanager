@@ -17,6 +17,7 @@ export default defineConfig({
 
                 // Points d'entrée du Front-Office
                 "resources/css/front.css",
+                "resources/js/front.js",
             ],
             refresh: true,
         }),

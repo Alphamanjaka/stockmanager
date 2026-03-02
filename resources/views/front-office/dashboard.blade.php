@@ -9,7 +9,7 @@
                     <h6 class="card-subtitle mb-2">Ventes Aujourd'hui</h6>
                     <p class="card-text fs-4 fw-bold">
                         {{ number_format($salesToday, 2, ',', ' ') }}
-                        €
+                        MGA
                     </p>
                 </div>
             </div>
@@ -20,7 +20,7 @@
                     <h6 class="card-subtitle mb-2">Ventes ce Mois</h6>
                     <p class="card-text fs-4 fw-bold">
                         {{ number_format($salesThisMonth, 2, ',', ' ') }}
-                        €
+                        MGA
                     </p>
                 </div>
             </div>
