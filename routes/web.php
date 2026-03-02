@@ -11,7 +11,7 @@ use App\Http\Controllers\{
     StockMovementController,
     SupplierController,
     PurchaseController,
-    SettingsController,
+    SettingController,
     UserController
 };
 
@@ -44,7 +44,8 @@ Route::middleware('auth')->group(function () {
 
         Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);
         Route::resource('suppliers', SupplierController::class);
-        Route::resource('settings', SettingsController::class);
+        Route::resource('settings', SettingController::class);
+        Route::post('settings/backup', [SettingController::class, 'runBackup'])->name('settings.backup');
 
         // Les routes spécifiques comme 'create-from-shortage' ou 'get-purchases-api' doivent être définies
         // AVANT la route ressource pour éviter que Laravel ne les interprète comme un paramètre {id}.
