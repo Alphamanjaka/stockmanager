@@ -24,7 +24,7 @@ services:
       - "${NGINX_PORT:-80}:80"
     depends_on:
       php-fpm:
-        condition: service_healthy  # Wait for php-fpm health check
+        condition: service_started
 
   php-fpm:
     # For the php-fpm service, we will create a custom image to install the necessary PHP extensions and setup proper permissions.
@@ -40,11 +40,6 @@ services:
       - .env
     networks:
       - laravel-production
-    healthcheck:
-      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
     # The 'depends_on' attribute with 'condition: service_healthy' ensures that
     # this service will not start until the 'postgres' service passes its health check.
     # This prevents the application from trying to connect to the database before it's ready.
