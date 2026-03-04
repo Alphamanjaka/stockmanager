@@ -3,8 +3,8 @@
 FROM php:8.4-cli
 
 # Set environment variables for user and group ID
-ARG UID=1000
-ARG GID=1000
+ARG UID=197609
+ARG GID=197609
 ARG NODE_VERSION=25
 
 # Install system dependencies and build libraries
@@ -18,9 +18,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4-openssl-dev \
     libicu-dev \
     libzip-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     pdo_mysql \
     pdo_pgsql \
+    gd \
     pgsql \
     opcache \
     intl \

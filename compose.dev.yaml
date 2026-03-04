@@ -33,10 +33,13 @@ services:
         XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
         XDEBUG_LOG: /dev/stdout
         XDEBUG_LOG_LEVEL: 0
+    environment:
+      # Rend les variables UID/GID de l'hôte disponibles pour l'entrypoint.sh
+      - UID=${UID:-1000}
+      - GID=${GID:-1000}
     env_file:
       # Load the environment variables from the Laravel application
       - .env
-    user: "${UID:-1000}:${GID:-1000}"
     volumes:
       # Mount the application code for live updates
       - ./:/var/www

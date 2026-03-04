@@ -53,7 +53,7 @@ class SettingService
         Cache::forget('settings.all');
     }
 
-    protected function handleFileUpload($key, UploadedFile $file)
+    protected function handleFileUpload($key, UploadedFile $file): void
     {
         // Delete old file if exists
         $oldFile = $this->get($key);
