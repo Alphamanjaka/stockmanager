@@ -7,7 +7,7 @@ WORKDIR /var/www
 
 # Install build dependencies, PHP extensions, and Composer
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl git \
+    curl git unzip \
     libpq-dev libonig-dev libzip-dev libicu-dev \
     libssl-dev libxml2-dev libcurl4-openssl-dev \
     libfreetype6-dev libjpeg62-turbo-dev libpng-dev \
@@ -20,7 +20,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY composer.json composer.lock ./
 
 # Install production Composer dependencies. This layer is cached as long as composer.lock doesn't change.
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
+
+# Stage 1.5: Node Build Stage
+# This stage builds the frontend assets (CSS/JS) using Node.js.
+FROM node:20-alpine AS node_build
+WORKDIR /app
+COPY . .
+RUN npm install
+RUN npm run build
 
 # Stage 2: Production environment (minimal footprint)
 FROM php:8.4-fpm AS production
@@ -34,6 +42,11 @@ COPY --from=build /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
 # Install only runtime dependencies (no build tools, no -dev packages)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
+    libpng16-16 \
+    libjpeg62-turbo \
+    libfreetype6 \
+    libzip-dev \
+    libicu-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Composer dependencies from the build stage
@@ -41,6 +54,9 @@ COPY --from=build /var/www/vendor /var/www/vendor
 
 # Copy application code from the host
 COPY . /var/www
+
+# Copy built assets from the node_build stage
+COPY --from=node_build /app/public/build /var/www/public/build
 
 # Set production PHP config
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
@@ -63,19 +79,12 @@ FROM production AS development
 
 USER root
 
-# Install development tools and Xdebug build deps
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    autoconf gcc g++ make \
-    libpq-dev libonig-dev libzip-dev libicu-dev \
-    libssl-dev libxml2-dev libcurl4-openssl-dev \
-    libfreetype6-dev libjpeg62-turbo-dev libpng-dev \
+# Install development tools for Xdebug, then clean up
+RUN BUILD_DEPS="autoconf gcc g++ make" && \
+    apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
-    && apt-get purge -y autoconf gcc g++ make \
-    libpq-dev libonig-dev libzip-dev libicu-dev \
-    libssl-dev libxml2-dev libcurl4-openssl-dev \
-    libfreetype6-dev libjpeg62-turbo-dev libpng-dev \
-    && apt-get autoremove -y \
+    && apt-get purge -y --auto-remove $BUILD_DEPS \
     && rm -rf /var/lib/apt/lists/*
 
 # Configuration with ARGs
