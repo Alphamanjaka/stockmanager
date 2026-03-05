@@ -32,16 +32,13 @@ docker compose -f compose.prod.yaml up -d --remove-orphans
 
 REM 4. Mise à jour des dépendances PHP
 echo [3/6] Verification des dependances PHP...
-REM Les dependances sont mises a jour lors du build, mais verification
-docker compose -f compose.prod.yaml exec -T php-fpm /usr/local/bin/composer install --no-dev --optimize-autoloader --no-scripts
-IF %ERRORLEVEL% NEQ 0 (
-    echo [ERREUR] La mise a jour des dependances Composer a echoue. Arret du script.
-    pause
-    exit /b
-)
+REM Les dependances PHP (vendor) sont mises a jour lors de l'etape de build de l'image.
+echo    - Dependances mises a jour dans l'image Docker.
 
 REM 5. Base de données
 echo [4/6] Mise a jour de la base de donnees...
+REM On nettoie le cache avant la migration
+docker compose -f compose.prod.yaml exec -T php-fpm php artisan config:clear
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan migrate --force
 
 REM 6. Optimisation (Cache)
