@@ -26,11 +26,19 @@ IF %ERRORLEVEL% NEQ 0 (
 REM 3. Reconstruction des conteneurs
 echo [2/6] Reconstruction des conteneurs (Integration du nouveau code)...
 REM L'option --build est obligatoire car le code est copie dans l'image en prod
-docker compose -f compose.prod.yaml up -d --build --remove-orphans
+REM Reconstruction complete pour eviter les problemes de cache Docker
+docker compose -f compose.prod.yaml build --no-cache
+docker compose -f compose.prod.yaml up -d --remove-orphans
 
 REM 4. Mise à jour des dépendances PHP
 echo [3/6] Verification des dependances PHP...
-docker compose -f compose.prod.yaml exec -T php-fpm composer install --no-dev --optimize-autoloader --no-scripts
+REM Les dependances sont mises a jour lors du build, mais verification
+docker compose -f compose.prod.yaml exec -T php-fpm /usr/local/bin/composer install --no-dev --optimize-autoloader --no-scripts
+IF %ERRORLEVEL% NEQ 0 (
+    echo [ERREUR] La mise a jour des dependances Composer a echoue. Arret du script.
+    pause
+    exit /b
+)
 
 REM 5. Base de données
 echo [4/6] Mise a jour de la base de donnees...

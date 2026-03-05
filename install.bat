@@ -31,18 +31,29 @@ IF NOT EXIST .env (
 REM 3. Démarrage des conteneurs
 echo [2/6] Construction et demarrage des conteneurs (cela peut prendre quelques minutes)...
 REM Utilisation explicite du fichier de production
-docker compose -f compose.prod.yaml up -d --build
+REM Reconstruction complete pour eviter les problemes de cache Docker
+docker compose -f compose.prod.yaml build --no-cache
+docker compose -f compose.prod.yaml up -d
 
 REM 4. Installation des dépendances PHP
 echo [3/6] Installation des dependances...
-REM On force l'install car le volume Windows masque souvent le dossier vendor du conteneur
-docker compose -f compose.prod.yaml exec -T php-fpm composer install --no-dev --optimize-autoloader --no-scripts
+REM Les dependances sont deja installees lors du build, mais verification
+docker compose -f compose.prod.yaml exec -T php-fpm /usr/local/bin/composer install --no-dev --optimize-autoloader --no-scripts
+IF %ERRORLEVEL% NEQ 0 (
+    echo [ERREUR] L'installation des dependances Composer a echoue. Arret du script.
+    pause
+    exit /b
+)
 
 REM 5. Initialisation Laravel
 echo [4/6] Initialisation de la base de donnees et des cles...
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan key:generate
+docker compose -f compose.prod.yaml exec -T php-fpm php artisan migrate --force
+docker compose -f compose.prod.yaml exec -T php-fpm php artisan db:seed --force
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan storage:link
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan migrate --force --seed
+REM Creation du dossier pour les vues compilees pour eviter l'erreur "View path not found" lors de l'optimisation
+docker compose -f compose.prod.yaml exec -T php-fpm mkdir -p storage/framework/views
 REM Optimisation : Mise en cache de la config, des routes et des vues pour la vitesse
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan optimize
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan view:cache

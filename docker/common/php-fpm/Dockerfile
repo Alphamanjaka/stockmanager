@@ -38,6 +38,7 @@ WORKDIR /var/www
 # Copy pre-compiled extensions and PHP config from the build stage
 COPY --from=build /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
 COPY --from=build /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
+COPY --from=build /usr/local/bin/composer /usr/local/bin/composer
 
 # Install only runtime dependencies (no build tools, no -dev packages)
 RUN apt-get update && apt-get install -y --no-install-recommends \
