@@ -45,6 +45,8 @@ REM 6. Optimisation (Cache)
 echo [5/6] Regeneration des caches de performance...
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan optimize
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan view:cache
+REM Correction finale des permissions pour plus de robustesse
+docker compose -f compose.prod.yaml exec -T php-fpm chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 REM 7. Assets
 echo [6/6] Extraction des nouveaux assets compiles (CSS/JS)...
