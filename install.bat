@@ -47,7 +47,7 @@ echo [4/6] Initialisation de la base de donnees et des cles...
 REM On nettoie les caches pour eviter les erreurs liees a des paquets de developpement (comme Pail)
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan config:clear
 REM Generation de la cle d'application.
-docker compose -f compose.prod.yaml exec -T php-fpm php artisan key:generate
+docker compose -f compose.prod.yaml exec -T php-fpm php artisan key:generate --force
 
 REM Redemarrage du conteneur PHP pour qu'il prenne en compte la nouvelle cle dans son environnement.
 echo    - Redemarrage du conteneur PHP pour charger la nouvelle cle...

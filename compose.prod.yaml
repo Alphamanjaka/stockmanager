@@ -36,6 +36,7 @@ services:
     volumes:
       - laravel-public-assets:/var/www/public/build  # Mount built public assets to ensure the manifest.json and hashed files match between Nginx and PHP-FPM
       - laravel-storage-production:/var/www/storage  # Mount the storage volume
+      - ./.env:/var/www/.env # Montage du .env pour que la generation de cle soit persistante sur l'hote
     env_file:
       - .env
     networks:
