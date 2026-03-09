@@ -79,3 +79,42 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
         run: php artisan test
+
+  # Job 3: Build et Push de l'image Docker sur GHCR
+  build-and-push:
+    name: "Build and Push to GHCR"
+    runs-on: ubuntu-latest
+    needs: test # Dépend du succès des tests
+    # On ne lance ce job que sur la branche principale pour éviter de polluer le registre
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    permissions:
+      contents: read
+      packages: write # Permission requise pour pousser sur le GitHub Container Registry
+
+    steps:
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+
+      - name: "Log in to GitHub Container Registry"
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Extract metadata for Docker"
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/vitrine-app
+
+      - name: "Build and push Docker image"
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/common/php-fpm/Dockerfile # Le Dockerfile de l'application PHP
+          target: production # L'étape de build de production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
