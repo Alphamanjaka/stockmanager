@@ -11,38 +11,18 @@ class UserService
     public function create(array $data)
     {
         return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
+            'name'     => $data['name'],
+            'email'    => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => $data['role'] ?? 'front_office',
+            'role'     => $data['role'] ?? 'front_office',
         ]);
     }
-    public function login(array $credentials)
+    public function update(User $user, array $data)
     {
-        $user = User::where('email', $credentials['email'])->first();
-
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
-            throw new \Exception('Les identifiants fournis sont incorrects.');
-        }
-
-        if (isset($credentials['role']) && $user->role !== $credentials['role']) {
-            throw new \Exception('Vous n\'avez pas accès à ce profil.');
-        }
-
-        return $user;
-    }
-    public function logout()
-    {
-        auth()->logout();
-    }
-    public function update($id, $data)
-    {
-        $user = $this->getUserById($id);
-
         if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
-            unset($data['password']);
+            unset($data['password']); // Ne pas mettre à jour le mot de passe s'il est vide
         }
 
         $user->update($data);
@@ -50,30 +30,17 @@ class UserService
     }
     public function delete($id)
     {
-        $user = $this->getUserById($id);
+        $user = $this->getUserById($id); // Utilise findOrFail
         return $user->delete();
     }
     public function getAllUsers()
     {
-        return User::latest()->paginate(15);
+        // Ajout de withCount pour compter les ventes de chaque utilisateur de manière optimisée
+        return User::withCount('sales')->latest('id')->paginate(15);
     }
     public function getUserById($id)
     {
-        $user = User::find($id);
-        if (!$user) {
-            throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Utilisateur non trouvé.');
-        }
-        return $user;
-    }
-    public function register(array $data)
-    {
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'role' => $data['role'],
-        ]);
-
-        return $user;
+        // Utilisation de findOrFail pour un code plus propre et standard
+        return User::findOrFail($id);
     }
 }

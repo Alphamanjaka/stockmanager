@@ -79,11 +79,22 @@
                         </a>
                     </div>
                 </li>
+                <li class="sidebar-header">Utilisateurs</li>
+                <li class="nav-item">
+                    <a href="{{ route('admin.users.index') }}"
+                        class="{{ request()->is('admin/users*') ? 'text-primary fw-bold' : '' }}" data-shortcut="u">
+                        <span><i class="fas fa-users fa-fw me-2"></i> <span
+                                class="sidebar-text">Utilisateurs</span></span>
+                        <span class="shortcut-badge">Alt+U</span>
+                    </a>
+                </li>
             </ul>
         </div>
 
+
         <div class="mt-auto border-top border-secondary pt-2">
-            <a href="{{ route('admin.imports.index') }}" class="{{ request()->is('admin/imports*') ? 'active-link' : '' }}" data-shortcut="i">
+            <a href="{{ route('admin.imports.index') }}"
+                class="{{ request()->is('admin/imports*') ? 'active-link' : '' }}" data-shortcut="i">
                 <i class="fas fa-file-import"></i>
                 <span><span class="sidebar-text">Import</span></span>
                 <span class="shortcut-badge">Alt+I</span>
@@ -109,7 +120,8 @@
                 {{-- Barre de recherche globale --}}
                 <form action="{{ route('admin.products.index') }}" method="GET" class="d-none d-md-block">
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted"></i></span>
+                        <span class="input-group-text bg-light border-0"><i
+                                class="fas fa-search text-muted"></i></span>
                         <input type="text" name="search" class="form-control bg-light border-0"
                             placeholder="Rechercher..." aria-label="Search">
                     </div>
@@ -177,7 +189,7 @@
                             <span class="d-none d-md-inline">{{ auth()->user()->name }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item" href="#">Mon Profil</a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">Mon Profil</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>

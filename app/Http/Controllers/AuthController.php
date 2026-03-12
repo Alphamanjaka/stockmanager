@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\LoginUserRequest;
 use App\Http\Requests\RegisterUserRequest;
 use App\Services\UserService;
@@ -40,19 +37,23 @@ class AuthController extends Controller
      */
     public function login(LoginUserRequest $request)
     {
-        try {
-            $user = $this->userService->login($request->validated());
+        $credentials = $request->validated();
 
-            Auth::login($user);
+        // Tente de connecter l'utilisateur avec les identifiants et le rôle
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            $request->session()->regenerate(); // Prévient la fixation de session
 
+            $user = Auth::user();
             if ($user->isBackOffice()) {
                 return redirect()->route('admin.dashboard')->with('success', 'Connecté avec succès !');
             }
 
             return redirect()->route('sales.dashboard')->with('success', 'Connecté avec succès !');
-        } catch (\Exception $e) {
-            return back()->withErrors(['email' => $e->getMessage()])->withInput();
         }
+
+        return back()->withErrors([
+            'email' => 'Les identifiants fournis sont incorrects ou vous n\'avez pas accès à ce profil.',
+        ])->onlyInput('email', 'role');
     }
 
     /**
@@ -62,9 +63,8 @@ class AuthController extends Controller
     {
         try {
             // Validate the request data
-            $validated = $request->validated();
             // Create the user using the UserService
-            $user = $this->userService->register($validated);
+            $user = $this->userService->create($request->validated());
             // Log the user in
             Auth::login($user);
             // Redirect based on role

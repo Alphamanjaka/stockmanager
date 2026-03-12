@@ -28,7 +28,7 @@ docker compose -f compose.dev.yaml exec -T php-fpm composer install
 
 REM 4. Initialisation basique
 docker compose -f compose.dev.yaml exec -T php-fpm php artisan key:generate --force
-docker compose -f compose.dev.yaml exec -T php-fpm php artisan migrate --force
+docker compose -f compose.dev.yaml exec -T php-fpm php artisan migrate:refresh --seed --force
 
 echo.
 echo ==========================================

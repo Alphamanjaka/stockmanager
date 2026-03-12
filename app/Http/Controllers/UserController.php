@@ -20,35 +20,37 @@ class UserController extends Controller
     public function index()
     {
         $users = $this->userService->getAllUsers();
-        return view('admin.users.index', compact('users'));
+        return view('users.index', compact('users'));
     }
 
     public function create()
     {
-        return view('admin.users.create');
+        return view('users.create');
     }
 
     public function store(StoreUserRequest $request)
     {
         $this->userService->create($request->validated());
 
+        // Correction de la route de redirection
         return redirect()->route('admin.users.index')
             ->with('success', 'Utilisateur créé avec succès.');
     }
 
     public function show(User $user)
     {
-        return view('admin.users.show', compact('user'));
+        return view('users.show', compact('user'));
     }
 
     public function edit(User $user)
     {
-        return view('admin.users.edit', compact('user'));
+        return view('users.edit', compact('user'));
     }
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        $this->userService->update($user->id, $request->validated());
+        // On passe directement l'objet User au service
+        $this->userService->update($user, $request->validated());
 
         return redirect()->route('admin.users.index')
             ->with('success', 'Utilisateur mis à jour avec succès.');

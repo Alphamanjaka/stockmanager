@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app-back-office') {{-- Adaptez à votre layout principal --}}
 
 @section('content')
     <div class="container">

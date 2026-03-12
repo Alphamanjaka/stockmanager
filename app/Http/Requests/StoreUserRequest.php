@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
+
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreUserRequest extends FormRequest
@@ -11,7 +13,8 @@ class StoreUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        // Seuls les utilisateurs avec le rôle 'back_office' peuvent créer un nouvel utilisateur.
+        return auth()->user() && auth()->user()->isBackOffice();
     }
 
     /**
@@ -22,7 +25,10 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => ['required', 'string', Rule::in(['front_office', 'back_office'])],
         ];
     }
 }

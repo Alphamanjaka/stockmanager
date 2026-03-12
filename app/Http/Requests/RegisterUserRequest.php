@@ -11,7 +11,8 @@ class RegisterUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        // L'enregistrement est public, donc tout le monde est autorisé.
+        return true;
     }
 
     /**
@@ -25,7 +26,7 @@ class RegisterUserRequest extends FormRequest
             // Validation rules for registration
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6|confirmed',
+            'password' => 'required|min:8|confirmed',
             'role' => 'required|in:front_office,back_office',
         ];
     }
@@ -37,7 +38,7 @@ class RegisterUserRequest extends FormRequest
             'email.email' => 'Veuillez entrer un email valide.',
             'email.unique' => 'Cet email est déjà utilisé.',
             'password.required' => 'Le mot de passe est requis.',
-            'password.min' => 'Le mot de passe doit contenir au moins 6 caractères.',
+            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
             'password.confirmed' => 'Les mots de passe ne correspondent pas.',
             'role.required' => 'Veuillez sélectionner un profil.',
         ];

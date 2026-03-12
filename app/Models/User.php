@@ -48,6 +48,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the sales for the user.
+     */
+    public function sales()
+    {
+        return $this->hasMany(\App\Models\Sale::class);
+    }
+
+    /**
      * Check if user is back office
      */
     public function isBackOffice(): bool
