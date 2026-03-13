@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePurchaseRequest;
 use App\Services\{
     PurchaseService,
-    StockService,
     SupplierService,
     ProductService
 };
@@ -209,14 +208,18 @@ class PurchaseController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
+            'supplier_id'           => 'required|exists:suppliers,id',
+            'products'              => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity'   => 'required|integer|min:1',
+            'products.*.unit_price' => 'required|numeric|min:0',
         ]);
 
         try {
             $this->purchaseService->updatePurchase($id, $validated);
             return redirect()->route('admin.purchases.show', $id)->with('success', 'L\'achat a été mis à jour.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Erreur lors de la mise à jour de l\'achat.');
+            return back()->with('error', 'Erreur lors de la mise à jour de l\'achat : ' . $e->getMessage())->withInput();
         }
     }
 

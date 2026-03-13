@@ -20,9 +20,6 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             // add sales data
             SaleSeeder::class,
-            // add  PurchaseSeeder for purchases
-            PurchaseSeeder::class,
         ]);
-
     }
 }
