@@ -44,25 +44,14 @@ echo    - Dependances deja installees dans l'image Docker.
 
 REM 5. Initialisation Laravel
 echo [4/6] Initialisation de la base de donnees et des cles...
-REM On nettoie les caches pour eviter les erreurs liees a des paquets de developpement (comme Pail)
-docker compose -f compose.prod.yaml exec -T php-fpm php artisan config:clear
 REM Generation de la cle d'application.
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan key:generate --force
 
 REM Redemarrage du conteneur PHP pour qu'il prenne en compte la nouvelle cle dans son environnement.
 echo    - Redemarrage du conteneur PHP pour charger la nouvelle cle...
 docker compose -f compose.prod.yaml restart php-fpm
-
-docker compose -f compose.prod.yaml exec -T php-fpm php artisan storage:link
-docker compose -f compose.prod.yaml exec -T php-fpm php artisan migrate:fresh --seed --force
-REM Creation du dossier pour les vues compilees pour eviter l'erreur "View path not found" lors de l'optimisation
-docker compose -f compose.prod.yaml exec -T php-fpm mkdir -p storage/framework/views
-REM Optimisation : Mise en cache de la config, des routes et des vues pour la vitesse
-docker compose -f compose.prod.yaml exec -T php-fpm php artisan optimize
-docker compose -f compose.prod.yaml exec -T php-fpm php artisan view:cache
-REM Correction finale des permissions sur les dossiers de stockage.
-REM C'est une etape cruciale pour eviter les erreurs 500 silencieuses dues a des problemes d'ecriture.
-docker compose -f compose.prod.yaml exec -T php-fpm chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+REM Note : Les optimisations (cache, permissions, migrations) sont maintenant
+REM executees automatiquement par le script entrypoint.sh au demarrage.
 
 REM 6. Récupération des assets (CSS/JS)
 echo [5/6] Recuperation des fichiers CSS/JS compiles...
