@@ -26,9 +26,8 @@ IF %ERRORLEVEL% NEQ 0 (
 REM 3. Reconstruction des conteneurs
 echo [2/6] Reconstruction des conteneurs (Integration du nouveau code)...
 REM L'option --build est obligatoire car le code est copie dans l'image en prod
-REM Reconstruction complete pour eviter les problemes de cache Docker
-docker compose -f compose.prod.yaml build --no-cache
-docker compose -f compose.prod.yaml up -d --remove-orphans
+REM On retire --no-cache pour que Docker reutilise les couches (vendor, os) si elles n'ont pas change.
+docker compose -f compose.prod.yaml up -d --build --remove-orphans
 
 REM 4. Mise à jour des dépendances PHP
 echo [3/6] Verification des dependances PHP...
@@ -37,19 +36,11 @@ echo    - Dependances mises a jour dans l'image Docker.
 
 REM 5. Base de données
 echo [4/6] Mise a jour de la base de donnees...
-REM On nettoie le cache avant la migration
-docker compose -f compose.prod.yaml exec -T php-fpm php artisan config:clear
-docker compose -f compose.prod.yaml exec -T php-fpm php artisan migrate --force
+REM Note : Les migrations et optimisations sont maintenant executees
+REM automatiquement par le conteneur au demarrage (entrypoint).
 
-REM 6. Optimisation (Cache)
-echo [5/6] Regeneration des caches de performance...
-docker compose -f compose.prod.yaml exec -T php-fpm php artisan optimize
-docker compose -f compose.prod.yaml exec -T php-fpm php artisan view:cache
-REM Correction finale des permissions pour plus de robustesse
-docker compose -f compose.prod.yaml exec -T php-fpm chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-
-REM 7. Assets
-echo [6/6] Extraction des nouveaux assets compiles (CSS/JS)...
+REM 6. Assets
+echo [5/6] Extraction des nouveaux assets compiles (CSS/JS)...
 docker compose -f compose.prod.yaml cp php-fpm:/var/www/public/build ./public/
 
 echo.
