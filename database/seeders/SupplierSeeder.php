@@ -24,18 +24,18 @@ class SupplierSeeder extends Seeder
         ]);
 
 
-        $supplierService->createSupplier([
-            'name' => 'Buro-Top Fournisseurs',
-            'email' => 'sales@burotop.test',
-            'phone' => '032 55 444 11',
-            'address' => 'Avenue de l\'Indépendance'
-        ]);
+        // $supplierService->createSupplier([
+        //     'name' => 'Buro-Top Fournisseurs',
+        //     'email' => 'sales@burotop.test',
+        //     'phone' => '032 55 444 11',
+        //     'address' => 'Avenue de l\'Indépendance'
+        // ]);
 
-        $supplierService->createSupplier([
-            'name' => 'Import Global Madagascar',
-            'email' => 'import@global.test',
-            'phone' => '020 22 555 99',
-            'address' => 'Zone Industrielle Akorondrano'
-        ]);
+        // $supplierService->createSupplier([
+        //     'name' => 'Import Global Madagascar',
+        //     'email' => 'import@global.test',
+        //     'phone' => '020 22 555 99',
+        //     'address' => 'Zone Industrielle Akorondrano'
+        // ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\LoginUserRequest;
+use Illuminate\Support\Facades\Log;
 use App\Http\Requests\RegisterUserRequest;
 use App\Services\UserService;
 
@@ -39,16 +40,18 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
-        // Tente de connecter l'utilisateur avec les identifiants et le rôle
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate(); // Prévient la fixation de session
 
             $user = Auth::user();
-            if ($user->isBackOffice()) {
-                return redirect()->route('admin.dashboard')->with('success', 'Connecté avec succès !');
-            }
 
-            return redirect()->route('sales.dashboard')->with('success', 'Connecté avec succès !');
+            $dashboardRoute = $user->isBackOffice()
+                ? 'admin.dashboard'
+                : 'sales.dashboard';
+
+            // Redirige vers la page que l'utilisateur voulait visiter, ou vers son tableau de bord.
+            return redirect()->intended(route($dashboardRoute))
+                ->with('success', 'Connecté avec succès !');
         }
 
         return back()->withErrors([
@@ -62,18 +65,21 @@ class AuthController extends Controller
     public function register(RegisterUserRequest $request)
     {
         try {
-            // Validate the request data
-            // Create the user using the UserService
             $user = $this->userService->create($request->validated());
-            // Log the user in
+
             Auth::login($user);
-            // Redirect based on role
-            if ($user->isBackOffice()) {
-                return redirect()->route('admin.dashboard')->with('success', 'Inscription réussie !');
-            }
-            return redirect()->route('sales.dashboard')->with('success', 'Inscription réussie !');
+
+            // Régénère la session pour la sécurité
+            $request->session()->regenerate();
+
+            $dashboardRoute = $user->isBackOffice()
+                ? 'admin.dashboard'
+                : 'sales.dashboard';
+
+            return redirect()->route($dashboardRoute)->with('success', 'Inscription réussie !');
         } catch (\Exception $e) {
-            return back()->withErrors(['email' => $e->getMessage()])->withInput();
+            Log::error('Registration failed: ' . $e->getMessage());
+            return back()->withErrors(['email' => 'Une erreur est survenue lors de l\'inscription.'])->withInput();
         }
     }
 

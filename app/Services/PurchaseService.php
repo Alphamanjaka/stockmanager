@@ -139,9 +139,42 @@ class PurchaseService
     // Update purchase details (like changing supplier or reference)
     public function updatePurchase(int $id, array $data): Purchase
     {
-        $purchase = $this->getPurchaseById($id);
-        $purchase->update($data);
-        return $purchase;
+        return DB::transaction(function () use ($id, $data) {
+            $purchase = $this->getPurchaseById($id);
+
+            if ($purchase->state !== 'Draft') {
+                throw new \Exception("Impossible de modifier une commande qui n'est plus en brouillon (Statut actuel : {$purchase->state}).");
+            }
+
+            // Mise à jour du fournisseur
+            $purchase->update([
+                'supplier_id' => $data['supplier_id']
+            ]);
+
+            // Mise à jour des lignes d'achat (On supprime et on recrée pour simplifier)
+            $purchase->items()->delete();
+
+            $totalAmount = 0;
+            foreach ($data['products'] as $item) {
+                $subtotal = $item['quantity'] * $item['unit_price'];
+                $totalAmount += $subtotal;
+
+                $purchase->items()->create([
+                    'product_id' => $item['product_id'],
+                    'quantity'   => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'subtotal'   => $subtotal,
+                ]);
+            }
+
+            // Recalcul des totaux
+            $purchase->update([
+                'total_amount' => $totalAmount,
+                'total_net'    => $totalAmount - $purchase->discount,
+            ]);
+
+            return $purchase;
+        });
     }
     // Method to apply filters to the purchase query
     public function applyFilters($query, $filters)
