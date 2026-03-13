@@ -17,7 +17,7 @@
             <h4 class="mb-0"><i class="fas fa-cube text-primary me-2"></i>StockMaster</h4>
             <small class="text-muted ms-4">Administration</small>
         </div>
-        <div class="flex-grow-1 overflow-auto">
+        <div class="grow overflow-auto">
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a href="{{ route('admin.dashboard') }}"
