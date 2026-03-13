@@ -73,6 +73,7 @@ class UserServiceTest extends TestCase
         $newData = ['name' => 'Updated Name', 'email' => 'updated@example.com'];
 
         $this->service->update($user->id, $newData);
+        $this->service->update($user, $newData);
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
@@ -88,6 +89,7 @@ class UserServiceTest extends TestCase
         $newData = ['password' => 'new-secret-password'];
 
         $updatedUser = $this->service->update($user->id, $newData);
+        $updatedUser = $this->service->update($user, $newData);
 
         $this->assertTrue(Hash::check('new-secret-password', $updatedUser->password));
     }
