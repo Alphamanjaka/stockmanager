@@ -23,7 +23,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            //
+            // 1. Supprimer la contrainte de clé étrangère
+            $table->dropForeign(['category_id']);
+            // 2. Supprimer la colonne category_id
             $table->dropColumn('category_id');
         });
     }

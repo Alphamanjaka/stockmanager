@@ -33,7 +33,7 @@ class PurchaseServiceTest extends TestCase
         // Inject the mock into our service
         $this->service = new PurchaseService($this->stockServiceMock);
         // Créer un utilisateur pour l'authentification si nécessaire (selon middleware)
-        $this->user = User::factory()->create();
+        $this->user = User::factory()->create(['role' => 'back_office']);
         $this->actingAs($this->user);
     }
 
