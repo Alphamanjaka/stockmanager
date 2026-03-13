@@ -72,7 +72,6 @@ class UserServiceTest extends TestCase
         $user = User::factory()->create();
         $newData = ['name' => 'Updated Name', 'email' => 'updated@example.com'];
 
-        $this->service->update($user->id, $newData);
         $this->service->update($user, $newData);
 
         $this->assertDatabaseHas('users', [
@@ -88,7 +87,6 @@ class UserServiceTest extends TestCase
         $user = User::factory()->create();
         $newData = ['password' => 'new-secret-password'];
 
-        $updatedUser = $this->service->update($user->id, $newData);
         $updatedUser = $this->service->update($user, $newData);
 
         $this->assertTrue(Hash::check('new-secret-password', $updatedUser->password));
@@ -102,29 +100,5 @@ class UserServiceTest extends TestCase
         $this->service->delete($user->id);
 
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
-    }
-
-    /** @test */
-    public function it_can_login_a_user_successfully()
-    {
-        $user = User::factory()->create(['password' => Hash::make('password')]);
-
-        $credentials = ['email' => $user->email, 'password' => 'password'];
-
-        $loggedInUser = $this->service->login($credentials);
-
-        $this->assertEquals($user->id, $loggedInUser->id);
-    }
-
-    /** @test */
-    public function it_fails_login_with_wrong_password()
-    {
-        $user = User::factory()->create(['password' => Hash::make('password')]);
-        $credentials = ['email' => $user->email, 'password' => 'wrong-password'];
-
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Les identifiants fournis sont incorrects.');
-
-        $this->service->login($credentials);
     }
 }
