@@ -20,7 +20,7 @@ git pull
 IF %ERRORLEVEL% NEQ 0 (
     echo [ATTENTION] Echec du git pull.
     echo Assurez-vous que Git est installe et que vous avez acces au depot.
-    echo Si vous avez mis a jour les fichiers manuellement (zip), ignorez ce message.
+    echo Si vous avez mis a jour les fichiers manuellement ^(zip^), ignorez ce message.
 )
 
 REM 3. Reconstruction des conteneurs
