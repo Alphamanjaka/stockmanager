@@ -125,10 +125,21 @@ class BackupService
             return ['valid' => false, 'message' => $message];
         }
 
-        // 2. Vérification de la présence du dump de la base de données (si configuré)
-        $isDatabaseBackupExpected = !empty(config('backup.backup.source.databases'));
-        $hasDbDump = false;
+        // 2. Déterminer si un dump de BDD est attendu en lisant le manifeste
+        $manifestContent = $zip->getFromName('manifest.json');
+        $isDatabaseBackupExpected = false;
 
+        if ($manifestContent !== false) {
+            // Le manifeste existe, on l'utilise comme source de vérité
+            $manifest = json_decode($manifestContent, true);
+            $isDatabaseBackupExpected = !empty($manifest['databases'] ?? []);
+        } else {
+            // Fallback pour les anciennes sauvegardes : on se base sur la config actuelle
+            $isDatabaseBackupExpected = !empty(config('backup.backup.source.databases'));
+        }
+
+        // 3. Vérification de la présence du dump de la base de données
+        $hasDbDump = false;
         if ($isDatabaseBackupExpected) {
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 if (str_starts_with($zip->getNameIndex($i), 'db-dumps/')) {
@@ -143,6 +154,7 @@ class BackupService
             return ['valid' => false, 'message' => 'Archive valide, mais le dump de la base de données est manquant.'];
         }
 
+        // Si on ne s'attendait pas à une BDD, ou si on l'a trouvée, tout va bien.
         return ['valid' => true, 'message' => 'L\'intégrité de l\'archive a été vérifiée avec succès.'];
     }
 }

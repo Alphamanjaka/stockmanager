@@ -137,15 +137,16 @@ class BackupServiceTest extends TestCase
         $zip = new \ZipArchive();
         $zipPath = $this->disk->path($filePath);
 
+        // Le manifeste indique qu'une BDD est attendue
+        $manifest = json_encode(['databases' => ['mysql']]);
+
         if ($zip->open($zipPath, \ZipArchive::CREATE) === TRUE) {
+            $zip->addFromString('manifest.json', $manifest);
             $zip->addFromString('test.txt', 'file content');
             $zip->close();
         }
 
-        // S'assurer qu'on s'attend à un dump de BDD
-        config(['backup.backup.source.databases' => ['mysql']]);
-        $this->backupService = new BackupService(); // Ré-instancier pour prendre en compte le changement de config
-
+        // Plus besoin de modifier la config globale
         $result = $this->backupService->verifyBackup($filePath);
 
         $this->assertFalse($result['valid']);
@@ -160,17 +161,42 @@ class BackupServiceTest extends TestCase
         $zip = new \ZipArchive();
         $zipPath = $this->disk->path($filePath);
 
+        // Le manifeste indique qu'une BDD est attendue
+        $manifest = json_encode(['databases' => ['mysql']]);
+
         if ($zip->open($zipPath, \ZipArchive::CREATE) === TRUE) {
+            $zip->addFromString('manifest.json', $manifest);
             $zip->addFromString('db-dumps/dump.sql', 'SQL DUMP CONTENT');
             $zip->close();
         }
 
-        config(['backup.backup.source.databases' => ['mysql']]);
-        $this->backupService = new BackupService();
-
+        // Plus besoin de modifier la config globale
         $result = $this->backupService->verifyBackup($filePath);
 
         $this->assertTrue($result['valid']);
+        $this->assertEquals('L\'intégrité de l\'archive a été vérifiée avec succès.', $result['message']);
+    }
+
+    /** @test */
+    public function it_successfully_verifies_a_files_only_backup()
+    {
+        // Créer un fichier zip valide sans dump de BDD, mais avec un manifeste qui le confirme
+        $filePath = $this->backupName . '/files-only.zip';
+        $zip = new \ZipArchive();
+        $zipPath = $this->disk->path($filePath);
+
+        // Le manifeste indique qu'aucune BDD n'est attendue
+        $manifest = json_encode(['databases' => []]);
+
+        if ($zip->open($zipPath, \ZipArchive::CREATE) === TRUE) {
+            $zip->addFromString('manifest.json', $manifest);
+            $zip->addFromString('app/somefile.php', 'file content');
+            $zip->close();
+        }
+
+        $result = $this->backupService->verifyBackup($filePath);
+
+        $this->assertTrue($result['valid'], $result['message'] ?? 'No message provided');
         $this->assertEquals('L\'intégrité de l\'archive a été vérifiée avec succès.', $result['message']);
     }
 }

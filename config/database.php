@@ -45,6 +45,11 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
+            'dump' => [
+                'dump_binary_path' => env('MYSQLDUMP_PATH', '/usr/bin/'), // Chemin vers le dossier contenant mysqldump (ex: 'C:\xampp\mysql\bin' sur Windows)
+                'use_single_transaction' => true,
+                'timeout' => 60 * 5,
+            ],
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
@@ -96,6 +101,12 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            'dump' => [
+                'dump_binary_path' => env('PGDUMP_PATH', '/usr/bin/'), // Chemin vers le dossier contenant pg_dump
+                'add_extra_option' => '--format=c', // Format "custom" compressé de Postgres
+                'use_single_transaction' => true,
+                'timeout' => 60 * 5,
+            ],
         ],
 
         'sqlsrv' => [
@@ -148,7 +159,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-database-'),
+            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')) . '-database-'),
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 
