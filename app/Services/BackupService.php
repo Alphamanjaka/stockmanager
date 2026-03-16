@@ -45,6 +45,12 @@ class BackupService
             ->all();
     }
 
+    public function cleanOldBackups(): void
+    {
+        // Supprime les vieilles sauvegardes selon les règles définies dans config/backup.php
+        Artisan::call('backup:clean');
+    }
+
     /**
      * Lance une nouvelle sauvegarde en arrière-plan.
      */

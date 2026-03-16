@@ -40,9 +40,8 @@ class SettingController extends Controller
             return redirect()->route('admin.settings.index')
                 ->with('success', 'La sauvegarde de la base de données a été lancée en arrière-plan.');
         } catch (\Exception $e) {
-            \Log::error("Failed to queue backup job: " . $e->getMessage());
             return redirect()->route('admin.settings.index')
-                ->with('error', 'Impossible de lancer la sauvegarde. Veuillez consulter les logs.');
+                ->with('error', 'Impossible de lancer la sauvegarde. Veuillez consulter les logs.' . $e->getMessage());
         }
     }
 

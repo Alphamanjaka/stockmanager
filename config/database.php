@@ -45,11 +45,7 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
-            'dump' => [
-                'dump_binary_path' => env('MYSQLDUMP_PATH', '/usr/bin/'), // Chemin vers le dossier contenant mysqldump (ex: 'C:\xampp\mysql\bin' sur Windows)
-                'use_single_transaction' => true,
-                'timeout' => 60 * 5,
-            ],
+
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),

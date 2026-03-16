@@ -49,8 +49,12 @@ class BackupServiceTest extends TestCase
 
         $this->assertCount(1, $backups);
         $this->assertEquals('backup-test.zip', $backups[0]['name']);
-        $this->assertArrayHasKey('size', $backups[0]);
-        $this->assertArrayHasKey('date', $backups[0]);
+
+        // Validation du format de taille (12 octets -> 12.00B)
+        $this->assertEquals('12.00B', $backups[0]['size']);
+
+        // Validation du format de date (d/m/Y H:i:s)
+        $this->assertMatchesRegularExpression('/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}/', $backups[0]['date']);
     }
 
     public function test_it_lists_backups_sorted_by_date_descending()
@@ -81,6 +85,16 @@ class BackupServiceTest extends TestCase
         $this->backupService->runBackup();
     }
 
+    public function test_it_cleans_old_backups()
+    {
+        // Simuler la façade Artisan pour le nettoyage
+        Artisan::shouldReceive('call')
+            ->once()
+            ->with('backup:clean');
+
+        $this->backupService->cleanOldBackups();
+    }
+
     public function test_it_can_download_a_backup()
     {
         $filePath = $this->backupName . '/backup-to-download.zip';
@@ -90,6 +104,14 @@ class BackupServiceTest extends TestCase
         $response = $this->backupService->downloadBackup($request);
 
         $this->assertInstanceOf(StreamedResponse::class, $response);
+    }
+
+    public function test_it_returns_null_when_downloading_non_existent_backup()
+    {
+        $request = new Request(['path' => 'non-existent-file.zip']);
+        $response = $this->backupService->downloadBackup($request);
+
+        $this->assertNull($response);
     }
 
     public function test_it_can_delete_a_backup()
@@ -105,6 +127,14 @@ class BackupServiceTest extends TestCase
 
         $this->assertTrue($wasDeleted);
         $this->disk->assertMissing($filePath);
+    }
+
+    public function test_it_returns_false_when_deleting_non_existent_backup()
+    {
+        $request = new Request(['path' => 'non-existent-file.zip']);
+        $wasDeleted = $this->backupService->deleteBackup($request);
+
+        $this->assertFalse($wasDeleted);
     }
 
     /** @test */
@@ -132,6 +162,9 @@ class BackupServiceTest extends TestCase
     /** @test */
     public function it_detects_a_missing_database_dump_in_a_valid_archive()
     {
+        // S'assurer que le dossier de sauvegarde existe pour que ZipArchive puisse créer le fichier
+        $this->disk->makeDirectory($this->backupName);
+
         // Créer un fichier zip valide mais sans le dossier db-dumps
         $filePath = $this->backupName . '/no-dump.zip';
         $zip = new \ZipArchive();
@@ -156,6 +189,9 @@ class BackupServiceTest extends TestCase
     /** @test */
     public function it_successfully_verifies_a_valid_backup()
     {
+        // S'assurer que le dossier de sauvegarde existe pour que ZipArchive puisse créer le fichier
+        $this->disk->makeDirectory($this->backupName);
+
         // Créer un fichier zip valide avec un dump de BDD
         $filePath = $this->backupName . '/valid-backup.zip';
         $zip = new \ZipArchive();
@@ -180,6 +216,9 @@ class BackupServiceTest extends TestCase
     /** @test */
     public function it_successfully_verifies_a_files_only_backup()
     {
+        // S'assurer que le dossier de sauvegarde existe pour que ZipArchive puisse créer le fichier
+        $this->disk->makeDirectory($this->backupName);
+
         // Créer un fichier zip valide sans dump de BDD, mais avec un manifeste qui le confirme
         $filePath = $this->backupName . '/files-only.zip';
         $zip = new \ZipArchive();
