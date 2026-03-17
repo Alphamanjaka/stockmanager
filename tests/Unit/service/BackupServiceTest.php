@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Services;
+namespace Tests\Unit\Service;
 
 use App\Services\BackupService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -49,8 +49,30 @@ class BackupServiceTest extends TestCase
 
         $this->assertCount(1, $backups);
         $this->assertEquals('backup-test.zip', $backups[0]['name']);
-        $this->assertArrayHasKey('size', $backups[0]);
-        $this->assertArrayHasKey('date', $backups[0]);
+
+        // Validation du format de taille (12 octets -> 12.00B)
+        $this->assertEquals('12.00B', $backups[0]['size']);
+
+        // Validation du format de date (d/m/Y H:i:s)
+        $this->assertMatchesRegularExpression('/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}/', $backups[0]['date']);
+    }
+
+    public function test_it_lists_backups_sorted_by_date_descending()
+    {
+        // Créer deux faux fichiers de sauvegarde avec des timestamps différents
+        $this->disk->put($this->backupName . '/backup-old.zip', 'old-content');
+        // simuler un fichier plus ancien
+        touch($this->disk->path($this->backupName . '/backup-old.zip'), time() - 3600);
+
+        $this->disk->put($this->backupName . '/backup-new.zip', 'new-content');
+        touch($this->disk->path($this->backupName . '/backup-new.zip'), time());
+
+        $backups = $this->backupService->getBackups();
+
+        $this->assertCount(2, $backups);
+        // Le plus récent doit être le premier
+        $this->assertEquals('backup-new.zip', $backups[0]['name']);
+        $this->assertEquals('backup-old.zip', $backups[1]['name']);
     }
 
     public function test_it_queues_a_backup_job()
@@ -58,12 +80,19 @@ class BackupServiceTest extends TestCase
         // Simuler la façade Artisan
         Artisan::shouldReceive('queue')
             ->once()
-            ->with('backup:run', [
-                '--only-db' => true,
-                '--disable-notifications' => true
-            ]);
+            ->with('backup:run');
 
         $this->backupService->runBackup();
+    }
+
+    public function test_it_cleans_old_backups()
+    {
+        // Simuler la façade Artisan pour le nettoyage
+        Artisan::shouldReceive('call')
+            ->once()
+            ->with('backup:clean');
+
+        $this->backupService->cleanOldBackups();
     }
 
     public function test_it_can_download_a_backup()
@@ -75,6 +104,14 @@ class BackupServiceTest extends TestCase
         $response = $this->backupService->downloadBackup($request);
 
         $this->assertInstanceOf(StreamedResponse::class, $response);
+    }
+
+    public function test_it_returns_null_when_downloading_non_existent_backup()
+    {
+        $request = new Request(['path' => 'non-existent-file.zip']);
+        $response = $this->backupService->downloadBackup($request);
+
+        $this->assertNull($response);
     }
 
     public function test_it_can_delete_a_backup()
@@ -90,5 +127,115 @@ class BackupServiceTest extends TestCase
 
         $this->assertTrue($wasDeleted);
         $this->disk->assertMissing($filePath);
+    }
+
+    public function test_it_returns_false_when_deleting_non_existent_backup()
+    {
+        $request = new Request(['path' => 'non-existent-file.zip']);
+        $wasDeleted = $this->backupService->deleteBackup($request);
+
+        $this->assertFalse($wasDeleted);
+    }
+
+    /** @test */
+    public function it_returns_error_if_backup_file_not_found_for_verification()
+    {
+        $result = $this->backupService->verifyBackup('non-existent-file.zip');
+
+        $this->assertFalse($result['valid']);
+        $this->assertEquals('Le fichier de sauvegarde est introuvable.', $result['message']);
+    }
+
+    /** @test */
+    public function it_detects_a_corrupted_zip_archive()
+    {
+        $filePath = $this->backupName . '/corrupted.zip';
+        // On écrit du texte invalide au lieu d'une archive zip
+        $this->disk->put($filePath, 'ceci n\'est pas un fichier zip');
+
+        $result = $this->backupService->verifyBackup($filePath);
+
+        $this->assertFalse($result['valid']);
+        $this->assertStringContainsString('n\'est pas une archive ZIP valide', $result['message']);
+    }
+
+    /** @test */
+    public function it_detects_a_missing_database_dump_in_a_valid_archive()
+    {
+        // S'assurer que le dossier de sauvegarde existe pour que ZipArchive puisse créer le fichier
+        $this->disk->makeDirectory($this->backupName);
+
+        // Créer un fichier zip valide mais sans le dossier db-dumps
+        $filePath = $this->backupName . '/no-dump.zip';
+        $zip = new \ZipArchive();
+        $zipPath = $this->disk->path($filePath);
+
+        // Le manifeste indique qu'une BDD est attendue
+        $manifest = json_encode(['databases' => ['mysql']]);
+
+        if ($zip->open($zipPath, \ZipArchive::CREATE) === TRUE) {
+            $zip->addFromString('manifest.json', $manifest);
+            $zip->addFromString('test.txt', 'file content');
+            $zip->close();
+        }
+
+        // Plus besoin de modifier la config globale
+        $result = $this->backupService->verifyBackup($filePath);
+
+        $this->assertFalse($result['valid']);
+        $this->assertEquals('Archive valide, mais le dump de la base de données est manquant.', $result['message']);
+    }
+
+    /** @test */
+    public function it_successfully_verifies_a_valid_backup()
+    {
+        // S'assurer que le dossier de sauvegarde existe pour que ZipArchive puisse créer le fichier
+        $this->disk->makeDirectory($this->backupName);
+
+        // Créer un fichier zip valide avec un dump de BDD
+        $filePath = $this->backupName . '/valid-backup.zip';
+        $zip = new \ZipArchive();
+        $zipPath = $this->disk->path($filePath);
+
+        // Le manifeste indique qu'une BDD est attendue
+        $manifest = json_encode(['databases' => ['mysql']]);
+
+        if ($zip->open($zipPath, \ZipArchive::CREATE) === TRUE) {
+            $zip->addFromString('manifest.json', $manifest);
+            $zip->addFromString('db-dumps/dump.sql', 'SQL DUMP CONTENT');
+            $zip->close();
+        }
+
+        // Plus besoin de modifier la config globale
+        $result = $this->backupService->verifyBackup($filePath);
+
+        $this->assertTrue($result['valid']);
+        $this->assertEquals('L\'intégrité de l\'archive a été vérifiée avec succès.', $result['message']);
+    }
+
+    /** @test */
+    public function it_successfully_verifies_a_files_only_backup()
+    {
+        // S'assurer que le dossier de sauvegarde existe pour que ZipArchive puisse créer le fichier
+        $this->disk->makeDirectory($this->backupName);
+
+        // Créer un fichier zip valide sans dump de BDD, mais avec un manifeste qui le confirme
+        $filePath = $this->backupName . '/files-only.zip';
+        $zip = new \ZipArchive();
+        $zipPath = $this->disk->path($filePath);
+
+        // Le manifeste indique qu'aucune BDD n'est attendue
+        $manifest = json_encode(['databases' => []]);
+
+        if ($zip->open($zipPath, \ZipArchive::CREATE) === TRUE) {
+            $zip->addFromString('manifest.json', $manifest);
+            $zip->addFromString('app/somefile.php', 'file content');
+            $zip->close();
+        }
+
+        $result = $this->backupService->verifyBackup($filePath);
+
+        $this->assertTrue($result['valid'], $result['message'] ?? 'No message provided');
+        $this->assertEquals('L\'intégrité de l\'archive a été vérifiée avec succès.', $result['message']);
     }
 }

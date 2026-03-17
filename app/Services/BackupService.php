@@ -25,27 +25,30 @@ class BackupService
      */
     public function getBackups(): array
     {
-        $backups = [];
-
         if (!$this->disk->exists($this->backupName)) {
             return [];
         }
 
         $files = $this->disk->files($this->backupName);
 
-        foreach ($files as $file) {
-            if (str_ends_with($file, '.zip')) {
-                $backups[] = [
-                    'path' => $file,
-                    'name' => basename($file),
-                    'size' => $this->humanFileSize($this->disk->size($file)),
-                    'date' => date('d/m/Y H:i:s', $this->disk->lastModified($file)),
-                ];
-            }
-        }
+        return collect($files)
+            ->filter(fn($file) => str_ends_with($file, '.zip'))
+            ->map(fn($file) => [
+                'path' => $file,
+                'name' => basename($file),
+                'size' => $this->humanFileSize($this->disk->size($file)),
+                'date' => $this->disk->lastModified($file), // Garder le timestamp pour le tri
+            ])
+            ->sortByDesc('date') // Tri par timestamp (le plus récent en premier)
+            ->map(fn($backup) => array_merge($backup, ['date' => date('d/m/Y H:i:s', $backup['date'])])) // Formater la date pour l'affichage
+            ->values() // Réindexer le tableau
+            ->all();
+    }
 
-        // Tri par date décroissante (le plus récent en premier)
-        return array_reverse($backups);
+    public function cleanOldBackups(): void
+    {
+        // Supprime les vieilles sauvegardes selon les règles définies dans config/backup.php
+        Artisan::call('backup:clean');
     }
 
     /**
@@ -53,10 +56,9 @@ class BackupService
      */
     public function runBackup(): void
     {
-        Artisan::queue('backup:run', [
-            '--only-db' => true,
-            '--disable-notifications' => true
-        ]);
+        // En ne passant aucune option, la commande utilisera les paramètres
+        // par défaut définis dans config/backup.php (fichiers + base de données).
+        Artisan::queue('backup:run');
     }
 
     /**
@@ -105,31 +107,60 @@ class BackupService
 
     /**
      * Vérifie l'intégrité d'un fichier de sauvegarde.
-     * Tente d'ouvrir le ZIP et cherche un fichier .sql à l'intérieur.
+     * Tente d'ouvrir le ZIP en mode consistence check.
      */
     public function verifyBackup(string $path): array
     {
+        if (!$this->disk->exists($path)) {
+            return ['valid' => false, 'message' => 'Le fichier de sauvegarde est introuvable.'];
+        }
+
         $fullPath = $this->disk->path($path);
         $zip = new \ZipArchive;
-        $status = ['valid' => false, 'message' => ''];
 
-        if ($zip->open($fullPath) === TRUE) {
-            $hasSql = false;
-            // On parcourt les fichiers de l'archive pour trouver le dump SQL
+        // 1. Vérification de l'intégrité technique de l'archive
+        $resultCode = $zip->open($fullPath, \ZipArchive::CHECKCONS);
+
+        if ($resultCode !== true) {
+            $message = match ($resultCode) {
+                \ZipArchive::ER_NOZIP => 'Le fichier n\'est pas une archive ZIP valide.',
+                \ZipArchive::ER_INCONS => 'Incohérences détectées dans l\'archive ZIP.',
+                \ZipArchive::ER_CRC => 'Erreur de CRC. Le fichier est probablement corrompu.',
+                default => "Impossible d'ouvrir l'archive (Code d'erreur: {$resultCode}).",
+            };
+            return ['valid' => false, 'message' => $message];
+        }
+
+        // 2. Déterminer si un dump de BDD est attendu en lisant le manifeste
+        $manifestContent = $zip->getFromName('manifest.json');
+        $isDatabaseBackupExpected = false;
+
+        if ($manifestContent !== false) {
+            // Le manifeste existe, on l'utilise comme source de vérité
+            $manifest = json_decode($manifestContent, true);
+            $isDatabaseBackupExpected = !empty($manifest['databases'] ?? []);
+        } else {
+            // Fallback pour les anciennes sauvegardes : on se base sur la config actuelle
+            $isDatabaseBackupExpected = !empty(config('backup.backup.source.databases'));
+        }
+
+        // 3. Vérification de la présence du dump de la base de données
+        $hasDbDump = false;
+        if ($isDatabaseBackupExpected) {
             for ($i = 0; $i < $zip->numFiles; $i++) {
-                $filename = $zip->getNameIndex($i);
-                if (str_ends_with($filename, '.sql')) {
-                    $hasSql = true;
+                if (str_starts_with($zip->getNameIndex($i), 'db-dumps/')) {
+                    $hasDbDump = true;
                     break;
                 }
             }
-            $zip->close();
+        }
+        $zip->close();
 
-            return $hasSql
-                ? ['valid' => true, 'message' => "Archive valide : Dump SQL détecté."]
-                : ['valid' => false, 'message' => "Archive incomplète : Aucun fichier SQL trouvé."];
+        if ($isDatabaseBackupExpected && !$hasDbDump) {
+            return ['valid' => false, 'message' => 'Archive valide, mais le dump de la base de données est manquant.'];
         }
 
-        return ['valid' => false, 'message' => "Fichier corrompu : Impossible d'ouvrir l'archive ZIP."];
+        // Si on ne s'attendait pas à une BDD, ou si on l'a trouvée, tout va bien.
+        return ['valid' => true, 'message' => 'L\'intégrité de l\'archive a été vérifiée avec succès.'];
     }
 }

@@ -7,6 +7,7 @@
     <title>StockMaster - Back Office @yield('title')</title>
     {{-- Chargement des assets spécifiques au Back-Office --}}
     @vite(['resources/css/custom.css', 'resources/css/sidebar.css', 'resources/js/app.js', 'resources/js/back.js'])
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @stack('css')
 </head>
 

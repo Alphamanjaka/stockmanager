@@ -37,6 +37,12 @@ services:
       # Rend les variables UID/GID de l'hôte disponibles pour l'entrypoint.sh
       - UID=${UID:-1000}
       - GID=${GID:-1000}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=app
+      - DB_USERNAME=laravel
+      - DB_PASSWORD=secret
     env_file:
       # Load the environment variables from the Laravel application
       - .env
@@ -46,8 +52,8 @@ services:
     networks:
       - laravel-development
     depends_on:
-      mysql:
-        condition: service_started # Wait for postgres to start
+      postgres:
+        condition: service_healthy # Wait for postgres to be ready
 
   workspace:
     # For the workspace service, we will also create a custom image to install and setup all the necessary stuff.
@@ -69,24 +75,35 @@ services:
     stdin_open: true # Keeps standard input open for 'docker exec'
     env_file:
       - .env
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=app
+      - DB_USERNAME=laravel
+      - DB_PASSWORD=secret
     volumes:
       - ./:/var/www
     networks:
       - laravel-development
 
-  mysql:
-    image: mysql:8.0
+  postgres:
+    image: postgres:16
     ports:
-      - "${MYSQL_PORT:-3306}:3306"
+      - "${DB_PORT:-5432}:5432"
     environment:
-      MYSQL_DATABASE: app
-      MYSQL_USER: laravel
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: secret
+      POSTGRES_DB: app
+      POSTGRES_USER: laravel
+      POSTGRES_PASSWORD: secret
     volumes:
-      - mysql-data-development:/var/lib/mysql
+      - postgres-data-development:/var/lib/postgresql/data
     networks:
       - laravel-development
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-laravel} -d ${DB_DATABASE:-app}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
@@ -97,4 +114,4 @@ networks:
   laravel-development:
 
 volumes:
-  mysql-data-development:
+  postgres-data-development:
