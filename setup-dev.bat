@@ -6,16 +6,17 @@ echo   DEMARRAGE MODE DEVELOPPEMENT
 echo ==========================================
 
 REM 1. Gestion du fichier .env
-IF NOT EXIST .env (
-    IF EXIST .env.dev (
-        echo [INFO] Creation de .env a partir de .env.dev
-        copy .env.dev .env >nul
-    ) ELSE (
-        echo [INFO] Creation de .env a partir de .env.example
-        copy .env.example .env >nul
-    )
-) ELSE (
+
+IF  EXIST .env (
     echo [INFO] Fichier .env deja present.
+    del .env >nul
+)
+IF EXIST .env.dev (
+echo [INFO] Creation de .env a partir de .env.dev
+copy .env.dev .env >nul
+) ELSE (
+echo [INFO] Creation de .env a partir de .env.example
+copy .env.example .env >nul
 )
 
 REM 2. Démarrage avec le fichier docker-compose de DEV
