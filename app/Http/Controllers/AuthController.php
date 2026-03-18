@@ -47,7 +47,7 @@ class AuthController extends Controller
 
             $dashboardRoute = $user->isBackOffice()
                 ? 'admin.dashboard'
-                : 'sales.dashboard';
+                : 'saler.dashboard';
 
             // Redirige vers la page que l'utilisateur voulait visiter, ou vers son tableau de bord.
             return redirect()->intended(route($dashboardRoute))
@@ -74,7 +74,7 @@ class AuthController extends Controller
 
             $dashboardRoute = $user->isBackOffice()
                 ? 'admin.dashboard'
-                : 'sales.dashboard';
+                : 'saler.dashboard';
 
             return redirect()->route($dashboardRoute)->with('success', 'Inscription réussie !');
         } catch (\Exception $e) {

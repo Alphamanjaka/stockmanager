@@ -26,7 +26,7 @@
     <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Recent Transactions</h5>
-            <a href="{{ route('sales.create') }}" class="btn btn-primary btn-sm"> <i class="bi bi-plus-circle"></i> New Sale</a>
+            <a href="{{ route('saler.create') }}" class="btn btn-primary btn-sm"> <i class="bi bi-plus-circle"></i> New Sale</a>
         </div>
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
@@ -50,7 +50,7 @@
                             <td class="fw-bold text-success">{{ number_format($sale->total_net, 2) }} Mga</td>
                             <td class="text-center">
 
-                                <a href="{{ route('sales.show', $sale->id) }}" class="btn btn-sm btn-outline-info">
+                                <a href="{{ route('saler.show', $sale->id) }}" class="btn btn-sm btn-outline-info">
                                     <i class="bi bi-eye"></i> Details
                                 </a>
                             </td>

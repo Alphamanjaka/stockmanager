@@ -5,10 +5,10 @@
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <a href="{{ route('sales.index') }}" class="btn btn-secondary shadow-sm">
+        <a href="{{ route('saler.index') }}" class="btn btn-secondary shadow-sm">
             <i class="bi bi-arrow-left"></i> Back to History
         </a>
-        <a href="{{ route('sales.pdf', $sale->id) }}" class="btn btn-danger shadow-sm">
+        <a href="{{ route('saler.pdf', $sale->id) }}" class="btn btn-danger shadow-sm">
             <i class="bi bi-file-earmark-pdf"></i> Download as PDF
         </a>
     </div>

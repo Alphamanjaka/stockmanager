@@ -44,7 +44,7 @@ class SaleController extends Controller
             );
 
             return redirect()
-                ->route('sales.show', $sale->id)
+                ->route('saler.show', $sale->id)
                 ->with('success', "Vente {$sale->reference} validée avec succès !");
         } catch (\Exception $e) {
             return back()

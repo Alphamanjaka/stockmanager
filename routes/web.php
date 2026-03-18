@@ -11,6 +11,7 @@ use App\Http\Controllers\{
     StockMovementController,
     SupplierController,
     PurchaseController,
+    SalerProductController,
     SettingController,
     UserController
 };
@@ -34,7 +35,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 // Routes protégées par authentification
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
     // Routes Back Office (contrôle accès)
     Route::middleware('ensure.back.office')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'backOffice'])->name('dashboard');
@@ -72,8 +72,9 @@ Route::middleware('auth')->group(function () {
     });
 
     // Routes Front Office
-    Route::middleware('ensure.front.office')->prefix('sales')->name('sales.')->group(function () {
+    Route::middleware('ensure.front.office')->prefix('saler')->name('saler.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'frontOffice'])->name('dashboard');
+        Route::get('/products', [SalerProductController::class, 'index'])->name('products.index');
         Route::resource('', SaleController::class)->parameters(['' => 'sale'])->only(['index', 'create', 'store', 'show']);
         Route::get('/{sale}/pdf', [SaleController::class, 'exportPdf'])->name('pdf'); // Devient sales.pdf
     });

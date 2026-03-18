@@ -7,6 +7,7 @@ use App\Services\{
     ProductService,
     StockService,
 };
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -143,5 +144,24 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Erreur : ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Affiche la liste des produits pour le vendeur (lecture seule).
+     */
+    public function salerIndex(Request $request)
+    {
+        $query = Product::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('reference', 'like', "%{$search}%");
+        }
+
+        // Pagination simple, trié par nom et on charge la catégorie pour la vue
+        $products = $query->with('category')->orderBy('name')->paginate(20)->withQueryString();
+
+        return view('front-office.products.index', compact('products'));
     }
 }

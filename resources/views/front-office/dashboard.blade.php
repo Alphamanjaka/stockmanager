@@ -45,12 +45,12 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <a href="{{ route('sales.create') }}" class="btn btn-lg btn-success w-100 py-3">
+                            <a href="{{ route('saler.create') }}" class="btn btn-lg btn-success w-100 py-3">
                                 <i class="fas fa-plus-circle"></i> Créer une Nouvelle Vente
                             </a>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <a href="{{ route('sales.index') }}" class="btn btn-lg btn-primary w-100 py-3">
+                            <a href="{{ route('saler.index') }}" class="btn btn-lg btn-primary w-100 py-3">
                                 <i class="fas fa-list"></i> Voir Toutes les Ventes
                             </a>
                         </div>

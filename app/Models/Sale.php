@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Sale extends Model
 {
     use HasFactory;
-    protected $fillable = ['reference', 'total_brut', 'discount', 'total_net'];
+    protected $fillable = ['reference', 'total_brut', 'discount', 'total_net','user_id'];
 
     public function items()
     {

@@ -15,7 +15,7 @@
     <!-- Navbar simplifié -->
     <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container-fluid">
-            <a class="navbar-brand text-white fw-bold" href="{{ route('sales.dashboard') }}">
+            <a class="navbar-brand text-white fw-bold" href="{{ route('saler.dashboard') }}">
                 <i class="fas fa-shopping-cart"></i> Front Office - Selling Management
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -25,19 +25,25 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('sales/dashboard*') ? 'active-link' : '' }}"
-                            href="{{ route('sales.dashboard') }}">
+                            href="{{ route('saler.dashboard') }}">
                             <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {{ request()->is('sales/products*') ? 'active-link' : '' }}"
+                            href="{{ route('saler.products.index') }}">
+                            <i class="fas fa-boxes"></i> Products
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('sales') ? 'active-link' : '' }}"
-                            href="{{ route('sales.index') }}">
+                            href="{{ route('saler.index') }}">
                             <i class="fas fa-receipt"></i> Sales
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('sales/create') ? 'active-link' : '' }}"
-                            href="{{ route('sales.create') }}">
+                            href="{{ route('saler.create') }}">
                             <i class="fas fa-plus-circle"></i> New Sale
                         </a>
                     </li>

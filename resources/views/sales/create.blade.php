@@ -3,7 +3,7 @@
 @section('title', 'New Sale')
 
 @section('content')
-    <form action="{{ route('sales.store') }}" method="POST" id="sale-form">
+    <form action="{{ route('saler.store') }}" method="POST" id="sale-form">
         @csrf
         <div class="row">
             <div class="col-md-8">

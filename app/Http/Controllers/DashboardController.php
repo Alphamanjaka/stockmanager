@@ -24,7 +24,7 @@ class DashboardController extends Controller
         }
 
         if ($user->isFrontOffice()) {
-            return redirect()->route('sales.dashboard');
+            return redirect()->route('saler.dashboard');
         }
 
         // Fallback si aucun rôle n'est détecté (sécurité)

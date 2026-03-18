@@ -123,7 +123,7 @@ class ProductService
         $order = ($filters['order'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 
         $query->when($filters['search'] ?? null, function ($q, $search) {
-            $q->where('name', 'like', "%{$search}%");
+            $q->where('name', 'ilike', "%{$search}%");
         })
             ->when($filters['category'] ?? null, function ($q, $category) {
                 $q->where('category_id', $category);
