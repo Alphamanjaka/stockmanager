@@ -14,7 +14,8 @@ use App\Services\{
     ProductService,
     PurchaseService,
     SupplierService,
-    ImportService
+    ImportService,
+    SettingService
 };
 
 
@@ -40,7 +41,7 @@ class ImportController extends Controller
 
         // Optimisation : Instanciation conditionnelle pour éviter de créer des objets inutiles
         $import = match ($request->type) {
-            'products'   => new ProductsImport(app(ProductService::class)),
+            'products'   => new ProductsImport(app(ProductService::class),app(SettingService::class)),
             'suppliers'  => new SupplierImport,
             'categories' => new CategoryImport,
             'purchases'  => new PurchaseImport(

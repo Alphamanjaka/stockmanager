@@ -30,6 +30,26 @@ class PurchaseController extends Controller
         $this->supplierService = $supplierService;
         $this->productService = $productService;
     }
+    /**
+     * Génère et affiche le PDF du bon de commande dans le navigateur.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function previewPdf(int $id)
+    {
+        // Récupération de l'achat avec les relations nécessaires pour la vue PDF
+        $purchase = $this->purchaseService->getPurchaseById($id);
+
+        // Génération du PDF en utilisant la vue 'purchases.pdf'
+        // Note : Cela nécessite le package barryvdh/laravel-dompdf
+        $pdf = Pdf::loadView('purchases.pdf', compact('purchase'));
+
+        // stream() permet d'afficher le PDF dans le navigateur
+        // download() l'aurait forcé en téléchargement
+        return $pdf->stream("bon_commande_{$purchase->reference}.pdf");
+    }
+
 
     /**
      * Affiche la page de création de commandes à partir des ruptures de stock.

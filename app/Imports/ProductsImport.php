@@ -4,7 +4,10 @@ namespace App\Imports;
 
 use App\Models\Product;
 use App\Models\Category;
-use App\Services\ProductService;
+use App\Services\{
+    SettingService,
+    ProductService
+};
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -15,11 +18,14 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
     private int $created = 0;
     private int $updated = 0;
     protected $productService;
+    protected $settingService;
     private array $categoriesCache = [];
 
-    public function __construct(ProductService $productService)
+    public function __construct(ProductService $productService, SettingService $settingService)
     {
         $this->productService = $productService;
+        // On peut utiliser le service de settings pour récupérer des paramètres globaux si nécessaire
+        $this->settingService = $settingService;
     }
 
     /**
@@ -50,7 +56,7 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
             'price'          => $rowData['price'],
             'quantity_stock' => $rowData['stock'] ?? 0,
             'category_id'    => $categoryId,
-            'alert_stock'    => $rowData['alert_stock'] ?? 10,
+            'alert_stock'    => $rowData['alert_stock'] ?? $this->settingService->get('global_alert_threshold') ?? 10,
         ];
 
         // Vérification si le produit existe pour décider de l'action (Create ou Update)

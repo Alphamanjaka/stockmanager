@@ -58,6 +58,10 @@ Route::middleware('auth')->group(function () {
         Route::resource('purchases', PurchaseController::class);
         Route::patch('purchases/{id}/state', [PurchaseController::class, 'updateState'])->name('purchases.updateState');
         Route::get('purchases/{id}/pdf', [PurchaseController::class, 'exportPdf'])->name('purchases.pdf');
+        Route::get('/purchases/{id}/pdf/preview', [PurchaseController::class, 'previewPdf'])
+            ->name('purchases.pdf.preview')
+            ->middleware('auth'); // Assurez-vous que la route est protégée
+
         // Module d'Importation Centralisé
         Route::get('/imports', [ImportController::class, 'index'])->name('imports.index');
         Route::post('/imports', [ImportController::class, 'store'])->name('imports.store');

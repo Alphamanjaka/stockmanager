@@ -11,7 +11,7 @@
                 <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-primary shadow-sm">
                     <i class="bi bi-pencil"></i> Update
                 </a>
-                <a href="{{ route('admin.purchases.pdf', $purchase->id) }}" class="btn btn-danger shadow-sm" target="_blank">
+                <a href="{{ route('admin.purchases.pdf.preview', $purchase->id) }}" class="btn btn-danger shadow-sm" target="_blank">
                     <i class="bi bi-file-earmark-pdf"></i> Download as PDF
                 </a>
             </div>
