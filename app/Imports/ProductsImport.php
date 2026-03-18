@@ -15,6 +15,7 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
     private int $created = 0;
     private int $updated = 0;
     protected $productService;
+    private array $categoriesCache = [];
 
     public function __construct(ProductService $productService)
     {
@@ -31,15 +32,20 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
         $categoryId = null;
         if (!empty($rowData['category_id'])) {
             $categoryId = $rowData['category_id'];
-        } else if (!empty($rowData['category'])) {
-            $category = Category::where('name', $rowData['category'])->first();
-            if ($category) {
-                $categoryId = $category->id;
+        } else if (!empty($rowData['category_name'])) {
+            // On s'assure que le nom de la catégorie est bien une chaîne de caractères
+            $catName = strtolower((string) $rowData['category_name']);
+            if (!array_key_exists($catName, $this->categoriesCache)) {
+                $category = Category::whereRaw('LOWER(name) = ?', [$catName])->first();
+                $this->categoriesCache[$catName] = $category ? $category->id : null;
             }
+            $categoryId = $this->categoriesCache[$catName];
         }
 
+        $productName = (string) $rowData['name'];
+
         $data = [
-            'name'           => $rowData['name'],
+            'name'           => $productName,
             'description'    => $rowData['description'] ?? null,
             'price'          => $rowData['price'],
             'quantity_stock' => $rowData['stock'] ?? 0,
@@ -48,7 +54,7 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
         ];
 
         // Vérification si le produit existe pour décider de l'action (Create ou Update)
-        $existingProduct = Product::where('name', $rowData['name'])->first();
+        $existingProduct = Product::where('name', $productName)->first();
 
         if ($existingProduct) {
             $this->productService->updateProduct($existingProduct->id, $data);

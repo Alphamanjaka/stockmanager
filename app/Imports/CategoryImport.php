@@ -11,6 +11,7 @@ class CategoryImport implements ToModel, WithHeadingRow, WithValidation
 {
     private int $created = 0;
     private int $updated = 0;
+    private array $parentsCache = [];
 
     /**
      * @param array $row
@@ -27,14 +28,20 @@ class CategoryImport implements ToModel, WithHeadingRow, WithValidation
         }
         // 2. Sinon, si un NOM de parent est fourni, on cherche son ID
         elseif (!empty($row['parent'])) {
-            $parent = Category::where('name', $row['parent'])->first();
-            if ($parent) {
-                $parentId = $parent->id;
+            // On s'assure que le nom du parent est bien une chaîne de caractères
+            $parentName = strtolower((string) $row['parent']);
+            if (!array_key_exists($parentName, $this->parentsCache)) {
+                $parent = Category::whereRaw('LOWER(name) = ?', [$parentName])->first();
+                $this->parentsCache[$parentName] = $parent ? $parent->id : null;
             }
+            $parentId = $this->parentsCache[$parentName];
         }
 
+        // On s'assure que le nom de la catégorie est bien une chaîne de caractères
+        $categoryName = (string) $row['name'];
+
         $category = Category::updateOrCreate(
-            ['name' => $row['name']],
+            ['name' => $categoryName],
             [
                 'description' => $row['description'] ?? null,
                 'parent_id'   => $parentId,
@@ -53,10 +60,10 @@ class CategoryImport implements ToModel, WithHeadingRow, WithValidation
     public function rules(): array
     {
         return [
-            'name'        => 'required|string|max:255',
+            'name'        => 'required',
             'description' => 'nullable|string',
             'parent_id'   => 'nullable|integer|exists:categories,id',
-            'parent'      => 'nullable|string',
+            'parent'      => 'nullable',
         ];
     }
 

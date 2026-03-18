@@ -8,9 +8,12 @@ WORKDIR /var/www
 # Install build dependencies, PHP extensions, and Composer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl git unzip \
+    autoconf gcc make \
     libpq-dev libonig-dev libzip-dev libicu-dev \
     libssl-dev libxml2-dev libcurl4-openssl-dev \
     libfreetype6-dev libjpeg62-turbo-dev libpng-dev \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo pdo_pgsql gd bcmath zip intl soap opcache \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \

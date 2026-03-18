@@ -156,4 +156,8 @@ class ProductService
             ->orderBy('total_sold', 'asc')
             ->first();
     }
+    public function getAll()
+    {
+        return Product::all();
+    }
 }

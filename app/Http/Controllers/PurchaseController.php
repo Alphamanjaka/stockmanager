@@ -133,7 +133,7 @@ class PurchaseController extends Controller
      */
     public function create()
     {
-        $products = $this->productService->getAvailableProducts();
+        $products = $this->productService->getAll();
         $suppliers = $this->supplierService->getAllSuppliers();
         return view('purchases.create', compact('products', 'suppliers'));
     }

@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 icon: "success",
                 title: "Succès !",
                 text: successMessage,
-                timer: 3000,
+                timer: 1000,
                 showConfirmButton: false,
             });
         }

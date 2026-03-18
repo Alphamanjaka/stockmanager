@@ -38,8 +38,8 @@ class ImportController extends Controller
             'type' => 'required|in:products,suppliers,categories,purchases'
         ]);
 
-        // Mapping entre le type et la classe d'import avec injection des services
-        $importMap = [
+        // Optimisation : Instanciation conditionnelle pour éviter de créer des objets inutiles
+        $import = match ($request->type) {
             'products'   => new ProductsImport(app(ProductService::class)),
             'suppliers'  => new SupplierImport,
             'categories' => new CategoryImport,
@@ -48,11 +48,9 @@ class ImportController extends Controller
                 app(SupplierService::class),
                 app(ProductService::class)
             ),
-        ];
+        };
 
         try {
-            $import = $importMap[$request->type];
-
             $this->importService->import(
                 $request->file('file'),
                 $import
@@ -78,10 +76,11 @@ class ImportController extends Controller
     }
     public function downloadTemplate($type)
     {
+        // Alignement des en-têtes avec les clés attendues par les classes d'import
         $headers = match ($type) {
-            'products' => ['nom', 'prix', 'stock', 'category_id', 'description', 'alert_stock'],
-            'categories' => ['nom', 'description', 'parent_id'],
-            'suppliers' => ['name', 'address', 'contact', 'telephone'],
+            'products'   => ['name', 'price', 'stock', 'category_id', 'category_name', 'description', 'alert_stock'],
+            'categories' => ['name', 'description', 'parent', 'parent_id'],
+            'suppliers'  => ['name', 'email', 'phone', 'address'],
             'purchases' => ['reference_groupe', 'email_fournisseur', 'nom_produit', 'quantite', 'cout_unitaire'],
             default => []
         };

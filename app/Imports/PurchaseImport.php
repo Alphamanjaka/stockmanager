@@ -36,28 +36,36 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
      */
     public function collection(Collection $rows)
     {
+        // Optimisation N+1 : On récupère toutes les références nécessaires en une seule fois
+        $emails = $rows->pluck('email_fournisseur')->unique()->filter();
+        // On s'assure que les noms de produits sont bien des chaînes de caractères
+        $productNames = $rows->pluck('nom_produit')->map(fn($name) => (string) $name)->unique()->filter();
+
+        // Chargement en mémoire : ['email' => id] et ['name' => id]
+        $suppliers = Supplier::whereIn('email', $emails)->pluck('id', 'email');
+        $products = Product::whereIn('name', $productNames)->pluck('id', 'name');
+
         // On groupe les lignes par 'reference_groupe' pour créer un achat avec plusieurs items
         $groupedPurchases = $rows->groupBy('reference_groupe');
 
         foreach ($groupedPurchases as $reference => $items) {
             $firstItem = $items->first();
+            $email = $firstItem['email_fournisseur'];
 
             // Recherche du fournisseur
-            $supplier = Supplier::where('email', $firstItem['email_fournisseur'])->first();
-
-            if (!$supplier) {
+            if (!isset($suppliers[$email])) {
                 // On pourrait logger une erreur ici si le fournisseur n'existe pas
                 continue;
             }
+            $supplierId = $suppliers[$email];
 
             $purchaseItems = [];
 
             foreach ($items as $item) {
-                $product = Product::where('name', $item['nom_produit'])->first();
-
-                if ($product) {
+                $productName = (string) $item['nom_produit'];
+                if (isset($products[$productName])) {
                     $purchaseItems[] = [
-                        'product_id' => $product->id,
+                        'product_id' => $products[$productName],
                         'quantity'   => $item['quantite'],
                         'unit_price' => $item['cout_unitaire'],
                     ];
@@ -66,7 +74,7 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
 
             if (!empty($purchaseItems)) {
                 // Le service gère la transaction, la création de l'achat, des items et la mise à jour du stock
-                $this->purchaseService->processPurchase($supplier->id, $purchaseItems);
+                $this->purchaseService->processPurchase($supplierId, $purchaseItems);
                 $this->created++;
             }
         }
