@@ -33,7 +33,7 @@
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
                                 <strong>Selling Price:</strong>
-                                <span class="fw-bold text-success">{{ number_format($product->price, 2) }} €</span>
+                                <span class="fw-bold text-success">{{ number_format($product->price, 2) }} MGA</span>
                             </li>
                             <li class="list-group-item">
                                 <strong>Description:</strong>

@@ -44,8 +44,8 @@
                         <tr>
                             <td>{{ $item->product->name }}</td>
                             <td class="text-center">{{ $item->quantity }}</td>
-                            <td class="text-end">{{ number_format($item->unit_price, 2) }} €</td>
-                            <td class="text-end">{{ number_format($item->subtotal, 2) }} €</td>
+                            <td class="text-end">{{ number_format($item->unit_price, 2) }} MGA</td>
+                            <td class="text-end">{{ number_format($item->subtotal, 2) }} MGA</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -58,15 +58,15 @@
                         <tbody>
                             <tr>
                                 <td><strong>Total Gross</strong></td>
-                                <td class="text-end">{{ number_format($sale->total_brut, 2) }} €</td>
+                                <td class="text-end">{{ number_format($sale->total_brut, 2) }} MGA</td>
                             </tr>
                             <tr>
                                 <td><strong>Discount</strong></td>
-                                <td class="text-end text-danger">-{{ number_format($sale->discount, 2) }} €</td>
+                                <td class="text-end text-danger">-{{ number_format($sale->discount, 2) }} MGA</td>
                             </tr>
                             <tr class="table-light">
                                 <td><span class="h5">Total Net</span></td>
-                                <td class="text-end"><span class="h5 text-success">{{ number_format($sale->total_net, 2) }} €</span></td>
+                                <td class="text-end"><span class="h5 text-success">{{ number_format($sale->total_net, 2) }} MGA</span></td>
                             </tr>
                         </tbody>
                     </table>

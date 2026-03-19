@@ -48,7 +48,7 @@
                         <h6 class="text-muted">Produits Associés</h6>
                         <h1 class="display-4 fw-bold text-primary">{{ $category->products_count }}</h1>
                         <p class="mb-0">Valeur estimée du stock :</p>
-                        <h4 class="text-success">{{ number_format($stockValue, 2) }} €</h4>
+                        <h4 class="text-success">{{ number_format($stockValue, 2) }} MGA</h4>
                     </div>
                 </div>
             </div>
@@ -73,7 +73,7 @@
                             <tr>
                                 <td><a href="{{ route('admin.products.show', $product->id) }}"
                                         class="text-decoration-none">{{ $product->name }}</a></td>
-                                <td>{{ number_format($product->price, 2) }} €</td>
+                                <td>{{ number_format($product->price, 2) }} MGA</td>
                                 <td><span
                                         class="badge {{ $product->quantity_stock <= $product->alert_stock ? 'bg-danger' : 'bg-success' }}">{{ $product->quantity_stock }}</span>
                                 </td>

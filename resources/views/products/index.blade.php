@@ -160,7 +160,7 @@
                                             <span class="badge bg-success">{{ $product->quantity_stock }}</span>
                                         @endif
                                     </td>
-                                    <td class="fw-bold">{{ number_format($product->price, 2) }} €</td>
+                                    <td class="fw-bold">{{ number_format($product->price, 2) }} MGA</td>
                                     <td class="text-end pe-4">
                                         <div class="btn-group">
                                             <a href="{{ route('admin.products.show', $product->id) }}"

@@ -70,7 +70,7 @@
                                                 <td class="text-center">{{ $product->quantity_stock }}</td>
                                                 <td class="text-center">{{ $product->alert_stock }}</td>
                                                 <td class="text-end">
-                                                    {{ number_format($product->last_unit_price, 2, ',', ' ') }} €</td>
+                                                    {{ number_format($product->last_unit_price, 2, ',', ' ') }} MGA</td>
                                                 <td>
                                                     <input type="number" class="form-control form-control-sm"
                                                         name="items[{{ $product->id }}][quantity]"
