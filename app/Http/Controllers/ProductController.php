@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Requests\StoreProductRequest;
 use App\Services\{
     ProductService,
@@ -19,6 +20,14 @@ class ProductController extends Controller
     {
         $this->productService = $productService;
         $this->stockService = $stockService;
+    }
+    public function exportPdf(Request $request)
+    {
+        $products = $this->productService->getAllProducts(['per_page' => 1000]); // Get all products without pagination
+
+        $pdf = Pdf::loadView('products.pdf', compact('products'));
+
+        return $pdf->download('products.pdf');
     }
 
     /**

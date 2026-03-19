@@ -7,9 +7,15 @@
         {{-- Header --}}
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 text-gray-800">Products</h1>
-            <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> New Product
-            </a>
+            <div>
+                <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> New Product
+                </a>
+                <a href="{{ route('admin.products.exportPdf') }}" class="btn btn-success">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </a>
+            </div>
+
         </div>
 
         {{-- KPI Section --}}
@@ -140,7 +146,7 @@
                                 <tr>
                                     <td class="ps-4 text-muted small">#{{ $product->id }}</td>
                                     <td>
-                                        <div class="fw-bold text-dark">{{ $product->name }}</div>
+                                        <div class="fw-bold text-dark"> <a href="{{route('admin.products.show', $product->id)}}">{{ $product->name }}</a></div>
                                     </td>
                                     <td>
                                         @if ($product->category)
@@ -155,12 +161,13 @@
                                             <span class="badge bg-danger">Out of Stock</span>
                                         @elseif($product->quantity_stock <= ($product->alert_stock ?? 5))
                                             <span class="badge bg-warning text-dark">Low Stock</span>
-                                                ({{ $product->quantity_stock }})</span>
+                                            ({{ $product->quantity_stock }})
+                                            </span>
                                         @else
                                             <span class="badge bg-success">{{ $product->quantity_stock }}</span>
                                         @endif
                                     </td>
-                                    <td class="fw-bold">{{ number_format($product->price, 2) }} MGA</td>
+                                    <td class="fw-bold">{{ number_format($product->price, 2) }} MGA </td>
                                     <td class="text-end pe-4">
                                         <div class="btn-group">
                                             <a href="{{ route('admin.products.show', $product->id) }}"

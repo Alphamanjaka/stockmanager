@@ -15,6 +15,7 @@ use App\Http\Controllers\{
     SettingController,
     UserController
 };
+use Symfony\Component\Routing\Router;
 
 // Routes d'authentification (publiques)
 Route::middleware('guest')->group(function () {
@@ -40,6 +41,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'backOffice'])->name('dashboard');
         Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartDataApi'])->name('dashboard.chart-data');
         Route::resource('products', ProductController::class);
+        Route::get('/products/export/pdf', [ProductController::class, 'exportPdf'])->name('products.exportPdf');
         Route::resource('categories', CategoryController::class);
 
         Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);
