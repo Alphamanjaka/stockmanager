@@ -109,6 +109,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      php-fpm:
+        condition: service_started
 
   scheduler:
     build:
