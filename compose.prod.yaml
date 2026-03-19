@@ -89,6 +89,47 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+  queue-worker:
+    build:
+      context: .
+      dockerfile: ./docker/common/php-fpm/Dockerfile
+      target: production
+    restart: unless-stopped
+    # On lance le worker. --daemon est implicite ici.
+    command: php /var/www/artisan queue:work --verbose --tries=3 --timeout=90
+    volumes:
+      - laravel-storage-production:/var/www/storage
+      - ./.env:/var/www/.env
+    env_file:
+      - .env
+    networks:
+      - laravel-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: ./docker/common/php-fpm/Dockerfile
+      target: production
+    restart: unless-stopped
+    # schedule:work simule le cron toutes les minutes
+    command: php /var/www/artisan schedule:work
+    volumes:
+      - laravel-storage-production:/var/www/storage
+      - ./.env:/var/www/.env
+    env_file:
+      - .env
+    networks:
+      - laravel-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 networks:
   # Attach the service to the 'laravel' network.

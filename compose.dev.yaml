@@ -11,6 +11,8 @@ services:
       - "80:80"
     environment:
       - NGINX_HOST=localhost
+      - APP_DEBUG=true
+      - LOG_CHANNEL=stderr # Pour voir les erreurs dans "docker compose logs"
     networks:
       - laravel-development
     depends_on:
@@ -43,6 +45,8 @@ services:
       - DB_DATABASE=app
       - DB_USERNAME=laravel
       - DB_PASSWORD=secret
+      - APP_DEBUG=true
+      - LOG_CHANNEL=stderr # Pour voir les erreurs dans "docker compose logs"
     env_file:
       # Load the environment variables from the Laravel application
       - .env
@@ -82,6 +86,8 @@ services:
       - DB_DATABASE=app
       - DB_USERNAME=laravel
       - DB_PASSWORD=secret
+      - APP_DEBUG=true
+      - LOG_CHANNEL=stderr # Pour voir les erreurs dans "docker compose logs"
     volumes:
       - ./:/var/www
     networks:
@@ -109,7 +115,36 @@ services:
     image: redis:alpine
     networks:
       - laravel-development
+  queue-worker:
+    build:
+      context: .
+      dockerfile: ./docker/common/php-fpm/Dockerfile
+      target: development
+    user: dev
+    command: php artisan queue:work
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel-development
+    depends_on:
+      - postgres
+      - redis
+      - php-fpm
 
+  scheduler:
+    build:
+      context: .
+      dockerfile: ./docker/common/php-fpm/Dockerfile
+      target: development
+    user: dev
+    command: php artisan schedule:work
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel-development
+    depends_on:
+      - postgres
+      - redis
 networks:
   laravel-development:
 

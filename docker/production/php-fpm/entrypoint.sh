@@ -20,6 +20,12 @@ rm -rf /var/www/storage-init
 mkdir -p storage/framework/views
 chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
+# Run Laravel generation keys command
+# -----------------------------------------------------------
+# Generate the application key if it doesn't exist.
+# -----------------------------------------------------------
+php artisan key:generate --force
+
 # Run Laravel migrations
 # -----------------------------------------------------------
 # Ensure the database schema is up to date.
