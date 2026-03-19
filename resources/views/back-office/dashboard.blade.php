@@ -121,7 +121,7 @@
                 <div class="card-body d-flex flex-column justify-content-center">
                     <div class="mb-4">
                         <div class="small text-muted mb-1">Today Sales</div>
-                        <div class="h4 mb-0 font-weight-bold text-dark">{{ number_format($salesToday, 2, ',', ' ') }} €
+                        <div class="h4 mb-0 font-weight-bold text-dark">{{ number_format($salesToday, 2, ',', ' ') }} MGA
                         </div>
                         <div class="progress mt-2" style="height: 5px;">
                             <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
@@ -129,7 +129,7 @@
                     </div>
                     <div class="mb-4">
                         <div class="small text-muted mb-1">this Month Sales</div>
-                        <div class="h4 mb-0 font-weight-bold text-dark">{{ number_format($salesThisMonth, 2, ',', ' ') }} €
+                        <div class="h4 mb-0 font-weight-bold text-dark">{{ number_format($salesThisMonth, 2, ',', ' ') }} MGA
                         </div>
                         <div class="progress mt-2" style="height: 5px;">
                             <div class="progress-bar bg-info" role="progressbar" style="width: 100%"></div>
@@ -217,7 +217,7 @@
                                 maxTicksLimit: 5,
                                 padding: 10,
                                 callback: function(value) {
-                                    return value + ' €';
+                                    return value + ' MGA';
                                 }
                             },
                             grid: {
