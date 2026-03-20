@@ -1,23 +1,23 @@
 # Stage 1: Build Stage
 # This stage compiles PHP extensions and installs Composer dependencies.
 # It contains build tools that will not be in the final production image.
-FROM php:8.4-fpm AS build
+FROM php:8.4-fpm-alpine AS build
 
 WORKDIR /var/www
 
 # Install build dependencies, PHP extensions, and Composer
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     curl git unzip \
-    autoconf gcc make \
-    libpq-dev libonig-dev libzip-dev libicu-dev \
-    libssl-dev libxml2-dev libcurl4-openssl-dev \
-    libfreetype6-dev libjpeg62-turbo-dev libpng-dev \
+    autoconf gcc g++ make \
+    postgresql-dev oniguruma-dev libzip-dev icu-dev \
+    openssl-dev libxml2-dev curl-dev \
+    freetype-dev libjpeg-turbo-dev libpng-dev \
+    linux-headers \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo pdo_pgsql gd bcmath zip intl soap opcache \
-    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-    && rm -rf /var/lib/apt/lists/*
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Copy composer files first (better layer caching)
 COPY composer.json composer.lock ./
@@ -34,7 +34,7 @@ RUN npm install
 RUN npm run build
 
 # Stage 2: Production environment (minimal footprint)
-FROM php:8.4-fpm AS production
+FROM php:8.4-fpm-alpine AS production
 
 WORKDIR /var/www
 
@@ -44,20 +44,18 @@ COPY --from=build /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
 COPY --from=build /usr/local/bin/composer /usr/local/bin/composer
 
 # Install only runtime dependencies (no build tools, no -dev packages)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     postgresql-client \
-    libpng16-16 \
-    libjpeg62-turbo \
-    libfreetype6 \
-    libzip-dev \
-    libicu-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy Composer dependencies from the build stage
-COPY --from=build /var/www/vendor /var/www/vendor
+    libpng \
+    libjpeg-turbo \
+    freetype \
+    icu-libs libzip libxml2 libsodium
 
 # Copy application code from the host
 COPY . /var/www
+
+# Copy Composer dependencies from the build stage (after code copy to ensure priority)
+COPY --from=build /var/www/vendor /var/www/vendor
 
 # Copy built assets from the node_build stage
 COPY --from=node_build /app/public/build /var/www/public/build
@@ -80,7 +78,7 @@ RUN mkdir -p /var/www/storage /var/www/bootstrap/cache \
 COPY ./docker/production/php-fpm/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-USER www-data
+# USER www-data (Commenté pour permettre à l'entrypoint de fixer les permissions en root)
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 EXPOSE 9000
 CMD ["php-fpm"]
@@ -91,12 +89,13 @@ FROM production AS development
 USER root
 
 # Install development tools for Xdebug, then clean up
-RUN BUILD_DEPS="autoconf gcc g++ make" && \
-    apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS \
+RUN apk add --no-cache --virtual .build-deps autoconf g++ make linux-headers \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
-    && apt-get purge -y --auto-remove $BUILD_DEPS \
-    && rm -rf /var/lib/apt/lists/*
+    && apk del .build-deps
+
+# Install bash and shadow (for useradd/usermod) to support dev entrypoint scripts
+RUN apk add --no-cache bash shadow sudo
 
 # Configuration with ARGs
 ARG XDEBUG_ENABLED=true
