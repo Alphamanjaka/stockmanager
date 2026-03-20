@@ -4,14 +4,15 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Services\BackupService;
+use Illuminate\Support\Facades\Artisan;
 
 class RunBackupCommand extends Command
 {
-    // Le nom que vous taperez dans le terminal
-    protected $signature = 'app:run-backup';
+    // Ajout de l'option --now pour forcer l'exécution immédiate
+    protected $signature = 'app:run-backup {--now : Lance la sauvegarde immédiatement sans file d\'attente}';
 
     // La description affichée avec php artisan list
-    protected $description = 'Lance la sauvegarde via le BackupService';
+    protected $description = 'Lance le processus de sauvegarde (Fichiers + Base de données)';
 
     protected $backupService;
 
@@ -23,14 +24,27 @@ class RunBackupCommand extends Command
 
     public function handle()
     {
-        $this->info('Début de la sauvegarde...');
+        $this->info('Initialisation du processus de sauvegarde...');
+
+        $runSynchronously = $this->option('now');
 
         try {
-            // On utilise la méthode de votre service
-            $this->backupService->runBackup();
-            $this->info('La sauvegarde a été lancée avec succès !');
+            if ($runSynchronously) {
+                $this->info('Mode synchrone activé : La sauvegarde démarre immédiatement (cela peut prendre du temps)...');
+                $this->backupService->runBackup(false);
+
+                $this->info('Sortie de la commande backup:run :');
+                $this->line(Artisan::output());
+                $this->info('✅ Sauvegarde terminée avec succès !');
+            } else {
+                $this->backupService->runBackup(true);
+                $this->info('✅ La demande de sauvegarde a été ajoutée à la file d\'attente.');
+            }
         } catch (\Exception $e) {
-            $this->error('Erreur : ' . $e->getMessage());
+            $this->error('❌ Erreur lors de la sauvegarde : ' . $e->getMessage());
+            return Command::FAILURE;
         }
+
+        return Command::SUCCESS;
     }
 }

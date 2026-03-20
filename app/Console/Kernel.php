@@ -9,11 +9,23 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule)
     {
-        // On planifie votre commande tous les jours à minuit
-        $schedule->command('app:run-backup')->daily();
+        // Sauvegarde quotidienne à 01:00 du matin
+        // withoutOverlapping : Evite de lancer 2 backups si le précédent n'est pas fini
+        // appendOutputTo : Logue le résultat pour le débogage
+        $schedule->command('app:run-backup')
+            ->dailyAt('01:00')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/backup.log'));
 
-        // Optionnel : On nettoie les vieux fichiers une fois par semaine
-        $schedule->command('backup:clean')->weekly();
+        // Nettoyage des vieilles sauvegardes tous les dimanches à 02:00
+        $schedule->command('backup:clean')
+            ->weekly()
+            ->sundays()
+            ->at('02:00');
+
+        // Surveillance des chutes de stock (quotidien à 08:00)
+        $schedule->command('stock:monitor-drop --threshold=15')
+            ->dailyAt('08:00');
     }
 
     protected function commands()

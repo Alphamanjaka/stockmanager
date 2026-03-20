@@ -53,12 +53,16 @@ class BackupService
 
     /**
      * Lance une nouvelle sauvegarde en arrière-plan.
+     *
+     * @param bool $async Si true, utilise la queue (défaut). Si false, exécution immédiate.
      */
-    public function runBackup(): void
+    public function runBackup(bool $async = true): void
     {
-        // En ne passant aucune option, la commande utilisera les paramètres
-        // par défaut définis dans config/backup.php (fichiers + base de données).
-        Artisan::queue('backup:run');
+        if ($async) {
+            Artisan::queue('backup:run');
+        } else {
+            Artisan::call('backup:run');
+        }
     }
 
     /**

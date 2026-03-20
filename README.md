@@ -138,7 +138,25 @@ Pour activer les tâches planifiées en production, une seule entrée Cron est n
 
 ### Système de Sauvegarde
 
-L'application est configurée pour supporter des sauvegardes régulières (Base de données + Fichiers) garantissant une reprise d'activité rapide en cas d'incident (Disaster Recovery).
+La solution intègre un module complet de sauvegarde automatisée (Base de données PostgreSQL + Fichiers de stockage) géré par `Spatie Laravel Backup`.
+
+#### Fonctionnalités
+
+- **Sauvegarde Complète** : Archive ZIP contenant le dump SQL et les fichiers uploadés.
+- **Rotation Automatique** : Nettoyage des vieilles sauvegardes pour économiser l'espace disque.
+- **Monitoring** : Vérification de l'intégrité des archives ZIP.
+
+#### Commandes Manuelles
+
+```bash
+# Sauvegarde en arrière-plan (via la file d'attente)
+php artisan app:run-backup
+
+# Sauvegarde immédiate (Synchrone) - Idéal pour le débogage ou avant une mise à jour
+php artisan app:run-backup --now
+```
+
+Les sauvegardes sont planifiées automatiquement tous les jours à **01:00 AM**.
 
 ---
 
@@ -149,6 +167,29 @@ Le projet intègre un pipeline GitHub Actions complet (`.github/workflows/ci.yml
 1.  **Linting** : Vérification automatique du style de code (Laravel Pint).
 2.  **Testing** : Exécution des tests unitaires et fonctionnels (Pest/PHPUnit).
 3.  **Build & Push** : Construction de l'image Docker de production et envoi sur le registre (GHCR) uniquement si les tests passent.
+
+---
+
+## Dépannage
+
+### Problèmes courants de Sauvegarde
+
+**1. Erreur : `The dump process failed with exitcode 127` (Command not found)**
+
+Cette erreur indique que PHP ne trouve pas l'outil `pg_dump` (pour PostgreSQL) ou `mysqldump`.
+
+*   **Solution** : Dans un environnement Docker, les outils sont dans le PATH global. Vérifiez `config/database.php` et assurez-vous que `dump_binary_path` est soit `null`, soit `/usr/bin`.
+    ```php
+    'dump' => [
+        'dump_binary_path' => '/usr/bin', // Chemin standard sur Alpine/Debian
+        'use_single_transaction' => true,
+        'timeout' => 60 * 5,
+    ],
+    ```
+*   **Vérification** : Lancez `docker compose exec php-fpm pg_dump --version` pour confirmer que l'outil est bien installé dans le conteneur.
+
+**2. Permissions de Stockage**
+Si le ZIP ne se crée pas, vérifiez que le dossier `storage/app/` appartient bien à l'utilisateur `www-data` (Production) ou `dev` (Local).
 
 ---
 
