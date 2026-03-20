@@ -4,6 +4,9 @@ services:
       context: .
       dockerfile: ./docker/production/nginx/Dockerfile
     restart: unless-stopped # Automatically restart unless the service is explicitly stopped
+    environment:
+      - APP_DEBUG=true
+      - LOG_CHANNEL=stderr # Pour voir les erreurs dans "docker compose logs"
     volumes:
       # Mount the 'laravel-storage-production' volume to '/var/www/storage' inside the container.
       # -----------------------------------------------------------
@@ -33,6 +36,10 @@ services:
       dockerfile: ./docker/common/php-fpm/Dockerfile
       target: production
     restart: unless-stopped
+    environment:
+      - APP_DEBUG=true
+      - LOG_CHANNEL=stderr # Pour voir les erreurs dans "docker compose logs"
+      - APP_KEY=${APP_KEY} # Pass the APP_KEY from the .env file to the container
     volumes:
       - laravel-public-assets:/var/www/public/build  # Mount built public assets to ensure the manifest.json and hashed files match between Nginx and PHP-FPM
       - laravel-storage-production:/var/www/storage  # Mount the storage volume
@@ -58,6 +65,8 @@ services:
       - POSTGRES_DB=${DB_DATABASE:-laravel}
       - POSTGRES_USER=${DB_USERNAME:-laravel}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-secret}
+      - APP_DEBUG=true
+      - LOG_CHANNEL=stderr # Pour voir les erreurs dans "docker compose logs"
     volumes:
       - postgres-data-production:/var/lib/postgresql/data
     networks:
@@ -105,12 +114,9 @@ services:
     networks:
       - laravel-production
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      php-fpm:
-        condition: service_started
+      - postgres
+      - redis
+      - php-fpm
 
   scheduler:
     build:
@@ -128,10 +134,8 @@ services:
     networks:
       - laravel-production
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - postgres
+      - redis
 
 networks:
   # Attach the service to the 'laravel' network.

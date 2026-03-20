@@ -19,13 +19,9 @@ IF NOT EXIST .env (
     IF EXIST .env.prod (
         echo [1/6] Configuration : Utilisation du fichier .env.prod...
         copy .env.prod .env >nul
-    ) ELSE (
-        echo [1/6] .env.prod introuvable. Generation automatique depuis .env.example...
-        copy .env.example .env >nul
-        powershell -Command "(Get-Content .env) -replace 'APP_ENV=local', 'APP_ENV=production' -replace 'APP_DEBUG=true', 'APP_DEBUG=false' | Set-Content .env"
     )
 ) ELSE (
-    echo [1/6] Fichier .env deja present.
+    echo [1/6] Fichier .env deja present. (Supprimez-le manuellement pour reinitialiser depuis .env.prod)
 )
 
 REM 3. Démarrage des conteneurs
@@ -45,6 +41,11 @@ echo    - Dependances deja installees dans l'image Docker.
 REM 5. Initialisation Laravel
 echo [4/6] Initialisation de la base de donnees et des cles...
 REM Generation de la cle d'application.
+
+REM Assurer la presence de APP_KEY dans le fichier .env via PowerShell (plus robuste pour l'encodage)
+REM Cela ajoute la ligne APP_KEY= si elle est manquante, permettant a artisan key:generate de fonctionner
+powershell -Command "if (!(Select-String -Path .env -Pattern '^APP_KEY=' -Quiet)) { Add-Content -Path .env -Value 'APP_KEY=' -Encoding ASCII }"
+
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan key:generate --force
 
 REM Redemarrage du conteneur PHP pour qu'il prenne en compte la nouvelle cle dans son environnement.
