@@ -100,7 +100,11 @@
                 <span><span class="sidebar-text">Import</span></span>
                 <span class="shortcut-badge">Alt+I</span>
             </a>
-
+            <a href="{{route('admin.colors.index')}}" class="{{ request()->is('admin/colors*') ? 'active-link' : '' }}" data-shortcut="c">
+                <i class="fas fa-palette fa-fw me-2"></i>
+                <span class="sidebar-text">Couleurs</span>
+                <span class="shortcut-badge">Alt+C</span>
+            </a>
             <a href="{{ route('admin.settings.index') }}"
                 class="{{ request()->is('admin/settings*') ? 'active-link' : '' }}" data-shortcut="s">
                 <span><i class="fas fa-cog fa-fw me-2"></i> <span class="sidebar-text">Paramètres</span></span>
