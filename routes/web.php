@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
     ProductController,
     SaleController,
@@ -15,7 +14,8 @@ use App\Http\Controllers\{
     SettingController,
     UserController
 };
-use Symfony\Component\Routing\Router;
+use App\Http\Controllers\ColorController;
+use Illuminate\Support\Facades\Route;
 
 // Routes d'authentification (publiques)
 Route::middleware('guest')->group(function () {
@@ -71,6 +71,7 @@ Route::middleware('auth')->group(function () {
 
         // user module
         Route::resource('users', UserController::class);
+        Route::resource('colors', ColorController::class);
     });
 
     // Routes Front Office
