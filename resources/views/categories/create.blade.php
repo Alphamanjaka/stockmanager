@@ -23,6 +23,21 @@
                             </select>
                         </div>
                         <div class="mb-3">
+                            <label for="color_id" class="form-label">Couleur</label>
+                            <select name="color_id" id="color_id" class="form-select @error('color_id') is-invalid @enderror">
+                                <option value="">Sélectionner une couleur</option>
+                                @foreach($colors as )
+                                    <option value="{{ ->id }}" {{ old('color_id', ->color_id ?? '') == ->id ? 'selected' : '' }}>
+                                        {{ ->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('color_id')
+                                <div class="invalid-feedback">{{  }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="mb-3">
                             <label for="name" class="form-label">Nom de la catégorie</label>
                             <input type="text" name="name" id="name"
                                 class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}">

@@ -6,6 +6,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Requests\StoreProductRequest;
 use App\Services\{
     ProductService,
+    ColorService,
     StockService,
 };
 use App\Models\Product;
@@ -13,13 +14,15 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    protected $productService;
-    protected $stockService;
+    protected ProductService $productService;
+    protected StockService $stockService;
+    protected ColorService $colorService;
 
-    public function __construct(ProductService $productService, StockService $stockService)
+    public function __construct(ProductService $productService, StockService $stockService, ColorService $colorService)
     {
         $this->productService = $productService;
         $this->stockService = $stockService;
+        $this->colorService = $colorService;
     }
     public function exportPdf(Request $request)
     {
@@ -57,7 +60,8 @@ class ProductController extends Controller
     public function create()
     {
         $categories = $this->productService->getAllCategories();
-        return view('products.create', compact('categories'));
+        $colors = $this->colorService->getAllColors([], false);
+        return view('products.create', compact('categories', 'colors'));
     }
 
     /**
@@ -96,7 +100,8 @@ class ProductController extends Controller
     {
         $product = $this->productService->getProductById($id);
         $categories = $this->productService->getAllCategories();
-        return view('products.edit', compact('product', 'categories'));
+        $colors = $this->colorService->getAllColors([], false);
+        return view('products.edit', compact('product', 'categories', 'colors'));
     }
 
     /**

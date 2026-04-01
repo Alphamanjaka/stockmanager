@@ -24,7 +24,7 @@ class ProductService
     public function getAllProducts($filters = [])
     {
         // 1. On commence toujours par une base de requête (Query Builder)
-        $query = Product::with('category');
+        $query = Product::with(['category', 'color']);
 
         // 2. On applique les filtres UNIQUEMENT s'ils sont présents
         if (!empty($filters)) {
@@ -56,7 +56,7 @@ class ProductService
      */
     public function getProductById($id)
     {
-        return Product::with('category')->findOrFail($id);
+        return Product::with(['category', 'color'])->findOrFail($id);
     }
 
     /**
@@ -125,6 +125,9 @@ class ProductService
         $query->when($filters['search'] ?? null, function ($q, $search) {
             $q->where('name', 'ilike', "%{$search}%");
         })
+            ->when($filters['color'] ?? null, function ($q, $color) {
+                $q->where('color_id', $color);
+            })
             ->when($filters['category'] ?? null, function ($q, $category) {
                 $q->where('category_id', $category);
             });

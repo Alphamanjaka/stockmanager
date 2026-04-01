@@ -10,4 +10,14 @@ class Color extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'code'];
+
+    public function scopeSearch($query, $search)
+    {
+        return $query->where('name', 'like', "%{$search}%");
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

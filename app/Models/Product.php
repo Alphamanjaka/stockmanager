@@ -18,6 +18,7 @@ class Product extends Model
         'price',
         'category_id',
         'quantity_stock',
+        'color_id',
         'alert_stock',
     ];
     public function category()
@@ -31,5 +32,9 @@ class Product extends Model
     public function scopeFilter($query, $filter)
     {
         $query->where('name', 'like', "%$filter%");
+    }
+    public function color()
+    {
+        return $this->belongsTo(Color::class);
     }
 }
