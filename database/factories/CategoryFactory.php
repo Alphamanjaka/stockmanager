@@ -17,9 +17,9 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            "name"=> $this->faker->name,
-            "description"=> $this->faker->sentence(),
-            "parent_id"=> null, // by default, no parent category
+            "name" => $this->faker->unique()->randomElement(['tissu', 'creme', 'postiche', 'pommade']),
+            "description" => $this->faker->sentence(),
+            "parent_id" => null, // by default, no parent category
         ];
     }
 }

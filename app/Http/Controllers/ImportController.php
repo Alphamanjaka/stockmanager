@@ -8,7 +8,8 @@ use App\Imports\{
     ProductsImport,
     SupplierImport,
     CategoryImport,
-    PurchaseImport
+    PurchaseImport,
+    ColorImport,
 };
 use App\Services\{
     ProductService,
@@ -21,7 +22,7 @@ use App\Services\{
 
 class ImportController extends Controller
 {
-    protected $importService;
+    protected ImportService $importService;
 
     public function __construct(ImportService $importService)
     {
@@ -36,12 +37,12 @@ class ImportController extends Controller
     {
         $request->validate([
             'file' => 'required|mimes:csv,txt,xls,xlsx',
-            'type' => 'required|in:products,suppliers,categories,purchases'
+            'type' => 'required|in:products,suppliers,categories,purchases,colors',
         ]);
 
         // Optimisation : Instanciation conditionnelle pour éviter de créer des objets inutiles
         $import = match ($request->type) {
-            'products'   => new ProductsImport(app(ProductService::class),app(SettingService::class)),
+            'products'   => new ProductsImport(app(ProductService::class), app(SettingService::class)),
             'suppliers'  => new SupplierImport,
             'categories' => new CategoryImport,
             'purchases'  => new PurchaseImport(
@@ -49,6 +50,8 @@ class ImportController extends Controller
                 app(SupplierService::class),
                 app(ProductService::class)
             ),
+            'colors' => new ColorImport,
+            default => null
         };
 
         try {
@@ -83,6 +86,7 @@ class ImportController extends Controller
             'categories' => ['name', 'description', 'parent', 'parent_id'],
             'suppliers'  => ['name', 'email', 'phone', 'address'],
             'purchases' => ['reference_groupe', 'email_fournisseur', 'nom_produit', 'quantite', 'cout_unitaire'],
+            'colors' => ['name', 'code'],
             default => []
         };
 

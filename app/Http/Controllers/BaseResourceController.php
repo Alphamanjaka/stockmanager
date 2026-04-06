@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\Model;
 use App\Services\BaseService;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -62,18 +61,18 @@ abstract class BaseResourceController extends Controller
     /**
      * Affiche la ressource spécifiée.
      */
-    public function show(Model $model)
+    public function show($id)
     {
-        $item = $this->service->getById($model->id);
+        $item = $this->service->getById($id);
         return view("{$this->viewPath}.show", compact('item'));
     }
 
     /**
      * Affiche le formulaire d'édition.
      */
-    public function edit(Model $model)
+    public function edit($id)
     {
-        $item = $this->service->getById($model->id);
+        $item = $this->service->getById($id);
         return view("{$this->viewPath}.edit", compact('item'));
     }
 
@@ -82,9 +81,9 @@ abstract class BaseResourceController extends Controller
      * Cette méthode doit être surchargée dans les contrôleurs concrets
      * pour typer la FormRequest spécifique.
      */
-    public function update(FormRequest $request, Model $model)
+    public function update(FormRequest $request, $id)
     {
-        $this->service->update($model->id, $request->validated());
+        $this->service->update($id, $request->validated());
 
         return redirect()->route("{$this->routeNamePrefix}.index")
             ->with('success', ucfirst($this->resourceName) . ' updated successfully.');
@@ -93,10 +92,10 @@ abstract class BaseResourceController extends Controller
     /**
      * Supprime la ressource spécifiée.
      */
-    public function destroy(Model $model)
+    public function destroy($id)
     {
         try {
-            $this->service->delete($model->id);
+            $this->service->delete($id);
             return redirect()->route("{$this->routeNamePrefix}.index")
                 ->with('success', ucfirst($this->resourceName) . ' deleted successfully.');
         } catch (\Exception $e) {

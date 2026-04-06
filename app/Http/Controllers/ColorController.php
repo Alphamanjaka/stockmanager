@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreColorRequest;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Database\Eloquent\Model;
 use App\Services\ColorService;
 
 class ColorController extends BaseResourceController
@@ -13,7 +12,6 @@ class ColorController extends BaseResourceController
     public function __construct(ColorService $colorService)
     {
         parent::__construct($colorService);
-
         // Définir les propriétés spécifiques à la ressource Color
         $this->viewPath = 'colors';
         $this->routeNamePrefix = 'admin.colors';
@@ -34,10 +32,10 @@ class ColorController extends BaseResourceController
     /**
      * Met à jour une couleur existante.
      */
-    public function update(FormRequest $request, Model $color)
+    public function update(FormRequest $request, $id)
     {
         $validatedRequest = app(StoreColorRequest::class);
 
-        return parent::update($validatedRequest, $color);
+        return parent::update($validatedRequest, $id);
     }
 }

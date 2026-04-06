@@ -14,9 +14,9 @@ use Maatwebsite\Excel\Concerns\WithValidation;
 
 class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
 {
-    protected $purchaseService;
-    protected $supplierService;
-    protected $productService;
+    protected PurchaseService $purchaseService;
+    protected SupplierService $supplierService;
+    protected ProductService $productService;
 
     private int $created = 0;
     private array $errors = [];

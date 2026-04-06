@@ -17,8 +17,8 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
 {
     private int $created = 0;
     private int $updated = 0;
-    protected $productService;
-    protected $settingService;
+    protected ProductService $productService;
+    protected SettingService $settingService;
     private array $categoriesCache = [];
 
     public function __construct(ProductService $productService, SettingService $settingService)
