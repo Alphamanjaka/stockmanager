@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Services\SaleService;
 use App\Services\ProductService;
+
 class SaleSeeder extends Seeder
 {
     /**
@@ -26,10 +27,10 @@ class SaleSeeder extends Seeder
         // --- SEEDING DES VENTES (SALES) ---
         $saleService = app(SaleService::class);
         $user = \App\Models\User::where('email', 'alphamanjaka@gmail.com')->first();
-            if (!$user) {
-                $this->command->info('Skipping sale seeding because no user found.');
-                return;
-            }
+        if (!$user) {
+            $this->command->info('Skipping sale seeding because no user found.');
+            return;
+        }
         // On crée 30 ventes complètes
         for ($i = 0; $i < 30; $i++) {
             $saleItems = [];

@@ -2,22 +2,23 @@
 
 namespace App\Services;
 
-use App\Models\Product;
+use App\Models\ProductColor;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 
 class StockService
 {
-    public function addStock(int $productId, int $quantity, string $reason)
+    public function addStock(int $productColorId, int $quantity, string $reason)
     {
-        DB::transaction(function () use ($productId, $quantity, $reason) {
-            $product = Product::lockForUpdate()->findOrFail($productId); // lockForUpdate évite les conflits Docker/multi-users
+        DB::transaction(function () use ($productColorId, $quantity, $reason) {
+            $variant = ProductColor::lockForUpdate()->findOrFail($productColorId);
 
-            $before = $product->quantity_stock;
-            $product->increment('quantity_stock', $quantity);
-            $after = $product->quantity_stock;
+            $before = $variant->stock;
+            $variant->increment('stock', $quantity);
+            $after = $variant->stock;
+
             $this->createStockMovement([
-                'product_id' => $productId,
+                'product_color_id' => $productColorId,
                 'quantity' => $quantity,
                 'type' => 'in',
                 'reason' => $reason,
@@ -27,21 +28,21 @@ class StockService
         });
     }
 
-    public function removeStock(int $productId, int $quantity, string $reason)
+    public function removeStock(int $productColorId, int $quantity, string $reason)
     {
-        DB::transaction(function () use ($productId, $quantity, $reason) {
-            $product = Product::lockForUpdate()->findOrFail($productId); // lockForUpdate évite les conflits Docker/multi-users
-            // Dans une application réelle, on ajouterait une vérification de stock ici.
-            if ($product->quantity_stock < $quantity) {
-                throw new \Exception('Not enough stock for this product.');
+        DB::transaction(function () use ($productColorId, $quantity, $reason) {
+            $variant = ProductColor::with('product', 'color')->lockForUpdate()->findOrFail($productColorId);
+
+            if ($variant->stock < $quantity) {
+                throw new \Exception("Stock insuffisant pour la variante {$variant->product->name} ({$variant->color->name}).");
             }
 
-            $before = $product->quantity_stock;
-            $product->decrement('quantity_stock', $quantity);
-            $after = $product->quantity_stock;
+            $before = $variant->stock;
+            $variant->decrement('stock', $quantity);
+            $after = $variant->stock;
 
             $this->createStockMovement([
-                'product_id' => $productId,
+                'product_color_id' => $productColorId,
                 'quantity' => -$quantity, // Négatif pour une sortie
                 'type' => 'out',
                 'reason' => $reason,
@@ -52,12 +53,12 @@ class StockService
     }
     public function getAllStockMovements(array $filters = [], int $perPage = 15)
     {
-        $query = StockMovement::with('product');
+        $query = StockMovement::with(['productColor.product', 'productColor.color']);
 
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('reason', 'like', "%{$filters['search']}%")
-                    ->orWhereHas('product', function ($sq) use ($filters) {
+                    ->orWhereHas('productColor.product', function ($sq) use ($filters) {
                         $sq->where('name', 'like', "%{$filters['search']}%");
                     });
             });
@@ -76,36 +77,35 @@ class StockService
     }
     public function getStockMovementById(int $id)
     {
-        return StockMovement::with('product')->findOrFail($id);
+        return StockMovement::with(['productColor.product', 'productColor.color'])->findOrFail($id);
     }
 
     public function getStockMovementsForProduct(int $productId, int $perPage = 10)
     {
-        return StockMovement::with('product')
-            ->where('product_id', $productId)
+        return StockMovement::whereHas('productColor', function ($q) use ($productId) {
+            $q->where('product_id', $productId);
+        })
+            ->with(['productColor.color'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
     }
 
     /**
-     * Get stock evolution data for a chart.
-     * Works backwards from current stock to ensure accuracy.
+     * Get stock evolution data for a specific variant (ProductColor).
      */
-    public function getStockEvolutionForProduct(int $productId): array
+    public function getStockEvolutionForVariant(int $productColorId): array
     {
-        $product = Product::findOrFail($productId);
-        $movements = StockMovement::where('product_id', $productId)
+        $variant = ProductColor::findOrFail($productColorId);
+        $movements = StockMovement::where('product_color_id', $productColorId)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $stockLevel = $product->quantity_stock;
+        $stockLevel = $variant->stock;
         $dataPoints = [];
 
-        // Add current state as the last point
         $dataPoints[] = ['x' => now()->toIso8601String(), 'y' => $stockLevel];
 
         foreach ($movements as $movement) {
-            // We subtract the movement's quantity because we are going back in time.
             $stockLevel -= $movement->quantity;
             $dataPoints[] = ['x' => $movement->created_at->toIso8601String(), 'y' => $stockLevel];
         }
@@ -118,31 +118,32 @@ class StockService
     }
 
     /**
-     * Récupère les produits "dormants" (stock > 0 mais aucune sortie depuis X jours).
+     * Récupère les variantes "dormantes" (stock > 0 mais aucune sortie depuis X jours).
      */
     public function getDormantProducts(int $days = 60)
     {
         $cutoffDate = now()->subDays($days);
 
-        return Product::where('quantity_stock', '>', 0)
+        return ProductColor::with(['product', 'color'])
+            ->where('stock', '>', 0)
             ->whereNotExists(function ($query) use ($cutoffDate) {
                 $query->select(DB::raw(1))
                     ->from('stock_movements')
-                    ->whereColumn('stock_movements.product_id', 'products.id')
+                    ->whereColumn('stock_movements.product_color_id', 'product_colors.id')
                     ->where('type', 'out')
                     ->where('created_at', '>=', $cutoffDate);
             })
-            ->limit(20) // Limite pour ne pas surcharger le dashboard
+            ->limit(20)
             ->get();
     }
 
     public function getRotationStats(int $limit = 5)
     {
-        return StockMovement::select('product_id', DB::raw('SUM(ABS(quantity)) as total_out'))
+        return StockMovement::select('product_color_id', DB::raw('SUM(ABS(quantity)) as total_out'))
             ->where('type', 'out')
-            ->groupBy('product_id')
+            ->groupBy('product_color_id')
             ->orderByDesc('total_out')
-            ->with('product')
+            ->with(['productColor.product', 'productColor.color'])
             ->limit($limit)
             ->get();
     }
@@ -152,16 +153,14 @@ class StockService
      */
     public function getTotalStockValueEvolution(int $days = 30): array
     {
-        // 1. Valeur actuelle du stock global
-        $currentTotalValue = Product::sum(DB::raw('quantity_stock * price'));
+        $currentTotalValue = ProductColor::join('products', 'product_colors.product_id', '=', 'products.id')
+            ->sum(DB::raw('product_colors.stock * products.price'));
 
-        // 2. Récupérer les mouvements des X derniers jours
-        $movements = StockMovement::with('product')
+        $movements = StockMovement::with('productColor.product')
             ->where('created_at', '>=', now()->subDays($days)->startOfDay())
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // 3. Grouper par jour
         $movementsByDay = $movements->groupBy(function ($m) {
             return $m->created_at->format('Y-m-d');
         });
@@ -180,10 +179,8 @@ class StockService
 
             if (isset($movementsByDay[$dateString])) {
                 foreach ($movementsByDay[$dateString] as $movement) {
-                    if ($movement->product) {
-                        // On inverse le mouvement pour retrouver la valeur précédente
-                        // Valeur_Avant = Valeur_Apres - (Quantité_Mouvement * Prix)
-                        $runningValue -= ($movement->quantity * $movement->product->price);
+                    if ($movement->productColor && $movement->productColor->product) {
+                        $runningValue -= ($movement->quantity * $movement->productColor->product->price);
                     }
                 }
             }

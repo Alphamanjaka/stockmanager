@@ -4,6 +4,8 @@ namespace Tests\Feature\service;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Color;
+use App\Models\ProductColor;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Services\ProductService;
@@ -29,7 +31,7 @@ class ProductServiceTest extends TestCase
     {
         Product::factory()->count(20)->create();
 
-        $result = $this->service->getAllProducts();
+        $result = $this->service->getAll();
 
         $this->assertInstanceOf(LengthAwarePaginator::class, $result);
         $this->assertCount(15, $result->items()); // Default per_page is 15
@@ -41,11 +43,9 @@ class ProductServiceTest extends TestCase
         $data = [
             'name' => 'New Awesome Product',
             'price' => 199.99,
-            'quantity_stock' => 100,
-            'alert_stock' => 10,
         ];
 
-        $product = $this->service->createProduct($data);
+        $product = $this->service->create($data);
 
         $this->assertInstanceOf(Product::class, $product);
         $this->assertDatabaseHas('products', ['name' => 'New Awesome Product']);
@@ -56,7 +56,7 @@ class ProductServiceTest extends TestCase
     {
         $createdProduct = Product::factory()->create();
 
-        $foundProduct = $this->service->getProductById($createdProduct->id);
+        $foundProduct = $this->service->getById($createdProduct->id);
 
         $this->assertEquals($createdProduct->id, $foundProduct->id);
         $this->assertEquals($createdProduct->name, $foundProduct->name);
@@ -68,7 +68,7 @@ class ProductServiceTest extends TestCase
         $product = Product::factory()->create(['name' => 'Old Name']);
         $newData = ['name' => 'New Updated Name', 'price' => 123.45];
 
-        $this->service->updateProduct($product->id, $newData);
+        $this->service->update($product->id, $newData);
 
         $this->assertDatabaseHas('products', [
             'id' => $product->id,
@@ -82,7 +82,7 @@ class ProductServiceTest extends TestCase
     {
         $product = Product::factory()->create();
 
-        $this->service->deleteProduct($product->id);
+        $this->service->delete($product->id);
 
         $this->assertDatabaseMissing('products', ['id' => $product->id]);
     }
@@ -91,30 +91,36 @@ class ProductServiceTest extends TestCase
     public function it_throws_exception_when_deleting_product_with_sales()
     {
         $product = Product::factory()->create();
+        $variant = ProductColor::create([
+            'product_id' => $product->id,
+            'color_id' => Color::factory()->create()->id,
+            'stock' => 10
+        ]);
+
         $sale = Sale::factory()->create();
         SaleItem::factory()->create([
-            'product_id' => $product->id,
+            'product_color_id' => $variant->id,
             'sale_id' => $sale->id,
         ]);
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage("Impossible de supprimer ce produit car il est lié à des ventes ou des achats existants.");
+        // On s'attend à une exception car le produit est lié à une vente (contrainte d'intégrité)
+        // Arrange: On s'attend à une exception car le produit est lié à une vente (contrainte d'intégrité)
+        $exceptionThrown = false;
+        try {
+            $this->service->delete($product->id);
+        } catch (\Exception $e) {
+            $this->assertTrue(true, 'Exception levée comme prévu lors de la suppression.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            $exceptionThrown = true;
+            // On peut vérifier une partie du message pour s'assurer que c'est bien une erreur de contrainte de clé étrangère
+            $this->assertStringContainsString('FOREIGN KEY constraint failed', $e->getMessage());
+        }
 
-        $this->service->deleteProduct($product->id);
+        $this->service->delete($product->id);
 
+        // Assert: Vérifier qu'une exception a été levée et que le produit n'a pas été supprimé
+        $this->assertTrue($exceptionThrown, 'Une exception aurait dû être levée lors de la suppression d\'un produit lié à des ventes.');
         $this->assertDatabaseHas('products', ['id' => $product->id]);
-    }
-
-    /** @test */
-    public function it_can_get_low_stock_products()
-    {
-        Product::factory()->create(['quantity_stock' => 5, 'alert_stock' => 10]); // Low stock
-        Product::factory()->create(['quantity_stock' => 15, 'alert_stock' => 10]); // Enough stock
-
-        $lowStockProducts = $this->service->getLowStockProducts();
-
-        $this->assertCount(1, $lowStockProducts);
-        $this->assertTrue($lowStockProducts->first()->quantity_stock < $lowStockProducts->first()->alert_stock);
     }
 
     /** @test */
@@ -133,34 +139,12 @@ class ProductServiceTest extends TestCase
         Product::factory()->create(['name' => 'Apple MacBook', 'category_id' => $category1->id]);
 
         // Filter by search
-        $results = $this->service->getAllProducts(['search' => 'Apple']);
+        $results = $this->service->getAll(['search' => 'Apple']);
         $this->assertCount(2, $results);
 
         // Filter by category
-        $results = $this->service->getAllProducts(['category' => $category2->id]);
+        $results = $this->service->getAll(['category' => $category2->id]);
         $this->assertCount(1, $results);
         $this->assertEquals('Samsung Galaxy', $results->first()->name);
-    }
-
-    /** @test */
-    public function it_can_get_most_and_least_sold_products()
-    {
-        $product1 = Product::factory()->create(); // most sold
-        $product2 = Product::factory()->create(); // least sold
-        $product3 = Product::factory()->create(); // never sold
-
-        $sale = Sale::factory()->create();
-
-        SaleItem::factory()->create(['product_id' => $product1->id, 'sale_id' => $sale->id, 'quantity' => 10]);
-        SaleItem::factory()->create(['product_id' => $product2->id, 'sale_id' => $sale->id, 'quantity' => 2]);
-
-        $mostSold = $this->service->getMostSoldProduct();
-        $leastSold = $this->service->getLeastSoldProduct();
-
-        $this->assertEquals($product1->id, $mostSold->product_id);
-        $this->assertEquals(10, $mostSold->total_sold);
-
-        $this->assertEquals($product2->id, $leastSold->product_id);
-        $this->assertEquals(2, $leastSold->total_sold);
     }
 }

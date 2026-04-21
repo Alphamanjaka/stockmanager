@@ -30,7 +30,8 @@ class StoreProductRequest extends FormRequest
             'quantity_stock' => 'required|integer|min:0',
             'alert_stock'    => 'nullable|integer|min:0',
             'description'    => 'nullable|string',
-            'color_id'       => 'nullable|exists:colors,id',
+            'colors'         => 'nullable|array',
+            'colors.*.stock' => 'required_with:colors|integer|min:0',
         ];
     }
 

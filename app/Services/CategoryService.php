@@ -7,8 +7,12 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
-class CategoryService
+class CategoryService extends BaseService
 {
+    public function __construct(Category $category  )
+    {
+        parent::__construct($category); // Appel du constructeur parent avec une instance de Category
+    }
     public function getAvailableChildren($parentId = null)
     {
         return Category::where('parent_id', $parentId)->pluck('name', 'id');
@@ -93,12 +97,7 @@ class CategoryService
         });
         return $category;
     }
-    public function delete($id)
-    {
-        $category = Category::findOrFail($id);
-        $category->delete();
-        return true;
-    }
+
     public function destroy($id)
     {
         $category = Category::findOrFail($id);

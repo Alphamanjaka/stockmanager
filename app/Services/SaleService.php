@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\ProductColor;
 use App\Models\Sale;
-use App\Models\Product;
+use App\Models\SaleItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -37,29 +38,33 @@ class SaleService
             $totalBrut = 0;
             $itemsToCreate = [];
 
-            foreach ($productsData as $item) {
-                // VERROUILLAGE : lockForUpdate empêche d'autres transactions de lire/modifier ce produit
-                $product = Product::lockForUpdate()->findOrFail($item['product_id']);
 
-                if ($product->quantity_stock < $item['quantity']) {
-                    throw new \Exception("Stock insuffisant pour : {$product->name} (Disponible: {$product->quantity_stock})");
+
+            foreach ($productsData as $item) {
+                // VERROUILLAGE : On verrouille la variante spécifique (Produit + Couleur)
+                $variant = ProductColor::with('product', 'color')->lockForUpdate()->findOrFail($item['product_color_id']);
+
+                if ($variant->stock < $item['quantity']) {
+                    throw new \Exception("Stock insuffisant pour : {$variant->product->name} ({$variant->color->name}) (Disponible: {$variant->stock})");
                 }
 
-                $subtotal = $product->price * $item['quantity'];
+                $subtotal = $variant->product->price * $item['quantity'];
                 $totalBrut += $subtotal;
 
                 // On prépare les données pour une insertion groupée (plus rapide)
                 $itemsToCreate[] = [
-                    'product_id' => $product->id,
-                    'quantity'   => $item['quantity'],
-                    'unit_price' => $product->price,
-                    'subtotal'   => $subtotal,
+                    'product_color_id' => $variant->id,
+                    'quantity'         => $item['quantity'],
+                    'unit_price'       => $variant->product->price,
+                    'subtotal'         => $subtotal,
                 ];
 
-                // 2. DÉCRÉMENTER via ton StockService
-                // Ton StockService doit idéalement mettre à jour le champ quantity_stock du produit
-                $this->stockService->removeStock($product->id, $item['quantity'], "Vente {$sale->reference}");
+                // 2. DÉCRÉMENTER via le StockService (qui doit maintenant accepter product_color_id)
+                $this->stockService->removeStock($variant->id, $item['quantity'], "Vente {$sale->reference}");
             }
+
+
+
 
             // 3. Sauvegarde de la vente avec les vrais totaux du premier coup
             $sale->total_brut = $totalBrut;
@@ -79,7 +84,7 @@ class SaleService
     public function getAllSales(int $perPage = 15, array $filters = [])
     {
         // On retire le 'user' du Eager Loading
-        return Sale::with(['items.product'])
+        return Sale::with(['items.productColor.product', 'items.productColor.color'])
             ->latest()
             ->when($filters['search'] ?? null, function ($query, $search) {
                 $query->where('reference', 'like', "%{$search}%");
@@ -89,8 +94,9 @@ class SaleService
 
     public function getSaleById($id): Sale
     {
-        return Sale::with(['items.product'])->findOrFail($id);
+        return Sale::with(['items.productColor.product', 'items.productColor.color'])->findOrFail($id);
     }
+
 
     public function getSalesStatistics(): array
     {
@@ -100,5 +106,25 @@ class SaleService
             'average_sale'      => Sale::avg('total_net') ?? 0,
             'total_discount' => Sale::sum('discount') ?? 0,
         ];
+    }
+    /**
+     * Common logic for top/least sold variants
+     */
+    private function getVariantSaleStats(string $direction = 'desc')
+    {
+        return SaleItem::select('product_color_id', DB::raw('SUM(quantity) as total_quantity'))
+            ->groupBy('product_color_id')
+            ->with(['productColor.product', 'productColor.color'])
+            ->orderBy('total_quantity', $direction)
+            ->first();
+    }
+
+    public function getMostSoldProduct()
+    {
+        return $this->getVariantSaleStats('desc');
+    }
+    public function getLeastSoldProduct()
+    {
+        return $this->getVariantSaleStats('asc');
     }
 }

@@ -18,13 +18,13 @@ return new class extends Migration
             $table->decimal('total_amount', 10, 2);
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('total_net', 10, 2);
-            
+
             $table->timestamps();
         });
         Schema::create('purchase_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('purchase_id')->constrained('purchases')->onDelete('cascade'); // reference to purchases table
-            $table->foreignId('product_id')->constrained('products')->onDelete('cascade'); // reference to products table
+            $table->foreignId('product_color_id')->constrained('product_colors')->onDelete('cascade');
             $table->integer('quantity'); // purchased quantity
             $table->decimal('unit_price', 10, 2); // price at the time of purchase
             $table->decimal('subtotal', 10, 2);   // quantity * unit_price

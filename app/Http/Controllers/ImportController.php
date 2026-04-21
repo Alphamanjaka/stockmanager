@@ -82,10 +82,10 @@ class ImportController extends Controller
     {
         // Alignement des en-têtes avec les clés attendues par les classes d'import
         $headers = match ($type) {
-            'products'   => ['name', 'price', 'stock', 'category_id', 'category_name', 'description', 'alert_stock'],
+            'products'   => ['name', 'price', 'category_id', 'category_name', 'description'],
             'categories' => ['name', 'description', 'parent', 'parent_id'],
             'suppliers'  => ['name', 'email', 'phone', 'address'],
-            'purchases' => ['reference_groupe', 'email_fournisseur', 'nom_produit', 'quantite', 'cout_unitaire'],
+            'purchases' => ['reference_groupe', 'email_fournisseur', 'nom_produit', 'couleur_produit', 'quantite', 'cout_unitaire'],
             'colors' => ['name', 'code'],
             default => []
         };

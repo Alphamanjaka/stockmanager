@@ -3,16 +3,19 @@
 namespace App\Services;
 
 use App\Models\Sale;
-use App\Models\SaleItem;
-use App\Models\Product;
+use App\Models\ProductColor;
 use App\Models\Category;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Models\StockMovement;
 
 class DashboardService
 {
+    protected SaleService $saleService;
+    public function __construct(SaleService $saleService)
+    {
+        $this->saleService = $saleService;
+    }
     /**
      * Get back office KPIs and chart data
      */
@@ -34,53 +37,40 @@ class DashboardService
     }
 
     /**
-     * Get total sales for today
+     * Get sales sum for a specific range
      */
+    private function getSalesSumBetween($start, $end)
+    {
+        return Sale::whereBetween('created_at', [$start, $end])->sum('total_net');
+    }
+
     private function getSalesToday()
     {
-        return Sale::whereDate('created_at', today())->sum('total_net');
+        return $this->getSalesSumBetween(now()->startOfDay(), now()->endOfDay());
     }
 
-    /**
-     * Get total sales for this month
-     */
     private function getSalesThisMonth()
     {
-        return Sale::whereBetween('created_at', [
-            now()->startOfMonth(),
-            now()->endOfMonth()
-        ])->sum('total_net');
+        return $this->getSalesSumBetween(now()->startOfMonth(), now()->endOfMonth());
     }
 
-    /**
-     * Get most sold product
-     */
+
+
     private function getMostSoldProduct()
     {
-        return SaleItem::select(
-            'product_id',
-            DB::raw('SUM(quantity) as total_quantity')
-        )
-            ->groupBy('product_id')
-            ->with('product:id,name')
-            ->orderBy('total_quantity', 'desc')
-            ->first();
+        return $this->saleService->getMostSoldProduct();
+    }
+    private function getLeastSoldProduct()
+    {
+        return $this->saleService->getLeastSoldProduct();
     }
 
     /**
-     * Get least sold product
+     * Get chart data for specified period
      */
-    private function getLeastSoldProduct()
-    {
-        return SaleItem::select(
-            'product_id',
-            DB::raw('SUM(quantity) as total_quantity')
-        )
-            ->groupBy('product_id')
-            ->with('product:id,name')
-            ->orderBy('total_quantity', 'asc')
-            ->first();
-    }
+
+
+
 
     /**
      * Get chart data for specified period
@@ -219,45 +209,19 @@ class DashboardService
      */
     private function getTotalProducts()
     {
-        return Product::count();
+        return ProductColor::count();
     }
 
     /**
-     * Get count of low stock products
+     * Get count of low stock variants (from product_colors table)
      */
     private function getLowStockProducts()
     {
-        return Product::whereRaw('quantity_stock < alert_stock')->count();
+        return ProductColor::whereColumn('stock', '<=', 'alert_stock')->count();
     }
 
-    /**
-     * Get total count of categories
-     */
-    private function getTotalCategories()
-    {
-        return Category::count();
-    }
+    private function getTotalCategories() { return Category::count(); }
+    private function getTotalSuppliers() { return Supplier::count(); }
+    private function getTotalSales() { return Sale::count(); }
 
-    /**
-     * Get total count of suppliers
-     */
-    private function getTotalSuppliers()
-    {
-        return Supplier::count();
-    }
-
-    /**
-     * Get total count of sales
-     */
-    private function getTotalSales()
-    {
-        return Sale::count();
-    }
-    // Exemple de logique pour votre DashboardService
-    public function getStockTrends()
-    {
-        $entries = StockMovement::where('type', 'in')->whereBetween(...)->sum('quantity');
-        $outputs = StockMovement::where('type', 'out')->whereBetween(...)->sum('quantity');
-        return compact('entries', 'outputs');
-    }
 }

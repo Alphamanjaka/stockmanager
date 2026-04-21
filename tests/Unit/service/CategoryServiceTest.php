@@ -17,7 +17,7 @@ class CategoryServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new CategoryService();
+        $this->service = new CategoryService(new Category());
     }
 
     /** @test */

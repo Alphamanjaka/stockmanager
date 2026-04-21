@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 
 class SettingController extends Controller
 {
-    protected $settingService;
-    protected $backupService;
+    protected SettingService $settingService;
+    protected BackupService $backupService;
 
     public function __construct(SettingService $settingService, BackupService $backupService)
     {

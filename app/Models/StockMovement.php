@@ -10,7 +10,7 @@ class StockMovement extends Model
     use HasFactory;
     //
     protected $fillable = [
-        'product_id',
+        'product_color_id',
         'quantity',
         'type',
         'reason',
@@ -18,10 +18,10 @@ class StockMovement extends Model
         'stock_after',
     ];
     /**
-     * Get the product that owns the stock movement.
+     * Get the product color variant that owns the stock movement.
      */
-    public function product()
+    public function productColor()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(ProductColor::class);
     }
 }

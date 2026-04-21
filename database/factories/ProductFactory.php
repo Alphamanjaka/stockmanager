@@ -20,11 +20,9 @@ class ProductFactory extends Factory
             // Define default values for product attributes
             'name' => $this->faker->word(2, true),
             'description' => $this->faker->sentence(),
-            'price' => $this->faker->randomFloat(2, 12000,100000),
-            'category_id' => \App\Models\Category::factory(),
-            'quantity_stock' => $this->faker->numberBetween(13, 30),
-            'color_id' => \App\Models\Color::factory(),
-            'alert_stock' => $this->faker->numberBetween(1, 10),
+            'price' => $this->faker->randomFloat(2, 12000, 100000),
+            'category_id' => fn() => \App\Models\Category::inRandomOrder()->first()?->id ?? \App\Models\Category::factory(),
         ];
     }
+
 }

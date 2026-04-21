@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Requests\StoreProductRequest;
-use App\Services\{
-    ProductService,
-    ColorService,
-    StockService,
-};
 use App\Models\Product;
+use App\Services\{CategoryService, ProductService, ColorService, ProductColorService, StockService,};
+use App\Services\SaleService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -17,12 +14,25 @@ class ProductController extends Controller
     protected ProductService $productService;
     protected StockService $stockService;
     protected ColorService $colorService;
+    protected ProductColorService $productColorService;
+    protected CategoryService $categoryService;
+    protected SaleService $saleService;
 
-    public function __construct(ProductService $productService, StockService $stockService, ColorService $colorService)
-    {
+
+    public function __construct(
+        ProductService $productService,
+        StockService $stockService,
+        ColorService $colorService,
+        ProductColorService $productColorService,
+        CategoryService $categoryService,
+        SaleService $saleService
+    ) {
         $this->productService = $productService;
         $this->stockService = $stockService;
         $this->colorService = $colorService;
+        $this->productColorService = $productColorService;
+        $this->categoryService = $categoryService;
+        $this->saleService = $saleService;
     }
     public function exportPdf(Request $request)
     {
@@ -46,12 +56,14 @@ class ProductController extends Controller
             'per_page' => 15,
         ];
 
-        $products = $this->productService->getAllProducts($filters);
+        // Utilisation de ProductColorService pour obtenir une ligne par variante (Produit + Couleur)
+        $products = $this->productColorService->getAllWithRelations($filters);
         $categories = $this->productService->getAllCategories();
-        $mostSoldProduct = $this->productService->getMostSoldProduct();
-        $leastSoldProduct = $this->productService->getLeastSoldProduct();
+        $mostSoldProduct = $this->saleService->getMostSoldProduct();
+        $leastSoldProduct = $this->saleService->getLeastSoldProduct();
 
-        return view('products.index', compact('products', 'categories', 'mostSoldProduct', 'leastSoldProduct'));
+
+        return view('products.index', compact('products', 'categories', 'mostSoldProduct', 'leastSoldProduct', 'filters'));
     }
 
     /**
@@ -69,7 +81,9 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        $this->productService->createProduct($request->validated());
+        $productData = $request->validated();
+        $colors = $productData['colors'] ?? [];
+        $this->productService->createProduct($productData, $colors);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product created successfully.');
@@ -80,17 +94,18 @@ class ProductController extends Controller
      */
     public function show(int $id)
     {
-        $product = $this->productService->getProductById($id);
+        // Le service gère maintenant le chargement des relations complexes
+        $item = $this->productColorService->getProductById($id);
+
         // For the paginated history table
         $stockMovements = $this->stockService->getStockMovementsForProduct($id, 10);
-        // For the evolution chart
-        $stockEvolution = $this->stockService->getStockEvolutionForProduct($id);
 
-        // Prepare data for the chart, already in ISO 8601 format from the service
+        $stockEvolution = $item ? $this->stockService->getStockEvolutionForVariant($item->id) : [];
+
         $chartLabels = json_encode(array_column($stockEvolution, 'x'));
         $chartData = json_encode(array_column($stockEvolution, 'y'));
 
-        return view('products.show', compact('product', 'stockMovements', 'chartLabels', 'chartData'));
+        return view('products.show', compact('item', 'stockMovements', 'chartLabels', 'chartData'));
     }
 
     /**
@@ -109,7 +124,9 @@ class ProductController extends Controller
      */
     public function update(StoreProductRequest $request, int $id)
     {
-        $this->productService->updateProduct($id, $request->validated());
+        $productData = $request->validated();
+        $colors = $productData['colors'] ?? [];
+        $this->productService->updateProduct($id, $productData, $colors);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully.');
@@ -139,7 +156,6 @@ class ProductController extends Controller
         $mapping = [
             'name'           => 'nom',      // 'colonne_db' => 'entete_csv'
             'price'          => 'prix',
-            'quantity_stock' => 'stock',
             'category_id'    => 'id_categorie'
         ];
 
@@ -165,16 +181,14 @@ class ProductController extends Controller
      */
     public function salerIndex(Request $request)
     {
-        $query = Product::query();
+        $filters = [
+            'search' => $request->get('search'),
+            'per_page' => 20,
+            'sort' => 'name',
+            'order' => 'asc'
+        ];
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhere('reference', 'like', "%{$search}%");
-        }
-
-        // Pagination simple, trié par nom et on charge la catégorie pour la vue
-        $products = $query->with('category')->orderBy('name')->paginate(20)->withQueryString();
+        $products = $this->productService->getAllProducts($filters);
 
         return view('front-office.products.index', compact('products'));
     }

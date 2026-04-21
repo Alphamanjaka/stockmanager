@@ -14,8 +14,8 @@
             Schema::create('stock_movements', function (Blueprint $table) {
                 $table->id();
 
-                // Relation avec le produit
-                $table->foreignId('product_id')->constrained()->onDelete('cascade');
+                // Relation avec la variante (Produit + Couleur)
+                $table->foreignId('product_color_id')->constrained('product_colors')->onDelete('cascade');
 
                 // Quantité du mouvement (toujours positive)
                 $table->integer('quantity');

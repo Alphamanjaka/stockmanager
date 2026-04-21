@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Purchase;
 use Illuminate\Support\Facades\DB;
-use App\Services\ProductService;
+use App\Services\ProductColorService;
 
 class PurchaseService
 {
@@ -23,7 +23,7 @@ class PurchaseService
         if ($purchase->state === 'Received') {
             foreach ($purchase->items as $item) {
                 $this->stockService->removeStock(
-                    $item->product_id,
+                    $item->product_color_id,
                     $item->quantity,
                     "Annulation Réception Achat #{$purchase->reference}"
                 );
@@ -41,7 +41,7 @@ class PurchaseService
             foreach ($purchase->items as $item) {
                 //We increase stock for each item in the purchase
                 $this->stockService->addStock(
-                    $item->product_id,
+                    $item->product_color_id,
                     $item->quantity,
                     "Réception Achat #{$purchase->reference}"
                 );
@@ -72,14 +72,14 @@ class PurchaseService
 
                 // 2. Créer la ligne d'achat
                 $purchase->items()->create([
-                    'product_id' => $item['product_id'],
+                    'product_color_id' => $item['product_color_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'subtotal' => $subtotal,
                 ]);
 
                 // 3. Le stock est maintenant augmenté uniquement lors du passage au statut "Reçu"
-                // $this->stockService->addStock($item['product_id'], $item['quantity'], "Achat {$purchase->reference}");
+                // $this->stockService->addStock($item['product_color_id'], $item['quantity'], "Achat {$purchase->reference}");
             }
 
             $purchase->update([
@@ -109,7 +109,7 @@ class PurchaseService
      */
     public function getPurchaseById($id)
     {
-        return Purchase::with('items.product', 'supplier')->findOrFail($id);
+        return Purchase::with('items.productColor.product', 'items.productColor.color', 'supplier')->findOrFail($id);
     }
 
     /**
@@ -160,7 +160,7 @@ class PurchaseService
                 $totalAmount += $subtotal;
 
                 $purchase->items()->create([
-                    'product_id' => $item['product_id'],
+                    'product_color_id' => $item['product_color_id'],
                     'quantity'   => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'subtotal'   => $subtotal,
@@ -260,8 +260,8 @@ class PurchaseService
      */
     public function getShortageProductsGroupedBySupplier()
     {
-        $productService = app(ProductService::class);
-        $shortageProducts = $productService->getShortageProducts();
+        $productColorService = app(ProductColorService::class);
+        $shortageProducts = $productColorService->getShortageProducts();
 
         if ($shortageProducts->isEmpty()) {
             return collect();
@@ -271,18 +271,20 @@ class PurchaseService
 
         // Requête optimisée pour trouver le dernier achat pour chaque produit
         $subQuery = DB::table('purchase_items')
-            ->select('product_id', DB::raw('MAX(created_at) as last_purchase_date'))
-            ->whereIn('product_id', $productIds)
-            ->groupBy('product_id');
+            ->join('product_colors', 'purchase_items.product_color_id', '=', 'product_colors.id')
+            ->select('product_colors.product_id', DB::raw('MAX(purchase_items.created_at) as last_purchase_date'))
+            ->whereIn('product_colors.product_id', $productIds)
+            ->groupBy('product_colors.product_id');
 
         $lastPurchases = DB::table('purchase_items as pi')
+            ->join('product_colors as pc', 'pi.product_color_id', '=', 'pc.id')
             ->joinSub($subQuery, 'latest_pi', function ($join) {
-                $join->on('pi.product_id', '=', 'latest_pi.product_id')
+                $join->on('pc.product_id', '=', 'latest_pi.product_id')
                     ->on('pi.created_at', '=', 'latest_pi.last_purchase_date');
             })
             ->join('purchases as p', 'pi.purchase_id', '=', 'p.id')
             ->join('suppliers as s', 'p.supplier_id', '=', 's.id')
-            ->select('pi.product_id', 'pi.unit_price', 's.id as supplier_id', 's.name as supplier_name')
+            ->select('pc.product_id', 'pi.unit_price', 's.id as supplier_id', 's.name as supplier_name')
             ->get()
             ->keyBy('product_id');
 

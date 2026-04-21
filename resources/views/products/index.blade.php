@@ -123,6 +123,7 @@
                                             class="fas fa-sort{{ request('sort') == 'name' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                     </a>
                                 </th>
+                                <th>Couleur</th>
                                 <th>Catégorie</th>
                                 <th>
                                     <a href="{{ request()->fullUrlWithQuery(['sort' => 'quantity_stock', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
@@ -142,43 +143,47 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($products as $product)
+                            @forelse ($products as $item)
                                 <tr>
-                                    <td class="ps-4 text-muted small">#{{ $product->id }}</td>
+                                    <td class="ps-4 text-muted small">#{{ $item->id }}</td>
                                     <td>
-                                        <div class="fw-bold text-dark"> <a href="{{route('admin.products.show', $product->id)}}">{{ $product->name }}</a></div>
+                                        <div class="fw-bold text-dark"> <a
+                                                href="{{ route('admin.products.show', $item->id) }}">{{ $item->product->name }}</a>
+                                        </div>
                                     </td>
+                                    <td>{{ $item->color->name ?? 'N/A' }}</td>
                                     <td>
-                                        @if ($product->category)
+                                        @if ($item->product->category)
                                             <span
-                                                class="badge bg-light text-dark border">{{ $product->category->name }}</span>
+                                                class="badge bg-light text-dark border">{{ $item->product->category->name }}</span>
                                         @else
                                             <span class="text-muted small">Unassigned</span>
                                         @endif
                                     </td>
+
                                     <td>
-                                        @if ($product->quantity_stock <= 0)
+                                        @if ($item->stock <= 0)
                                             <span class="badge bg-danger">Out of Stock</span>
-                                        @elseif($product->quantity_stock <= ($product->alert_stock ?? 5))
+                                        @elseif($item->stock <= ($item->alert_stock ?? 5))
                                             <span class="badge bg-warning text-dark">Low Stock</span>
-                                            ({{ $product->quantity_stock }})
+                                            ({{ $item->stock }})
                                             </span>
                                         @else
-                                            <span class="badge bg-success">{{ $product->quantity_stock }}</span>
+                                            <span class="badge bg-success">{{ $item->stock }}</span>
                                         @endif
                                     </td>
-                                    <td class="fw-bold">{{ number_format($product->price, 2) }} MGA </td>
+                                    <td class="fw-bold">{{ number_format($item->product->price, 2) }} MGA </td>
                                     <td class="text-end pe-4">
                                         <div class="btn-group">
-                                            <a href="{{ route('admin.products.show', $product->id) }}"
+                                            <a href="{{ route('admin.products.show', $item->product->id) }}"
                                                 class="btn btn-sm btn-outline-secondary" title="Voir">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('admin.products.edit', $product->id) }}"
+                                            <a href="{{ route('admin.products.edit', $item->product->id) }}"
                                                 class="btn btn-sm btn-outline-primary" title="Modifier">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <form action="{{ route('admin.products.destroy', $product->id) }}"
+                                            <form action="{{ route('admin.products.destroy', $item->product->id) }}"
                                                 method="POST" class="d-inline"
                                                 onsubmit="return confirm('Delete this product ?');">
                                                 @csrf

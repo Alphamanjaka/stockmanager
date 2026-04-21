@@ -44,7 +44,7 @@ class StockMovementController extends Controller
      */
     public function create()
     {
-        $products = $this->productService->getAllProducts();
+        $products = $this->productService->getAll();
         return view('stock_movements.create', compact('products'));
     }
 

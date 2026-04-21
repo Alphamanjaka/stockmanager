@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Category;
+use App\Models\Color;
+use App\Models\StockMovement;
 
 class Product extends Model
 {
@@ -17,24 +20,29 @@ class Product extends Model
         'description',
         'price',
         'category_id',
-        'quantity_stock',
-        'color_id',
-        'alert_stock',
     ];
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
+
+    /**
+     * Accès direct aux variantes (SKUs)
+     */
+    public function productColors()
+    {
+        return $this->hasMany(ProductColor::class);
+    }
+
     public function stockMovements()
     {
-        return $this->hasMany(StockMovement::class);
+        return $this->hasManyThrough(StockMovement::class, ProductColor::class);
     }
-    public function scopeFilter($query, $filter)
+
+    public function colors()
     {
-        $query->where('name', 'like', "%$filter%");
-    }
-    public function color()
-    {
-        return $this->belongsTo(Color::class);
+        return $this->belongsToMany(Color::class)
+            ->withPivot('stock', 'alert_stock') // Now pivot also tracks alert_stock
+            ->timestamps();
     }
 }

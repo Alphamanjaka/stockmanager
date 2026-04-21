@@ -19,7 +19,7 @@ class ColorFactory extends Factory
     {
         return [
             // Define default values for color attributes
-            'name' => $this->faker->colorName(),
+            'name' => $this->faker->unique()->name(),
             'code' => $this->faker->hexColor(),
         ];
     }

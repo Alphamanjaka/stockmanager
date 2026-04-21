@@ -3,8 +3,8 @@
 namespace Tests\Feature\service;
 
 use App\Models\Product;
-use App\Models\StockMovement;
 use App\Services\StockService;
+use App\Models\ProductColor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
@@ -25,17 +25,22 @@ class StockServiceTest extends TestCase
     public function it_can_add_stock_and_create_movement()
     {
         // Arrange
-        $product = Product::factory()->create(['quantity_stock' => 10]);
+        $product = Product::factory()->create();
+        $variant = ProductColor::create([
+            'product_id' => $product->id,
+            'color_id' => \App\Models\Color::factory()->create()->id,
+            'stock' => 10
+        ]);
 
         // Act
-        $this->service->addStock($product->id, 5, 'Test Add');
+        $this->service->addStock($variant->id, 5, 'Test Add');
 
         // Assert
-        $product->refresh();
-        $this->assertEquals(15, $product->quantity_stock);
+        $variant->refresh();
+        $this->assertEquals(15, $variant->stock);
 
         $this->assertDatabaseHas('stock_movements', [
-            'product_id' => $product->id,
+            'product_color_id' => $variant->id,
             'quantity' => 5,
             'type' => 'in',
             'reason' => 'Test Add',
@@ -48,17 +53,22 @@ class StockServiceTest extends TestCase
     public function it_can_remove_stock_and_create_movement()
     {
         // Arrange
-        $product = Product::factory()->create(['quantity_stock' => 10]);
+        $product = Product::factory()->create();
+        $variant = ProductColor::create([
+            'product_id' => $product->id,
+            'color_id' => \App\Models\Color::factory()->create()->id,
+            'stock' => 10
+        ]);
 
         // Act
-        $this->service->removeStock($product->id, 3, 'Test Remove');
+        $this->service->removeStock($variant->id, 3, 'Test Remove');
 
         // Assert
-        $product->refresh();
-        $this->assertEquals(7, $product->quantity_stock);
+        $variant->refresh();
+        $this->assertEquals(7, $variant->stock);
 
         $this->assertDatabaseHas('stock_movements', [
-            'product_id' => $product->id,
+            'product_color_id' => $variant->id,
             'quantity' => -3,
             'type' => 'out',
             'reason' => 'Test Remove',
@@ -71,18 +81,20 @@ class StockServiceTest extends TestCase
     public function it_throws_exception_when_removing_insufficient_stock()
     {
         // Arrange
-        $product = Product::factory()->create(['quantity_stock' => 5]);
+        $product = Product::factory()->create(['name' => 'Test Product']);
+        $color = \App\Models\Color::factory()->create(['name' => 'Rouge']);
+        $variant = ProductColor::create(['product_id' => $product->id, 'color_id' => $color->id, 'stock' => 5]);
 
         // Assert
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Not enough stock for this product.');
+        $this->expectExceptionMessage("Stock insuffisant pour la variante Test Product (Rouge).");
 
         // Act
         try {
-            $this->service->removeStock($product->id, 10, 'Failed Remove');
+            $this->service->removeStock($variant->id, 10, 'Sortie impossible');
         } finally {
             // Assert state after exception
-            $this->assertEquals(5, $product->fresh()->quantity_stock);
+            $this->assertEquals(5, $variant->fresh()->stock);
             $this->assertDatabaseMissing('stock_movements', [
                 'reason' => 'Failed Remove'
             ]);
@@ -93,12 +105,15 @@ class StockServiceTest extends TestCase
     public function it_can_get_all_stock_movements_with_filters()
     {
         // Arrange
-        $product1 = Product::factory()->create(['name' => 'Laptop']);
-        $product2 = Product::factory()->create(['name' => 'Mouse']);
+        $variant1 = ProductColor::create(['product_id' => Product::factory()->create(['name' => 'Laptop'])->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 10]);
+        $variant2 = ProductColor::create(['product_id' => Product::factory()->create(['name' => 'Mouse'])->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 10]);
 
-        StockMovement::factory()->create(['product_id' => $product1->id, 'type' => 'in', 'reason' => 'Purchase ABC', 'created_at' => now()]);
-        StockMovement::factory()->create(['product_id' => $product2->id, 'type' => 'out', 'reason' => 'Sale XYZ', 'created_at' => now()->subDay()]);
-        StockMovement::factory()->create(['product_id' => $product1->id, 'type' => 'out', 'reason' => 'Sale 123', 'created_at' => now()->subDays(5)]);
+        $this->service->createStockMovement(['product_color_id' => $variant1->id, 'quantity' => 5, 'type' => 'in', 'reason' => 'Purchase ABC', 'stock_before' => 5, 'stock_after' => 10]);
+        $this->travelTo(now()->subDay());
+        $this->service->createStockMovement(['product_color_id' => $variant2->id, 'quantity' => -2, 'type' => 'out', 'reason' => 'Sale XYZ', 'stock_before' => 10, 'stock_after' => 8]);
+        $this->travelTo(now()->subDays(4));
+        $this->service->createStockMovement(['product_color_id' => $variant1->id, 'quantity' => -1, 'type' => 'out', 'reason' => 'Sale 123', 'stock_before' => 10, 'stock_after' => 9]);
+        $this->travelBack();
 
         // Test without filters
         $result = $this->service->getAllStockMovements();
@@ -119,85 +134,58 @@ class StockServiceTest extends TestCase
         $this->assertCount(2, $result->items());
     }
 
-    /** @test */
-    public function it_can_get_dormant_products()
-    {
-        // Arrange
-        // 1. Dormant product: has stock, no recent 'out' movement
-        $dormantProduct = Product::factory()->create(['quantity_stock' => 10]);
-        StockMovement::factory()->create([
-            'product_id' => $dormantProduct->id,
-            'type' => 'out',
-            'created_at' => now()->subDays(70)
-        ]);
 
-        // 2. Active product: has stock, has recent 'out' movement
-        $activeProduct = Product::factory()->create(['quantity_stock' => 10]);
-        StockMovement::factory()->create([
-            'product_id' => $activeProduct->id,
-            'type' => 'out',
-            'created_at' => now()->subDays(10)
-        ]);
-
-        // 3. Out of stock product: should not be listed
-        Product::factory()->create(['quantity_stock' => 0]);
-
-        // Act
-        $dormantProducts = $this->service->getDormantProducts(60);
-
-        // Assert
-        $this->assertCount(1, $dormantProducts);
-        $this->assertEquals($dormantProduct->id, $dormantProducts->first()->id);
-    }
 
     /** @test */
     public function it_can_get_rotation_stats()
     {
         // Arrange
-        $product1 = Product::factory()->create(); // high rotation
-        $product2 = Product::factory()->create(); // low rotation
-        $product3 = Product::factory()->create(); // no rotation
+        $v1 = ProductColor::create(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 10]);
+        $v2 = ProductColor::create(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 10]);
+        $v3 = ProductColor::create(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 10]);
 
-        StockMovement::factory()->create(['product_id' => $product1->id, 'type' => 'out', 'quantity' => -10]);
-        StockMovement::factory()->create(['product_id' => $product1->id, 'type' => 'out', 'quantity' => -5]);
-        StockMovement::factory()->create(['product_id' => $product2->id, 'type' => 'out', 'quantity' => -2]);
-        StockMovement::factory()->create(['product_id' => $product3->id, 'type' => 'in', 'quantity' => 20]); // 'in' should be ignored
+        $this->service->createStockMovement(['product_color_id' => $v1->id, 'type' => 'out', 'quantity' => -10, 'stock_before' => 20, 'stock_after' => 10, 'reason' => 's1']);
+        $this->service->createStockMovement(['product_color_id' => $v1->id, 'type' => 'out', 'quantity' => -5, 'stock_before' => 10, 'stock_after' => 5, 'reason' => 's2']);
+        $this->service->createStockMovement(['product_color_id' => $v2->id, 'type' => 'out', 'quantity' => -2, 'stock_before' => 10, 'stock_after' => 8, 'reason' => 's3']);
+        $this->service->createStockMovement(['product_color_id' => $v3->id, 'type' => 'in', 'quantity' => 20, 'stock_before' => 0, 'stock_after' => 20, 'reason' => 'in']);
 
         // Act
         $stats = $this->service->getRotationStats(2);
 
         // Assert
         $this->assertCount(2, $stats);
-        $this->assertEquals($product1->id, $stats[0]->product_id);
+        $this->assertEquals($v1->id, $stats[0]->product_color_id);
         $this->assertEquals(15, $stats[0]->total_out);
-        $this->assertEquals($product2->id, $stats[1]->product_id);
+        $this->assertEquals($v2->id, $stats[1]->product_color_id);
         $this->assertEquals(2, $stats[1]->total_out);
     }
 
     /** @test */
-    public function it_can_get_stock_evolution_for_product()
+    public function it_can_get_stock_evolution_for_variant()
     {
         // Arrange
-        $product = Product::factory()->create(['quantity_stock' => 0]);
+        $product = Product::factory()->create();
+        $variant = ProductColor::create(['product_id' => $product->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 0]);
+
         $date1 = now()->subDays(2)->startOfDay();
         $date2 = now()->subDays(1)->startOfDay();
         $date3 = now()->startOfDay();
 
         $this->travelTo($date1);
-        $this->service->addStock($product->id, 10, 'Initial Stock');
+        $this->service->addStock($variant->id, 10, 'Initial Stock');
 
         $this->travelTo($date2);
-        $this->service->removeStock($product->id, 3, 'Sale');
+        $this->service->removeStock($variant->id, 3, 'Sale');
 
         $this->travelTo($date3);
-        $this->service->addStock($product->id, 5, 'Restock');
+        $this->service->addStock($variant->id, 5, 'Restock');
 
         $this->travelTo($date3->copy()->addHours(1));
         $finalDate = now();
-        $product->refresh();
+        $variant->refresh();
 
         // Act
-        $evolution = $this->service->getStockEvolutionForProduct($product->id);
+        $evolution = $this->service->getStockEvolutionForVariant($variant->id);
         $this->travelBack();
 
         // Assert

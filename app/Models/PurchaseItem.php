@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Testing\Fluent\Concerns\Has;
 
 class PurchaseItem extends Model
 {
@@ -12,13 +11,13 @@ class PurchaseItem extends Model
     // define fillable fields
     protected $fillable = [
         'purchase_id',
-        'product_id',
+        'product_color_id',
         'quantity',
         'unit_price',
         'subtotal',
     ];
-    public function product()
+    public function productColor()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(ProductColor::class);
     }
 }

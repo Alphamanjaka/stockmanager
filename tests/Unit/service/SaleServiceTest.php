@@ -4,6 +4,7 @@ namespace Tests\Feature\service;
 
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\ProductColor;
 use App\Services\SaleService;
 use App\Services\StockService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,31 +27,35 @@ class SaleServiceTest extends TestCase
         $this->stockServiceMock = Mockery::mock(StockService::class);
         $this->app->instance(StockService::class, $this->stockServiceMock);
         // On injecte le mock dans notre service
-        $this->service = new SaleService($this->stockServiceMock);
+        $this->service = new SaleService($this->app->make(StockService::class));
     }
 
     /** @test */
     public function it_can_create_a_sale_and_update_stock()
     {
         // Arrange
-        $product = Product::factory()->create(['price' => 100.00, 'quantity_stock' => 50]);
+        $product = Product::factory()->create(['price' => 100.00]);
+        $variant = ProductColor::create([
+            'product_id' => $product->id,
+            'color_id' => \App\Models\Color::factory()->create()->id,
+            'stock' => 50
+        ]);
         $user = \App\Models\User::factory()->create();
 
         $productsData = [
-            ['product_id' => $product->id, 'quantity' => 2]
+            ['product_color_id' => $variant->id, 'quantity' => 2]
         ];
         $discount = 10.00;
 
-        // On s'attend à ce que la méthode removeStock soit appelée une fois avec les bons arguments
         $this->stockServiceMock
             ->shouldReceive('removeStock')
             ->once()
-            ->with($product->id, 2, Mockery::on(function ($reason) {
+            ->with($variant->id, 2, Mockery::on(function ($reason) {
                 return str_starts_with($reason, 'Vente SALE-');
             }));
 
         // Act
-        $sale = $this->service->createSale($productsData, $discount,$user->id);
+        $sale = $this->service->createSale($productsData, $discount, $user->id);
 
         // Assert
         $this->assertInstanceOf(Sale::class, $sale);
@@ -62,7 +67,7 @@ class SaleServiceTest extends TestCase
         ]);
         $this->assertDatabaseHas('sale_items', [
             'sale_id' => $sale->id,
-            'product_id' => $product->id,
+            'product_color_id' => $variant->id,
             'quantity' => 2,
         ]);
     }
@@ -71,9 +76,15 @@ class SaleServiceTest extends TestCase
     public function it_throws_exception_if_stock_is_insufficient()
     {
         // Arrange
-        $product = Product::factory()->create(['quantity_stock' => 1]);
+        $product = Product::factory()->create(['name' => 'Test Product']);
+        $variant = ProductColor::create([
+            'product_id' => $product->id,
+            'color_id' => \App\Models\Color::factory()->create()->id,
+            'stock' => 1
+        ]);
+
         $productsData = [
-            ['product_id' => $product->id, 'quantity' => 2]
+            ['product_color_id' => $variant->id, 'quantity' => 2]
         ];
 
         // On s'assure que la méthode removeStock n'est JAMAIS appelée
@@ -83,7 +94,7 @@ class SaleServiceTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage("Stock insuffisant pour : {$product->name}");
         $user = \App\Models\User::factory()->create();
-        $this->service->createSale($productsData,0,$user->id);
+        $this->service->createSale($productsData, 0, $user->id);
     }
 
     /** @test */

@@ -1,5 +1,5 @@
 @extends('layouts.app-back-office')
-@section('title', 'Detail of Product : ' . $product->name)
+@section('title', 'Detail of Product : ' . $item->product->name . $item->color->name  )
 
 @section('content')
     <div class="container">
@@ -8,7 +8,7 @@
                 <i class="bi bi-arrow-left"></i> Back to list
             </a>
             <div>
-                <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-primary">
+                <a href="{{ route('admin.products.edit', $item->product->id) }}" class="btn btn-primary">
                     <i class="bi bi-pencil-square"></i> Edit
                 </a>
             </div>
@@ -25,19 +25,23 @@
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item d-flex justify-content-between">
                                 <strong>Name:</strong>
-                                <span>{{ $product->name }}</span>
+                                <span>{{ $item->product->name }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <strong>Color:</strong>
+                                <span>{{ $item->color->name ?? 'Not defined' }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
                                 <strong>Category:</strong>
-                                <span>{{ $product->category->name ?? 'Not defined' }}</span>
+                                <span>{{ $item->product->category->name ?? 'Not defined' }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
                                 <strong>Selling Price:</strong>
-                                <span class="fw-bold text-success">{{ number_format($product->price, 2) }} MGA</span>
+                                <span class="fw-bold text-success">{{ number_format($item->product->price, 2) }} MGA</span>
                             </li>
                             <li class="list-group-item">
                                 <strong>Description:</strong>
-                                <p class="mt-2 text-muted">{{ $product->description ?? 'No description available' }}</p>
+                                <p class="mt-2 text-muted">{{ $item->product->description ?? 'No description available' }}</p>
                             </li>
                         </ul>
                     </div>
@@ -55,21 +59,21 @@
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <strong>Current Stock:</strong>
                                 <span
-                                    class="badge fs-6 {{ $product->quantity_stock <= $product->alert_stock ? 'bg-danger' : 'bg-success' }}">
-                                    {{ $product->quantity_stock }} units
+                                    class="badge fs-6 {{ $item->stock <= $item->alert_stock ? 'bg-danger' : 'bg-success' }}">
+                                    {{ $item->stock }} units
                                 </span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
                                 <strong>Alert Threshold:</strong>
-                                <span>{{ $product->alert_stock }} units</span>
+                                <span>{{ $item->alert_stock }} units</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
                                 <strong>Created on:</strong>
-                                <span>{{ $product->created_at->format('d/m/Y H:i') }}</span>
+                                <span>{{ $item->product->created_at->format('d/m/Y H:i') }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
                                 <strong>Last Updated:</strong>
-                                <span>{{ $product->updated_at->format('d/m/Y H:i') }}</span>
+                                <span>{{ $item->product->updated_at->format('d/m/Y H:i') }}</span>
                             </li>
                         </ul>
                     </div>
@@ -131,7 +135,7 @@
 <script type="module">
     $(function() {
         const ctx = document.getElementById('stockChart').getContext('2d');
-        const alertThreshold = {!! $product->alert_stock !!}; // On pourrait passer cette valeur depuis le PHP ($product->min_stock)
+        const alertThreshold = {!! $item->alert_stock !!}; // On pourrait passer cette valeur depuis le PHP ($product->min_stock)
 
         new Chart(ctx, {
             type: 'line',

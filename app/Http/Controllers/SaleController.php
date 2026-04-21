@@ -11,8 +11,8 @@ use App\Http\Requests\StoreSaleRequest;
 
 class SaleController extends Controller
 {
-    protected $saleService;
-    protected $productService;
+    protected SaleService   $saleService;
+    protected ProductService $productService;
 
     public function __construct(SaleService $saleService, ProductService $productService)
     {

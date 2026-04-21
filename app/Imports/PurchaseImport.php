@@ -6,6 +6,7 @@ use App\Services\PurchaseService;
 use App\Services\SupplierService;
 use App\Services\ProductService;
 use App\Models\Supplier;
+use App\Models\ProductColor;
 use App\Models\Product;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -38,12 +39,19 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
     {
         // Optimisation N+1 : On récupère toutes les références nécessaires en une seule fois
         $emails = $rows->pluck('email_fournisseur')->unique()->filter();
-        // On s'assure que les noms de produits sont bien des chaînes de caractères
-        $productNames = $rows->pluck('nom_produit')->map(fn($name) => (string) $name)->unique()->filter();
 
         // Chargement en mémoire : ['email' => id] et ['name' => id]
         $suppliers = Supplier::whereIn('email', $emails)->pluck('id', 'email');
-        $products = Product::whereIn('name', $productNames)->pluck('id', 'name');
+
+        // On récupère toutes les variantes existantes pour faire le mapping
+        // On crée une clé composite "NomProduit|NomCouleur" pour identifier la variante
+        $variants = ProductColor::join('products', 'product_colors.product_id', '=', 'products.id')
+            ->join('colors', 'product_colors.color_id', '=', 'colors.id')
+            ->select('product_colors.id', 'products.name as p_name', 'colors.name as c_name')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [($item->p_name . '|' . $item->c_name) => $item->id];
+            });
 
         // On groupe les lignes par 'reference_groupe' pour créer un achat avec plusieurs items
         $groupedPurchases = $rows->groupBy('reference_groupe');
@@ -63,9 +71,12 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
 
             foreach ($items as $item) {
                 $productName = (string) $item['nom_produit'];
-                if (isset($products[$productName])) {
+                $colorName = (string) $item['couleur_produit'];
+                $variantKey = $productName . '|' . $colorName;
+
+                if (isset($variants[$variantKey])) {
                     $purchaseItems[] = [
-                        'product_id' => $products[$productName],
+                        'product_color_id' => $variants[$variantKey],
                         'quantity'   => $item['quantite'],
                         'unit_price' => $item['cout_unitaire'],
                     ];
@@ -85,7 +96,8 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
         return [
             'reference_groupe'  => 'required|string',
             'email_fournisseur' => 'required|email|exists:suppliers,email',
-            'nom_produit'       => 'required|string|exists:products,name',
+            'nom_produit'       => 'required|string',
+            'couleur_produit'   => 'required|string',
             'quantite'          => 'required|integer|min:1',
             'cout_unitaire'     => 'required|numeric|min:0',
         ];
