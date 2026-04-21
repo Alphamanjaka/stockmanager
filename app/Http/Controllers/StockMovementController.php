@@ -2,21 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\{
-    StockService,
-    ProductService
-};
+use App\Services\{ StockService };
+use App\Services\ProductColorService;
 use Illuminate\Http\Request;
 
 class StockMovementController extends Controller
 {
-    protected $stockService;
-    protected $productService;
+    protected StockService $stockService;
+    protected ProductColorService $productColorService;
 
-    public function __construct(StockService $stockService, ProductService $productService)
+    public function __construct(StockService $stockService, ProductColorService $productColorService)
     {
         $this->stockService = $stockService;
-        $this->productService = $productService;
+        $this->productColorService = $productColorService;
     }
 
     /**
@@ -39,12 +37,13 @@ class StockMovementController extends Controller
         return view('stock_movements.index', compact('stockMovements', 'dormantProducts', 'rotationStats', 'stockValueEvolution'));
     }
 
+
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        $products = $this->productService->getAll();
+        $products = $this->productColorService->getAll();
         return view('stock_movements.create', compact('products'));
     }
 

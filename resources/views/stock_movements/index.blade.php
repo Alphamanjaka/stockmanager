@@ -129,7 +129,7 @@
                                                         {{ $movement->created_at->format('H:i') }}</div>
                                                 </td>
                                                 <td>
-                                                    <span class="fw-bold text-dark">{{ $movement->product->name }}</span>
+                                                    <span class="fw-bold text-dark">{{ $movement-> }}</span>
                                                     @if ($isLowStock)
                                                         <i class="fas fa-exclamation-triangle text-danger ms-1"
                                                             title="Stock bas"></i>

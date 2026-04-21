@@ -36,7 +36,7 @@ class ProductController extends Controller
     }
     public function exportPdf(Request $request)
     {
-        $products = $this->productService->getAllProducts(['per_page' => 1000]); // Get all products without pagination
+        $products = $this->categoryService->getAll(['per_page' => 1000]); // Get all products without pagination
 
         $pdf = Pdf::loadView('products.pdf', compact('products'));
 
@@ -58,7 +58,7 @@ class ProductController extends Controller
 
         // Utilisation de ProductColorService pour obtenir une ligne par variante (Produit + Couleur)
         $products = $this->productColorService->getAllWithRelations($filters);
-        $categories = $this->productService->getAllCategories();
+        $categories = $this->categoryService->getAll();
         $mostSoldProduct = $this->saleService->getMostSoldProduct();
         $leastSoldProduct = $this->saleService->getLeastSoldProduct();
 
@@ -71,7 +71,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        $categories = $this->productService->getAllCategories();
+        $categories = $this->categoryService->getAll();
         $colors = $this->colorService->getAllColors([], false);
         return view('products.create', compact('categories', 'colors'));
     }
@@ -83,7 +83,7 @@ class ProductController extends Controller
     {
         $productData = $request->validated();
         $colors = $productData['colors'] ?? [];
-        $this->productService->createProduct($productData, $colors);
+        $this->productService->create($productData, $colors);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product created successfully.');
@@ -113,8 +113,8 @@ class ProductController extends Controller
      */
     public function edit(int $id)
     {
-        $product = $this->productService->getProductById($id);
-        $categories = $this->productService->getAllCategories();
+        $product = $this->productService->getById($id);
+        $categories = $this->productService->getAll();
         $colors = $this->colorService->getAllColors([], false);
         return view('products.edit', compact('product', 'categories', 'colors'));
     }
@@ -126,7 +126,7 @@ class ProductController extends Controller
     {
         $productData = $request->validated();
         $colors = $productData['colors'] ?? [];
-        $this->productService->updateProduct($id, $productData, $colors);
+        $this->productService->update($id, $productData, $colors);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully.');
@@ -138,7 +138,7 @@ class ProductController extends Controller
     public function destroy(int $id)
     {
         try {
-            $this->productService->deleteProduct($id);
+            $this->productService->delete($id);
 
             return redirect()->route('admin.products.index')
                 ->with('success', 'Product deleted successfully.');
@@ -188,7 +188,7 @@ class ProductController extends Controller
             'order' => 'asc'
         ];
 
-        $products = $this->productService->getAllProducts($filters);
+        $products = $this->productService->getAll($filters);
 
         return view('front-office.products.index', compact('products'));
     }

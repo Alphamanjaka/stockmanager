@@ -103,20 +103,15 @@ class ProductServiceTest extends TestCase
             'sale_id' => $sale->id,
         ]);
 
-        // On s'attend à une exception car le produit est lié à une vente (contrainte d'intégrité)
         // Arrange: On s'attend à une exception car le produit est lié à une vente (contrainte d'intégrité)
         $exceptionThrown = false;
         try {
             $this->service->delete($product->id);
-        } catch (\Exception $e) {
-            $this->assertTrue(true, 'Exception levée comme prévu lors de la suppression.');
         } catch (\Illuminate\Database\QueryException $e) {
             $exceptionThrown = true;
             // On peut vérifier une partie du message pour s'assurer que c'est bien une erreur de contrainte de clé étrangère
             $this->assertStringContainsString('FOREIGN KEY constraint failed', $e->getMessage());
         }
-
-        $this->service->delete($product->id);
 
         // Assert: Vérifier qu'une exception a été levée et que le produit n'a pas été supprimé
         $this->assertTrue($exceptionThrown, 'Une exception aurait dû être levée lors de la suppression d\'un produit lié à des ventes.');

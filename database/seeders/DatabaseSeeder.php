@@ -22,11 +22,7 @@ class DatabaseSeeder extends Seeder
      public function run(): void
      {
         $this->call([
-    //         UserSeeder::class,
             SupplierSeeder::class,
-    //         ProductSeeder::class,
-    //         // add sales data
-    //         SaleSeeder::class,
       ]);
 
 
@@ -82,7 +78,7 @@ class DatabaseSeeder extends Seeder
                 $variant = ProductColor::create([
                     'product_id' => $product->id,
                     'color_id' => $color->id,
-                    'stock' => 50, // Stock initial de 50 pour chaque variante
+                    'stock' => 20, // Stock initial de 50 pour chaque variante
                     'alert_stock' => 5,
                 ]);
                 $allVariants[] = $variant;
