@@ -1,19 +1,7 @@
 <?php
 
-use App\Http\Controllers\{
-    ProductController,
-    SaleController,
-    AuthController,
-    DashboardController,
-    CategoryController,
-    ImportController,
-    StockMovementController,
-    SupplierController,
-    PurchaseController,
-    SalerProductController,
-    SettingController,
-    UserController
-};
+use App\Http\Controllers\{ ProductController, SaleController, AuthController, DashboardController, CategoryController, ImportController, StockMovementController, SupplierController, PurchaseController, SalerProductController, SettingController, UserController };
+use App\Http\Controllers\Admin\ProductStockController;
 use App\Http\Controllers\ColorController;
 use Illuminate\Support\Facades\Route;
 
@@ -72,6 +60,10 @@ Route::middleware('auth')->group(function () {
         // user module
         Route::resource('users', UserController::class);
         Route::resource('colors', ColorController::class);
+        Route::prefix('v2/inventory')->group(function () {
+            Route::post('/assign-stock', [ProductStockController::class, 'store']);
+            Route::get('/product/{id}', [ProductStockController::class, 'show']);
+        });
     });
 
     // Routes Front Office

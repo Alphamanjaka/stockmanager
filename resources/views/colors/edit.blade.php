@@ -24,7 +24,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="code">Code Couleur (Hexadécimal ou CSS)</label>
+                                <label for="code">Code</label>
                                 <div class="input-group">
                                     <input type="text" name="code" id="code"
                                         class="form-control @error('code') is-invalid @enderror"

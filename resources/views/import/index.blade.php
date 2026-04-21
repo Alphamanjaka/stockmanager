@@ -31,6 +31,12 @@
                         'icon' => 'fa-shopping-cart',
                         'desc' => 'Historique des commandes fournisseurs.',
                     ],
+                    [
+                        'id'=>'colors',
+                        'name'=>'Couleurs',
+                        'icon'=>'fa-palette',
+                        'desc'=>'Gérez les différentes couleurs de vos produits.',
+                    ]
                 ];
             @endphp
 
