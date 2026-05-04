@@ -9,12 +9,12 @@ class StockManagementService extends StockService
     /**
      * Flux : Produit A + Couleur Rouge = Stock 10
      */
-    public function assignStock(int $productId, int $colorId, int $stock)
+    public function assignStock(int $productId, int $colorId, int $stock, float $price)
     {
         // On utilise updateOrCreate pour éviter les doublons dans la pivot
         return ProductColor::updateOrCreate(
             ['product_id' => $productId, 'color_id' => $colorId],
-            ['stock' => $stock]
+            ['stock' => $stock, 'price' => $price]
         );
     }
 
