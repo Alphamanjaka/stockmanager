@@ -48,14 +48,14 @@ class SaleService
                     throw new \Exception("Stock insuffisant pour : {$variant->product->name} ({$variant->color->name}) (Disponible: {$variant->stock})");
                 }
 
-                $subtotal = $variant->product->price * $item['quantity'];
+                $subtotal = $variant->price * $item['quantity'];
                 $totalBrut += $subtotal;
 
                 // On prépare les données pour une insertion groupée (plus rapide)
                 $itemsToCreate[] = [
                     'product_color_id' => $variant->id,
                     'quantity'         => $item['quantity'],
-                    'unit_price'       => $variant->product->price,
+                    'unit_price'       => $variant->price,
                     'subtotal'         => $subtotal,
                 ];
 
@@ -92,7 +92,7 @@ class SaleService
             ->paginate($perPage);
     }
 
-    public function getSaleById($id): Sale
+    public function getSaleById(int $id): Sale
     {
         return Sale::with(['items.productColor.product', 'items.productColor.color'])->findOrFail($id);
     }

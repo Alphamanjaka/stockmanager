@@ -5,7 +5,12 @@
     <h1>Détails du Mouvement de Stock #{{ $stockMovement->id }}</h1>
     <div class="card shadow-sm">
         <div class="card-body">
-            <p><strong>Produit :</strong> {{ $stockMovement->product->name }}</p>
+            <p><strong>Produit :</strong>
+                {{ $stockMovement->productColor->product->name }}
+                <span class="badge" style="background-color: {{ $stockMovement->productColor->color->code }}">
+                    {{ $stockMovement->productColor->color->name }}
+                </span>
+            </p>
             <p><strong>Type de mouvement :</strong> {{ $stockMovement->type }}</p>
             <p><strong>Quantité :</strong> {{ $stockMovement->quantity }}</p>
             <p><strong>Stock avant :</strong> {{ $stockMovement->stock_before }}</p>

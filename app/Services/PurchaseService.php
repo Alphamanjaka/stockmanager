@@ -8,13 +8,9 @@ use App\Services\ProductColorService;
 
 class PurchaseService
 {
-    protected $stockService;
 
     // Injecter StockService pour gérer les mouvements de stock lors des achats
-    public function __construct(StockService $stockService)
-    {
-        $this->stockService = $stockService;
-    }
+    public function __construct(protected StockService $stockService){}
     public function deletePurchase(int $id)
     {
         $purchase = Purchase::findOrFail($id);
@@ -107,7 +103,7 @@ class PurchaseService
     /**
      * Get single purchase by ID
      */
-    public function getPurchaseById($id)
+    public function getPurchaseById(int $id)
     {
         return Purchase::with('items.productColor.product', 'items.productColor.color', 'supplier')->findOrFail($id);
     }

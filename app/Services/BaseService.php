@@ -6,12 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 abstract class BaseService
 {
-    protected Model $model;
-
-    public function __construct(Model $model)
-    {
-        $this->model = $model;
-    }
+    public function __construct(protected Model $model) {}
 
     public function getAll(array $filters = [], bool $isPaginated = true)
     {

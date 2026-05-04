@@ -61,11 +61,11 @@ class DatabaseSeeder extends Seeder
 
         // 4. Création des 5 Produits Statiques
         $productsData = [
-            ['name' => 'iPhone 15 Pro', 'price' => 5000000, 'category_id' => $catElectronics->id],
-            ['name' => 'Samsung Galaxy S24', 'price' => 4500000, 'category_id' => $catElectronics->id],
-            ['name' => 'MacBook Air M2', 'price' => 7500000, 'category_id' => $catElectronics->id],
-            ['name' => 'Casque Sony XM5', 'price' => 1800000, 'category_id' => $catAccessories->id],
-            ['name' => 'iPad Air', 'price' => 3500000, 'category_id' => $catElectronics->id],
+            ['name' => 'iPhone 15 Pro', 'category_id' => $catElectronics->id],
+            ['name' => 'Samsung Galaxy S24', 'category_id' => $catElectronics->id],
+            ['name' => 'MacBook Air M2', 'category_id' => $catElectronics->id],
+            ['name' => 'Casque Sony XM5', 'category_id' => $catAccessories->id],
+            ['name' => 'iPad Air', 'category_id' => $catElectronics->id],
         ];
 
         $allVariants = [];
@@ -80,6 +80,7 @@ class DatabaseSeeder extends Seeder
                     'color_id' => $color->id,
                     'stock' => 20, // Stock initial de 50 pour chaque variante
                     'alert_stock' => 5,
+                    'price' => 15000000, // Si un prix est défini au niveau du produit, on l'utilise, sinon 0
                 ]);
                 $allVariants[] = $variant;
             }

@@ -1,5 +1,5 @@
 @extends('layouts.app-back-office')
-@section('title', 'Edit Product : ' . $product->name)
+@section('title', 'Edit Product : ' . $item->product->name)
 
 @section('content')
     <div class="container">
@@ -18,7 +18,7 @@
                 <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Product</h5>
             </div>
             <div class="card-body">
-                <form action="{{ route('admin.products.update', $product->id) }}" method="POST">
+                <form action="{{ route('admin.products.update', $item->id) }}" method="POST">
                     @csrf
                     @method('PUT')
 
@@ -32,7 +32,7 @@
                                         class="text-danger">*</span></label>
                                 <input type="text" name="name" id="name"
                                     class="form-control @error('name') is-invalid @enderror"
-                                    value="{{ old('name', $product->name) }}" required>
+                                    value="{{ old('name', $item->product->name) }}" required>
                                 @error('name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -46,7 +46,7 @@
                                     <option value="">Choose a category</option>
                                     @foreach ($categories as $category)
                                         <option value="{{ $category->id }}"
-                                            {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>
+                                            {{ old('category_id', $item->product->category_id) == $category->id ? 'selected' : '' }}>
                                             {{ $category->name }}
                                         </option>
                                     @endforeach
@@ -59,7 +59,7 @@
                             <div class="mb-3">
                                 <label for="description" class="form-label">Description</label>
                                 <textarea name="description" id="description" rows="5"
-                                    class="form-control @error('description') is-invalid @enderror">{{ old('description', $product->description) }}</textarea>
+                                    class="form-control @error('description') is-invalid @enderror">{{ old('description', $item->product->description) }}</textarea>
                                 @error('description')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -77,7 +77,7 @@
                                         <div class="input-group">
                                             <input type="number" step="0.01" name="price" id="price"
                                                 class="form-control @error('price') is-invalid @enderror"
-                                                value="{{ old('price', $product->price) }}" required>
+                                                value="{{ old('price', $item->price) }}" required>
                                             <span class="input-group-text">Mga</span>
                                             @error('price')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -90,7 +90,7 @@
                                                 class="text-danger">*</span></label>
                                         <input type="number" name="quantity_stock" id="quantity_stock"
                                             class="form-control @error('quantity_stock') is-invalid @enderror"
-                                            value="{{ old('quantity_stock', $product->quantity_stock) }}" required>
+                                            value="{{ old('quantity_stock', $item->stock) }}" required>
                                         <div class="form-text text-muted">
                                             <i class="bi bi-info-circle"></i> For precise tracking, prefer stock movements.
                                         </div>

@@ -11,29 +11,14 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    protected ProductService $productService;
-    protected StockService $stockService;
-    protected ColorService $colorService;
-    protected ProductColorService $productColorService;
-    protected CategoryService $categoryService;
-    protected SaleService $saleService;
-
-
     public function __construct(
-        ProductService $productService,
-        StockService $stockService,
-        ColorService $colorService,
-        ProductColorService $productColorService,
-        CategoryService $categoryService,
-        SaleService $saleService
-    ) {
-        $this->productService = $productService;
-        $this->stockService = $stockService;
-        $this->colorService = $colorService;
-        $this->productColorService = $productColorService;
-        $this->categoryService = $categoryService;
-        $this->saleService = $saleService;
-    }
+        protected ProductService $productService,
+        protected CategoryService $categoryService,
+        protected StockService $stockService,
+        protected ColorService $colorService,
+        protected ProductColorService $productColorService,
+        protected SaleService $saleService
+    ) {}
     public function exportPdf(Request $request)
     {
         $products = $this->categoryService->getAll(['per_page' => 1000]); // Get all products without pagination
@@ -56,12 +41,10 @@ class ProductController extends Controller
             'per_page' => 15,
         ];
 
-        // Utilisation de ProductColorService pour obtenir une ligne par variante (Produit + Couleur)
-        $products = $this->productColorService->getAllWithRelations($filters);
+        $products = $this->productService->getAll($filters);
         $categories = $this->categoryService->getAll();
         $mostSoldProduct = $this->saleService->getMostSoldProduct();
         $leastSoldProduct = $this->saleService->getLeastSoldProduct();
-
 
         return view('products.index', compact('products', 'categories', 'mostSoldProduct', 'leastSoldProduct', 'filters'));
     }
@@ -82,8 +65,7 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         $productData = $request->validated();
-        $colors = $productData['colors'] ?? [];
-        $this->productService->create($productData, $colors);
+        $this->productService->create($productData);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product created successfully.');
@@ -114,7 +96,7 @@ class ProductController extends Controller
     public function edit(int $id)
     {
         $product = $this->productService->getById($id);
-        $categories = $this->productService->getAll();
+        $categories = $this->categoryService->getAll();
         $colors = $this->colorService->getAllColors([], false);
         return view('products.edit', compact('product', 'categories', 'colors'));
     }
@@ -125,8 +107,7 @@ class ProductController extends Controller
     public function update(StoreProductRequest $request, int $id)
     {
         $productData = $request->validated();
-        $colors = $productData['colors'] ?? [];
-        $this->productService->update($id, $productData, $colors);
+        $this->productService->update($id, $productData);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully.');
@@ -147,6 +128,30 @@ class ProductController extends Controller
                 ->with('error', $e->getMessage());
         }
     }
+    /**
+     * Mise à jour des détails globaux du produit via AJAX.
+     */
+    public function updateDetails(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+
+        $product = $this->productService->update($id, $validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Informations générales mises à jour.',
+            'data' => [
+                'name' => $product->name,
+                'description' => $product->description,
+                'category_name' => $product->category->name,
+            ]
+        ]);
+    }
+
     public function importProducts(Request $request)
     {
         $request->validate([

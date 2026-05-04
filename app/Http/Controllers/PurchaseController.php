@@ -3,32 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePurchaseRequest;
-use App\Services\{
-    PurchaseService,
-    SupplierService,
-    ProductService
-};
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Http\Resources\PurchaseApiResourceCollection;
+use App\Services\ProductColorService;
+use App\Services\PurchaseService;
+use App\Services\SupplierService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class PurchaseController extends Controller
 {
-    protected $purchaseService;
-    protected $supplierService;
-    protected $productService;
+    protected PurchaseService $purchaseService;
+    protected SupplierService $supplierService;
+    protected ProductColorService $productColorService;
 
     public function __construct(
         PurchaseService $purchaseService,
         SupplierService $supplierService,
-        ProductService $productService
+        ProductColorService $productColorService
     ) {
         $this->purchaseService = $purchaseService;
         $this->supplierService = $supplierService;
-        $this->productService = $productService;
+        $this->productColorService = $productColorService;
     }
     /**
      * Génère et affiche le PDF du bon de commande dans le navigateur.
@@ -153,9 +151,9 @@ class PurchaseController extends Controller
      */
     public function create()
     {
-        $products = $this->productService->getAll();
+        $productsVariant = $this->productColorService->getAll();
         $suppliers = $this->supplierService->getAllSuppliers();
-        return view('purchases.create', compact('products', 'suppliers'));
+        return view('purchases.create', compact('productsVariant', 'suppliers'));
     }
 
     /**
@@ -181,7 +179,7 @@ class PurchaseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(int $id)
     {
         $purchase = $this->purchaseService->getPurchaseById($id);
         return view('purchases.show', compact('purchase'));
@@ -190,10 +188,10 @@ class PurchaseController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(int $id)
     {
         $purchase = $this->purchaseService->getPurchaseById($id);
-        $products = $this->productService->getAllProducts();
+        $products = $this->productColorService->getAll();
         $suppliers = $this->supplierService->getAllSuppliers();
         return view('purchases.edit', compact('purchase', 'products', 'suppliers'));
     }
@@ -203,7 +201,7 @@ class PurchaseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, int $id)
     {
         try {
             $this->purchaseService->deletePurchase($id);
@@ -225,7 +223,7 @@ class PurchaseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $validated = $request->validate([
             'supplier_id'           => 'required|exists:suppliers,id',
@@ -246,7 +244,7 @@ class PurchaseController extends Controller
     /**
      * Export the specified purchase to PDF.
      */
-    public function exportPdf($id)
+    public function exportPdf(int $id)
     {
         $purchase = $this->purchaseService->getPurchaseById($id);
 
@@ -258,7 +256,7 @@ class PurchaseController extends Controller
     /**
      * Update the state of the specified purchase.
      */
-    public function updateState(Request $request, $id)
+    public function updateState(Request $request, int $id)
     {
         $validated = $request->validate([
             'state' => ['required', Rule::in(['Draft', 'Ordered', 'Received', 'Paid'])],

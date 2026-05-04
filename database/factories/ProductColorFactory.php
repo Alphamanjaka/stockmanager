@@ -24,6 +24,8 @@ class ProductColorFactory extends Factory
             'color_id' => Color::factory(),
             'stock' => $this->faker->numberBetween(10, 200),
             'alert_stock' => $this->faker->numberBetween(5, 20),
+            'price' => $this->faker->randomFloat(2, 12000, 100000),
+
         ];
     }
 }

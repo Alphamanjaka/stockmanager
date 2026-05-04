@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\{ StockService };
+use App\Services\{StockService};
 use App\Services\ProductColorService;
 use Illuminate\Http\Request;
 
@@ -53,7 +53,7 @@ class StockMovementController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'product_id' => 'required|exists:products,id',
+            'product_color_id' => 'required|exists:product_colors,id',
             'quantity' => 'required|integer|min:1',
             'type' => 'required|in:in,out',
             'reason' => 'nullable|string',
@@ -62,13 +62,13 @@ class StockMovementController extends Controller
         try {
             if ($validatedData['type'] === 'in') {
                 $this->stockService->addStock(
-                    $validatedData['product_id'],
+                    $validatedData['product_color_id'],
                     $validatedData['quantity'],
                     $validatedData['reason'] ?? 'Ajustement manuel'
                 );
             } else {
                 $this->stockService->removeStock(
-                    $validatedData['product_id'],
+                    $validatedData['product_color_id'],
                     $validatedData['quantity'],
                     $validatedData['reason'] ?? 'Ajustement manuel'
                 );
@@ -83,7 +83,7 @@ class StockMovementController extends Controller
     /**
      * Display a single stock movement.
      */
-    public function show($id)
+    public function show(int $id)
     {
         $stockMovement = $this->stockService->getStockMovementById($id);
         return view('stock_movements.show', compact('stockMovement'));

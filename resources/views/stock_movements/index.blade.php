@@ -119,7 +119,7 @@
                                                 }
 
                                                 $isLowStock =
-                                                    $movement->stock_after <= ($movement->product->alert_stock ?? 0);
+                                                    $movement->stock_after <= ($movement->productColor->alert_stock ?? 0);
                                             @endphp
                                             <tr>
                                                 <td class="ps-4 text-nowrap">
@@ -129,7 +129,7 @@
                                                         {{ $movement->created_at->format('H:i') }}</div>
                                                 </td>
                                                 <td>
-                                                    <span class="fw-bold text-dark">{{ $movement-> }}</span>
+                                                    <span class="fw-bold text-dark">{{ $movement->productColor->product->name }}</span>
                                                     @if ($isLowStock)
                                                         <i class="fas fa-exclamation-triangle text-danger ms-1"
                                                             title="Stock bas"></i>
@@ -234,7 +234,7 @@
                                                 <li
                                                     class="list-group-item d-flex justify-content-between align-items-center px-0 py-1">
                                                     <span class="text-truncate"
-                                                        style="max-width: 150px;">{{ $stat->product->name }}</span>
+                                                        style="max-width: 150px;">{{ $stat->productColor->product->name }}</span>
                                                     <span
                                                         class="badge bg-primary rounded-pill">-{{ $stat->total_out }}</span>
                                                 </li>

@@ -148,14 +148,14 @@
                                     <td class="ps-4 text-muted small">#{{ $item->id }}</td>
                                     <td>
                                         <div class="fw-bold text-dark"> <a
-                                                href="{{ route('admin.products.show', $item->id) }}">{{ $item->product->name }}</a>
+                                                href="{{ route('admin.products.show', $item->id) }}">{{ $item->product->name ?? 'N/A' }}</a>
                                         </div>
                                     </td>
                                     <td>{{ $item->color->name ?? 'N/A' }}</td>
                                     <td>
                                         @if ($item->product->category)
                                             <span
-                                                class="badge bg-light text-dark border">{{ $item->product->category->name }}</span>
+                                                class="badge bg-light text-dark border">{{ $item->product->category->name ?? 'N/A' }}</span>
                                         @else
                                             <span class="text-muted small">Unassigned</span>
                                         @endif
@@ -172,18 +172,18 @@
                                             <span class="badge bg-success">{{ $item->stock }}</span>
                                         @endif
                                     </td>
-                                    <td class="fw-bold">{{ number_format($item->product->price, 2) }} MGA </td>
+                                    <td class="fw-bold">{{ number_format($item->price, 2) }} MGA </td>
                                     <td class="text-end pe-4">
                                         <div class="btn-group">
-                                            <a href="{{ route('admin.products.show', $item->product->id) }}"
+                                            <a href="{{ route('admin.products.show', $item->id) }}"
                                                 class="btn btn-sm btn-outline-secondary" title="Voir">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('admin.products.edit', $item->product->id) }}"
+                                            <a href="{{ route('admin.products.edit', $item->id) }}"
                                                 class="btn btn-sm btn-outline-primary" title="Modifier">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <form action="{{ route('admin.products.destroy', $item->product->id) }}"
+                                            <form action="{{ route('admin.products.destroy', $item->id) }}"
                                                 method="POST" class="d-inline"
                                                 onsubmit="return confirm('Delete this product ?');">
                                                 @csrf

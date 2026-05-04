@@ -34,10 +34,12 @@ class SaleServiceTest extends TestCase
     public function it_can_create_a_sale_and_update_stock()
     {
         // Arrange
-        $product = Product::factory()->create(['price' => 100.00]);
+        $product = Product::factory()->create();
         $variant = ProductColor::create([
             'product_id' => $product->id,
             'color_id' => \App\Models\Color::factory()->create()->id,
+            'price' => 100.00,
+            'alert_stock' => 5,
             'stock' => 50
         ]);
         $user = \App\Models\User::factory()->create();

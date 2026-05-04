@@ -6,9 +6,8 @@ use App\Models\Product;
 
 class ProductService extends BaseService
 {
-    public function __construct()
+    public function __construct(Product $product)
     {
-        parent::__construct(new Product());
+        parent::__construct($product);
     }
-
 }

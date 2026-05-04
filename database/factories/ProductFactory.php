@@ -20,7 +20,6 @@ class ProductFactory extends Factory
             // Define default values for product attributes
             'name' => $this->faker->word(2, true),
             'description' => $this->faker->sentence(),
-            'price' => $this->faker->randomFloat(2, 12000, 100000),
             'category_id' => fn() => \App\Models\Category::inRandomOrder()->first()?->id ?? \App\Models\Category::factory(),
         ];
     }

@@ -154,7 +154,7 @@ class StockService
     public function getTotalStockValueEvolution(int $days = 30): array
     {
         $currentTotalValue = ProductColor::join('products', 'product_colors.product_id', '=', 'products.id')
-            ->sum(DB::raw('product_colors.stock * products.price'));
+            ->sum(DB::raw('product_colors.stock * product_colors.price'));
 
         $movements = StockMovement::with('productColor.product')
             ->where('created_at', '>=', now()->subDays($days)->startOfDay())

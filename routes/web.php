@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\{ ProductController, SaleController, AuthController, DashboardController, CategoryController, ImportController, StockMovementController, SupplierController, PurchaseController, SalerProductController, SettingController, UserController };
-use App\Http\Controllers\Admin\ProductStockController;
 use App\Http\Controllers\ColorController;
+use App\Http\Controllers\ProductColorController;
 use Illuminate\Support\Facades\Route;
 
 // Routes d'authentification (publiques)
@@ -28,7 +28,13 @@ Route::middleware('auth')->group(function () {
     Route::middleware('ensure.back.office')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'backOffice'])->name('dashboard');
         Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartDataApi'])->name('dashboard.chart-data');
-        Route::resource('products', ProductController::class);
+
+        // Routes AJAX spécifiques pour l'édition rapide
+        Route::patch('/products/main/{id}/update-details', [ProductController::class, 'updateDetails'])->name('products.updateDetails');
+        Route::patch('/product-variants/{id}/update-stock', [ProductColorController::class, 'updateStock'])->name('product-colors.updateStock');
+        Route::patch('/product-variants/{id}/update-price', [ProductColorController::class, 'updatePrice'])->name('product-colors.updatePrice');
+
+        Route::resource('products', ProductColorController::class);
         Route::get('/products/export/pdf', [ProductController::class, 'exportPdf'])->name('products.exportPdf');
         Route::resource('categories', CategoryController::class);
 
@@ -60,10 +66,6 @@ Route::middleware('auth')->group(function () {
         // user module
         Route::resource('users', UserController::class);
         Route::resource('colors', ColorController::class);
-        Route::prefix('v2/inventory')->group(function () {
-            Route::post('/assign-stock', [ProductStockController::class, 'store']);
-            Route::get('/product/{id}', [ProductStockController::class, 'show']);
-        });
     });
 
     // Routes Front Office

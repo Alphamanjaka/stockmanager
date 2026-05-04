@@ -27,11 +27,7 @@ class StoreProductRequest extends FormRequest
             ],
             'category_id'    => 'required|exists:categories,id',
             'price'          => 'required|numeric|min:0',
-            'quantity_stock' => 'required|integer|min:0',
-            'alert_stock'    => 'nullable|integer|min:0',
             'description'    => 'nullable|string',
-            'colors'         => 'nullable|array',
-            'colors.*.stock' => 'required_with:colors|integer|min:0',
         ];
     }
 

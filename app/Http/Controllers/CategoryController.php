@@ -13,11 +13,7 @@ use App\Services\CategoryService;
 
 class CategoryController extends Controller
 {
-    protected $categoryService;
-    public function __construct(CategoryService $categoryService)
-    {
-        $this->categoryService = $categoryService;
-    }
+    public function __construct(protected CategoryService $categoryService){}
     /**
      * Display a listing of the resource.
      */
