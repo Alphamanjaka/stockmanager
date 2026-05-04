@@ -3,42 +3,46 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Autoriser tout le monde pour ce projet
+        return true;
     }
 
     public function rules(): array
     {
-        // Récupération de l'ID du produit si on est en mode mise à jour (route param 'product' ou 'id')
-        $product = $this->route('product') ?? $this->route('id');
-        $productId = $product instanceof \App\Models\Product ? $product->id : $product;
+        $colorCount = is_array($this->colors) ? count($this->colors) : 0;
 
         return [
-            'name'           => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('products', 'name')->ignore($productId)
-            ],
-            'category_id'    => 'required|exists:categories,id',
-            'price'          => 'required|numeric|min:0',
-            'description'    => 'nullable|string',
+            'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'description' => 'nullable|string',
+            'price' => 'nullable|numeric|min:0', // Prix général par défaut
+
+            // Validation des tableaux de variantes
+            'colors' => 'required|array|min:1',
+            'colors.*' => 'required|string|max:50',
+
+            // On force la taille des tableaux à correspondre à celle de 'colors'
+            'stocks' => "required|array|size:{$colorCount}",
+            'stocks.*' => 'required|integer|min:0',
+
+            'prices' => "required|array|size:{$colorCount}",
+            'prices.*' => 'nullable|numeric|min:0',
+
+            'alert_stocks' => "nullable|array|size:{$colorCount}",
+            'alert_stocks.*' => 'nullable|integer|min:0',
         ];
     }
 
-    // Optionnel : Personnaliser les messages d'erreur
     public function messages(): array
     {
         return [
-            'name.required' => 'Le nom du produit est indispensable !',
-            'name.unique'   => 'Ce nom de produit existe déjà en stock.',
-            'price.numeric' => 'Le prix doit être un nombre valide.',
-            'category_id.required' => 'Veuillez sélectionner une catégorie.',
+            'stocks.size' => 'Le nombre de stocks doit correspondre au nombre de couleurs ajoutées.',
+            'prices.size' => 'Le nombre de prix doit correspondre au nombre de couleurs ajoutées.',
+            'colors.required' => 'Vous devez ajouter au moins une variante (couleur/stock).',
         ];
     }
 }

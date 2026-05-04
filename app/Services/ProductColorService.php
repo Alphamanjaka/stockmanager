@@ -3,19 +3,73 @@
 namespace App\Services;
 
 use App\Models\ProductColor;
+use App\Models\Color;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class ProductColorService extends BaseService
 {
     protected  StockManagementService $StockService;
     protected SaleService $saleService;
-    public function __construct(ProductColor $productColor, StockManagementService $StockService, SaleService $saleService)
-    {
+
+    public function __construct(
+        ProductColor $productColor,
+        StockManagementService $StockService,
+        SaleService $saleService,
+        protected ProductService $productService,
+        protected ColorService $colorService
+    ) {
         parent::__construct($productColor); // Appel du constructeur parent
         $this->StockService = $StockService;
         $this->saleService = $saleService;
     }
+
+    /**
+     * Orchestre la création d'un produit et de ses variantes de couleurs/stocks.
+     *
+     * @param array $data Données validées issues du StoreProductRequest
+     * @return \App\Models\Product
+     * @throws Exception
+     */
+    public function storeProductWithVariants(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+            try {
+                // 1. Sauvegarde produit via productService
+                $product = $this->productService->create($data);
+
+                // Gestion des variantes (Couleurs et Stocks)
+                if (!empty($data['colors']) && is_array($data['colors'])) {
+                    foreach ($data['colors'] as $index => $colorName) {
+                        if (empty($colorName)) continue;
+
+                        // 2. Sauvegarde color si nouvelle via Color (firstOrCreate)
+                        $color = Color::firstOrCreate(['name' => $colorName]);
+
+                        // 3. Sauvegarde dans la table productcolor via assignStock
+                        $this->StockService->assignStock(
+                            $product->id,
+                            $color->id,
+                            $data['stocks'][$index] ?? 0,
+                            $data['prices'][$index] ?? $data['price'] ?? 0,
+                            $data['alert_stocks'][$index] ?? null
+                        );
+                    }
+                }
+
+                return $product;
+            } catch (Exception $e) {
+                Log::error("Erreur critique dans ProductColorService@storeProductWithVariants: " . $e->getMessage(), [
+                    'payload' => $data,
+                    'trace' => $e->getTraceAsString()
+                ]);
+                throw new Exception("Impossible de créer le produit. Vérifiez les données des variantes.");
+            }
+        });
+    }
+
     /**
      * Récupère les produits dont le stock est inférieur ou égal au seuil d'alerte.
      */
@@ -48,7 +102,7 @@ class ProductColorService extends BaseService
      */
     public function getProductById($id)
     {
-        return ProductColor::with(['product.category','color'])->findOrFail($id);
+        return ProductColor::with(['product.category', 'color'])->findOrFail($id);
     }
 
     public function listAllStocks()
@@ -66,7 +120,6 @@ class ProductColorService extends BaseService
             ->where('product_id', $productId)
             ->get();
     }
-
 
 
     // filter method for products list

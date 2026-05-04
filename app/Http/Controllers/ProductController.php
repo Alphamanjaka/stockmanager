@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
 use App\Models\Product;
-use App\Services\{CategoryService, ProductService, ColorService, ProductColorService, StockService,};
+use App\Services\{CategoryService, ProductService, ColorService, ProductColorService, StockService, StockManagementService};
 use App\Services\SaleService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -17,7 +18,8 @@ class ProductController extends Controller
         protected StockService $stockService,
         protected ColorService $colorService,
         protected ProductColorService $productColorService,
-        protected SaleService $saleService
+        protected SaleService $saleService,
+        protected StockManagementService $stockManagementService
     ) {}
     public function exportPdf(Request $request)
     {
@@ -55,8 +57,7 @@ class ProductController extends Controller
     public function create()
     {
         $categories = $this->categoryService->getAll();
-        $colors = $this->colorService->getAllColors([], false);
-        return view('products.create', compact('categories', 'colors'));
+        return view('products.create', compact('categories'));
     }
 
     /**
@@ -64,11 +65,15 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        $productData = $request->validated();
-        $this->productService->create($productData);
+        try {
+            $this->productColorService->storeProductWithVariants($request->validated());
 
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product created successfully.');
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Product and variants created successfully.');
+        } catch (\Exception $e) {
+            return back()->withInput()
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**

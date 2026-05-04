@@ -1,22 +1,26 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Http\Requests\StoreProductRequest;
+use App\Models\Product;
 use App\Services\{ProductColorService, StockManagementService, ProductService, ColorService};
 use App\Services\CategoryService;
 use App\Services\SaleService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProductColorController extends Controller
 {
     public function __construct(
-       protected ProductService $productService,
-       protected ColorService $colorService,
+        protected ProductService $productService,
+        protected ColorService $colorService,
         protected ProductColorService $productColorService,
         protected StockManagementService $stockManagementService,
         protected CategoryService $categoryService,
         protected SaleService $saleService,
         protected StockManagementService $stockService
-    ){}
+    ) {}
 
     /**
      * Liste toutes les variantes (liaisons produit-couleur).
@@ -37,7 +41,7 @@ class ProductColorController extends Controller
         $categories = $this->categoryService->getAll();
 
 
-        return view('products.index', compact('products', 'filters', 'mostSoldProduct', 'leastSoldProduct'      , 'categories'));
+        return view('products.index', compact('products', 'filters', 'mostSoldProduct', 'leastSoldProduct', 'categories'));
     }
 
     /**
@@ -47,28 +51,24 @@ class ProductColorController extends Controller
     {
         $products = $this->productService->getAll([], false);
         $colors = $this->colorService->getAllColors([], false);
-        return view('product_colors.create', compact('products', 'colors'));
+        $categories = $this->categoryService->getAll();
+        return view('products.create', compact('products', 'colors', 'categories'));
     }
 
     /**
      * Enregistre la liaison (ProductColor) avec le stock initial.
      */
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
-        $validated = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'color_id'   => 'required|exists:colors,id',
-            'stock'      => 'required|integer|min:0',
-        ]);
+        try {
+            $this->productColorService->storeProductWithVariants($request->validated());
 
-        $this->stockManagementService->assignStock(
-            $validated['product_id'],
-            $validated['color_id'],
-            $validated['stock']
-        );
-
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Variante de produit ajoutée avec succès.');
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Product and variants created successfully.');
+        } catch (\Exception $e) {
+            return back()->withInput()
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -105,16 +105,16 @@ class ProductColorController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id)
+    public function update(StoreProductRequest $request, int $id)
     {
-        $validated = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'color_id'   => 'required|exists:colors,id',
-            'stock'      => 'required|integer|min:0',
-            'price'      => 'required|numeric|min:0',
-        ]);
-        $productData = $request->validated();
-        $this->productService->update($id, $productData);
+        // On récupère la variante pour trouver le produit associé
+        $variant = $this->productColorService->getById($id);
+
+        // Mise à jour des informations générales du produit
+        $this->productService->update($variant->product_id, $request->validated());
+
+        // Si vous avez besoin de mettre à jour la variante spécifique ici :
+        $variant->update($request->only(['stock', 'price', 'alert_stock']));
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully.');
