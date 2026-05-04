@@ -185,7 +185,7 @@
                                 <button type="submit" class="btn btn-primary save-edit"
                                     data-section="price">Save</button>
                             </div>
-                            </ul>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -341,7 +341,13 @@
 
             // Function to toggle between static view and edit form
             function toggleEditMode(section, isEditing) {
-                const card = $(`#${section}-card`);
+                const sectionMapping = {
+                    details: 'product-details',
+                    stock: 'stock-status',
+                    price: 'selling-price',
+                };
+                const cardKey = sectionMapping[section] ?? section;
+                const card = $(`#${cardKey}-card`);
                 card.find('.static-view').toggleClass('d-none', isEditing);
                 card.find('.edit-form').toggleClass('d-none', !isEditing);
                 card.find('.edit-button').toggleClass('d-none', isEditing);
