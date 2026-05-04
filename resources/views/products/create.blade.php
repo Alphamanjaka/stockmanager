@@ -106,7 +106,7 @@
 
                 {{-- Datalist for existing color suggestions --}}
                 <datalist id="existingColors">
-                    @foreach ($allColors ?? [] as $color)
+                    @foreach ($colors ?? [] as $color)
                         <option value="{{ $color->name }}">
                     @endforeach
                 </datalist>
