@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\{ ProductController, SaleController, AuthController, DashboardController, CategoryController, ImportController, StockMovementController, SupplierController, PurchaseController, SalerProductController, SettingController, UserController };
+use App\Http\Controllers\API\HelpController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\ProductColorController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     // Routes Back Office (contrôle accès)
     Route::middleware('ensure.back.office')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/help', [HelpController::class, 'index'])->name('help');
         Route::get('/dashboard', [DashboardController::class, 'backOffice'])->name('dashboard');
         Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartDataApi'])->name('dashboard.chart-data');
 
