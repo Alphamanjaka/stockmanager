@@ -21,7 +21,7 @@ class ProductColorService extends BaseService
      */
     public function getShortageProducts()
     {
-        return ProductColor::where('quantity_stock', '<=', DB::raw('alert_stock'))
+        return ProductColor::where('stock', '<=', DB::raw('alert_stock'))
             ->where('alert_stock', '>', 0) // On ne veut pas les produits où l'alerte n'est pas configurée
             ->get();
     }
