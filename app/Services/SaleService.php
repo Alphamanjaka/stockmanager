@@ -10,8 +10,7 @@ use Illuminate\Support\Str;
 
 class SaleService
 {
-    protected $stockService;
-    public function __construct(StockService $stockService)
+    public function __construct(protected StockService $stockService)
     {
         $this->stockService = $stockService;
     }
