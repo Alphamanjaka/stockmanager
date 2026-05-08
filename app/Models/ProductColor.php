@@ -27,4 +27,12 @@ class ProductColor extends Model
     {
         return $this->hasMany(StockMovement::class, 'product_color_id');
     }
+    public function toString()
+    {
+        return $this->product->name . ' - ' . ($this->color->name ?? 'No Color');
+    }
+    public function getCategoryNameAttribute()
+    {
+        return $this->product->category->name ?? 'Non catégorisé';
+    }
 }
