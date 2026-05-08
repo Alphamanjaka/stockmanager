@@ -11,13 +11,12 @@ use Exception;
 
 class ProductColorService extends BaseService
 {
-    protected  StockManagementService $StockService;
-    protected SaleService $saleService;
+
 
     public function __construct(
-        ProductColor $productColor,
-        StockManagementService $StockService,
-        SaleService $saleService,
+        protected ProductColor $productColor,
+        protected StockManagementService $StockService,
+        protected SaleService $saleService,
         protected ProductService $productService,
         protected ColorService $colorService
     ) {
@@ -94,7 +93,7 @@ class ProductColorService extends BaseService
      */
     public function getAvailableProducts()
     {
-        return ProductColor::where('quantity_stock', '>', 0)->get();
+        return ProductColor::where('stock', '>', 0)->get();
     }
 
     /**
