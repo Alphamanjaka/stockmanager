@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
             $table->string('reference')->unique(); // Ex: VENTE-2026-001
-            $table->decimal('total_brut', 10, 2);  // Somme des prix * quantités
+            $table->decimal('total_brut', 20, 2);  // Somme des prix * quantités
             $table->decimal('discount', 10, 2)->default(0);
-            $table->decimal('total_net', 10, 2);   // total_brut - discount
+            $table->decimal('total_net', 20, 2);   // total_brut - discount
             $table->timestamps();
         });
         Schema::create('sale_items', function (Blueprint $table) {
@@ -24,8 +24,8 @@ return new class extends Migration
             $table->foreignId('sale_id')->constrained()->onDelete('cascade');
             $table->foreignId('product_color_id')->constrained('product_colors');
             $table->integer('quantity');
-            $table->decimal('unit_price', 10, 2); // Prix au moment de la vente
-            $table->decimal('subtotal', 10, 2);   // quantity * unit_price
+            $table->decimal('unit_price', 20, 2); // Prix au moment de la vente
+            $table->decimal('subtotal', 20, 2);   // quantity * unit_price
             $table->timestamps();
         });
     }

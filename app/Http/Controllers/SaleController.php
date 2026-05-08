@@ -22,8 +22,9 @@ class SaleController extends Controller
      */
     public function create()
     {
+        $currency = settings('currency_symbol', 'Mga');
         $items = $this->productColorService->getAvailableProducts();
-        return view('sales.create', compact('items'));
+        return view('sales.create', compact('items','currency'));
     }
 
     /**

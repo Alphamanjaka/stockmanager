@@ -23,12 +23,12 @@
                             <tbody id="product-list">
                                 <tr class="product-row">
                                     <td>
-                                        <select name="products[0][product_id]" class="form-select product-select" required>
+                                        <select name="products[0][product_color_id]" class="form-select product-select" required>
                                             <option value="" data-price="0" data-stock="0">Choose...</option>
-                                            @foreach ($products as $product)
-                                                <option value="{{ $product->id }}" data-price="{{ $product->price }}"
-                                                    data-stock="{{ $product->quantity_stock }}">
-                                                    {{ $product->name }} ({{ $product->quantity_stock }} available)
+                                            @foreach ($items as $item)
+                                                <option value="{{ $item->id }}" data-price="{{ $item->price }}"
+                                                    data-stock="{{ $item->stock }}">
+                                                    {{ $item->toString() }} ({{ $item->stock }} available)
                                                 </option>
                                             @endforeach
                                         </select>
@@ -38,10 +38,10 @@
                                             min="1" value="1" required>
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control price-display" readonly value="0.00 €">
+                                        <input type="text" class="form-control price-display" readonly value="0.00">
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control subtotal-display" readonly value="0.00 €">
+                                        <input type="text" class="form-control subtotal-display" readonly value="0.00">
                                     </td>
                                     <td>
                                         <button type="button" class="btn btn-outline-danger btn-sm remove-row"><i
@@ -62,11 +62,11 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Total Gross :</span>
-                            <span id="display-brut" class="fw-bold">0.00 Mga</span>
+                            <span id="display-brut" class="fw-bold">0.00 {{ $currency ?? 'Mga' }}</span>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label small">Discount (€)</label>
+                            <label class="form-label small">Discount ({{ $currency ?? 'Mga' }})</label>
                             <input type="number" name="discount" id="discount-input" class="form-control" value="0"
                                 min="0">
                         </div>
@@ -75,7 +75,7 @@
 
                         <div class="d-flex justify-content-between mb-4">
                             <span class="h5">Total Net :</span>
-                            <span id="display-net" class="h5 text-success fw-bold">0.00 Mga</span>
+                            <span id="display-net" class="h5 text-success fw-bold">0.00 {{ $currency ?? 'Mga' }}</span>
                         </div>
 
                         <div id="stock-warning" class="alert alert-warning d-none small">
@@ -136,14 +136,14 @@
                         totalBrut += subtotal;
 
                         // Update UI minimaliste (uniquement si nécessaire)
-                        row.find('.subtotal-display').val(subtotal.toFixed(2) + ' €');
+                        row.find('.subtotal-display').val(subtotal.toFixed(2));
                         row.find('.qty-input').toggleClass('is-invalid', qty > stock);
                     }
                 });
 
                 const net = Math.max(0, totalBrut - parseFloat($('#discount-input').val() || 0));
-                $('#display-brut').text(totalBrut.toFixed(2) + ' €');
-                $('#display-net').text(net.toFixed(2) + ' €');
+                $('#display-brut').text(totalBrut.toFixed(2) + ' {{ $currency ?? 'Mga' }}');
+                $('#display-net').text(net.toFixed(2) + ' {{ $currency ?? 'Mga' }}');
 
                 // On désactive le bouton si stock error
                 saleForm.find('button[type="submit"]').prop('disabled', $('.is-invalid').length > 0 || selectedIds
@@ -160,13 +160,13 @@
                 const newRowHtml = `
                 <tr class="product-row">
                     <td>
-                        <select name="products[${index}][product_id]" class="form-select product-select" required>
+                        <select name="products[${index}][product_color_id]" class="form-select product-select" required>
                             ${originalOptionsHtml}
                         </select>
                     </td>
                     <td><input type="number" name="products[${index}][quantity]" class="form-control qty-input" min="1" value="1" required></td>
-                    <td><input type="text" class="form-control price-display" readonly value="0.00 €"></td>
-                    <td><input type="text" class="form-control subtotal-display" readonly value="0.00 €"></td>
+                    <td><input type="text" class="form-control price-display" readonly value="0.00 "></td>
+                    <td><input type="text" class="form-control subtotal-display" readonly value="0.00 "></td>
                     <td><button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
                 </tr>`;
 
@@ -186,7 +186,7 @@
             productList.on('change', '.product-select', function() {
                 const row = $(this).closest('tr');
                 const price = $(this).find(':selected').data('price') || 0;
-                row.find('.price-display').val(parseFloat(price).toFixed(2) + ' €');
+                row.find('.price-display').val(parseFloat(price).toFixed(2));
                 fastUpdate();
             });
 
