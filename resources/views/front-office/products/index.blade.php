@@ -10,7 +10,7 @@
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
                         <input type="text" name="search" class="form-control border-start-0 ps-0"
-                               placeholder="Rechercher par nom ou référence..." value="{{ request('search') }}">
+                            placeholder="Rechercher par nom ou référence..." value="{{ request('search') }}">
                     </div>
                 </div>
                 <div class="col-md-2">
@@ -23,30 +23,36 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th>Désignation</th>
-                            <th class="text-end">Prix</th>
+                            <th>Designation</th>
+                            <th class="text-center">Category</th>
+                            <th class="text-end">price</th>
                             <th class="text-center">Stock</th>
                             <th class="text-end pe-4">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($products as $product)
+                        @forelse($products as $item)
                             <tr>
                                 <td>
-                                    <div class="fw-bold">{{ $product->name }}</div>
-                                    <small class="text-muted">{{ $product->category->name ?? 'Non catégorisé' }}</small>
-                                </td>
-                                <td class="text-end fw-bold text-primary">
-                                    {{ number_format($product->price, 0, ',', ' ') }} Mga
+                                    <div class="fw-bold">
+                                        {{ $item->toString() }}
+                                    </div>
                                 </td>
                                 <td class="text-center">
-                                    @if($product->quantity_stock <= $product->alert_stock)
+                                    {{ $item->getCategoryNameAttribute() }}
+                                </td>
+                                <td class="text-end fw-bold text-primary">
+                                    {{ number_format($item->price, 0, ',', ' ') }}
+                                    {{ $settings['currency_symbol'] ?? 'Mga' }}
+                                </td>
+                                <td class="text-center">
+                                    @if ($item->stock <= $item->alert_stock)
                                         <span class="badge bg-danger rounded-pill px-3">
-                                            {{ $product->quantity_stock }}
+                                            {{ $item->stock }}
                                         </span>
                                     @else
                                         <span class="badge bg-success rounded-pill px-3">
-                                            {{ $product->quantity_stock }}
+                                            {{ $item->stock }}
                                         </span>
                                     @endif
                                 </td>
