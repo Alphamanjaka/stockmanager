@@ -22,8 +22,8 @@ class SaleController extends Controller
      */
     public function create()
     {
-        $products = $this->productColorService->getAvailableProducts();
-        return view('sales.create', compact('products'));
+        $items = $this->productColorService->getAvailableProducts();
+        return view('sales.create', compact('items'));
     }
 
     /**
@@ -67,16 +67,23 @@ class SaleController extends Controller
     /**
      * Display a single sale.
      */
-    public function show($id)
+    public function show(int $id)
     {
         $sale = $this->saleService->getSaleById($id);
-        return view('sales.show', compact('sale'));
+
+        // Exemple d'appel direct au helper settings
+        $company_name = settings('company_name', 'StockMaster Pro');
+        $currency_symbol = settings('currency_symbol', 'Mga');
+        $company_address = settings('company_address', 'Antananarivo, Madagascar');
+        $company_phone = settings('company_phone', '+261 34 22 12345');
+        $company_email = settings('company_email', '');
+        return view('sales.show', compact('sale', 'company_name', 'currency_symbol', 'company_address', 'company_phone', 'company_email'));
     }
 
     /**
      * Export sale as PDF.
      */
-    public function exportPdf($id)
+    public function exportPdf(int $id)
     {
         $sale = $this->saleService->getSaleById($id);
         $pdf = Pdf::loadView('sales.pdf', compact('sale'));

@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ProductColorService;
 use Illuminate\Http\Request;
-use App\Services\ProductService;
 
 class SalerProductController extends Controller
 {
-    protected $productService;
-    public function __construct(ProductService $productService)
+    public function __construct(private ProductColorService $productService)
     {
         $this->productService = $productService;
     }
@@ -17,7 +16,7 @@ class SalerProductController extends Controller
      */
     public function index(Request $request)
     {
-        $filters=['sort' => 'name', 'order' => 'asc', 'search' => $request->get('search'), 'per_page' => 15];
+        $filters=['sort' => 'id', 'order' => 'asc', 'search' => $request->get('search'), 'per_page' => 15];
                 // Pagination simple, trié par nom
         $products = $this->productService->getAll($filters);
 
