@@ -30,7 +30,7 @@ return new class extends Migration
             ['key' => 'company_logo', 'value' => null, 'group' => 'general', 'type' => 'file'],
 
             // Regional
-            ['key' => 'currency_symbol', 'value' => '€', 'group' => 'regional', 'type' => 'string'],
+            ['key' => 'currency_symbol', 'value' => 'MGA', 'group' => 'regional', 'type' => 'string'],
             ['key' => 'currency_position', 'value' => 'after', 'group' => 'regional', 'type' => 'string'], // before, after
             ['key' => 'timezone', 'value' => 'Europe/Paris', 'group' => 'regional', 'type' => 'string'],
             ['key' => 'date_format', 'value' => 'd/m/Y', 'group' => 'regional', 'type' => 'string'],
