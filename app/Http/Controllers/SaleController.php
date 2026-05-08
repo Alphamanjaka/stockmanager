@@ -2,22 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Services\{
-    SaleService,
-    ProductService
-};
 use App\Http\Requests\StoreSaleRequest;
+use App\Services\{SaleService, ProductColorService};
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SaleController extends Controller
 {
-    protected SaleService   $saleService;
-    protected ProductService $productService;
-
-    public function __construct(SaleService $saleService, ProductService $productService)
+    /**
+     * Initialize the controller.
+     */
+    public function __construct(private SaleService $saleService, private ProductColorService $productColorService)
     {
         $this->saleService = $saleService;
-        $this->productService = $productService;
+        $this->productColorService = $productColorService;
     }
 
     /**
@@ -25,7 +22,7 @@ class SaleController extends Controller
      */
     public function create()
     {
-        $products = $this->productService->getAvailableProducts();
+        $products = $this->productColorService->getAvailableProducts();
         return view('sales.create', compact('products'));
     }
 
