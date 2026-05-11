@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('stock')->default(0); // Le stock spécifique pour ce couple Produit/Couleur
             $table->integer('alert_stock')->default(5);
             $table->decimal('price', 10, 2)->default(0); // Prix spécifique pour ce couple Produit/Couleur
+            $table->boolean('is_active')->default(true); // Permet de désactiver une variante sans la supprimer
             $table->timestamps();
         });
     }
