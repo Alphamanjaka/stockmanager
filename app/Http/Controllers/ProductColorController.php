@@ -160,9 +160,12 @@ class ProductColorController extends Controller
     public function show(int $id)
     {
         $product = $this->productService->getById($id);
+        $variants = $this->productColorService->listByProduct($id);
         $categories = $this->categoryService->getAll([], false);
+        $stockEvolution = $this->stockService->getStockEvolutionForProduct($id);
 
-        return view('products.show', compact('product', 'categories'));
+        // Pass all necessary data to the view for initial rendering
+        return view('products.show', compact('product', 'variants', 'categories', 'stockEvolution'));
     }
 
     /**

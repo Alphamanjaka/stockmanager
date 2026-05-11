@@ -12,7 +12,7 @@
                     <p class="text-muted mb-0">
                         Catégorie : <span id="display-category"
                             class="badge bg-info text-dark">{{ $product->category->name ?? 'N/A' }}</span> |
-                        Nombre de variantes : <span id="variant-count" class="fw-bold">...</span>
+                        Nombre de variantes : <span id="variant-count" class="fw-bold">{{ $variants->count() }}</span>
                     </p>
                 </div>
                 <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProductModal">
@@ -50,7 +50,27 @@
                                 </tr>
                             </thead>
                             <tbody id="variants-table-body">
-                                {{-- Chargé via AJAX --}}
+                                @forelse ($variants as $variant)
+                                    <tr>
+                                        <td><span class="badge" style="background-color: {{ $variant->color->code }}">
+                                            </span>
+                                            {{ $variant->color->name }}</td>
+                                        <td>{{ number_format($variant->price, 2) }} MGA</td>
+                                        <td><span
+                                                class="badge {{ $variant->stock <= $variant->alert_stock ? 'bg-danger' : 'bg-success' }}">{{ $variant->stock }}</span>
+                                        </td>
+                                        <td>{{ $variant->alert_stock }}</td>
+                                        <td class="text-end">
+                                            <a href="{{ route('admin.products.edit', $variant->id) }}"
+                                                class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">Aucune variante pour ce produit.
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -64,6 +84,11 @@
                         <h5 class="mb-0">Historique Mouvements</h5>
                         <select id="variant-filter" class="form-select form-select-sm w-50">
                             <option value="">Toutes les variantes</option>
+                            @foreach ($variants as $variant)
+                                <option value="{{ $variant->id }}">
+                                    {{ $variant->color->name }} (ID: {{ $variant->id }})
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="card-body p-0">
@@ -91,7 +116,8 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Nom du produit</label>
-                            <input type="text" name="name" class="form-control" value="{{ $product->name }}" required>
+                            <input type="text" name="name" class="form-control" value="{{ $product->name }}"
+                                required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Catégorie</label>
@@ -161,36 +187,6 @@
             });
         });
 
-        function loadVariants() {
-            fetch(`/api/products/${PRODUCT_ID}/variants`)
-                .then(res => res.json())
-                .then(res => {
-                    const tbody = document.getElementById('variants-table-body');
-                    const filter = document.getElementById('variant-filter');
-                    document.getElementById('variant-count').innerText = res.count;
-
-                    tbody.innerHTML = res.data.map(v => `
-                <tr>
-                    <td><span class="badge" style="background-color: ${v.color.code}"> </span> ${v.color.name}</td>
-                    <td>${v.price}</td>
-                    <td><span class="badge ${v.stock <= v.alert_stock ? 'bg-danger' : 'bg-success'}">${v.stock}</span></td>
-                    <td>${v.alert_stock}</td>
-                    <td class="text-end">
-                        <a href="/admin/products/${v.id}/edit" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
-                    </td>
-                </tr>
-            `).join('');
-
-                    // Remplir le filtre d'historique
-                    res.data.forEach(v => {
-                        const opt = document.createElement('option');
-                        opt.value = v.id;
-                        opt.textContent = v.color.name;
-                        filter.appendChild(opt);
-                    });
-                });
-        }
-
         function loadHistory(variantId = '') {
             const list = document.getElementById('history-list');
             list.innerHTML = '<li class="list-group-item text-center">Chargement...</li>';
@@ -211,37 +207,37 @@
                 });
         }
 
-        function loadChart() {
-            fetch(`/api/products/${PRODUCT_ID}/stock-evolution`)
-                .then(res => res.json())
-                .then(res => {
-                    const ctx = document.getElementById('stockEvolutionChart').getContext('2d');
-                    if (stockChart) stockChart.destroy();
-
-                    stockChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: res.labels,
-                            datasets: [{
-                                label: 'Stock Global',
-                                data: res.data,
-                                borderColor: '#4e73df',
-                                backgroundColor: 'rgba(78, 115, 223, 0.05)',
-                                fill: true,
-                                tension: 0.3
-                            }]
-                        },
-                        options: {
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
+        // Initialize chart with data passed from the controller
+        const stockEvolutionData = @json($stockEvolution);
+        const ctx = document.getElementById('stockEvolutionChart').getContext('2d');
+        stockChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: stockEvolutionData.map(item => item.x),
+                datasets: [{
+                    label: 'Stock Global',
+                    data: stockEvolutionData.map(item => item.y),
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day'
                         }
-                    });
-                });
-        }
+                    }, // Use 'time' scale for dates
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
     </script>
     <style>
         .extra-small {
