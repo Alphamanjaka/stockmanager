@@ -1,478 +1,252 @@
 @extends('layouts.app-back-office')
-@section('title', 'Detail of Product : ' . $item->product->name . ' ' . $item->color->name)
-@section('styles')
+
+@section('title', 'Détails du Produit : ' . $product->name)
+
 @section('content')
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="{{ route('admin.products.index') }}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left"></i> Back to list
-            </a>
-            <div>
-                <a href="{{ route('admin.products.edit', $item->id) }}" class="btn btn-primary">
-                    <i class="bi bi-pencil-square"></i> Edit
-                </a>
+    <div class="container-fluid py-4">
+        {{-- En-tête avec informations de base --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1" id="display-name">{{ $product->name }}</h1>
+                    <p class="text-muted mb-0">
+                        Catégorie : <span id="display-category"
+                            class="badge bg-info text-dark">{{ $product->category->name ?? 'N/A' }}</span> |
+                        Nombre de variantes : <span id="variant-count" class="fw-bold">...</span>
+                    </p>
+                </div>
+                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProductModal">
+                    <i class="fas fa-edit me-1"></i> Modifier infos générales
+                </button>
             </div>
         </div>
 
         <div class="row">
-            {{-- Product Details Card --}}
-            <div class="col-lg-6">
-                <div class="card shadow-sm mb-4 h-100" id="product-details-card">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="fas fa-box"></i> Product Information</h5>
-                        <button class="btn btn-sm btn-outline-light float-end edit-button" data-section="details">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
+            {{-- Graphique d'évolution du stock --}}
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Évolution du Stock Global</h5>
                     </div>
                     <div class="card-body">
-                        <ul class="list-group list-group-flush static-view">
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong>Name:</strong>
-                                <span id="product-name-display">{{ $item->product->name }}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong>Color:</strong>
-                                <span id="product-color-display">{{ $item->color->name ?? 'Not defined' }}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong>Category:</strong>
-                                <span
-                                    id="product-category-display">{{ $item->product->category->name ?? 'Not defined' }}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong>Selling Price:</strong>
-                                <span class="fw-bold text-success">{{ number_format($item->price, 2) }} MGA</span>
-                            </li>
-                            <li class="list-group-item">
-                                <strong>Description:</strong>
-                                <p class="mt-2 text-muted" id="product-description-display">
-                                    {{ $item->product->description ?? 'No description available' }}</p>
-                            </li>
-                        </ul>
+                        <canvas id="stockEvolutionChart" height="100"></canvas>
+                    </div>
+                </div>
 
-                        {{-- Edit Form for Product Details --}}
-                        <form class="edit-form d-none" data-section="details">
-                            @csrf
-                            @method('PATCH')
-                            <div class="mb-3">
-                                <label for="edit-name" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="edit-name" name="name"
-                                    value="{{ $item->product->name }}">
-                                <div class="invalid-feedback" id="edit-name-error"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-category_id" class="form-label">Category</label>
-                                <select class="form-select" id="edit-category_id" name="category_id">
-                                    @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}"
-                                            {{ $item->product->category_id == $category->id ? 'selected' : '' }}>
-                                            {{ $category->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <div class="invalid-feedback" id="edit-category_id-error"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-description" class="form-label">Description</label>
-                                <textarea class="form-control" id="edit-description" name="description" rows="3">{{ $item->product->description }}</textarea>
-                                <div class="invalid-feedback" id="edit-description-error"></div>
-                            </div>
-                            <div class="d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-secondary cancel-edit"
-                                    data-section="details">Cancel</button>
-                                <button type="submit" class="btn btn-primary save-edit"
-                                    data-section="details">Save</button>
-                            </div>
-                        </form>
+                {{-- Table des Variantes --}}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Variantes de couleurs & Stocks</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Couleur</th>
+                                    <th>Prix (MGA)</th>
+                                    <th>Stock actuel</th>
+                                    <th>Seuil d'alerte</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="variants-table-body">
+                                {{-- Chargé via AJAX --}}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            {{-- Stock Details Card --}}
-            <div class="col-lg-6 mb-4">
-                <div class="card shadow-sm h-100" id="stock-status-card">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="fas fa-warehouse"></i> Stock Status</h5>
-                        <button class="btn btn-sm btn-outline-light float-end edit-button" data-section="stock">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
+            {{-- Historique des mouvements --}}
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Historique Mouvements</h5>
+                        <select id="variant-filter" class="form-select form-select-sm w-50">
+                            <option value="">Toutes les variantes</option>
+                        </select>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush static-view">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <strong>Current Stock:</strong>
-                                <span
-                                    class="badge fs-6 {{ $item->stock <= $item->alert_stock ? 'bg-danger' : 'bg-success' }}"
-                                    id="current-stock-display">
-                                    {{ $item->stock }} units
-                                </span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong>Alert Threshold:</strong>
-                                <span id="alert-stock-display">{{ $item->alert_stock }} units</span>
-                            </li>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush" id="history-list">
+                            {{-- Chargé via AJAX --}}
                         </ul>
-
-                        {{-- Edit Form for Stock Status --}}
-                        <form class="edit-form d-none" data-section="stock">
-                            @csrf
-                            @method('PATCH')
-                            <div class="mb-3">
-                                <label for="edit-stock" class="form-label">Current Stock</label>
-                                <input type="number" class="form-control" id="edit-stock" name="stock"
-                                    value="{{ $item->stock }}">
-                                <div class="invalid-feedback" id="edit-stock-error"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="edit-alert_stock" class="form-label">Alert Threshold</label>
-                                <input type="number" class="form-control" id="edit-alert_stock" name="alert_stock"
-                                    value="{{ $item->alert_stock }}">
-                                <div class="invalid-feedback" id="edit-alert_stock-error"></div>
-                            </div>
-                            <div class="d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-secondary cancel-edit"
-                                    data-section="stock">Cancel</button>
-                                <button type="submit" class="btn btn-primary save-edit"
-                                    data-section="stock">Save</button>
-                            </div>
-                        </form>
                     </div>
-                </div>
-            </div>
-
-            {{-- Selling Price Card --}}
-            <div class="col-lg-6">
-                <div class="card shadow-sm mb-4 h-100" id="selling-price-card">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="fas fa-dollar-sign"></i> Selling Price</h5>
-                        <button class="btn btn-sm btn-outline-light float-end edit-button" data-section="price">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush static-view">
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong>Selling Price:</strong>
-                                <span class="fw-bold text-success"
-                                    id="selling-price-display">{{ number_format($item->price, 2) }} MGA</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong>Created on:</strong>
-                                <span>{{ $item->product->created_at->format('d/m/Y H:i') }}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong>Last Updated:</strong>
-                                <span>{{ $item->product->updated_at->format('d/m/Y H:i') }}</span>
-                            </li>
-                        </ul>
-
-                        {{-- Edit Form for Selling Price --}}
-                        <form class="edit-form d-none" data-section="price">
-                            @csrf
-                            @method('PATCH')
-                            <div class="mb-3">
-                                <label for="edit-price" class="form-label">Selling Price (MGA)</label>
-                                <div class="input-group">
-                                    <input type="number" step="0.01" class="form-control" id="edit-price"
-                                        name="price" value="{{ $item->price }}">
-                                    <span class="input-group-text">MGA</span>
-                                    <div class="invalid-feedback" id="edit-price-error"></div>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-secondary cancel-edit"
-                                    data-section="price">Cancel</button>
-                                <button type="submit" class="btn btn-primary save-edit"
-                                    data-section="price">Save</button>
-                            </div>
-                        </form>
+                    <div class="card-footer bg-white text-center">
+                        <button id="load-more-history" class="btn btn-sm btn-link">Voir plus</button>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        {{-- Stock Evolution Chart --}}
-        <div class="card shadow-sm mt-4">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Stock Evolution</h5>
-            </div>
-            <div class="card-body" style="position: relative; height: 300px; width: 100%;">
-                <canvas id="stockChart"></canvas>
-            </div>
-        </div>
-
-        {{-- Stock Movements History --}}
-        <div class="card shadow-sm mt-4">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="fas fa-arrows-alt"></i> Stock Movements History</h5>
-            </div>
-            <div class="card-body">
-                <table class="table table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Quantity</th>
-                            <th>Reason</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($stockMovements as $movement)
-                            <tr>
-                                <td>{{ $movement->created_at->format('d/m/Y H:i') }}</td>
-                                <td>{!! $movement->type === 'in'
-                                    ? '<span class="badge bg-success">Entry</span>'
-                                    : '<span class="badge bg-danger">Exit</span>' !!}</td>
-                                <td class="fw-bold {{ $movement->quantity > 0 ? 'text-success' : 'text-danger' }}">
-                                    {{ $movement->quantity }}</td>
-                                <td>{{ $movement->reason }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="text-center py-4">No stock movements recorded for this product.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-                <div class="mt-3 d-flex justify-content-center">{{ $stockMovements->links() }}</div>
-            </div>
+    {{-- Modal Edition Infos Générales --}}
+    <div class="modal fade" id="editProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form id="editProductForm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Modifier le produit</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nom du produit</label>
+                            <input type="text" name="name" class="form-control" value="{{ $product->name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Catégorie</label>
+                            <select name="category_id" class="form-select">
+                                @foreach ($categories as $cat)
+                                    <option value="{{ $cat->id }}"
+                                        {{ $product->category_id == $cat->id ? 'selected' : '' }}>{{ $cat->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="3">{{ $product->description }}</textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
 
 @push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const PRODUCT_ID = {{ $product->id }};
+        let stockChart = null;
 
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVariants();
+            loadHistory();
+            loadChart();
 
-    <script type="module">
-        $(function() {
-            const ctx = document.getElementById('stockChart').getContext('2d');
-            const alertThreshold =
-                {!! $item->alert_stock !!}; // On pourrait passer cette valeur depuis le PHP ($product->min_stock)
+            // Gestion de l'édition générale AJAX
+            document.getElementById('editProductForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: {!! $chartLabels !!},
-                    datasets: [{
-                        label: 'Niveau du stock',
-                        data: {!! $chartData !!},
-                        borderColor: '#17a2b8',
-                        backgroundColor: (context) => {
-                            const chart = context.chart;
-                            const {
-                                ctx,
-                                chartArea
-                            } = chart;
-                            if (!chartArea) return null;
-
-                            // Dégradé qui change de couleur si on passe sous le seuil
-                            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0,
-                                chartArea.top);
-                            gradient.addColorStop(0, 'rgba(220, 53, 69, 0.2)'); // Rouge en bas
-                            gradient.addColorStop(alertThreshold / 100,
-                                'rgba(23, 162, 184, 0.2)'); // Transition
-                            return gradient;
+                fetch(`/admin/products/main/${PRODUCT_ID}/update-details`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
-                        borderWidth: 3,
-                        stepped: true,
-                        fill: true,
-                        pointRadius: (context) => context.raw === 0 ? 6 :
-                        3, // Point plus gros si stock à zéro
-                        pointBackgroundColor: (context) => context.raw < alertThreshold ?
-                            '#dc3545' : '#17a2b8'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        annotation: {
-                            annotations: {
-                                line1: {
-                                    type: 'line',
-                                    yMin: alertThreshold,
-                                    yMax: alertThreshold,
-                                    borderColor: 'rgba(220, 53, 69, 0.8)',
-                                    borderWidth: 2,
-                                    borderDash: [6, 6],
-                                    label: {
-                                        display: true,
-                                        content: 'Seuil d\'alerte',
-                                        position: 'end'
-                                    }
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => ` Quantité : ${context.parsed.y} unités`,
-                                footer: (context) => {
-                                    if (context[0].parsed.y < alertThreshold)
-                                        return '⚠️ Stock critique !';
-                                }
-                            }
+                        body: JSON.stringify(data)
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.success) {
+                            document.getElementById('display-name').innerText = res.data.name;
+                            document.getElementById('display-category').innerText = res.data
+                                .category_name;
+                            bootstrap.Modal.getInstance(document.getElementById('editProductModal'))
+                                .hide();
                         }
-                    },
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: 'day'
-                            },
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            suggestedMax: alertThreshold + 20 // Pour toujours voir le seuil
-                        }
-                    }
-                }
+                    });
+            });
+
+            // Filtre d'historique
+            document.getElementById('variant-filter').addEventListener('change', function() {
+                loadHistory(this.value);
             });
         });
 
-        $(document).ready(function() {
-            // Cache categories for display update
-            const categories = @json($categories->pluck('name', 'id'));
+        function loadVariants() {
+            fetch(`/api/products/${PRODUCT_ID}/variants`)
+                .then(res => res.json())
+                .then(res => {
+                    const tbody = document.getElementById('variants-table-body');
+                    const filter = document.getElementById('variant-filter');
+                    document.getElementById('variant-count').innerText = res.count;
 
-            // Function to toggle between static view and edit form
-            function toggleEditMode(section, isEditing) {
-                const sectionMapping = {
-                    details: 'product-details',
-                    stock: 'stock-status',
-                    price: 'selling-price',
-                };
-                const cardKey = sectionMapping[section] ?? section;
-                const card = $(`#${cardKey}-card`);
-                card.find('.static-view').toggleClass('d-none', isEditing);
-                card.find('.edit-form').toggleClass('d-none', !isEditing);
-                card.find('.edit-button').toggleClass('d-none', isEditing);
-            }
+                    tbody.innerHTML = res.data.map(v => `
+                <tr>
+                    <td><span class="badge" style="background-color: ${v.color.code}"> </span> ${v.color.name}</td>
+                    <td>${v.price}</td>
+                    <td><span class="badge ${v.stock <= v.alert_stock ? 'bg-danger' : 'bg-success'}">${v.stock}</span></td>
+                    <td>${v.alert_stock}</td>
+                    <td class="text-end">
+                        <a href="/admin/products/${v.id}/edit" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                    </td>
+                </tr>
+            `).join('');
 
-            // Handle Edit button click
-            $('.edit-button').on('click', function() {
-                const section = $(this).data('section');
-                toggleEditMode(section, true);
-            });
+                    // Remplir le filtre d'historique
+                    res.data.forEach(v => {
+                        const opt = document.createElement('option');
+                        opt.value = v.id;
+                        opt.textContent = v.color.name;
+                        filter.appendChild(opt);
+                    });
+                });
+        }
 
-            // Handle Cancel button click
-            $('.cancel-edit').on('click', function() {
-                const section = $(this).data('section');
-                toggleEditMode(section, false);
-                // Reset form fields and errors
-                const form = $(this).closest('form');
-                form.find('.is-invalid').removeClass('is-invalid');
-                form.find('.invalid-feedback').text('');
-                // Optionally, reset form values to original if needed
-                // For simplicity, we're not doing a full reset here, just hiding the form.
-            });
+        function loadHistory(variantId = '') {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '<li class="list-group-item text-center">Chargement...</li>';
 
-            // Handle form submission for Product Details
-            $('#product-details-card .edit-form').on('submit', function(e) {
-                e.preventDefault();
-                const form = $(this);
-                const url = "{{ route('admin.products.updateDetails', $item->product_id) }}";
-                const formData = form.serialize();
+            fetch(`/api/products/${PRODUCT_ID}/movements?variant_id=${variantId}`)
+                .then(res => res.json())
+                .then(res => {
+                    list.innerHTML = res.data.map(m => `
+                <li class="list-group-item border-0 border-bottom">
+                    <div class="d-flex justify-content-between">
+                        <small class="fw-bold text-uppercase">${m.type === 'in' ? 'Entrée' : 'Sortie'}</small>
+                        <small class="text-muted">${new Date(m.created_at).toLocaleDateString()}</small>
+                    </div>
+                    <div class="small">${m.product_color.color.name} : <strong>${m.quantity} unités</strong></div>
+                    <div class="text-muted extra-small">${m.reason || ''}</div>
+                </li>
+            `).join('') || '<li class="list-group-item text-center text-muted">Aucun mouvement</li>';
+                });
+        }
 
-                $.ajax({
-                    url: url,
-                    type: 'PATCH',
-                    data: formData,
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.fire('Success!', response.message, 'success');
-                            $('#product-name-display').text(response.data.name);
-                            $('#product-description-display').text(response.data.description);
-                            $('#product-category-display').text(response.data.category_name);
-                            toggleEditMode('product-details', false);
-                        } else {
-                            Swal.fire('Error!', response.message, 'error');
+        function loadChart() {
+            fetch(`/api/products/${PRODUCT_ID}/stock-evolution`)
+                .then(res => res.json())
+                .then(res => {
+                    const ctx = document.getElementById('stockEvolutionChart').getContext('2d');
+                    if (stockChart) stockChart.destroy();
+
+                    stockChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: res.labels,
+                            datasets: [{
+                                label: 'Stock Global',
+                                data: res.data,
+                                borderColor: '#4e73df',
+                                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
                         }
-                    },
-                    error: function(xhr) {
-                        handleAjaxError(xhr, form);
-                    }
+                    });
                 });
-            });
-
-            // Handle form submission for Stock Status
-            $('#stock-status-card .edit-form').on('submit', function(e) {
-                e.preventDefault();
-                const form = $(this);
-                const url = "{{ route('admin.product-colors.updateStock', $item->id) }}";
-                const formData = form.serialize();
-
-                $.ajax({
-                    url: url,
-                    type: 'PATCH',
-                    data: formData,
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.fire('Success!', response.message, 'success');
-                            $('#current-stock-display').text(response.data.stock + ' units')
-                                .removeClass('bg-danger bg-success').addClass(response.data
-                                    .stock <= response.data.alert_stock ? 'bg-danger' :
-                                    'bg-success');
-                            $('#alert-stock-display').text(response.data.alert_stock +
-                                ' units');
-                            toggleEditMode('stock-status', false);
-                        } else {
-                            Swal.fire('Error!', response.message, 'error');
-                        }
-                    },
-                    error: function(xhr) {
-                        handleAjaxError(xhr, form);
-                    }
-                });
-            });
-
-            // Handle form submission for Selling Price
-            $('#selling-price-card .edit-form').on('submit', function(e) {
-                e.preventDefault();
-                const form = $(this);
-                const url = "{{ route('admin.product-colors.updatePrice', $item->id) }}";
-                const formData = form.serialize();
-
-                $.ajax({
-                    url: url,
-                    type: 'PATCH',
-                    data: formData,
-                    success: function(response) {
-                        Swal.fire('Success!', response.message, 'success');
-                        $('#selling-price-display').text(parseFloat(response.data.price)
-                            .toLocaleString('fr-MG', {
-                                style: 'currency',
-                                currency: 'MGA'
-                            }));
-                        toggleEditMode('selling-price', false);
-                    },
-                    error: function(xhr) {
-                        handleAjaxError(xhr, form);
-                    }
-                });
-            });
-
-            // Generic AJAX error handler
-            function handleAjaxError(xhr, form) {
-                form.find('.is-invalid').removeClass('is-invalid');
-                form.find('.invalid-feedback').text('');
-
-                if (xhr.status === 422) { // Validation errors
-                    const errors = xhr.responseJSON.errors;
-                    for (const field in errors) {
-                        const input = form.find(`[name="${field}"]`);
-                        input.addClass('is-invalid');
-                        input.next('.invalid-feedback').text(errors[field][0]);
-                    }
-                    Swal.fire('Validation Error!', 'Please check your input.', 'error');
-                } else {
-                    Swal.fire('Error!', xhr.responseJSON.message || 'An unexpected error occurred.', 'error');
-                }
-            }
-        });
+        }
     </script>
+    <style>
+        .extra-small {
+            font-size: 0.75rem;
+        }
+    </style>
 @endpush
+```

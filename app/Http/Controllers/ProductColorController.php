@@ -1,62 +1,70 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers; // Corrected namespace to match file path
 
 use App\Http\Requests\StoreProductRequest;
-use App\Models\Product;
-use App\Services\{ProductColorService, StockManagementService, ProductService, ColorService};
 use App\Services\CategoryService;
+use App\Services\ColorService;
+use App\Services\ProductColorService;
+use App\Services\ProductService;
 use App\Services\SaleService;
+use App\Services\StockManagementService;
+use App\Services\StockService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ProductColorController extends Controller
 {
     public function __construct(
         protected ProductService $productService,
+        protected CategoryService $categoryService,
+        protected StockService $stockService,
         protected ColorService $colorService,
         protected ProductColorService $productColorService,
-        protected StockManagementService $stockManagementService,
-        protected CategoryService $categoryService,
         protected SaleService $saleService,
-        protected StockManagementService $stockService
+        protected StockManagementService $stockManagementService
     ) {}
+    public function exportPdf(Request $request)
+    {
+        $products = $this->categoryService->getAll(['per_page' => 1000]); // Get all products without pagination
+
+        $pdf = Pdf::loadView('products.pdf', compact('products'));
+
+        return $pdf->download('products.pdf');
+    }
 
     /**
-     * Liste toutes les variantes (liaisons produit-couleur).
+     * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         $filters = [
-            'sort' => $request->get('sort', 'created_at'),
+            'sort' => $request->get('sort', 'name'),
             'order' => $request->get('order', 'asc'),
             'search' => $request->get('search'),
-            'color' => $request->get('color'),
+            'category' => $request->get('category'),
             'per_page' => 15,
         ];
 
-        $products = $this->productColorService->getAllWithRelations($filters);
+        $products = $this->productService->getAll($filters);
+        $categories = $this->categoryService->getAll();
         $mostSoldProduct = $this->saleService->getMostSoldProduct();
         $leastSoldProduct = $this->saleService->getLeastSoldProduct();
-        $categories = $this->categoryService->getAll();
 
-
-        return view('products.index', compact('products', 'filters', 'mostSoldProduct', 'leastSoldProduct', 'categories'));
+        return view('products.index', compact('products', 'categories', 'mostSoldProduct', 'leastSoldProduct', 'filters'));
     }
 
     /**
-     * Affiche le formulaire pour lier une couleur à un produit.
+     * Show the form for creating a new resource.
      */
     public function create()
     {
-        $products = $this->productService->getAll([], false);
-        $colors = $this->colorService->getAllColors([], false);
         $categories = $this->categoryService->getAll();
-        return view('products.create', compact('products', 'colors', 'categories'));
+        return view('products.create', compact('categories'));
     }
 
     /**
-     * Enregistre la liaison (ProductColor) avec le stock initial.
+     * Store a newly created resource in storage.
      */
     public function store(StoreProductRequest $request)
     {
@@ -72,88 +80,112 @@ class ProductColorController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(int $id)
-    {
-        // Le service gère maintenant le chargement des relations complexes
-        $item = $this->productColorService->getById($id);
-
-        // For the paginated history table
-        $stockMovements = $this->stockService->getStockMovementsForProduct($id, 10);
-
-        $stockEvolution = $item ? $this->stockService->getStockEvolutionForVariant($item->id) : [];
-
-        $chartLabels = json_encode(array_column($stockEvolution, 'x'));
-        $chartData = json_encode(array_column($stockEvolution, 'y'));
-        $categories = $this->categoryService->getAll();
-
-        return view('products.show', compact('item', 'stockMovements', 'chartLabels', 'chartData', 'categories'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(int $id)
-    {
-        $item = $this->productColorService->getById($id);
-        $categories = $this->categoryService->getAll();
-        $colors = $this->colorService->getAllColors([], false);
-        return view('products.edit', compact('item', 'categories', 'colors'));
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(StoreProductRequest $request, int $id)
     {
-        // On récupère la variante pour trouver le produit associé
-        $variant = $this->productColorService->getById($id);
-
-        // Mise à jour des informations générales du produit
-        $this->productService->update($variant->product_id, $request->validated());
-
-        // Si vous avez besoin de mettre à jour la variante spécifique ici :
-        $variant->update($request->only(['stock', 'price', 'alert_stock']));
+        $productData = $request->validated();
+        $this->productService->update($id, $productData);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully.');
     }
 
     /**
-     * Mise à jour du stock de la variante via AJAX.
+     * Remove the specified resource from storage.
      */
-    public function updateStock(Request $request, int $id)
+    public function destroy(int $id)
     {
-        $validated = $request->validate([
-            'stock' => 'required|integer|min:0',
-            'alert_stock' => 'required|integer|min:0',
+        try {
+            $this->productService->delete($id);
+
+            return redirect()->route('admin.products.index')
+                ->with('success', 'Product deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.products.index')
+                ->with('error', $e->getMessage());
+        }
+    }
+    public function importProducts(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:csv,txt'
         ]);
 
-        $item = $this->productColorService->update($id, $validated);
+        $mapping = [
+            'name'           => 'nom',      // 'colonne_db' => 'entete_csv'
+            'price'          => 'prix',
+            'category_id'    => 'id_categorie'
+        ];
 
-        return response()->json([
-            'success' => true,
-            'message' => 'État du stock mis à jour.',
-            'data' => [
-                'stock' => $item->stock,
-                'alert_stock' => $item->alert_stock,
-            ]
-        ]);
+        $rules = [
+            'nom'  => 'required',
+            'prix' => 'required|numeric',
+        ];
+
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import(
+                new \App\Imports\GenericImport(\App\Models\Product::class, $mapping, $rules),
+                $request->file('file')
+            );
+
+            return back()->with('success', 'Importation terminée !');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erreur : ' . $e->getMessage());
+        }
     }
 
     /**
-     * Mise à jour du prix de la variante via AJAX.
+     * Affiche la liste des produits pour le vendeur (lecture seule).
      */
-    public function updatePrice(Request $request, int $id)
+    public function salerIndex(Request $request)
     {
-        $validated = $request->validate(['price' => 'required|numeric|min:0']);
-        $item = $this->productColorService->update($id, $validated);
+        $filters = [
+            'search' => $request->get('search'),
+            'per_page' => 20,
+            'sort' => 'name',
+            'order' => 'asc'
+        ];
+
+        $products = $this->productService->getAll($filters);
+
+        return view('front-office.products.index', compact('products'));
+    }
+
+
+    /**
+     * Affiche la page de détails du produit.
+     * Charge uniquement le produit et les catégories pour le modal d'édition.
+     */
+    public function show(int $id)
+    {
+        $product = $this->productService->getById($id);
+        $categories = $this->categoryService->getAll([], false);
+
+        return view('products.show', compact('product', 'categories'));
+    }
+
+    /**
+     * Mise à jour des informations générales via AJAX.
+     */
+    public function updateDetails(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+
+        $product = $this->productService->update($id, $validated);
 
         return response()->json([
             'success' => true,
-            'message' => 'Prix de vente mis à jour.',
-            'data' => ['price' => $item->price]
+            'message' => 'Informations générales mises à jour.',
+            'data' => [
+                'name' => $product->name,
+                'description' => $product->description,
+                'category_name' => $product->category->name,
+            ]
         ]);
     }
 }
