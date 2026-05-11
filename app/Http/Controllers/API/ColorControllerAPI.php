@@ -8,7 +8,7 @@ use App\Http\Resources\ColorResource;
 use App\Models\Color;
 use App\Services\ColorService;
 
-class ColorController extends Controller
+class ColorControllerAPI extends Controller
 {
     public function __construct(private ColorService $color_service )
     {
