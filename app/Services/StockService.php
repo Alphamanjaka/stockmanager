@@ -8,6 +8,16 @@ use Illuminate\Support\Facades\DB;
 
 class StockService
 {
+    public function getStockEvolutionForProductVariants(array $productColorIds): array
+    {
+        $evolutionData = [];
+
+        foreach ($productColorIds as $productColorId) {
+            $evolutionData[$productColorId] = $this->getStockEvolutionForVariant($productColorId);
+        }
+
+        return $evolutionData;
+    }
     public function addStock(int $productColorId, int $quantity, string $reason)
     {
         DB::transaction(function () use ($productColorId, $quantity, $reason) {

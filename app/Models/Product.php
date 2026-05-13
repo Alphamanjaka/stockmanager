@@ -46,4 +46,8 @@ class Product extends Model
             ->withPivot('stock', 'alert_stock') // Now pivot also tracks alert_stock
             ->timestamps();
     }
+    public function toString()
+    {
+        return $this->name;
+    }
 }
