@@ -52,7 +52,7 @@ class CategoryService extends BaseService
         return Category::orderBy('name')->pluck('name', 'id');
     }
 
-    public function getCategoryById($id)
+    public function getCategoryById(int $id)
     {
         return Category::with('parent')->withCount('products')->with('children')->findOrFail($id);
     }

@@ -35,7 +35,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/product-variants/{id}/update-price', [ProductColorController::class, 'updatePrice'])->name('product-colors.updatePrice');
 
         Route::resource('products', ProductColorController::class);
-        Route::get('/products/export/pdf', [ProductController::class, 'exportPdf'])->name('products.exportPdf');
+        Route::get('/products/export/pdf', [ProductColorController::class, 'exportPdf'])->name('products.exportPdf');
         Route::resource('categories', CategoryController::class);
 
         Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);

@@ -85,7 +85,7 @@ class StockService
         return $query->orderBy('created_at', 'desc')
             ->paginate($perPage)->withQueryString();
     }
-    public function getStockMovementById(int $id)
+    public function getStockMovementById(int $id): StockMovement
     {
         return StockMovement::with(['productColor.product', 'productColor.color'])->findOrFail($id);
     }
