@@ -113,7 +113,7 @@
                                     <a href="{{ request()->fullUrlWithQuery(['sort' => 'id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
                                         class="text-dark text-decoration-none">
                                         ID <i
-                                            class="fas fa-sort{{ request('sort') == 'id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
+                                            class="fas fa-sort{{ request('sort') ==  'id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                     </a>
                                 </th>
                                 <th>
@@ -123,22 +123,8 @@
                                             class="fas fa-sort{{ request('sort') == 'name' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                     </a>
                                 </th>
-                                <th>Couleur</th>
                                 <th>Catégorie</th>
-                                <th>
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'quantity_stock', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
-                                        class="text-dark text-decoration-none">
-                                        Stock <i
-                                            class="fas fa-sort{{ request('sort') == 'quantity_stock' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'price', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
-                                        class="text-dark text-decoration-none">
-                                        Prix <i
-                                            class="fas fa-sort{{ request('sort') == 'price' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
-                                    </a>
-                                </th>
+
                                 <th class="text-end pe-4">Actions</th>
                             </tr>
                         </thead>
@@ -148,31 +134,17 @@
                                     <td class="ps-4 text-muted small">#{{ $item->id }}</td>
                                     <td>
                                         <div class="fw-bold text-dark"> <a
-                                                href="{{ route('admin.products.show', $item->id) }}">{{ $item->product->name ?? 'N/A' }}</a>
+                                                href="{{ route('admin.products.show', $item->id) }}">{{ $item->toString() ?? 'N/A' }}</a>
                                         </div>
                                     </td>
-                                    <td>{{ $item->color->name ?? 'N/A' }}</td>
                                     <td>
-                                        @if ($item->product->category)
+                                        @if ($item->category)
                                             <span
-                                                class="badge bg-light text-dark border">{{ $item->product->category->name ?? 'N/A' }}</span>
+                                                class="badge bg-light text-dark border">{{ $item->category->name ?? 'N/A' }}</span>
                                         @else
                                             <span class="text-muted small">Unassigned</span>
                                         @endif
                                     </td>
-
-                                    <td>
-                                        @if ($item->stock <= 0)
-                                            <span class="badge bg-danger">Out of Stock</span>
-                                        @elseif($item->stock <= ($item->alert_stock ?? 5))
-                                            <span class="badge bg-warning text-dark">Low Stock</span>
-                                            ({{ $item->stock }})
-                                            </span>
-                                        @else
-                                            <span class="badge bg-success">{{ $item->stock }}</span>
-                                        @endif
-                                    </td>
-                                    <td class="fw-bold">{{ number_format($item->price, 2) }} MGA </td>
                                     <td class="text-end pe-4">
                                         <div class="btn-group">
                                             <a href="{{ route('admin.products.show', $item->id) }}"

@@ -191,4 +191,12 @@ class ProductColorController extends Controller
             ]
         ]);
     }
+
+    public function edit(int $id)
+    {
+        $product = $this->productService->getById($id);
+        $categories = $this->categoryService->getAll();
+
+        return view('products.edit', compact('product', 'categories'));
+    }
 }
