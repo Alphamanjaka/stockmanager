@@ -7,11 +7,8 @@ use Illuminate\Support\Facades\Route;
 
 
 // Routes spécifiques pour le Dashboard Produit (AJAX) et pour les mouvements de stock
-Route::get('products/{product}/variants', [ProductColorControllerAPI::class, 'getVariants']);
-Route::get('products/{product}/stock-evolution', [ProductColorControllerAPI::class, 'getStockEvolution']);
-Route::get('products/{product}/movements', [ProductColorControllerAPI::class, 'getMovements']);
-
-// Registers standard RESTful endpoints for products
-Route::apiResource('/categories', CategoryControllerAPI::class);
-Route::apiResource('/colors', ColorControllerAPI::class);
-Route::apiResource('/products-variants', ProductColorControllerAPI::class);
+Route::get('products/{productId}/variants', [ProductColorControllerAPI::class, 'getVariants']);
+Route::get('products/{productId}/stock-evolution', [ProductColorControllerAPI::class, 'getStockEvolution']);
+Route::get('products/{productId}/movements', [ProductColorControllerAPI::class, 'getMovements']);
+Route::apiResource('categories', CategoryControllerAPI::class);
+Route::apiResource('colors', ColorControllerAPI::class);
