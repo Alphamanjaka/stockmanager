@@ -122,6 +122,54 @@ class StockService
 
         return array_reverse($dataPoints);
     }
+
+    /**
+     * Get global stock evolution data for a specific product across all its variants.
+     */
+    public function getStockEvolutionForProduct(int $productId): array
+    {
+        $productColors = ProductColor::where('product_id', $productId)->get();
+        $allEvolutionData = [];
+
+        // Get evolution data for each variant
+        foreach ($productColors as $productColor) {
+            $allEvolutionData[$productColor->id] = $this->getStockEvolutionForVariant($productColor->id);
+        }
+
+        // Aggregate the data for global stock evolution
+        $globalEvolution = [];
+        $allDates = [];
+
+        // Collect all unique dates from all variants' movements
+        foreach ($allEvolutionData as $variantId => $evolution) {
+            foreach ($evolution as $dataPoint) {
+                $allDates[] = $dataPoint['x'];
+            }
+        }
+        $allDates = array_unique($allDates);
+        sort($allDates); // Ensure dates are in chronological order
+
+        // For each unique date, calculate the total stock across all variants
+        foreach ($allDates as $date) {
+            $totalStockAtDate = 0;
+            foreach ($productColors as $productColor) {
+                $variantId = $productColor->id;
+                $variantEvolution = $allEvolutionData[$variantId];
+
+                // Find the stock level for this variant at or before the current date
+                $stockForVariant = 0;
+                foreach ($variantEvolution as $dataPoint) {
+                    if ($dataPoint['x'] <= $date) {
+                        $stockForVariant = $dataPoint['y'];
+                    }
+                }
+                $totalStockAtDate += $stockForVariant;
+            }
+            $globalEvolution[] = ['x' => $date, 'y' => $totalStockAtDate];
+        }
+
+        return $globalEvolution;
+    }
     public function createStockMovement(array $data): StockMovement
     {
         return StockMovement::create($data);
