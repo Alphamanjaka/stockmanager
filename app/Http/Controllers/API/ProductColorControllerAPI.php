@@ -39,15 +39,18 @@ class ProductColorControllerAPI extends Controller
         return StockMovementResource::collection($movements);
     }
 
-    public function getStockEvolution(int $idVariant)
+    public function getStockEvolution(int $productId)
     {
-        $evolution = $this->stockManagementService->getStockEvolutionForVariant($idVariant);
-        return response()->json($evolution);
+        $evolution = $this->stockManagementService->getStockEvolutionForProduct($productId);
+        return response()->json([
+            'success' => true,
+            'data' => $evolution
+        ]);
     }
 
-    public function getVariants(int $idProduct)
+    public function getVariants(int $productId)
     {
-        $variants = $this->productColorService->listByProduct($idProduct);
+        $variants = $this->productColorService->listByProduct($productId);
         return response()->json([
             'variants' => $variants->map(function ($variant) {
                 return [
@@ -59,5 +62,4 @@ class ProductColorControllerAPI extends Controller
             })
         ]);
     }
-    
 }

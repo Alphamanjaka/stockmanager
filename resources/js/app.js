@@ -2,7 +2,7 @@ import "./bootstrap";
 
 // --- 1. Core Libraries ---
 import $ from "jquery";
-import "bootstrap";
+import * as bootstrap from "bootstrap";
 
 // --- 2. Styles (CSS) ---
 // Library CSS
@@ -26,6 +26,7 @@ import select2 from "select2";
 
 // --- 4. Global Assignments & Configuration ---
 window.$ = window.jQuery = $;
+window.bootstrap = bootstrap;
 window.Tabulator = Tabulator;
 window.Swal = Swal;
 

@@ -109,17 +109,17 @@
             <form id="editProductForm">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Modifier le produit</h5>
+                        <h5 class="modal-title">Edit Product</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Nom du produit</label>
+                            <labe class="form-label">Product Name</labe    l>
                             <input type="text" name="name" class="form-control" value="{{ $product->name }}"
                                 required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Catégorie</label>
+                            <label class="form-label">Category</label>
                             <select name="category_id" class="form-select">
                                 @foreach ($categories as $cat)
                                     <option value="{{ $cat->id }}"
@@ -134,8 +134,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </div>
             </form>
@@ -143,105 +143,145 @@
     </div>
 @endsection
 
+
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const PRODUCT_ID = {{ $product->id }};
         let stockChart = null;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadVariants();
-            loadHistory();
-            loadChart();
+        // Attendre que jQuery soit disponible
+        if (typeof jQuery !== 'undefined') {
+            initProductPage();
+        } else {
+            const checkJQuery = setInterval(() => {
+                if (typeof jQuery !== 'undefined') {
+                    clearInterval(checkJQuery);
+                    initProductPage();
+                }
+            }, 100);
+        }
 
-            // Gestion de l'édition générale AJAX
-            document.getElementById('editProductForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                const data = Object.fromEntries(formData.entries());
+        function initProductPage() {
+            const $ = window.jQuery;
+            $(document).ready(function() {
+                loadHistory();
+                loadChart();
 
-                fetch(`/admin/products/main/${PRODUCT_ID}/update-details`, {
+                // Gestion de l'édition générale AJAX
+                $('#editProductForm').on('submit', function(e) {
+                    e.preventDefault();
+
+                    $.ajax({
+                        url: `/admin/products/main/${PRODUCT_ID}/update-details`,
                         method: 'PATCH',
+                        data: $(this).serialize(),
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
-                        body: JSON.stringify(data)
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.success) {
-                            document.getElementById('display-name').innerText = res.data.name;
-                            document.getElementById('display-category').innerText = res.data
-                                .category_name;
-                            bootstrap.Modal.getInstance(document.getElementById('editProductModal'))
-                                .hide();
+                        success: function(res) {
+                            if (res.success) {
+                                $('#display-name').text(res.data.name);
+                                $('#display-category').text(res.data.category_name);
+                                // Fermer le modal
+                                const modal = bootstrap.Modal.getInstance(document
+                                    .getElementById('editProductModal'));
+                                modal.hide();
+                            }
                         }
                     });
-            });
-
-            // Filtre d'historique
-            document.getElementById('variant-filter').addEventListener('change', function() {
-                loadHistory(this.value);
-            });
-        });
-
-        function loadHistory(variantId = '') {
-            const list = document.getElementById('history-list');
-            list.innerHTML = '<li class="list-group-item text-center">Chargement...</li>';
-
-            fetch(`/api/products/${PRODUCT_ID}/movements?variant_id=${variantId}`)
-                .then(res => res.json())
-                .then(res => {
-                    list.innerHTML = res.data.map(m => `
-                <li class="list-group-item border-0 border-bottom">
-                    <div class="d-flex justify-content-between">
-                        <small class="fw-bold text-uppercase">${m.type === 'in' ? 'Entrée' : 'Sortie'}</small>
-                        <small class="text-muted">${new Date(m.created_at).toLocaleDateString()}</small>
-                    </div>
-                    <div class="small">${m.product_color.color.name} : <strong>${m.quantity} unités</strong></div>
-                    <div class="text-muted extra-small">${m.reason || ''}</div>
-                </li>
-            `).join('') || '<li class="list-group-item text-center text-muted">Aucun mouvement</li>';
                 });
-        }
 
-        // Initialize chart with data passed from the controller
-        const stockEvolutionData = @json($stockEvolution);
-        const ctx = document.getElementById('stockEvolutionChart').getContext('2d');
-        stockChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: stockEvolutionData.map(item => item.x),
-                datasets: [{
-                    label: 'Stock Global',
-                    data: stockEvolutionData.map(item => item.y),
-                    borderColor: '#4e73df',
-                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day'
-                        }
-                    }, // Use 'time' scale for dates
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+                // Filtre d'historique
+                $('#variant-filter').on('change', function() {
+                    loadHistory($(this).val());
+                });
+            });
+
+            function loadHistory(variantId = '') {
+                const $list = $('#history-list');
+                $list.html('<li class="list-group-item text-center">Chargement...</li>');
+
+                $.getJSON(`/api/products/${PRODUCT_ID}/movements?variant_id=${variantId}`)
+                    .done(function(res) {
+                        const html = res.data.map(m => `
+                            <li class="list-group-item border-0 border-bottom">
+                                <div class="d-flex justify-content-between">
+                                    <small class="fw-bold text-uppercase">${m.type === 'in' ? 'Entrée' : 'Sortie'}</small>
+                                    <small class="text-muted">${new Date(m.created_at).toLocaleDateString()}</small>
+                                </div>
+                                <div class="small">${m.product_color.color.name} : <strong>${m.quantity} unités</strong></div>
+                                <div class="text-muted extra-small">${m.reason || ''}</div>
+                            </li>
+                        `).join('');
+                        $list.html(html || '<li class="list-group-item text-center text-muted">Aucun mouvement</li>');
+                    })
+                    .fail(function() {
+                        $list.html(
+                            '<li class="list-group-item text-center text-danger small">Erreur de chargement</li>');
+                    });
             }
-        });
-    </script>
-    <style>
-        .extra-small {
-            font-size: 0.75rem;
+
+            function loadVariants() {
+                // Cette fonction peut être utilisée pour recharger les variantes après une modification
+            }
+
+            function loadChart() {
+                $.getJSON(`/api/products/${PRODUCT_ID}/stock-evolution`)
+                    .done(function(res) {
+                        if (res.success) renderChart(res.data);
+                    })
+                    .fail(function(err) {
+                        console.error('Erreur graphique:', err);
+                    });
+            }
+
+            function renderChart(data) {
+                const chartData = Array.isArray(data) ? data : Object.values(data).flat();
+                const ctx = $('#stockEvolutionChart')[0].getContext('2d');
+
+                if (stockChart) {
+                    stockChart.data.labels = chartData.map(item => item.x);
+                    stockChart.data.datasets[0].data = chartData.map(item => item.y);
+                    stockChart.update();
+                    return;
+                }
+
+                stockChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.map(item => item.x),
+                        datasets: [{
+                            label: 'Stock total',
+                            data: chartData.map(item => item.y),
+                            fill: false,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'day'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Quantité en stock'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         }
-    </style>
+    </script>
 @endpush
-```
