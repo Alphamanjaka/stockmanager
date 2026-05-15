@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreStockMovementRequest;
 use App\Services\{StockService};
 use App\Services\ProductColorService;
 use Illuminate\Http\Request;
@@ -43,21 +44,16 @@ class StockMovementController extends Controller
      */
     public function create()
     {
-        $products = $this->productColorService->getAll();
-        return view('stock_movements.create', compact('products'));
+        $productColors = $this->productColorService->getAll();
+        return view('stock_movements.create', compact('productColors'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreStockMovementRequest $request)
     {
-        $validatedData = $request->validate([
-            'product_color_id' => 'required|exists:product_colors,id',
-            'quantity' => 'required|integer|min:1',
-            'type' => 'required|in:in,out',
-            'reason' => 'nullable|string',
-        ]);
+        $validatedData = $request->validated();
 
         try {
             if ($validatedData['type'] === 'in') {

@@ -138,14 +138,6 @@
                         </ul>
                     </div>
                 </div>
-
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h6>Need Help?</h6>
-                        <p class="small text-muted mb-0">Visit our <a href="{{ route('admin.help') }}">Help Center</a>
-                            for more info.</p>
-                    </div>
-                </div>
             </div>
         </div>
     </form>
