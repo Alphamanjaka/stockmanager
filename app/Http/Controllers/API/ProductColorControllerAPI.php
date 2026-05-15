@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Http\Resources\StockMovementResource;
+use App\Models\StockMovement;
 use App\Services\{ProductService, CategoryService, ColorService, ProductColorService, SaleService, StockManagementService};
 
 class ProductColorControllerAPI extends Controller
@@ -18,12 +20,25 @@ class ProductColorControllerAPI extends Controller
         protected StockManagementService $stockManagementService
     ) {}
 
-    // Get stock movement for a specific product variant return using StockMovementResource
-    public function getMouvemenetVariant(int $idVariant)
+    // Get stock movements for a product; optional query param ?variant_id= to filter by variant
+    public function getMovements(int $productId, Request $request)
     {
-        $movements = $this->stockManagementService->getStockMovementById($idVariant);
+        $variantId = $request->query('variant_id');
+
+        if (!empty($variantId)) {
+            // movements for a specific variant (product_color_id)
+            $movements = StockMovement::with(['productColor.color'])
+                ->where('product_color_id', (int) $variantId)
+                ->orderBy('created_at', 'desc')
+                ->paginate(50);
+        } else {
+            // movements for all variants of the product
+            $movements = $this->stockManagementService->getStockMovementsForProduct($productId, 50);
+        }
+
         return StockMovementResource::collection($movements);
     }
+
     public function getStockEvolution(int $idVariant)
     {
         $evolution = $this->stockManagementService->getStockEvolutionForVariant($idVariant);

@@ -32,7 +32,6 @@
                         <canvas id="stockEvolutionChart" height="100"></canvas>
                     </div>
                 </div>
-
                 {{-- Table des Variantes --}}
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
