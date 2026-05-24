@@ -15,19 +15,12 @@ use Illuminate\Validation\Rule;
 
 class PurchaseController extends Controller
 {
-    protected PurchaseService $purchaseService;
-    protected SupplierService $supplierService;
-    protected ProductColorService $productColorService;
 
     public function __construct(
-        PurchaseService $purchaseService,
-        SupplierService $supplierService,
-        ProductColorService $productColorService
-    ) {
-        $this->purchaseService = $purchaseService;
-        $this->supplierService = $supplierService;
-        $this->productColorService = $productColorService;
-    }
+        protected PurchaseService $purchaseService,
+        protected SupplierService $supplierService,
+        protected ProductColorService $productColorService
+    ) {}
     /**
      * Génère et affiche le PDF du bon de commande dans le navigateur.
      *

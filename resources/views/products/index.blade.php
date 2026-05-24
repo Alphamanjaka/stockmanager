@@ -119,7 +119,7 @@
                                 <th>
                                     <a href="{{ request()->fullUrlWithQuery(['sort' => 'product_id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
                                         class="text-dark text-decoration-none">
-                                        Produit <i
+                                        Product <i
                                             class="fas fa-sort{{ request('sort') == 'product_id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                     </a>
                                 </th>
@@ -127,11 +127,11 @@
                                 <th>
                                     <a href="{{ request()->fullUrlWithQuery(['sort' => 'color_id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
                                         class="text-dark text-decoration-none">
-                                        Couleur <i
+                                        Color <i
                                             class="fas fa-sort{{ request('sort') == 'color_id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                     </a>
                                 </th>
-                                {{-- stats des produits dispo ou en rupture ou en commande--}}
+                                {{-- stats des produits dispo ou en rupture ou en commande --}}
                                 <th>
                                     <a href="{{ request()->fullUrlWithQuery(['sort' => 'stock', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
                                         class="text-dark text-decoration-none">
@@ -140,12 +140,7 @@
                                     </a>
                                 </th>
                                 <th>
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'category', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
-                                        class="text-dark text-decoration-none">
-                                        Catégorie <i
-                                            class="fas fa-sort{{ request('sort') == 'category' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
-                                    </a>
-
+                                    Category
                                 </th>
 
                                 <th class="text-end pe-4">Actions</th>

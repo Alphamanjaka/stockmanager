@@ -42,7 +42,6 @@ class ProductColorController extends Controller
             'sort' => $request->get('sort', 'id'),
             'order' => $request->get('order', 'asc'),
             'search' => $request->get('search'),
-            'category' => $request->get('category'),
             'per_page' => 15,
         ];
 

@@ -5,8 +5,9 @@
     <form action="{{ route('admin.purchases.store') }}" method="POST" id="purchase-form">
         @csrf
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-9">
                 <div class="card mb-4 shadow-sm border-0">
+                    {{-- supplier selection --}}
                     <div class="card-body">
                         <label class="form-label fw-bold">Select a Supplier</label>
                         <select name="supplier_id" id="supplier-select" class="form-select" required>
@@ -17,7 +18,7 @@
                         </select>
                     </div>
                 </div>
-
+                {{-- product selection --}}
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-dark text-white fw-bold">Add Products to Purchase</div>
                     <div class="card-body">
@@ -36,15 +37,18 @@
                                     <td>
                                         <select name="products[0][product_id]" class="form-select product-select" required>
                                             <option value="">Choose product...</option>
-                                            @foreach ($products as $product)
-                                                <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                            @foreach ($productsVariant as $product)
+                                                <option value="{{ $product->id }}" data-price="{{ $product->price }}">
+                                                    {{ $product->toString() ?? 'N/A' }} - {{ $product->stock }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </td>
                                     <td><input type="number" name="products[0][quantity]" class="form-control qty-input"
                                             min="1" value="1" required></td>
                                     <td><input type="number" name="products[0][unit_price]"
-                                            class="form-control price-input" step="0.01" value="0" required></td>
+                                            class="form-control price-input" step="0.01"
+                                            value="{{ old('products.0.unit_price') }}" required></td>
                                     <td><input type="text" class="form-control subtotal-display" readonly
                                             value="0.00 Mga"></td>
                                     <td><button type="button" class="btn btn-outline-danger btn-sm remove-row"><i
@@ -59,7 +63,8 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
+            {{-- purchase summary --}}
+            <div class="col-md-3">
                 <div class="card shadow-sm sticky-top border-0" style="top: 20px;">
                     <div class="card-header bg-primary text-white fw-bold">Purchase Summary</div>
                     <div class="card-body">
@@ -185,7 +190,14 @@
             });
 
             // Event Delegation
-            productList.on('change', '.product-select', fastUpdate);
+            productList.on('change', '.product-select', function() {
+                const row = $(this).closest('tr');
+                const price = $(this).find(':selected').data('price');
+                if (price !== undefined) {
+                    row.find('.price-input').val(price);
+                }
+                fastUpdate();
+            });
             productList.on('input', '.qty-input, .price-input', fastUpdate);
             $('#discount-input').on('input', fastUpdate);
 
