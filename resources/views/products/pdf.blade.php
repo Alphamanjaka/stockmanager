@@ -35,19 +35,21 @@
             <tr>
                 <th>ID</th>
                 <th>Name</th>
+                <th>Color</th>
                 <th>category</th>
                 <th>Price</th>
                 <th>Stock Quantity</th>
             </tr>
         </thead>
         <tbody>
-            @foreach ($products as $product)
+            @foreach ($products as $item)
                 <tr>
-                    <td>{{ $product->id }}</td>
-                    <td>{{ $product->name }}</td>
-                    <td>{{ $product->category ? $product->category->name : 'N/A' }}</td>
-                    <td>{{ number_format($product->price, 2) }} MGA</td>
-                    <td>{{ $product->quantity_stock }}</td>
+                    <td>{{ $item->id }}</td>
+                    <td>{{ $item->product ? $item->product->name : 'N/A' }}</td>
+                    <td>{{ $item->color ? $item->color->name : 'N/A' }}</td>
+                    <td>{{ $item->getCategoryNameAttribute()}}</td>
+                    <td>{{ number_format($item->price, 2) }} MGA</td>
+                    <td>{{ $item->stock }}</td>
                 </tr>
             @endforeach
         </tbody>
