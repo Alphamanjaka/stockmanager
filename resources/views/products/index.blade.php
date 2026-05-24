@@ -131,6 +131,14 @@
                                             class="fas fa-sort{{ request('sort') == 'color_id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                     </a>
                                 </th>
+                                {{-- stats des produits dispo ou en rupture ou en commande--}}
+                                <th>
+                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'stock', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
+                                        class="text-dark text-decoration-none">
+                                        Stock <i
+                                            class="fas fa-sort{{ request('sort') == 'stock' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
+                                    </a>
+                                </th>
                                 <th>
                                     <a href="{{ request()->fullUrlWithQuery(['sort' => 'category', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
                                         class="text-dark text-decoration-none">
@@ -156,6 +164,9 @@
                                         <div class="fw-bold text-dark"> <a
                                                 href="{{ route('admin.products.show', $item->product->id) }}">{{ $item->color->name ?? 'N/A' }}</a>
                                         </div>
+                                    </td>
+                                    <td class="text pe-4">
+                                        {{ $item->stock }} {{ $item->stock <= 5 ? ' (Low Stock)' : '' }}
                                     </td>
                                     <td>
                                         <span

@@ -17,6 +17,12 @@ return new class extends Migration
             $table->decimal('total_brut', 20, 2);  // Somme des prix * quantités
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('total_net', 20, 2);   // total_brut - discount
+            //  ajout contact entreprise
+            $table->string('company_name')->nullable();
+            $table->string('company_email')->nullable();
+            $table->string('company_phone')->nullable();
+            $table->string('company_address')->nullable();
+            $table->string('currency_symbol')->default('MGA');
             $table->timestamps();
         });
         Schema::create('sale_items', function (Blueprint $table) {

@@ -32,6 +32,10 @@ class SaleService
                 'reference'  => 'SALE-' . strtoupper(Str::random(8)),
                 'discount'   => $discount,
                 'user_id'    => $userId, // Toujours mieux de savoir qui a vendu
+                'company_name' => settings('company_name', 'StockMaster Pro'),
+                'company_email' => settings('company_email', ''),
+                'company_phone' => settings('company_phone', ''),
+                'company_address' => settings('company_address', ''),
             ]);
 
             $totalBrut = 0;

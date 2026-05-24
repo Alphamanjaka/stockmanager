@@ -29,5 +29,5 @@ class StoreSaleRequest extends FormRequest
             'products.*.product_color_id' => 'required|exists:product_colors,id|distinct',
             'products.*.quantity'   => 'required|integer|min:1',
         ];
-    }
+}
 }

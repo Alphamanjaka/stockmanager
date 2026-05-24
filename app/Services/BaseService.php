@@ -15,7 +15,11 @@ abstract class BaseService
         if (!empty($filters['search']) && method_exists($this->model, 'scopeSearch')) {
             $query->search($filters['search']);
         }
-
+        // category filter
+        if (!empty($filters['sort']) && method_exists($this->model, 'scopeSortable')) {
+            $query->sortable($filters['sort'], $filters['order'] ?? 'asc');
+        }
+        
         // Ajout de la logique de tri générique
         $sort = $filters['sort'] ?? 'id'; // Tri par défaut par 'id'
         $order = $filters['order'] ?? 'asc';

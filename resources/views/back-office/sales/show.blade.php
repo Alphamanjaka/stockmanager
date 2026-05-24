@@ -1,14 +1,22 @@
-@extends('layouts.app-front-office')
+@extends('layouts.app-back-office')
 
-@section('title', 'Sale Details : ' . $sale->reference)
+@section('title', 'Sale Details : ' . $sale->reference . ' by ' . ($sale->user->name ?? 'N/A'))
 
 @section('content')
     <div class="container">
+        {{-- ajouter une section sur l'information du vendeur qui permettra de le contacter rapidement  --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Vendeur : {{ $sale->user->name ?? 'N/A' }}</h5>
+                <p class="card-text">Email : {{ $sale->user->email ?? 'N/A' }}</p>
+                <p class="card-text">Téléphone : {{ $sale->user->phone ?? 'N/A' }}</p>
+            </div>
+        </div>
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="{{ route('saler.index') }}" class="btn btn-secondary shadow-sm">
+            <a href="{{ route('admin.sales.index') }}" class="btn btn-secondary shadow-sm">
                 <i class="bi bi-arrow-left"></i> Back to History
             </a>
-            <a href="{{ route('saler.pdf', $sale->id) }}" class="btn btn-danger shadow-sm">
+            <a href="{{ route('admin.sales.pdf', $sale->id) }}" class="btn btn-danger shadow-sm">
                 <i class="bi bi-file-earmark-pdf"></i> Download as PDF
             </a>
         </div>

@@ -24,7 +24,7 @@ class SaleController extends Controller
     {
         $currency = settings('currency_symbol', 'Mga');
         $items = $this->productColorService->getAvailableProducts();
-        return view('sales.create', compact('items','currency'));
+        return view('sales.create', compact('items', 'currency'));
     }
 
     /**
@@ -72,13 +72,7 @@ class SaleController extends Controller
     {
         $sale = $this->saleService->getSaleById($id);
 
-        // Exemple d'appel direct au helper settings
-        $company_name = settings('company_name', 'StockMaster Pro');
-        $currency_symbol = settings('currency_symbol', 'Mga');
-        $company_address = settings('company_address', 'Antananarivo, Madagascar');
-        $company_phone = settings('company_phone', '+261 34 22 12345');
-        $company_email = settings('company_email', '');
-        return view('sales.show', compact('sale', 'company_name', 'currency_symbol', 'company_address', 'company_phone', 'company_email'));
+        return view('sales.show', compact('sale'));
     }
 
     /**

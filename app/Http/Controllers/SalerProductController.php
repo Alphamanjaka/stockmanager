@@ -7,10 +7,8 @@ use Illuminate\Http\Request;
 
 class SalerProductController extends Controller
 {
-    public function __construct(private ProductColorService $productService)
-    {
-        $this->productService = $productService;
-    }
+    public function __construct(protected ProductColorService $productService)
+    {}
     /**
      * Affiche la liste des produits pour le vendeur (lecture seule).
      */

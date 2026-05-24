@@ -73,6 +73,12 @@
                             data-shortcut="f">
                             <span class="sidebar-text">Suppliers</span> <span class="shortcut-badge">Alt+F</span>
                         </a>
+                        {{--  Sales link --}}
+                        <a href="{{ route('admin.sales.index') }}"
+                            class="{{ request()->is('admin/sales*') ? 'text-primary fw-bold' : '' }}"
+                            data-shortcut="s">
+                            <span class="sidebar-text">Sales</span> <span class="shortcut-badge">Alt+S</span>
+                        </a>
                         <a href="{{ route('admin.purchases.index') }}"
                             class="{{ request()->is('admin/purchases*') ? 'text-primary fw-bold' : '' }}"
                             data-shortcut="a">

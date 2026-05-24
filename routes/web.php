@@ -3,6 +3,7 @@
 use App\Http\Controllers\{ProductController, SaleController, AuthController, DashboardController, CategoryController, ImportController, StockMovementController, SupplierController, PurchaseController, SalerProductController, SettingController, UserController};
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\ProductColorController;
+use App\Http\Controllers\SaleAdminController;
 use Illuminate\Support\Facades\Route;
 
 // Routes d'authentification (publiques)
@@ -28,7 +29,10 @@ Route::middleware('auth')->group(function () {
     Route::middleware('ensure.back.office')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'backOffice'])->name('dashboard');
         Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartDataApi'])->name('dashboard.chart-data');
-
+        // sales routes for back office
+        Route::resource('sales', SaleAdminController::class);
+        // export pdf for sale details in back office
+        Route::get('/sales/{id}/pdf', [SaleAdminController::class, 'exportPdf'])->name('sales.pdf');
         // Routes AJAX spécifiques pour l'édition rapide
         Route::patch('/products/main/{id}/update-details', [ProductColorController::class, 'updateDetails'])->name('products.updateDetails');
         Route::patch('/product-variants/{id}/update-stock', [ProductColorController::class, 'updateStock'])->name('product-colors.updateStock');

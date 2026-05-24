@@ -105,7 +105,7 @@ class ProductColorService extends BaseService
     }
 
     // Get all stocks with product and color details
-     
+
     public function listAllStocks()
     {
         return ProductColor::with(['product', 'color'])
@@ -179,4 +179,6 @@ class ProductColorService extends BaseService
     {
         return $this->saleService->getLeastSoldProduct();
     }
+
+
 }
