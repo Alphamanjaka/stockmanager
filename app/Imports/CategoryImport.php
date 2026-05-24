@@ -2,61 +2,71 @@
 
 namespace App\Imports;
 
-use App\Models\Category;
-use Maatwebsite\Excel\Concerns\ToModel;
+use App\Services\CategoryService;
+use Maatwebsite\Excel\Concerns\OnEachRow;
+use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class CategoryImport implements ToModel, WithHeadingRow, WithValidation
+class CategoryImport implements OnEachRow, WithHeadingRow, WithValidation
 {
+
     private int $created = 0;
     private int $updated = 0;
     private array $parentsCache = [];
 
+    public function __construct(
+        protected CategoryService $categoryService
+    ) {}
+
     /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @param Row $row
      */
-    public function model(array $row)
+    public function onRow(Row $row)
     {
-        $parentId = null;
+        $rowData = $row->toArray();
+        $rowIndex = $row->getIndex();
 
-        // 1. Si un ID de parent est fourni directement
-        if (!empty($row['parent_id'])) {
-            $parentId = $row['parent_id'];
-        }
-        // 2. Sinon, si un NOM de parent est fourni, on cherche son ID
-        elseif (!empty($row['parent'])) {
-            // On s'assure que le nom du parent est bien une chaîne de caractères
-            $parentName = strtolower((string) $row['parent']);
-            if (!array_key_exists($parentName, $this->parentsCache)) {
-                $parent = Category::whereRaw('LOWER(name) = ?', [$parentName])->first();
-                $this->parentsCache[$parentName] = $parent ? $parent->id : null;
+        try {
+            $parentId = null;
+
+            // 1. Si un ID de parent est fourni directement
+            if (!empty($rowData['parent_id'])) {
+                $parentId = $rowData['parent_id'];
             }
-            $parentId = $this->parentsCache[$parentName];
+            // 2. Sinon, si un NOM de parent est fourni, on cherche son ID
+            elseif (!empty($rowData['parent'])) {
+                // On s'assure que le nom du parent est bien une chaîne de caractères
+                $parentName = mb_strtolower(trim((string) $rowData['parent']));
+                if (!array_key_exists($parentName, $this->parentsCache)) {
+                    $parent = $this->categoryService->findOneBy(['name' => $parentName]);
+                    $this->parentsCache[$parentName] = $parent ? $parent->id : null;
+                }
+                $parentId = $this->parentsCache[$parentName];
+            }
+
+            // On s'assure que le nom du parent est bien une chaîne de caractères
+            $categoryName = mb_strtolower(trim((string) $rowData['name']));
+            $data = [
+                'name' => $categoryName,
+                'description' => $rowData['description'] ?? null,
+                'parent_id' => $parentId,
+            ];
+
+            // On vérifie si la catégorie existe déjà pour décider de l'action
+            $existingCategory = $this->categoryService->findOneBy(['name' => $categoryName]);
+
+            if ($existingCategory) {
+                $this->categoryService->update($existingCategory->id, $data);
+                $this->updated++;
+            } else {
+                $this->categoryService->create($data);
+                $this->created++;
+            }
+        } catch (\Throwable $e) {
+            throw new \Exception("Erreur ligne {$rowIndex} : " . $e->getMessage());
         }
-
-        // On s'assure que le nom de la catégorie est bien une chaîne de caractères
-        $categoryName = (string) $row['name'];
-
-        $category = Category::updateOrCreate(
-            ['name' => $categoryName],
-            [
-                'description' => $row['description'] ?? null,
-                'parent_id'   => $parentId,
-            ]
-        );
-
-        if ($category->wasRecentlyCreated) {
-            $this->created++;
-        } elseif ($category->wasChanged()) {
-            $this->updated++;
-        }
-
-        return $category;
     }
-
     public function rules(): array
     {
         return [

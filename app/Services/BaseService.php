@@ -47,4 +47,9 @@ abstract class BaseService
     {
         return $this->getById($id)->delete();
     }
+
+    public function findOneBy(array $criteria)
+    {
+        return $this->model->where($criteria)->first();
+    }
 }

@@ -12,13 +12,9 @@ use App\Services\{
 
 class SupplierController extends Controller
 {
-    protected $supplierService;
-    protected $purchaseService;
 
-    public function __construct(SupplierService $supplierService, PurchaseService $purchaseService)
+    public function __construct(protected SupplierService $supplierService,protected PurchaseService $purchaseService)
     {
-        $this->supplierService = $supplierService;
-        $this->purchaseService = $purchaseService;
     }
     /**
      * Affiche la liste des fournisseurs avec statistiques.

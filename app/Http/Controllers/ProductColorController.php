@@ -26,7 +26,7 @@ class ProductColorController extends Controller
     ) {}
     public function exportPdf(Request $request)
     {
-        $products = $this->categoryService->getAll(['per_page' => 1000]); // Get all products without pagination
+        $products = $this->productColorService->getAll(['per_page' => 50000]); // Get all products without pagination
 
         $pdf = Pdf::loadView('products.pdf', compact('products'));
 
@@ -39,19 +39,19 @@ class ProductColorController extends Controller
     public function index(Request $request)
     {
         $filters = [
-            'sort' => $request->get('sort', 'name'),
+            'sort' => $request->get('sort', 'id'),
             'order' => $request->get('order', 'asc'),
             'search' => $request->get('search'),
             'category' => $request->get('category'),
             'per_page' => 15,
         ];
 
-        $products = $this->productService->getAll($filters);
+        $productVariants=$this->productColorService->getAll($filters);
         $categories = $this->categoryService->getAll();
         $mostSoldProduct = $this->saleService->getMostSoldProduct();
         $leastSoldProduct = $this->saleService->getLeastSoldProduct();
 
-        return view('products.index', compact('products', 'categories', 'mostSoldProduct', 'leastSoldProduct', 'filters'));
+        return view('products.index', compact('categories', 'mostSoldProduct', 'leastSoldProduct', 'filters', 'productVariants'));
     }
 
     /**
@@ -193,9 +193,9 @@ class ProductColorController extends Controller
 
     public function edit(int $id)
     {
-        $product = $this->productService->getById($id);
+        $item = $this->productService->getById($id);
         $categories = $this->categoryService->getAll();
 
-        return view('products.edit', compact('product', 'categories'));
+        return view('products.edit', compact('item', 'categories'));
     }
 }

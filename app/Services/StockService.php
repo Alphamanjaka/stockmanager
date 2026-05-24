@@ -44,7 +44,7 @@ class StockService
             $variant = ProductColor::with('product', 'color')->lockForUpdate()->findOrFail($productColorId);
 
             if ($variant->stock < $quantity) {
-                throw new \Exception("Stock insuffisant pour la variante {$variant->product->name} ({$variant->color->name}).");
+                throw new \Exception("insufficient stock for {$variant->product->name} ({$variant->color->name}).");
             }
 
             $before = $variant->stock;

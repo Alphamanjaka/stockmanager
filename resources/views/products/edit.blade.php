@@ -20,7 +20,7 @@
                                         class="text-danger">*</span></label>
                                 <input type="text" name="name" id="name"
                                     class="form-control @error('name') is-invalid @enderror"
-                                    value="{{ old('name', $item->product->name) }}" required readonly>
+                                    value="{{ old('name', $item->toString()) }}" required readonly>
                                 @error('name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

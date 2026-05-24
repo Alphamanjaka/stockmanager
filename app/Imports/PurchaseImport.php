@@ -2,12 +2,12 @@
 
 namespace App\Imports;
 
+use App\Models\ProductColor;
+use App\Models\Supplier;
+use App\Services\ProductColorService;
+use App\Services\ProductService;
 use App\Services\PurchaseService;
 use App\Services\SupplierService;
-use App\Services\ProductService;
-use App\Models\Supplier;
-use App\Models\ProductColor;
-use App\Models\Product;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -18,6 +18,7 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
     protected PurchaseService $purchaseService;
     protected SupplierService $supplierService;
     protected ProductService $productService;
+    protected ProductColorService $productColorService;
 
     private int $created = 0;
     private array $errors = [];
@@ -25,11 +26,13 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
     public function __construct(
         PurchaseService $purchaseService,
         SupplierService $supplierService,
-        ProductService $productService
+        ProductService $productService,
+        ProductColorService $productColorService
     ) {
         $this->purchaseService = $purchaseService;
         $this->supplierService = $supplierService;
         $this->productService = $productService;
+        $this->productColorService = $productColorService;
     }
 
     /**

@@ -76,7 +76,7 @@ class SupplierService
         // Top 5 des produits achetés chez ce fournisseur
         $topProducts = DB::table('purchase_items')
             ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
-            ->join('products', 'purchase_items.product_id', '=', 'products.id')
+            ->join('products', 'purchase_items.product_color_id', '=', 'products.id')
             ->where('purchases.supplier_id', $supplier->id)
             ->where('purchases.state', 'Received')
             ->orWhere('purchases.state', 'Paid')

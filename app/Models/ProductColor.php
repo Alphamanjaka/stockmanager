@@ -35,4 +35,14 @@ class ProductColor extends Model
     {
         return $this->product->category->name ?? 'Non catégorisé';
     }
+
+    // scope pour la recherche
+    public function scopeSearch($query, $term){
+        $term = '%' . strtolower($term) . '%';
+        $query->whereHas('product', function($q) use ($term) {
+            $q->whereRaw('LOWER(name) LIKE ?', [$term]);
+        })->orWhereHas('color', function($q) use ($term) {
+            $q->whereRaw('LOWER(name) LIKE ?', [$term]);
+        });
+    }
 }

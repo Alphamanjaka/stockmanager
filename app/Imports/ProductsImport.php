@@ -2,11 +2,10 @@
 
 namespace App\Imports;
 
-use App\Models\Product;
-use App\Models\Category;
 use App\Services\{
     SettingService,
-    ProductService
+    ProductService,
+    CategoryService
 };
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Row;
@@ -17,16 +16,13 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
 {
     private int $created = 0;
     private int $updated = 0;
-    protected ProductService $productService;
-    protected SettingService $settingService;
     private array $categoriesCache = [];
 
-    public function __construct(ProductService $productService, SettingService $settingService)
-    {
-        $this->productService = $productService;
-        // On peut utiliser le service de settings pour récupérer des paramètres globaux si nécessaire
-        $this->settingService = $settingService;
-    }
+    public function __construct(
+        protected ProductService $productService,
+        protected SettingService $settingService,
+        protected CategoryService $categoryService
+    ) {}
 
     /**
      * @param Row $row
@@ -34,40 +30,45 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
     public function onRow(Row $row)
     {
         $rowData = $row->toArray();
+        $rowIndex = $row->getIndex();
 
-        $categoryId = null;
-        if (!empty($rowData['category_id'])) {
-            $categoryId = $rowData['category_id'];
-        } else if (!empty($rowData['category_name'])) {
-            // On s'assure que le nom de la catégorie est bien une chaîne de caractères
-            $catName = strtolower((string) $rowData['category_name']);
-            if (!array_key_exists($catName, $this->categoriesCache)) {
-                $category = Category::whereRaw('LOWER(name) = ?', [$catName])->first();
-                $this->categoriesCache[$catName] = $category ? $category->id : null;
+        try {
+            $categoryId = null;
+            if (!empty($rowData['category_id'])) {
+                $categoryId = $rowData['category_id'];
+            } else if (!empty($rowData['category_name'])) {
+                // On s'assure que le nom de la catégorie est bien une chaîne de caractères
+                $catName = mb_strtolower(trim((string) $rowData['category_name']));
+                if (!array_key_exists($catName, $this->categoriesCache)) {
+                    $category = $this->categoryService->findOneBy(['name' => $catName]);
+                    $this->categoriesCache[$catName] = $category ? $category->id : null;
+                }
+                $categoryId = $this->categoriesCache[$catName];
             }
-            $categoryId = $this->categoriesCache[$catName];
-        }
 
-        $productName = (string) $rowData['name'];
+            $productName = mb_strtolower(trim((string) $rowData['name']));
 
-        $data = [
-            'name'           => $productName,
-            'description'    => $rowData['description'] ?? null,
-            'price'          => $rowData['price'],
-            'quantity_stock' => $rowData['stock'] ?? 0,
-            'category_id'    => $categoryId,
-            'alert_stock'    => $rowData['alert_stock'] ?? $this->settingService->get('global_alert_threshold') ?? 10,
-        ];
+            $data = [
+                'name'           => $productName,
+                'description'    => $rowData['description'] ?? null,
+                'price'          => $rowData['price'],
+                'quantity_stock' => $rowData['stock'] ?? 0,
+                'category_id'    => $categoryId,
+                'alert_stock'    => $rowData['alert_stock'] ?? $this->settingService->get('global_alert_threshold') ?? 10,
+            ];
 
-        // Vérification si le produit existe pour décider de l'action (Create ou Update)
-        $existingProduct = Product::where('name', $productName)->first();
+            // Vérification si le produit existe pour décider de l'action (Create ou Update)
+            $existingProduct = $this->productService->findOneBy(['name' => $productName]);
 
-        if ($existingProduct) {
-            $this->productService->updateProduct($existingProduct->id, $data);
-            $this->updated++;
-        } else {
-            $this->productService->createProduct($data);
-            $this->created++;
+            if ($existingProduct) {
+                $this->productService->update($existingProduct->id, $data);
+                $this->updated++;
+            } else {
+                $this->productService->create($data);
+                $this->created++;
+            }
+        } catch (\Throwable $e) {
+            throw new \Exception("Erreur ligne {$rowIndex} : " . $e->getMessage());
         }
     }
 

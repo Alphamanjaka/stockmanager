@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class CategoryService extends BaseService
 {
-    public function __construct(Category $category  )
+    public function __construct(Category $category)
     {
         parent::__construct($category); // Appel du constructeur parent avec une instance de Category
     }
@@ -18,8 +18,11 @@ class CategoryService extends BaseService
         return Category::where('parent_id', $parentId)->pluck('name', 'id');
     }
 
-    public function create($data)
+    public function create(array $data)
     {
+        if (isset($data['name'])) {
+            $data['name'] = mb_strtolower(trim($data['name']));
+        }
         // Logic to create a category
         $category = Category::create($data);
         $this->syncChildren($category->id, $data['children'] ?? []);
@@ -57,7 +60,7 @@ class CategoryService extends BaseService
         return Category::with('parent')->withCount('products')->with('children')->findOrFail($id);
     }
 
-    public function getProductsByCategory($categoryId, $perPage = 10)
+    public function getProductsByCategory(int $categoryId, $perPage = 10)
     {
         return Product::where('category_id', $categoryId)
             ->orderBy('name')
@@ -87,9 +90,12 @@ class CategoryService extends BaseService
         ];
     }
 
-    public function update($id, $data)
+    public function update(int $id, array $data)
     {
         $category = DB::transaction(function () use ($id, $data) {
+            if (isset($data['name'])) {
+                $data['name'] = mb_strtolower(trim($data['name']));
+            }
             $category = Category::findOrFail($id);
             $category->update($data);
             $this->syncChildren($category->id, $data['children'] ?? []);
@@ -98,7 +104,7 @@ class CategoryService extends BaseService
         return $category;
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $category = Category::findOrFail($id);
 
@@ -123,7 +129,8 @@ class CategoryService extends BaseService
         });
         $query = $query->where(function ($q) use ($filters) {
             if (isset($filters['search'])) {
-                $q->where('name', 'like', '%' . $filters['search'] . '%');
+                $searchTerm = mb_strtolower($filters['search']);
+                $q->where('name', 'like', '%' . $searchTerm . '%');
             }
         });
 
@@ -133,7 +140,7 @@ class CategoryService extends BaseService
     /**
      * update category children relationships
      */
-    protected function syncChildren($parentId, $childrenIds)
+    protected function syncChildren(int $parentId, array $childrenIds)
     {
         // Sécurité : s'assurer que c'est un tableau et qu'on ne s'ajoute pas soi-même comme enfant
         $childrenIds = is_array($childrenIds) ? $childrenIds : [];

@@ -2,57 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use Maatwebsite\Excel\Validators\ValidationException;
+use App\Http\Requests\StoreImportRequest;
+use App\Imports\{ProductsImport, PurchaseImport, ColorImport,};
+use App\Imports\CategoryImport;
+use App\Imports\SupplierImport;
+use App\Services\{ProductService, PurchaseService, SupplierService, ImportService, SettingService, ColorService, ProductColorService};
+use App\Services\CategoryService;
 use Illuminate\Http\Request;
-use App\Imports\{
-    ProductsImport,
-    SupplierImport,
-    CategoryImport,
-    PurchaseImport,
-    ColorImport,
-};
-use App\Services\{
-    ProductService,
-    PurchaseService,
-    SupplierService,
-    ImportService,
-    SettingService
-};
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 
 class ImportController extends Controller
 {
-    protected ImportService $importService;
 
-    public function __construct(ImportService $importService)
-    {
-        $this->importService = $importService;
-    }
+    public function __construct(protected ImportService $importService) {}
     public function index(Request $request)
     {
         return view('import.index');
     }
     // Store method for handling imports can be added here
-    public function store(Request $request)
+    public function store(StoreImportRequest $request)
     {
-        $request->validate([
-            'file' => 'required|mimes:csv,txt,xls,xlsx',
-            'type' => 'required|in:products,suppliers,categories,purchases,colors',
-        ]);
+        $validated = $request->validated();
+
 
         // Optimisation : Instanciation conditionnelle pour éviter de créer des objets inutiles
-        $import = match ($request->type) {
-            'products'   => new ProductsImport(app(ProductService::class), app(SettingService::class)),
-            'suppliers'  => new SupplierImport,
-            'categories' => new CategoryImport,
+        $import = match ($validated['type']) {
+            'products'   => new ProductsImport(
+                app(ProductService::class),
+                app(SettingService::class),
+                app(CategoryService::class)
+            ),
+            'suppliers'  => new SupplierImport(app(SupplierService::class)),
+            'categories' => new CategoryImport(app(CategoryService::class)),
             'purchases'  => new PurchaseImport(
                 app(PurchaseService::class),
                 app(SupplierService::class),
-                app(ProductService::class)
+                app(ProductService::class),
+                app(ProductColorService::class)
             ),
-            'colors' => new ColorImport,
+            'colors' => new ColorImport(app(ColorService::class)),
             default => null
         };
+
+        if (!$import) {
+            return back()->with('error', 'Type d\'importation non pris en charge.');
+        }
 
         try {
             $this->importService->import(
@@ -61,24 +57,35 @@ class ImportController extends Controller
             );
 
             if (method_exists($import, 'getReport')) {
-                return back()->with('import_report', $import->getReport());
+                $report = $import->getReport();
+                return back()->with('import_report', $report)->with('success', 'Importation terminée avec succès.');
             }
 
             return back()->with('success', 'Importation réussie !');
         } catch (ValidationException $e) {
             $failures = $e->failures();
-            $errorMessages = [];
+            $detailedFailures = [];
+
             foreach ($failures as $failure) {
-                // Format error message: "Ligne 5: Le nom est requis."
-                $errorMessages[] = "Ligne " . $failure->row() . ": " . implode(', ', $failure->errors());
+                $detailedFailures[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                    'values' => $failure->values(), // Affiche les valeurs de la ligne qui a échoué
+                ];
             }
 
-            return back()->with('error', "L'importation a été annulée car des erreurs ont été trouvées :<br>" . implode('<br>', $errorMessages));
+            return back()->with('import_validation_errors', $detailedFailures)
+                ->with('error', 'L\'importation a été annulée car des erreurs de validation ont été détectées.');
         } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'importation [' . $request->type . '] : ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return back()->with('error', 'Erreur lors de l\'import : ' . $e->getMessage());
         }
     }
-    public function downloadTemplate($type)
+    public function downloadTemplate(  $type)
     {
         // Alignement des en-têtes avec les clés attendues par les classes d'import
         $headers = match ($type) {

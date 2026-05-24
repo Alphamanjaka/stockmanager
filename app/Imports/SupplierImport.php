@@ -2,39 +2,50 @@
 
 namespace App\Imports;
 
-use App\Models\Supplier;
-use Maatwebsite\Excel\Concerns\ToModel;
+use App\Services\SupplierService;
+use Maatwebsite\Excel\Concerns\OnEachRow;
+use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class SupplierImport implements ToModel, WithHeadingRow, WithValidation
+class SupplierImport implements OnEachRow, WithHeadingRow, WithValidation
 {
     private int $created = 0;
     private int $updated = 0;
 
+    public function __construct(private SupplierService $supplierService) {}
+
     /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @param Row $row
      */
-    public function model(array $row)
+    public function onRow(Row $row)
     {
-        $supplier = Supplier::updateOrCreate(
-            ['email' => $row['email']],
-            [
-                'name' => $row['name'],
-                'phone' => $row['phone'] ?? null,
-                'address' => $row['address'] ?? null,
-            ]
-        );
+        $rowData = $row->toArray();
+        $rowIndex = $row->getIndex();
 
-        if ($supplier->wasRecentlyCreated) {
-            $this->created++;
-        } elseif ($supplier->wasChanged()) {
-            $this->updated++;
+        try {
+            $email = mb_strtolower(trim($rowData['email']));
+            $name = mb_strtolower(trim($rowData['name']));
+
+            $data = [
+                'name' => $name,
+                'email' => $email,
+                'phone' => $rowData['phone'] ?? null,
+                'address' => $rowData['address'] ?? null,
+            ];
+
+            $existing = $this->supplierService->findByEmail($email);
+
+            if ($existing) {
+                $this->supplierService->updateSupplier($existing, $data);
+                $this->updated++;
+            } else {
+                $this->supplierService->createSupplier($data);
+                $this->created++;
+            }
+        } catch (\Throwable $e) {
+            throw new \Exception("Ligne {$rowIndex} : " . $e->getMessage());
         }
-
-        return $supplier;
     }
     public function rules(): array
     {

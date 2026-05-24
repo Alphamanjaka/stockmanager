@@ -99,11 +99,13 @@ class ProductColorService extends BaseService
     /**
      * Get single product by ID
      */
-    public function getProductById($id)
+    public function getProductById(int $id)
     {
         return ProductColor::with(['product.category', 'color'])->findOrFail($id);
     }
 
+    // Get all stocks with product and color details
+     
     public function listAllStocks()
     {
         return ProductColor::with(['product', 'color'])
@@ -118,6 +120,20 @@ class ProductColorService extends BaseService
         return ProductColor::with('color')
             ->where('product_id', $productId)
             ->get();
+    }
+
+    /**
+     * Récupère un mapping des variantes pour l'import (NomProduit|NomCouleur => ID)
+     */
+    public function getVariantsMapping()
+    {
+        return ProductColor::join('products', 'product_colors.product_id', '=', 'products.id')
+            ->join('colors', 'product_colors.color_id', '=', 'colors.id')
+            ->select('product_colors.id', 'products.name as p_name', 'colors.name as c_name')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [($item->p_name . '|' . $item->c_name) => $item->id];
+            });
     }
 
 
