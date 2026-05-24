@@ -6,7 +6,7 @@
         <div class="col-md-4 mb-3">
             <div class="card shadow-sm text-center h-100 bg-success text-white">
                 <div class="card-body">
-                    <h6 class="card-subtitle mb-2">Ventes Aujourd'hui</h6>
+                    <h6 class="card-subtitle mb-2">Sales Today</h6>
                     <p class="card-text fs-4 fw-bold">
                         {{ number_format($salesToday, 2, ',', ' ') }}
                         MGA
@@ -17,7 +17,7 @@
         <div class="col-md-4 mb-3">
             <div class="card shadow-sm text-center h-100 bg-primary text-white">
                 <div class="card-body">
-                    <h6 class="card-subtitle mb-2">Ventes ce Mois</h6>
+                    <h6 class="card-subtitle mb-2">Sales This Month</h6>
                     <p class="card-text fs-4 fw-bold">
                         {{ number_format($salesThisMonth, 2, ',', ' ') }}
                         MGA
@@ -28,7 +28,7 @@
         <div class="col-md-4 mb-3">
             <div class="card shadow-sm text-center h-100 bg-info text-white">
                 <div class="card-body">
-                    <h6 class="card-subtitle mb-2">Nombre de Ventes</h6>
+                    <h6 class="card-subtitle mb-2">Total Sales</h6>
                     <p class="card-text fs-4 fw-bold">{{ $totalSales }}</p>
                 </div>
             </div>
@@ -40,18 +40,18 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-gradient text-white"
                     style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);">
-                    <h5 class="mb-0"><i class="fas fa-receipt"></i> Actions Rapides</h5>
+                    <h5 class="mb-0"><i class="fas fa-receipt"></i> Quick Actions</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <a href="{{ route('saler.create') }}" class="btn btn-lg btn-success w-100 py-3">
-                                <i class="fas fa-plus-circle"></i> Créer une Nouvelle Vente
+                                <i class="fas fa-plus-circle"></i> Create New Sale
                             </a>
                         </div>
                         <div class="col-md-6 mb-3">
                             <a href="{{ route('saler.index') }}" class="btn btn-lg btn-primary w-100 py-3">
-                                <i class="fas fa-list"></i> Voir Toutes les Ventes
+                                <i class="fas fa-list"></i> View All Sales
                             </a>
                         </div>
                     </div>

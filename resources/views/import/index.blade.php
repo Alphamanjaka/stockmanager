@@ -2,40 +2,40 @@
 
 @section('content')
     <div class="container">
-        <h2 class="mb-4">Centre d'Importation de Données</h2>
+        <h2 class="mb-4">Data Import Center</h2>
 
         <div class="row">
             @php
                 $modules = [
                     [
                         'id' => 'categories',
-                        'name' => 'Catégories',
+                        'name' => 'Categories',
                         'icon' => 'fa-tags',
-                        'desc' => 'Importez vos familles de produits.',
+                        'desc' => 'Import your product categories to organize your inventory.',
                     ],
                     [
                         'id' => 'suppliers',
-                        'name' => 'Fournisseurs',
+                        'name' => 'Suppliers',
                         'icon' => 'fa-truck',
-                        'desc' => 'Base de données de vos partenaires.',
+                        'desc' => 'Import your suppliers to manage your procurement process.',
                     ],
                     [
                         'id' => 'products',
-                        'name' => 'Produits',
+                        'name' => 'Products',
                         'icon' => 'fa-box',
-                        'desc' => 'Stock principal et prix.',
+                        'desc' => 'Import your products and manage their inventory.',
                     ],
                     [
                         'id' => 'purchases',
-                        'name' => 'Achats',
+                        'name' => 'Purchases',
                         'icon' => 'fa-shopping-cart',
-                        'desc' => 'Historique des commandes fournisseurs.',
+                        'desc' => 'Import your purchase records to keep track of your inventory inflow.',
                     ],
                     [
                         'id'=>'colors',
-                        'name'=>'Couleurs',
+                        'name'=>'Colors',
                         'icon'=>'fa-palette',
-                        'desc'=>'Gérez les différentes couleurs de vos produits.',
+                        'desc'=>'Manage the different colors of your products.',
                     ]
                 ];
             @endphp
@@ -55,10 +55,10 @@
                                     <input type="file" name="file" class="form-control" required>
                                 </div>
                                 <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary btn-sm">Importer</button>
+                                    <button type="submit" class="btn btn-primary btn-sm">Import</button>
                                     <a href="{{ route('admin.imports.template', $module['id']) }}"
                                         class="btn btn-outline-secondary btn-sm">
-                                        <i class="fas fa-download"></i> Modèle CSV
+                                        <i class="fas fa-download"></i> CSV Template
                                     </a>
                                 </div>
                             </form>

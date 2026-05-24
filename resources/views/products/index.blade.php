@@ -113,37 +113,54 @@
                                     <a href="{{ request()->fullUrlWithQuery(['sort' => 'id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
                                         class="text-dark text-decoration-none">
                                         ID <i
-                                            class="fas fa-sort{{ request('sort') ==  'id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
+                                            class="fas fa-sort{{ request('sort') == 'id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                     </a>
                                 </th>
                                 <th>
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
+                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'product_id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
                                         class="text-dark text-decoration-none">
                                         Produit <i
-                                            class="fas fa-sort{{ request('sort') == 'name' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
+                                            class="fas fa-sort{{ request('sort') == 'product_id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                     </a>
                                 </th>
-                                <th>Catégorie</th>
+                                {{-- variant des produits --}}
+                                <th>
+                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'color_id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
+                                        class="text-dark text-decoration-none">
+                                        Couleur <i
+                                            class="fas fa-sort{{ request('sort') == 'color_id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'category', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
+                                        class="text-dark text-decoration-none">
+                                        Catégorie <i
+                                            class="fas fa-sort{{ request('sort') == 'category' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
+                                    </a>
+
+                                </th>
 
                                 <th class="text-end pe-4">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($products as $item)
+                            @forelse ($productVariants as $item)
                                 <tr>
                                     <td class="ps-4 text-muted small">#{{ $item->id }}</td>
                                     <td>
                                         <div class="fw-bold text-dark"> <a
-                                                href="{{ route('admin.products.show', $item->id) }}">{{ $item->toString() ?? 'N/A' }}</a>
+                                                href="{{ route('admin.products.show', $item->product->id) }}">{{ $item->product->name ?? 'N/A' }}</a>
                                         </div>
                                     </td>
                                     <td>
-                                        @if ($item->category)
-                                            <span
-                                                class="badge bg-light text-dark border">{{ $item->category->name ?? 'N/A' }}</span>
-                                        @else
-                                            <span class="text-muted small">Unassigned</span>
-                                        @endif
+                                        <div class="fw-bold text-dark"> <a
+                                                href="{{ route('admin.products.show', $item->product->id) }}">{{ $item->color->name ?? 'N/A' }}</a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span
+                                            class="badge bg-light text-dark border">{{ $item->getCategoryNameAttribute() ?? 'N/A' }}</span>
+
                                     </td>
                                     <td class="text-end pe-4">
                                         <div class="btn-group">
@@ -155,9 +172,8 @@
                                                 class="btn btn-sm btn-outline-primary" title="Modifier">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <form action="{{ route('admin.products.destroy', $item->id) }}"
-                                                method="POST" class="d-inline"
-                                                onsubmit="return confirm('Delete this product ?');">
+                                            <form action="{{ route('admin.products.destroy', $item->id) }}" method="POST"
+                                                class="d-inline" onsubmit="return confirm('Delete this product ?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger"
@@ -182,7 +198,7 @@
             </div>
             <div class="card-footer py-3">
                 <div class="d-flex justify-content-center">
-                    {{ $products->links() }}
+                    {{ $productVariants->links() }}
                 </div>
             </div>
         </div>

@@ -30,30 +30,30 @@
                     </a>
                 </li>
 
-                <li class="sidebar-header">Gestion Stock</li>
+                <li class="sidebar-header">Management</li>
 
                 <li class="nav-item menu-group">
                     <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
                         href="#stockSubmenu" role="button" aria-expanded="true">
                         <span><i class="fas fa-warehouse fa-fw me-2"></i> <span
-                                class="sidebar-text">Inventaire</span></span>
+                                class="sidebar-text">Inventory</span></span>
                         <i class="fas fa-chevron-down fa-xs"></i>
                     </a>
                     <div class="collapse show" id="stockSubmenu">
                         <a href="{{ route('admin.products.index') }}"
                             class="{{ request()->is('admin/products*') ? 'text-primary fw-bold' : '' }}"
                             data-shortcut="p">
-                            <span class="sidebar-text">Produits</span> <span class="shortcut-badge">Alt+P</span>
+                            <span class="sidebar-text">Products</span> <span class="shortcut-badge">Alt+P</span>
                         </a>
                         <a href="{{ route('admin.categories.index') }}"
                             class="{{ request()->is('admin/categories*') ? 'text-primary fw-bold' : '' }}"
                             data-shortcut="c">
-                            <span class="sidebar-text">Catégories</span> <span class="shortcut-badge">Alt+C</span>
+                            <span class="sidebar-text">Categories</span> <span class="shortcut-badge">Alt+C</span>
                         </a>
                         <a href="{{ route('admin.movements.index') }}"
                             class="{{ request()->is('admin/movements*') ? 'text-primary fw-bold' : '' }}"
                             data-shortcut="m">
-                            <span class="sidebar-text">Mouvements</span> <span class="shortcut-badge">Alt+M</span>
+                            <span class="sidebar-text">Movements</span> <span class="shortcut-badge">Alt+M</span>
                         </a>
                     </div>
                 </li>
@@ -63,29 +63,28 @@
                 <li class="nav-item menu-group">
                     <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
                         href="#commerceSubmenu" role="button" aria-expanded="true">
-                        <span><i class="fas fa-exchange-alt fa-fw me-2"></i> <span class="sidebar-text">Achats
-                                & Ventes</span></span>
+                        <span><i class="fas fa-exchange-alt fa-fw me-2"></i> <span class="sidebar-text">Purchases &
+                                Sales</span></span>
                         <i class="fas fa-chevron-down fa-xs"></i>
                     </a>
                     <div class="collapse show" id="commerceSubmenu">
                         <a href="{{ route('admin.suppliers.index') }}"
                             class="{{ request()->is('admin/suppliers*') ? 'text-primary fw-bold' : '' }}"
                             data-shortcut="f">
-                            <span class="sidebar-text">Fournisseurs</span> <span class="shortcut-badge">Alt+F</span>
+                            <span class="sidebar-text">Suppliers</span> <span class="shortcut-badge">Alt+F</span>
                         </a>
                         <a href="{{ route('admin.purchases.index') }}"
                             class="{{ request()->is('admin/purchases*') ? 'text-primary fw-bold' : '' }}"
                             data-shortcut="a">
-                            <span class="sidebar-text">Achats</span> <span class="shortcut-badge">Alt+A</span>
+                            <span class="sidebar-text">Purchases</span> <span class="shortcut-badge">Alt+A</span>
                         </a>
                     </div>
                 </li>
-                <li class="sidebar-header">Utilisateurs</li>
+                <li class="sidebar-header">Users</li>
                 <li class="nav-item">
                     <a href="{{ route('admin.users.index') }}"
                         class="{{ request()->is('admin/users*') ? 'text-primary fw-bold' : '' }}" data-shortcut="u">
-                        <span><i class="fas fa-users fa-fw me-2"></i> <span
-                                class="sidebar-text">Utilisateurs</span></span>
+                        <span><i class="fas fa-users fa-fw me-2"></i> <span class="sidebar-text">Users</span></span>
                         <span class="shortcut-badge">Alt+U</span>
                     </a>
                 </li>
@@ -100,14 +99,15 @@
                 <span><span class="sidebar-text">Import</span></span>
                 <span class="shortcut-badge">Alt+I</span>
             </a>
-            <a href="{{route('admin.colors.index')}}" class="{{ request()->is('admin/colors*') ? 'active-link' : '' }}" data-shortcut="c">
+            <a href="{{ route('admin.colors.index') }}"
+                class="{{ request()->is('admin/colors*') ? 'active-link' : '' }}" data-shortcut="c">
                 <i class="fas fa-palette fa-fw me-2"></i>
-                <span class="sidebar-text">Couleurs</span>
+                <span class="sidebar-text">Colors</span>
                 <span class="shortcut-badge">Alt+C</span>
             </a>
             <a href="{{ route('admin.settings.index') }}"
                 class="{{ request()->is('admin/settings*') ? 'active-link' : '' }}" data-shortcut="s">
-                <span><i class="fas fa-cog fa-fw me-2"></i> <span class="sidebar-text">Paramètres</span></span>
+                <span><i class="fas fa-cog fa-fw me-2"></i> <span class="sidebar-text">Settings</span></span>
                 <span class="shortcut-badge">Alt+S</span>
             </a>
         </div>
@@ -165,9 +165,10 @@
                                         </div>
                                         <div>
                                             <strong
-                                                class="d-block text-dark">{{ $notification->data['product_name'] ?? 'Produit' }}</strong>
-                                            <small class="text-muted">Stock critique :
-                                                {{ $notification->data['current_stock'] ?? 0 }}</small>
+                                                class="d-block text-dark">{{ $notification->data['product_name'] ?? 'Product' }}</strong>
+                                            <small class="text-muted">Critical Stock Alert:
+                                                {{ $notification->data['current_stock'] ?? 0 }} left</small>
+                                            {{-- <small class="text-muted">Alerte de stock critique : {{ $notification->data['current_stock'] ?? 0 }} restants</small> --- IGNORE --- --}}
                                         </div>
                                     </a>
                                 </li>
@@ -177,8 +178,7 @@
                                     </li>
                                 @endif
                             @empty
-                                <li><span class="dropdown-item text-muted small">Aucune nouvelle
-                                        notification.</span></li>
+                                <li><span class="dropdown-item text-muted small"> No notifications found.</span></li>
                             @endforelse
                         </ul>
                     </div>
@@ -194,14 +194,14 @@
                             <span class="d-none d-md-inline">{{ auth()->user()->name }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">Mon Profil</a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">My Profile</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
-                                    <button class="dropdown-item text-danger" type="submit">Déconnexion</button>
+                                    <button class="dropdown-item text-danger" type="submit">Logout</button>
                                 </form>
                             </li>
                         </ul>

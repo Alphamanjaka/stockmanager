@@ -10,11 +10,11 @@
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
                         <input type="text" name="search" class="form-control border-start-0 ps-0"
-                            placeholder="Rechercher par nom ou référence..." value="{{ request('search') }}">
+                            placeholder="Search by name or reference..." value="{{ request('search') }}">
                     </div>
                 </div>
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
                 </div>
             </form>
         </div>
@@ -62,7 +62,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">Aucun produit trouvé</td>
+                                <td colspan="5" class="text-center py-5 text-muted">No products found.</td>
                             </tr>
                         @endforelse
                     </tbody>

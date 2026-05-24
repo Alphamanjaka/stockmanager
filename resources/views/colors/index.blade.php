@@ -3,9 +3,9 @@
 @section('content')
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Gestion des Couleurs</h1>
+            <h1 class="h3 mb-0 text-gray-800">Color Management</h1>
             <a href="{{ route('admin.colors.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus mr-2"></i> Ajouter une couleur
+                <i class="fas fa-plus mr-2"></i> Add Color
             </a>
         </div>
 
@@ -25,9 +25,9 @@
                         <thead class="thead-light">
                             <tr>
                                 <th>ID</th>
-                                <th>Nom</th>
+                                <th>Name</th>
                                 <th>Code</th>
-                                <th>Aperçu</th>
+                                <th>Preview</th>
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
@@ -66,7 +66,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">Aucune couleur trouvée.</td>
+                                    <td colspan="5" class="text-center py-4 text-muted">No color found.</td>
                                 </tr>
                             @endforelse
                         </tbody>
