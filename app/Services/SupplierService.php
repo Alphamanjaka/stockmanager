@@ -19,11 +19,28 @@ class SupplierService
         return $query->paginate($filters['per_page'] ?? 15)->appends(request()->except('page'));
     }
 
-    public function createSupplier($data)
+    public function createSupplier( array $data) : Supplier
     {
+        if (isset($data['name'])) {
+            $data['name'] = mb_strtolower(trim($data['name']));
+        }
+        if (isset($data['email'])) {
+            $data['email'] = mb_strtolower(trim($data['email']));
+        }
         return Supplier::create($data);
     }
-    public function  applyFilters($query, $filters)
+
+    public function findByEmail(string $email) : ?Supplier
+    {
+        return Supplier::where('email', mb_strtolower(trim($email)))->first();
+    }
+
+    public function getSuppliersByEmails(array $emails)
+    {
+        return Supplier::whereIn('email', $emails)->pluck('id', 'email');
+    }
+
+    public function  applyFilters(  $query, array $filters)
     {
         // On réutilise ta logique de colonnes autorisées
         $sortableColumns = ['name', 'email', 'created_at'];
@@ -32,12 +49,13 @@ class SupplierService
         $order = ($filters['order'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 
         return $query->when($filters['search'] ?? null, function ($q, $search) {
+            $search = mb_strtolower($search);
             $q->where('name', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%");
         })
             ->orderBy($sort, $order);
     }
-    public function getSupplierById($id)
+    public function getSupplierById(int $id)
     {
         return Supplier::findOrFail($id);
     }
@@ -50,7 +68,7 @@ class SupplierService
      */
     public function getSupplierDetails(Supplier $supplier): array
     {
-        $purchases=$supplier->purchases()->where('state', 'Received')->orWhere('state', 'Paid');
+        $purchases = $supplier->purchases()->where('state', 'Received')->orWhere('state', 'Paid');
         // Statistiques globales pour ce fournisseur
         $totalSpent = $purchases->sum('total_net');
         $lastPurchase = $purchases->latest()->first();
@@ -77,6 +95,12 @@ class SupplierService
 
     public function updateSupplier(Supplier $supplier, array $data): Supplier
     {
+        if (isset($data['name'])) {
+            $data['name'] = mb_strtolower(trim($data['name']));
+        }
+        if (isset($data['email'])) {
+            $data['email'] = mb_strtolower(trim($data['email']));
+        }
         $supplier->update($data);
         return $supplier;
     }
