@@ -1,5 +1,9 @@
 # Vitrine - Système Avancé de Gestion de Stock & Commerciale
 
+![PHP Version](https://img.shields.io/badge/php-8.4-blue.svg)
+![Laravel Version](https://img.shields.io/badge/laravel-10.x-red.svg)
+![Docker](https://img.shields.io/badge/docker-enabled-blue.svg)
+
 **Vitrine** est une solution ERP robuste développée avec **Laravel 10** et **PHP 8.4**, conçue pour optimiser la chaîne logistique des entreprises. Au-delà d'une simple gestion de stock, elle intègre une architecture orientée services, une conteneurisation de pointe et des mécanismes de sécurité transactionnelle garantissant l'intégrité des données financières et logistiques.
 
 ## Table des matières
@@ -27,6 +31,13 @@ Ce projet se distingue par une approche industrielle de la gestion de stock :
 - **Système d'Alerte Intelligent** : Surveillance automatisée des niveaux de stock.
 - **Monitoring de Valeur** : La commande `stock:monitor-drop` analyse quotidiennement la valorisation globale du stock et alerte les administrateurs par e-mail en cas de chute suspecte (vol, perte massive).
 - **Seuils Critiques** : Configuration par produit d'un seuil d'alerte déclenchant des notifications de réapprovisionnement.
+
+### 🚀 Module d'Importation Haute Performance
+
+- **Validation granulaire** : Détection des erreurs ligne par ligne avec rapports détaillés (champ, valeur lue, erreur).
+- **Traitement des Variantes** : Gestion intelligente des produits avec ou sans variantes de couleur (intégration automatique de l'élément "No Variant").
+- **Optimisation N+1** : Utilisation d'un système de cache en mémoire pendant l'import pour minimiser les requêtes vers la base de données.
+- **Normalisation automatique** : Nettoyage des données (prix, stocks, formats de texte) avant validation.
 
 ### 📦 Infrastructure Optimisée
 
@@ -94,7 +105,8 @@ Le projet utilise une stratégie de conteneurisation avancée en **3 étapes** p
 
 2.  **Lancer l'installation**
     - **Windows** : Double-cliquez sur `setup-dev.bat`.
-    - **Linux/Mac** :
+      _Ce script gère automatiquement la configuration Docker, la génération de l'APP_KEY, la migration des données et l'extraction des assets._
+    - **Linux/Mac (Manuel)** :
         ```bash
         cp .env.example .env
         docker compose -f compose.dev.yaml up -d --build
@@ -172,13 +184,21 @@ Le projet intègre un pipeline GitHub Actions complet (`.github/workflows/ci.yml
 
 ## Dépannage
 
-### Problèmes courants de Sauvegarde
+### 🔑 Erreur : "No application encryption key has been specified"
+
+Si cette erreur apparaît après une installation Docker :
+
+1. Assurez-vous que le fichier `.env` contient une `APP_KEY`.
+2. Exécutez `docker compose exec php-fpm php artisan config:clear` pour forcer Laravel à relire l'environnement.
+3. Redémarrez les conteneurs avec `docker compose up -d`.
+
+### 💾 Problèmes de Sauvegarde
 
 **1. Erreur : `The dump process failed with exitcode 127` (Command not found)**
 
 Cette erreur indique que PHP ne trouve pas l'outil `pg_dump` (pour PostgreSQL) ou `mysqldump`.
 
-*   **Solution** : Dans un environnement Docker, les outils sont dans le PATH global. Vérifiez `config/database.php` et assurez-vous que `dump_binary_path` est soit `null`, soit `/usr/bin`.
+- **Solution** : Dans un environnement Docker, les outils sont dans le PATH global. Vérifiez `config/database.php` et assurez-vous que `dump_binary_path` est soit `null`, soit `/usr/bin`.
     ```php
     'dump' => [
         'dump_binary_path' => '/usr/bin', // Chemin standard sur Alpine/Debian
@@ -186,7 +206,7 @@ Cette erreur indique que PHP ne trouve pas l'outil `pg_dump` (pour PostgreSQL) o
         'timeout' => 60 * 5,
     ],
     ```
-*   **Vérification** : Lancez `docker compose exec php-fpm pg_dump --version` pour confirmer que l'outil est bien installé dans le conteneur.
+- **Vérification** : Lancez `docker compose exec php-fpm pg_dump --version` pour confirmer que l'outil est bien installé dans le conteneur.
 
 **2. Permissions de Stockage**
 Si le ZIP ne se crée pas, vérifiez que le dossier `storage/app/` appartient bien à l'utilisateur `www-data` (Production) ou `dev` (Local).
