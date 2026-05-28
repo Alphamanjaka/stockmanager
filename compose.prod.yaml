@@ -39,7 +39,6 @@ services:
     environment:
       - APP_DEBUG=true
       - LOG_CHANNEL=stderr # Pour voir les erreurs dans "docker compose logs"
-      - APP_KEY=${APP_KEY} # Pass the APP_KEY from the .env file to the container
     volumes:
       - laravel-public-assets:/var/www/public/build  # Mount built public assets to ensure the manifest.json and hashed files match between Nginx and PHP-FPM
       - laravel-storage-production:/var/www/storage  # Mount the storage volume
@@ -61,12 +60,12 @@ services:
     user: postgres
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
+    env_file:
+      - .env
     environment:
-      - POSTGRES_DB=${DB_DATABASE:-laravel}
+      - POSTGRES_DB=${DB_DATABASE:-app}
       - POSTGRES_USER=${DB_USERNAME:-laravel}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-secret}
-      - APP_DEBUG=true
-      - LOG_CHANNEL=stderr # Pour voir les erreurs dans "docker compose logs"
     volumes:
       - postgres-data-production:/var/lib/postgresql/data
     networks:
@@ -78,7 +77,7 @@ services:
     # This prevents dependent services from starting before the database is ready.
     # -----------------------------------------------------------
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${DB_USERNAME:-laravel}", "-d", "${DB_DATABASE:-laravel}" ]
+      test: [ "CMD", "pg_isready", "-U", "${DB_USERNAME:-laravel}", "-d", "${DB_DATABASE:-app}" ]
       interval: 10s
       timeout: 5s
       retries: 5
