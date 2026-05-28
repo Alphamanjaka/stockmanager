@@ -6,7 +6,6 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Services\CategoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CategoryServiceTest extends TestCase
