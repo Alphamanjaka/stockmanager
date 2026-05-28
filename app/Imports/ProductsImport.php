@@ -71,6 +71,9 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
         if (isset($data['stock'])) {
             $data['stock'] = str_replace([' ', ','], '', (string)$data['stock']);
         }
+        if (isset($data['color'])) {
+            $data['color'] = (string)$data['color'];
+        }
         return $data;
     }
 
