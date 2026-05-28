@@ -77,7 +77,8 @@ class ImportController extends Controller
             }
 
             return back()->with('import_validation_errors', $detailedFailures)
-                ->with('error', 'L\'importation a été annulée car des erreurs de validation ont été détectées.');
+                ->with('error', 'L\'importation a été annulée car des erreurs de validation ont été détectées.' . json_encode($detailedFailures));
+
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'importation [' . $request->type . '] : ' . $e->getMessage(), [
                 'user_id' => auth()->id(),
