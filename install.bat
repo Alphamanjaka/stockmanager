@@ -48,9 +48,14 @@ powershell -Command "if (!(Select-String -Path .env -Pattern '^APP_KEY=' -Quiet)
 
 docker compose -f compose.prod.yaml exec -T php-fpm php artisan key:generate --force
 
-REM Redemarrage du conteneur PHP pour qu'il prenne en compte la nouvelle cle dans son environnement.
-echo    - Redemarrage du conteneur PHP pour charger la nouvelle cle...
-docker compose -f compose.prod.yaml restart php-fpm
+REM Nettoyage du cache de configuration pour forcer Laravel a relire le .env
+echo    - Nettoyage du cache Laravel...
+docker compose -f compose.prod.yaml exec -T php-fpm php artisan config:clear
+
+REM Utilisation de 'up -d' au lieu de 'restart' pour forcer Docker a recharger le fichier .env
+echo    - Rechargement de l'environnement Docker...
+docker compose -f compose.prod.yaml up -d
+
 REM Note : Les optimisations (cache, permissions, migrations) sont maintenant
 REM executees automatiquement par le script entrypoint.sh au demarrage.
 
