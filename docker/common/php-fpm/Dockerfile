@@ -82,11 +82,12 @@ RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.
     && echo "opcache.max_accelerated_files=10000" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
 
 # Laravel optimizations
-RUN php artisan storage:link \
+RUN composer dump-autoload --optimize --no-dev \
+    && php artisan storage:link \
+    && export APP_KEY="base64:$(openssl rand -base64 32)" \
     && php artisan config:cache \
     && php artisan route:cache \
-    && php artisan view:cache \
-    && composer dump-autoload --optimize --no-dev
+    && php artisan view:cache
 
 # Setup storage directories and permissions
 RUN mkdir -p /var/www/storage /var/www/bootstrap/cache \
