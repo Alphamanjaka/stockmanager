@@ -12,7 +12,6 @@ use App\Services\ProductService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
-use Illuminate\Support\Facades\DB;
 
 class ProductServiceTest extends TestCase
 {
@@ -48,7 +47,7 @@ class ProductServiceTest extends TestCase
         $product = $this->service->create($data);
 
         $this->assertInstanceOf(Product::class, $product);
-        $this->assertDatabaseHas('products', ['name' => 'New Awesome Product']);
+        $this->assertDatabaseHas('products', ['name' => strtolower('New Awesome Product')]);
     }
 
     /** @test */
@@ -72,7 +71,7 @@ class ProductServiceTest extends TestCase
 
         $this->assertDatabaseHas('products', [
             'id' => $product->id,
-            'name' => 'New Updated Name',
+            'name' => strtolower('New Updated Name'), // Vérifie que le nom est bien mis en minuscules
             'price' => 123.45,
         ]);
     }
@@ -122,9 +121,9 @@ class ProductServiceTest extends TestCase
     public function it_can_filter_products_by_name_and_category()
     {
         // Si le service utilise des fonctions spécifiques à PostgreSQL (comme ILIKE), cela échouera sur SQLite.
-        if (DB::connection()->getDriverName() === 'sqlite') {
-            $this->markTestSkipped('Test ignoré sur SQLite : Le service utilise probablement des conditions spécifiques à PostgreSQL (ex: ILIKE).');
-        }
+        // if (DB::connection()->getDriverName() === 'sqlite') {
+        //     $this->markTestSkipped('Test ignoré sur SQLite : Le service utilise probablement des conditions spécifiques à PostgreSQL (ex: ILIKE).');
+        // }
 
         $category1 = Category::factory()->create();
         $category2 = Category::factory()->create();
@@ -140,6 +139,7 @@ class ProductServiceTest extends TestCase
         // Filter by category
         $results = $this->service->getAll(['category' => $category2->id]);
         $this->assertCount(1, $results);
+        // make sure the correct product is returned
         $this->assertEquals('Samsung Galaxy', $results->first()->name);
     }
 }

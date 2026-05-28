@@ -50,4 +50,11 @@ class Product extends Model
     {
         return $this->name;
     }
+
+    // funciton scopeSearch
+    public function scopeSearch($query, $term)
+    {
+        $term = strtolower($term);
+        return $query->whereRaw('LOWER(name) LIKE ?', ["%{$term}%"]);
+    }
 }

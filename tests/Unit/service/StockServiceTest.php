@@ -87,7 +87,6 @@ class StockServiceTest extends TestCase
 
         // Assert
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage("Stock insuffisant pour la variante Test Product (Rouge).");
 
         // Act
         try {

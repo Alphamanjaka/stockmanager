@@ -13,7 +13,12 @@ abstract class BaseService
         $query = $this->model->query();
 
         if (!empty($filters['search']) && method_exists($this->model, 'scopeSearch')) {
+            // Appel de la méthode de recherche personnalisée du modèle
             $query->search($filters['search']);
+        }
+        // filtrage par catégorie si le filtre est présent
+        if (!empty($filters['category'])) {
+            $query->where('category_id', $filters['category']);
         }
         // Ajout de la logique de tri générique
         $sort = $filters['sort'] ?? 'id'; // Tri par défaut par 'id'

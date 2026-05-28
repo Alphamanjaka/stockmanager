@@ -1,11 +1,12 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit\service;
 
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\CategoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CategoryServiceTest extends TestCase
@@ -23,22 +24,32 @@ class CategoryServiceTest extends TestCase
     /** @test */
     public function it_can_create_a_category_and_sync_children()
     {
+
+        $parent = Category::create(['name' => 'Parent Tech']);
+
         // Arrange: On crée des catégories qui deviendront enfants
-        $child1 = Category::create(['name' => 'Enfant 1']);
-        $child2 = Category::create(['name' => 'Enfant 2']);
+        $child1 = Category::create(['name' => 'Enfant 1'], ['parent_id' => $parent->id]);
+        $child2 = Category::create(['name' => 'Enfant 2'], ['parent_id' => $parent->id]);
 
         $data = [
-            'name' => 'Parent Tech',
+            'name' => 'Parent Tech 2',
             'children' => [$child1->id, $child2->id]
         ];
+
 
         // Act: Appel du service
         $category = $this->service->create($data);
 
-        // Assert: Vérifications
-        $this->assertDatabaseHas('categories', ['name' => 'Parent Tech']);
-        $this->assertEquals($category->id, $child1->fresh()->parent_id);
-        $this->assertEquals($category->id, $child2->fresh()->parent_id);
+        // Assert: Vérifier que l'objet est bien retourné et persisté
+        $this->assertInstanceOf(Category::class, $category);
+        $this->assertDatabaseHas('categories', [
+            'id' => $category->id,
+            'name' => 'parent tech 2', // Vérifie que le nom est bien mis en minuscules
+        ]);
+
+        // Vérifier le lien de parenté sur les enfants
+        $this->assertEquals($category->id, $child1->refresh()->parent_id);
+        $this->assertEquals($category->id, $child2->refresh()->parent_id);
     }
 
     /** @test */
@@ -58,6 +69,7 @@ class CategoryServiceTest extends TestCase
     /** @test */
     public function it_calculates_correct_stats()
     {
+
         // Arrange
         $cat = Category::create(['name' => 'Hardware']);
         Product::create(['name' => 'Mouse', 'category_id' => $cat->id, 'price' => 10, 'stock' => 5]);
