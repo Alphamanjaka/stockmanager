@@ -32,7 +32,8 @@ class ImportController extends Controller
             'products'   => new ProductsImport(
                 app(ProductService::class),
                 app(SettingService::class),
-                app(CategoryService::class)
+                app(CategoryService::class),
+                app(ProductColorService::class)
             ),
             'suppliers'  => new SupplierImport(app(SupplierService::class)),
             'categories' => new CategoryImport(app(CategoryService::class)),
