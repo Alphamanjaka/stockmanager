@@ -213,4 +213,16 @@ Si le ZIP ne se crée pas, vérifiez que le dossier `storage/app/` appartient bi
 
 ---
 
+## 🎯 Réalisations Techniques (Pour CV)
+
+Dans le cadre de ce projet, j'ai mis en œuvre des solutions à des problématiques d'ingénierie complexes :
+
+- **Optimisation de performance** : Gestion de l'import de données avec suppression des requêtes N+1 (Cache local).
+- **Haute disponibilité des données** : Utilisation de `DB::transaction` et de verrous SQL (`lockForUpdate`) pour les opérations critiques.
+- **Expertise Docker** : Configuration d'images Multi-stage ultra-légères basées sur Alpine Linux.
+- **Clean Code** : Application rigoureuse des principes SOLID et du Service Layer Pattern.
+- **Automatisation DevOps** : Scripting d'installation (`.bat`) et intégration continue (CI).
+
+---
+
 _Développé avec ❤️ pour une gestion de stock sans faille._
