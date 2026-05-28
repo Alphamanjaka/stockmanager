@@ -28,7 +28,7 @@
                 @if (session('import_validation_errors'))
                     <hr>
                     <div class="small">
-                        <strong>Détails des erreurs rencontrées :</strong>
+                        <strong>Issues detail during import :</strong>
                         <ul class="mb-0 mt-2">
                             @foreach ((array) session('import_validation_errors') as $failure)
                                 <li>
