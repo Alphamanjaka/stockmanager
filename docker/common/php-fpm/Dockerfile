@@ -1,64 +1,76 @@
-# Stage 1: Build Stage
-# This stage compiles PHP extensions and installs Composer dependencies.
-# It contains build tools that will not be in the final production image.
-FROM php:8.4-fpm-alpine AS build
+# Stage 1: Composer Dependencies
+# This stage is dedicated to installing PHP Composer dependencies.
+# Using the official Composer image ensures Composer is readily available.
+FROM composer:2 AS composer_dependencies
+
+WORKDIR /app
+
+# Copy composer files first for better layer caching
+COPY composer.json composer.lock ./
+
+# Install production Composer dependencies. This layer is cached as long as
+# composer.lock doesn't change. --no-scripts is important to prevent
+# execution of arbitrary commands during build.
+RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --no-scripts --no-autoloader --ignore-platform-reqs
+
+# Stage 2: Node Assets
+# This stage builds the frontend assets (CSS/JS) using Node.js.
+FROM node:20-alpine AS node_assets
+WORKDIR /app
+# Copy only necessary files for asset building
+COPY package.json package-lock.json vite.config.js ./
+COPY resources/ ./resources/
+RUN npm ci && npm run build
+
+# Stage 3: Production environment (minimal footprint)
+# This is the final image for production, containing only the runtime
+# PHP environment and the application code.
+FROM php:8.4-fpm-alpine AS production
 
 WORKDIR /var/www
 
-# Install build dependencies, PHP extensions, and Composer
-RUN apk add --no-cache \
-    curl git unzip \
+# Copy composer binary from the official image to the final production image
+# This is required to run 'composer dump-autoload' later in this stage.
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+
+# Install build dependencies temporarily for PHP extensions, then remove them.
+# This keeps the final image small by not including build tools.
+RUN apk add --no-cache --virtual .build-deps \
     autoconf gcc g++ make \
     postgresql-dev oniguruma-dev libzip-dev icu-dev \
     openssl-dev libxml2-dev curl-dev \
     freetype-dev libjpeg-turbo-dev libpng-dev \
     linux-headers \
+    # Install PECL extensions
     && pecl install redis \
     && docker-php-ext-enable redis \
+    # Configure and install core PHP extensions
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo pdo_pgsql gd bcmath zip intl soap opcache \
-    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Copy composer files first (better layer caching)
-COPY composer.json composer.lock ./
-
-# Install production Composer dependencies. This layer is cached as long as composer.lock doesn't change.
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
-
-# Stage 1.5: Node Build Stage
-# This stage builds the frontend assets (CSS/JS) using Node.js.
-FROM node:20-alpine AS node_build
-WORKDIR /app
-COPY . .
-RUN npm install
-RUN npm run build
-
-# Stage 2: Production environment (minimal footprint)
-FROM php:8.4-fpm-alpine AS production
-
-WORKDIR /var/www
-
-# Copy pre-compiled extensions and PHP config from the build stage
-COPY --from=build /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
-COPY --from=build /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
-COPY --from=build /usr/local/bin/composer /usr/local/bin/composer
-
-# Install only runtime dependencies (no build tools, no -dev packages)
-RUN apk add --no-cache \
+    # Remove build dependencies
+    && apk del .build-deps \
+    # Install only runtime dependencies (no build tools, no -dev packages)
+    && apk add --no-cache \
     postgresql-client \
     libpng \
     libjpeg-turbo \
     freetype \
-    icu-libs libzip libxml2 libsodium
+    icu-libs \
+    libzip \
+    libxml2 \
+    libsodium \
+    git \
+    unzip \
+    curl
 
-# Copy application code from the host
+# Copy application code from the host (ensure .dockerignore is configured to exclude unnecessary files)
 COPY . /var/www
 
-# Copy Composer dependencies from the build stage (after code copy to ensure priority)
-COPY --from=build /var/www/vendor /var/www/vendor
+# Copy Composer dependencies from the composer_dependencies stage
+COPY --from=composer_dependencies /app/vendor /var/www/vendor
 
-# Copy built assets from the node_build stage
-COPY --from=node_build /app/public/build /var/www/public/build
+# Copy built assets from the node_assets stage
+COPY --from=node_assets /app/public/build /var/www/public/build
 
 # Set production PHP config
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
@@ -68,6 +80,13 @@ RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.
     && echo "opcache.validate_timestamps=0" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
     && echo "opcache.memory_consumption=128" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
     && echo "opcache.max_accelerated_files=10000" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
+
+# Laravel optimizations
+RUN php artisan storage:link \
+    && php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache \
+    && composer dump-autoload --optimize --no-dev
 
 # Setup storage directories and permissions
 RUN mkdir -p /var/www/storage /var/www/bootstrap/cache \
@@ -83,7 +102,7 @@ ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 EXPOSE 9000
 CMD ["php-fpm"]
 
-# Stage 3: Development environment (extends production)
+# Stage 4: Development environment (extends production)
 FROM production AS development
 
 USER root
