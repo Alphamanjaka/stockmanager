@@ -45,7 +45,7 @@
                                     <th>Prix (MGA)</th>
                                     <th>Stock actuel</th>
                                     <th>Seuil d'alerte</th>
-                                    <th class="text-end">Actions</th>
+                                    {{-- <th class="text-end">Actions</th> --}}
                                 </tr>
                             </thead>
                             <tbody id="variants-table-body">
@@ -59,10 +59,10 @@
                                                 class="badge {{ $variant->stock <= $variant->alert_stock ? 'bg-danger' : 'bg-success' }}">{{ $variant->stock }}</span>
                                         </td>
                                         <td>{{ $variant->alert_stock }}</td>
-                                        <td class="text-end">
+                                        {{-- <td class="text-end">
                                             <a href="{{ route('admin.products.edit', $variant->id) }}"
                                                 class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
-                                        </td>
+                                        </td> --}}
                                     </tr>
                                 @empty
                                     <tr>
