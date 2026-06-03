@@ -11,7 +11,8 @@
                 <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-primary shadow-sm">
                     <i class="bi bi-pencil"></i> Update
                 </a>
-                <a href="{{ route('admin.purchases.pdf.preview', $purchase->id) }}" class="btn btn-danger shadow-sm" target="_blank">
+                <a href="{{ route('admin.purchases.pdf.preview', $purchase->id) }}" class="btn btn-danger shadow-sm"
+                    target="_blank">
                     <i class="bi bi-file-earmark-pdf"></i> Download as PDF
                 </a>
             </div>
@@ -38,7 +39,7 @@
                                 <tbody>
                                     @foreach ($purchase->items as $item)
                                         <tr>
-                                            <td>{{ $item->product->name }}</td>
+                                            <td>{{ $item->productColor->toString() }}</td>
                                             <td class="text-center">{{ $item->quantity }}</td>
                                             <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
                                             <td class="text-end">{{ number_format($item->subtotal, 2) }}</td>
@@ -109,13 +110,18 @@
                         <h5 class="mb-0">suppliers</h5>
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title">{{ $purchase->supplier->name }}</h5>
+                        <h5 class="card-title">{{ $purchase->supplier->name ?? 'Non renseigné' }}</h5>
                         <p class="card-text mb-1"><i class="bi bi-envelope-fill text-muted"></i>
-                            {{ $purchase->supplier->email }}</p>
+                            {{ $purchase->supplier->email ?? 'Non renseigné' }}</p>
                         <p class="card-text"><i class="bi bi-telephone-fill text-muted"></i>
                             {{ $purchase->supplier->phone ?? 'Non renseigné' }}</p>
-                        <a href="{{ route('admin.suppliers.show', $purchase->supplier->id) }}"
-                            class="btn btn-sm btn-outline-primary">more</a>
+                        @if ($purchase->supplier)
+                            {
+                            <a href="{{ route('admin.suppliers.show', $purchase->supplier->id) }}"
+                                class="btn btn-sm btn-outline-primary">more</a>
+                            }
+                        @endif
+
                     </div>
                 </div>
             </div>

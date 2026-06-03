@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
+/**
+ * Service dédié à la gestion des couleurs de produits et de leurs stocks associés.
+ * Ce service orchestre les interactions entre les modèles ProductColor, Color, Product,
+ * ainsi que les services liés à la gestion des stocks et des ventes.
+ */
 class ProductColorService extends BaseService
 {
 

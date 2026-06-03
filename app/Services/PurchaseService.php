@@ -4,13 +4,12 @@ namespace App\Services;
 
 use App\Models\Purchase;
 use Illuminate\Support\Facades\DB;
-use App\Services\ProductColorService;
 
 class PurchaseService
 {
 
     // Injecter StockService pour gérer les mouvements de stock lors des achats
-    public function __construct(protected StockService $stockService){}
+    public function __construct(protected StockService $stockService) {}
     public function deletePurchase(int $id)
     {
         $purchase = Purchase::findOrFail($id);
@@ -47,7 +46,15 @@ class PurchaseService
     }
 
     // Traite un achat : création de l'achat, des lignes d'achat et mise à jour du stock
-    public function processPurchase(int $supplierId, array $items)
+    /**
+     * Traite un achat : création de l'achat, des lignes d'achat.
+     * Le stock n'est pas augmenté ici mais lors du passage au statut "Reçu".
+     *
+     * @param int|null $supplierId
+     * @param array $items
+     * @return Purchase
+     */
+    public function processPurchase(?int $supplierId, array $items)
     {
         return DB::transaction(function () use ($supplierId, $items) {
             $totalAmount = 0;
@@ -102,6 +109,8 @@ class PurchaseService
 
     /**
      * Get single purchase by ID
+     * @param integer $id
+     * @return Purchase
      */
     public function getPurchaseById(int $id)
     {
@@ -250,55 +259,88 @@ class PurchaseService
     }
 
     /**
+     * Crée des commandes d'achat groupées par fournisseur à partir d'une liste de produits en rupture.
+     *
+     * @param array $itemsToOrder
+     * @return array Liste des achats créés
+     */
+    public function     createPurchasesFromShortage(array $itemsToOrder): array
+    {
+        return DB::transaction(function () use ($itemsToOrder) {
+            $itemsBySupplier = collect($itemsToOrder)->groupBy('supplier_id');
+            $createdPurchases = [];
+
+            foreach ($itemsBySupplier as $supplierId => $items) {
+                // Si le groupement par 'supplier_id' donne une clé vide (null/empty), on passe null
+                $actualSupplierId = ($supplierId === "" || $supplierId === null) ? null : (int) $supplierId;
+                $createdPurchases[] = $this->processPurchase($actualSupplierId, $items->toArray());
+            }
+
+            return $createdPurchases;
+        });
+    }
+
+    /**
      * Regroupe les produits en rupture de stock par leur dernier fournisseur connu.
      *
      * @return \Illuminate\Support\Collection
      */
     public function getShortageProductsGroupedBySupplier()
     {
+        // --- ANCIEN CODE COMMENTÉ ---
+        /*
         $productColorService = app(ProductColorService::class);
         $shortageProducts = $productColorService->getShortageProducts();
+        ... (logique Query Builder)
+        */
 
-        if ($shortageProducts->isEmpty()) {
+        // --- NOUVELLE LOGIQUE SQL BRUT ---
+        $sql = "
+            SELECT
+                pc.id, pc.stock, pc.alert_stock, pc.price,
+                p.name as product_name,
+                c.name as color_name,
+                lp.unit_price as last_unit_price,
+                lp.supplier_id as last_supplier_id,
+                lp.supplier_name as last_supplier_name
+            FROM product_colors pc
+            INNER JOIN products p ON pc.product_id = p.id
+            INNER JOIN colors c ON pc.color_id = c.id
+            LEFT JOIN (
+                SELECT pi.product_color_id, pi.unit_price, s.id as supplier_id, s.name as supplier_name
+                FROM purchase_items pi
+                JOIN purchases pur ON pi.purchase_id = pur.id
+                JOIN suppliers s ON pur.supplier_id = s.id
+                WHERE pi.created_at = (
+                    SELECT MAX(created_at)
+                    FROM purchase_items
+                    WHERE product_color_id = pi.product_color_id
+                )
+            ) lp ON pc.id = lp.product_color_id
+            WHERE pc.stock <= pc.alert_stock AND pc.alert_stock > 0
+        ";
+
+        $results = DB::select($sql);
+
+        if (empty($results)) {
             return collect();
         }
 
-        $productIds = $shortageProducts->pluck('id');
-
-        // Requête optimisée pour trouver le dernier achat pour chaque produit
-        $subQuery = DB::table('purchase_items')
-            ->join('product_colors', 'purchase_items.product_color_id', '=', 'product_colors.id')
-            ->select('product_colors.product_id', DB::raw('MAX(purchase_items.created_at) as last_purchase_date'))
-            ->whereIn('product_colors.product_id', $productIds)
-            ->groupBy('product_colors.product_id');
-
-        $lastPurchases = DB::table('purchase_items as pi')
-            ->join('product_colors as pc', 'pi.product_color_id', '=', 'pc.id')
-            ->joinSub($subQuery, 'latest_pi', function ($join) {
-                $join->on('pc.product_id', '=', 'latest_pi.product_id')
-                    ->on('pi.created_at', '=', 'latest_pi.last_purchase_date');
-            })
-            ->join('purchases as p', 'pi.purchase_id', '=', 'p.id')
-            ->join('suppliers as s', 'p.supplier_id', '=', 's.id')
-            ->select('pc.product_id', 'pi.unit_price', 's.id as supplier_id', 's.name as supplier_name')
-            ->get()
-            ->keyBy('product_id');
-
-        // Associer les informations de fournisseur à chaque produit
-        $productsWithSupplier = $shortageProducts->map(function ($product) use ($lastPurchases) {
-            if (isset($lastPurchases[$product->id])) {
-                $purchaseInfo = $lastPurchases[$product->id];
-                $product->last_supplier_id = $purchaseInfo->supplier_id;
-                $product->last_supplier_name = $purchaseInfo->supplier_name;
-                $product->last_unit_price = $purchaseInfo->unit_price;
-            } else {
-                $product->last_supplier_id = null;
-                $product->last_supplier_name = 'Aucun historique d\'achat';
-                $product->last_unit_price = $product->price * 0.75; // Prix de repli
+        $productsWithSupplier = collect($results)->map(function ($item) {
+            // Formatage des noms pour la vue (objet simulé)
+            $product = new \stdClass();
+            foreach ($item as $key => $value) {
+                $product->$key = $value;
             }
 
-            // Suggérer une quantité à commander
-            $deficit = $product->alert_stock - $product->quantity_stock;
+            // Données de repli si aucun historique fournisseur
+            if (!$product->last_supplier_id) {
+                $product->last_supplier_name = 'No Supplier Assigned';
+                $product->last_unit_price = $product->price * 0.75;
+            }
+
+            // Calcul de la suggestion de quantité (Indépendant du fournisseur)
+            $deficit = $product->alert_stock - $product->stock;
             $product->suggested_quantity = (int) ceil($deficit + ($product->alert_stock * 0.5));
             if ($product->suggested_quantity <= 0) {
                 $product->suggested_quantity = $product->alert_stock > 0 ? $product->alert_stock : 10;
@@ -307,7 +349,7 @@ class PurchaseService
             return $product;
         });
 
-        // Grouper par fournisseur pour la vue
+        // Regroupement final (Gardé pour la compatibilité de la vue, mais inclut les 'null')
         return $productsWithSupplier->groupBy('last_supplier_id')
             ->map(function ($products, $supplierId) {
                 return [

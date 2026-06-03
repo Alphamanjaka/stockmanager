@@ -16,7 +16,7 @@
     @endif
 
     <div class="row justify-content-center">
-        <div class="col-md-10">
+        <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">Edit a Purchase #{{ $purchase->reference }}</h5>
@@ -30,6 +30,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="supplier_id" class="form-label">Supplier</label>
                                 <select name="supplier_id" id="supplier_id" class="form-select">
+                                    <option value="">Sélectionner un fournisseur</option>
                                     @foreach ($suppliers as $supplier)
                                         <option value="{{ $supplier->id }}"
                                             {{ old('supplier_id', $purchase->supplier_id) == $supplier->id ? 'selected' : '' }}>
@@ -75,8 +76,8 @@
                                                     @foreach ($products as $product)
                                                         <option value="{{ $product->id }}"
                                                             data-price="{{ $product->price }}"
-                                                            {{ $item->product_id == $product->id ? 'selected' : '' }}>
-                                                            {{ $product->name }} (Stock: {{ $product->quantity_stock }})
+                                                            {{ $item->product_color_id == $product->id ? 'selected' : '' }}>
+                                                            {{ $product->toString() }} (Stock: {{ $product->stock }})
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -136,7 +137,7 @@
                     <option value="">Sélectionner un produit</option>
                     @foreach ($products as $product)
                         <option value="{{ $product->id }}" data-price="{{ $product->price }}">
-                            {{ $product->name }} (Stock: {{ $product->quantity_stock }})
+                            {{ $product->toString() }} (Stock: {{ $product->quantity_stock }})
                         </option>
                     @endforeach
                 </select>

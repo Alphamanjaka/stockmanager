@@ -55,27 +55,25 @@
                                                     <div class="form-check d-flex justify-content-center">
                                                         <input class="form-check-input" type="checkbox"
                                                             name="items[{{ $product->id }}][selected]" value="1"
-                                                            @if ($group['supplier_id']) checked @else disabled @endif>
+                                                            checked>
                                                     </div>
-                                                    @if ($group['supplier_id'])
-                                                        <input type="hidden" name="items[{{ $product->id }}][supplier_id]"
-                                                            value="{{ $group['supplier_id'] }}">
-                                                        <input type="hidden" name="items[{{ $product->id }}][product_id]"
-                                                            value="{{ $product->id }}">
-                                                        <input type="hidden" name="items[{{ $product->id }}][unit_price]"
-                                                            value="{{ $product->last_unit_price }}">
-                                                    @endif
+                                                    {{-- Ces champs doivent toujours être présents pour éviter les erreurs "Undefined array key" lors de la soumission --}}
+                                                    <input type="hidden" name="items[{{ $product->id }}][supplier_id]"
+                                                        value="{{ $group['supplier_id'] }}">
+                                                    <input type="hidden" name="items[{{ $product->id }}][product_id]"
+                                                        value="{{ $product->id }}">
+                                                    <input type="hidden" name="items[{{ $product->id }}][unit_price]"
+                                                        value="{{ $product->last_unit_price }}">
                                                 </td>
-                                                <td>{{ $product->name }}</td>
-                                                <td class="text-center">{{ $product->quantity_stock }}</td>
+                                                <td>{{ $product->product_name }}</td>
+                                                <td class="text-center">{{ $product->stock }}</td>
                                                 <td class="text-center">{{ $product->alert_stock }}</td>
                                                 <td class="text-end">
                                                     {{ number_format($product->last_unit_price, 2, ',', ' ') }} MGA</td>
                                                 <td>
                                                     <input type="number" class="form-control form-control-sm"
                                                         name="items[{{ $product->id }}][quantity]"
-                                                        value="{{ $product->suggested_quantity }}" min="1"
-                                                        @if (!$group['supplier_id']) disabled @endif>
+                                                        value="{{ $product->suggested_quantity }}" min="1">
                                                 </td>
                                             </tr>
                                         @endforeach

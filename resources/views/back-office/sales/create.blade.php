@@ -6,7 +6,8 @@
     <form action="{{ route('admin.sales.store') }}" method="POST" id="sale-form">
         @csrf
         <div class="row">
-            <div class="col-md-8">
+            {{-- section  --}}
+            <div class="col-md-9">
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-white fw-bold">Products in Cart</div>
                     <div class="card-body">
@@ -23,12 +24,13 @@
                             <tbody id="product-list">
                                 <tr class="product-row">
                                     <td>
-                                        <select name="products[0][product_color_id]" class="form-select product-select" required>
+                                        <select name="products[0][product_color_id]" class="form-select product-select"
+                                            required>
                                             <option value="" data-price="0" data-stock="0">Choose...</option>
                                             @foreach ($items as $item)
                                                 <option value="{{ $item->id }}" data-price="{{ $item->price }}"
                                                     data-stock="{{ $item->stock }}">
-                                                    {{ $item->toString() }} ({{ $item->stock }} available)
+                                                    {{ $item->toString() }} ({{ $item->stock }})
                                                 </option>
                                             @endforeach
                                         </select>
@@ -56,7 +58,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card shadow-sm sticky-top" style="top: 20px;">
                     <div class="card-header bg-dark text-white fw-bold">Transaction Summary</div>
                     <div class="card-body">

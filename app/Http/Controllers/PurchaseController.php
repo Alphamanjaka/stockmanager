@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Psy\CodeCleaner\IssetPass;
 
 class PurchaseController extends Controller
 {
@@ -44,6 +45,8 @@ class PurchaseController extends Controller
 
     /**
      * Affiche la page de création de commandes à partir des ruptures de stock.
+     * Récupère les produits en rupture de stock groupés par fournisseur pour faciliter la création de commandes.
+     * @return \Illuminate\View\View
      */
     public function createFromShortage()
     {
@@ -56,60 +59,36 @@ class PurchaseController extends Controller
 
     /**
      * Crée les commandes soumises depuis la page de suggestion.
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function storeFromShortage(Request $request)
     {
-        $submittedItems = $request->input('items', []);
-        $itemsToOrder = [];
-
-        // Filtrer et valider les produits sélectionnés par l'utilisateur
-        foreach ($submittedItems as $productId => $item) {
-            if (isset($item['selected']) && filter_var($item['quantity'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])) {
-                $itemsToOrder[] = [
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'supplier_id' => $item['supplier_id'],
-                ];
-            }
-        }
+        // Transformation et validation initiale des données soumises
+        $itemsToOrder = collect($request->input('items', []))
+            ->filter(fn($item) => isset($item['selected']))
+            ->map(fn($item, $id) => [
+                'product_color_id' => $item['product_id'] ?? $id,
+                'quantity' => (int) ($item['quantity'] ?? 0),
+                'unit_price' => (float) ($item['unit_price'] ?? 0),
+                'supplier_id' => !empty($item['supplier_id']) ? (int) $item['supplier_id'] : null,
+            ])
+            ->filter(fn($item) => $item['quantity'] > 0)
+            ->values()
+            ->all();
 
         if (empty($itemsToOrder)) {
-            return redirect()->back()->with('warning', 'Aucun produit n\'a été sélectionné ou les quantités étaient invalides.');
+            return redirect()->back()->with('warning', 'Aucun produit valide n\'a été sélectionné.');
         }
 
-        // Regrouper par fournisseur pour créer un bon de commande par fournisseur
-        $itemsBySupplier = collect($itemsToOrder)->groupBy('supplier_id');
-
-        $createdPurchases = [];
-        $skippedCount = 0;
-
-        DB::beginTransaction();
         try {
-            foreach ($itemsBySupplier as $supplierId => $items) {
-                // Ignorer les produits sans fournisseur valide
-                if (empty($supplierId)) {
-                    $skippedCount += $items->count();
-                    continue;
-                }
+            $createdPurchases = $this->purchaseService->createPurchasesFromShortage($itemsToOrder);
 
-                $purchase = $this->purchaseService->processPurchase($supplierId, $items->toArray());
-                $createdPurchases[] = $purchase;
-            }
-            DB::commit();
+            return redirect()->route('admin.purchases.index')
+                ->with('success', count($createdPurchases) . ' commande(s) d\'achat créée(s) avec succès.');
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Échec de la création des commandes depuis la rupture de stock: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Une erreur est survenue lors de la création des commandes. Veuillez réessayer.');
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de la création : ' . $e->getMessage());
         }
-
-        $message = count($createdPurchases) . ' commande(s) d\'achat créée(s) avec succès.';
-        if ($skippedCount > 0) {
-            $message .= " $skippedCount produit(s) ont été ignorés car aucun fournisseur n'était associé.";
-        }
-
-        // Rediriger vers la liste des achats avec un message de succès
-        return redirect()->route('admin.purchases.index')->with('success', $message);
     }
 
 
@@ -144,7 +123,7 @@ class PurchaseController extends Controller
      */
     public function create()
     {
-        $productsVariant = $this->productColorService->getAll();
+        $productsVariant = $this->productColorService->getAll([], false);
         $suppliers = $this->supplierService->getAllSuppliers();
         return view('purchases.create', compact('productsVariant', 'suppliers'));
     }
@@ -158,7 +137,7 @@ class PurchaseController extends Controller
 
         try {
             $purchase = $this->purchaseService->processPurchase(
-                $data['supplier_id'],
+                $data['supplier_id'] ?? null,
                 $data['products']
             );
 
@@ -184,7 +163,7 @@ class PurchaseController extends Controller
     public function edit(int $id)
     {
         $purchase = $this->purchaseService->getPurchaseById($id);
-        $products = $this->productColorService->getAll();
+        $products = $this->productColorService->getAll([], false);
         $suppliers = $this->supplierService->getAllSuppliers();
         return view('purchases.edit', compact('purchase', 'products', 'suppliers'));
     }
@@ -219,7 +198,7 @@ class PurchaseController extends Controller
     public function update(Request $request, int $id)
     {
         $validated = $request->validate([
-            'supplier_id'           => 'required|exists:suppliers,id',
+            'supplier_id'           => 'nullable|exists:suppliers,id',
             'products'              => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity'   => 'required|integer|min:1',

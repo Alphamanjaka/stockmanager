@@ -9,14 +9,8 @@ use Illuminate\Http\Request;
 
 class StockMovementController extends Controller
 {
-    protected StockService $stockService;
-    protected ProductColorService $productColorService;
-
-    public function __construct(StockService $stockService, ProductColorService $productColorService)
-    {
-        $this->stockService = $stockService;
-        $this->productColorService = $productColorService;
-    }
+    public function __construct(protected StockService $stockService,protected ProductColorService $productColorService)
+    {}
 
     /**
      * Display a listing of the resource.
@@ -44,7 +38,7 @@ class StockMovementController extends Controller
      */
     public function create()
     {
-        $productColors = $this->productColorService->getAll();
+        $productColors = $this->productColorService->getAll([], false);
         return view('stock_movements.create', compact('productColors'));
     }
 
