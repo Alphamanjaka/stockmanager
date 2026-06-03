@@ -158,14 +158,16 @@
             <div>État: {{ $purchase->state }}</div>
         </div>
     </div>
-
-    <div class="supplier-info">
-        <div class="section-title">Informations Fournisseur</div>
-        <strong>{{ $purchase->supplier->name }}</strong><br>
-        {{ $purchase->supplier->address }}<br>
-        {{ $purchase->supplier->phone }}<br>
-        {{ $purchase->supplier->email }}
-    </div>
+    @if ($purchase->supplier)
+        <div class="supplier-info">
+            {{-- Informations Fournisseur si disponibles --}}
+            <div class="section-title">Informations Fournisseur</div>
+            <strong>{{ $purchase->supplier->name }}</strong><br>
+            {{ $purchase->supplier->address }}<br>
+            {{ $purchase->supplier->phone }}<br>
+            {{ $purchase->supplier->email }}
+        </div>
+    @endif
 
     <table>
         <thead>
@@ -179,7 +181,7 @@
         <tbody>
             @foreach ($purchase->items as $item)
                 <tr>
-                    <td>{{ $item->product->name }}</td>
+                    <td>{{ $item->productColor->toString() }}</td>
                     <td class="text-center">{{ $item->quantity }}</td>
                     <td class="text-right">{{ number_format($item->unit_price, 2, ',', ' ') }}</td>
                     <td class="text-right">{{ number_format($item->subtotal, 2, ',', ' ') }}</td>
