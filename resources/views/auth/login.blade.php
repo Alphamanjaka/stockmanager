@@ -310,9 +310,9 @@
                 </button>
             </form>
 
-            <div class="register-link">
+            {{-- <div class="register-link">
                 Pas encore inscrit ? <a href="{{ route('register') }}">Créer un compte</a>
-            </div>
+            </div> --}}
         </div>
     </div>
 
