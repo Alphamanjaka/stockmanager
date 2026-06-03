@@ -19,7 +19,7 @@ class SupplierService
         return $query->paginate($filters['per_page'] ?? 15)->appends(request()->except('page'));
     }
 
-    public function createSupplier( array $data) : Supplier
+    public function createSupplier(array $data): Supplier
     {
         if (isset($data['name'])) {
             $data['name'] = mb_strtolower(trim($data['name']));
@@ -30,7 +30,7 @@ class SupplierService
         return Supplier::create($data);
     }
 
-    public function findByEmail(string $email) : ?Supplier
+    public function findByEmail(string $email): ?Supplier
     {
         return Supplier::where('email', mb_strtolower(trim($email)))->first();
     }
@@ -40,7 +40,7 @@ class SupplierService
         return Supplier::whereIn('email', $emails)->pluck('id', 'email');
     }
 
-    public function  applyFilters(  $query, array $filters)
+    public function  applyFilters($query, array $filters)
     {
         // On réutilise ta logique de colonnes autorisées
         $sortableColumns = ['name', 'email', 'created_at'];
@@ -68,7 +68,7 @@ class SupplierService
      */
     public function getSupplierDetails(Supplier $supplier): array
     {
-        $purchases = $supplier->purchases()->where('state', 'Received')->orWhere('state', 'Paid');
+        $purchases = $supplier->purchases()->where('state', 'Received');
         // Statistiques globales pour ce fournisseur
         $totalSpent = $purchases->sum('total_net');
         $lastPurchase = $purchases->latest()->first();
@@ -78,8 +78,7 @@ class SupplierService
             ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
             ->join('products', 'purchase_items.product_color_id', '=', 'products.id')
             ->where('purchases.supplier_id', $supplier->id)
-            ->where('purchases.state', 'Received')
-            ->orWhere('purchases.state', 'Paid')
+            ->where('purchases.state', 'Received') // Only consider received purchases for top products
             ->select(
                 'products.name',
                 DB::raw('SUM(purchase_items.quantity) as total_qty'),

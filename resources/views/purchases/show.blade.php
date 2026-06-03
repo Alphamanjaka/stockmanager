@@ -8,9 +8,12 @@
                 <i class="bi bi-arrow-left"></i> Back to Purchases
             </a>
             <div>
-                <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-primary shadow-sm">
-                    <i class="bi bi-pencil"></i> Update
-                </a>
+                {{-- if purchase is in draft state --}}
+                @if ($purchase->state === 'Draft')
+                    <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-primary shadow-sm">
+                        <i class="bi bi-pencil"></i> Update
+                    </a>
+                @endif
                 <a href="{{ route('admin.purchases.pdf.preview', $purchase->id) }}" class="btn btn-danger shadow-sm"
                     target="_blank">
                     <i class="bi bi-file-earmark-pdf"></i> Download as PDF
@@ -81,28 +84,30 @@
             <!-- Colonne de droite : Statut et suppliers -->
             <div class="col-md-4">
                 <!-- State -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0 capitalize">state</h5>
+                {{-- if purchase is in draft state --}}
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0 capitalize">state</h5>
+                        </div>
+                        <div class="card-body">
+                            {{-- if purchase is in draft state --}}
+                            <form action="{{ route('admin.purchases.updateState', $purchase->id) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <div class="input-group">
+                                    <select name="state" class="form-select">
+                                        <option value="Draft" @selected($purchase->state == 'Draft')>Draft</option>
+                                        <option value="Ordered" @selected($purchase->state == 'Ordered')>Ordered</option>
+                                        <option value="Received" @selected($purchase->state == 'Received')>received</option>
+                                        <option value="Paid" @selected($purchase->state == 'Paid')>Paid</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check-circle"></i>update
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <form action="{{ route('admin.purchases.updateState', $purchase->id) }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            <div class="input-group">
-                                <select name="state" class="form-select">
-                                    <option value="Draft" @selected($purchase->state == 'Draft')>Draft</option>
-                                    <option value="Ordered" @selected($purchase->state == 'Ordered')>Ordered</option>
-                                    <option value="Received" @selected($purchase->state == 'Received')>received</option>
-                                    <option value="Paid" @selected($purchase->state == 'Paid')>Paid</option>
-                                </select>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-circle"></i>update
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
 
                 <!-- suppliers -->
                 <div class="card shadow-sm">
@@ -116,10 +121,8 @@
                         <p class="card-text"><i class="bi bi-telephone-fill text-muted"></i>
                             {{ $purchase->supplier->phone ?? 'Non renseigné' }}</p>
                         @if ($purchase->supplier)
-                            {
                             <a href="{{ route('admin.suppliers.show', $purchase->supplier->id) }}"
                                 class="btn btn-sm btn-outline-primary">more</a>
-                            }
                         @endif
 
                     </div>

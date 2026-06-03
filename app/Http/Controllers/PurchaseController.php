@@ -105,7 +105,7 @@ class PurchaseController extends Controller
     /**
      * Display a listing of the resource.
      */
-public function index(Request $request)
+    public function index(Request $request)
     {
         $stats = $this->purchaseService->getPurchaseStatistics();
         $stateCounts = $this->purchaseService->getPurchaseStateCounts();
@@ -316,7 +316,7 @@ public function index(Request $request)
     public function updateState(Request $request, int $id)
     {
         $validated = $request->validate([
-            'state' => ['required', Rule::in(['Draft', 'Ordered', 'Received', 'Paid'])],
+            'state' => ['required', Rule::in(['Draft', 'Ordered', 'Received'])],
         ]);
 
         $purchase = $this->purchaseService->getPurchaseById($id);

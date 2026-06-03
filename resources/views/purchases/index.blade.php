@@ -62,7 +62,6 @@
                                 'Draft' => ['label' => 'Brouillons', 'badge' => 'secondary'],
                                 'Ordered' => ['label' => 'Commandés', 'badge' => 'info'],
                                 'Received' => ['label' => 'Reçus', 'badge' => 'success'],
-                                'Paid' => ['label' => 'Payés', 'badge' => 'primary'],
                             ];
                         @endphp
                         @foreach ($states as $stateKey => $details)
