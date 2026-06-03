@@ -1,242 +1,212 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'New Purchase')
+@section('title', 'Gestion du Panier d\'Achat')
 @section('content')
-    <form action="{{ route('admin.purchases.store') }}" method="POST" id="purchase-form">
-        @csrf
-        <div class="row">
-            <div class="col-md-9">
-                <div class="card mb-4 shadow-sm border-0">
-                    {{-- supplier selection --}}
-                    <div class="card-body">
-                        <label class="form-label fw-bold">Select a Supplier</label>
-                        <select name="supplier_id" id="supplier-select" class="form-select" required>
-                            <option value="">-- Choose a supplier --</option>
-                            @foreach ($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+    <div class="row">
+        <!-- Colonne de Gauche : Recherche et Ajout -->
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-dark text-white fw-bold">
+                    <i class="bi bi-search"></i> Rechercher un Produit
                 </div>
-                {{-- product selection --}}
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-dark text-white fw-bold">Add Products to Purchase</div>
-                    <div class="card-body">
-                        <table class="table align-middle" id="purchase-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40%;">Product</th>
-                                    <th>Quantity</th>
-                                    <th>Unit Cost (Mga)</th>
-                                    <th>Subtotal</th>
-                                    <th style="width: 50px;"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="product-list">
-                                <tr class="product-row">
-                                    <td>
-                                        <select name="products[0][product_id]" class="form-select product-select" required>
-                                            <option value="">Choose product...</option>
-                                            @foreach ($productsVariant as $product)
-                                                <option value="{{ $product->id }}" data-price="{{ $product->price }}">
-                                                    {{ $product->toString() ?? 'N/A' }} - {{ $product->stock }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td><input type="number" name="products[0][quantity]" class="form-control qty-input"
-                                            min="1" value="1" required></td>
-                                    <td><input type="number" name="products[0][unit_price]"
-                                            class="form-control price-input" step="0.01"
-                                            value="{{ old('products.0.unit_price') }}" required></td>
-                                    <td><input type="text" class="form-control subtotal-display" readonly
-                                            value="0.00 Mga"></td>
-                                    <td><button type="button" class="btn btn-outline-danger btn-sm remove-row"><i
-                                                class="bi bi-trash"></i></button></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <button type="button" class="btn btn-primary btn-sm" id="add-product">
-                            <i class="bi bi-plus-circle"></i> Add a Product
+                <div class="card-body">
+                    <form action="{{ route('admin.purchases.cart.add') }}" method="POST" id="add-to-cart-form">
+                        @csrf
+                        <div class="mb-3 position-relative"> {{-- Ajout de position-relative pour le positionnement des suggestions --}}
+                            <label class="form-label fw-bold">Produit</label>
+                            <input type="text" id="product-search-input" class="form-control"
+                                placeholder="Rechercher un produit par nom ou couleur..." autocomplete="off">
+                            <input type="hidden" name="product_color_id" id="selected-product-id" required>
+                            <div id="product-suggestions" class="list-group position-absolute w-100"
+                                style="z-index: 1000; display: none;"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Quantité</label>
+                                <input type="number" name="quantity" class="form-control" min="1" value="1"
+                                    required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Prix d'Achat Unitaire</label>
+                                <div class="input-group">
+                                    <input type="number" name="unit_price" id="unit-price-input" class="form-control"
+                                        step="0.01" required>
+                                    <span class="input-group-text">Mga</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-cart-plus"></i> Ajouter au panier
                         </button>
-                    </div>
+                    </form>
                 </div>
             </div>
 
-            {{-- purchase summary --}}
-            <div class="col-md-3">
-                <div class="card shadow-sm sticky-top border-0" style="top: 20px;">
-                    <div class="card-header bg-primary text-white fw-bold">Purchase Summary</div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Total Gross :</span>
-                            <span id="display-brut" class="fw-bold">0.00 Mga</span>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small">Discount (Mga)</label>
-                            <input type="number" name="discount" id="discount-input" class="form-control" value="0"
-                                min="0">
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between mb-4">
-                            <span class="h5 text-primary">Total Net :</span>
-                            <span id="display-net" class="h5 text-primary fw-bold">0.00 Mga</span>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100 btn-lg shadow-sm" id="btn-submit">
-                            Validate Purchase
-                        </button>
-                    </div>
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-left"></i> Retour à la liste
+                    </a>
                 </div>
             </div>
         </div>
-    </form>
+
+        <!-- Colonne de Droite : Le Panier -->
+        <div class="col-md-7">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"><i class="bi bi-cart3"></i> Panier Actuel</span>
+                    @if ($cartItems->isNotEmpty())
+                        <form action="{{ route('admin.purchases.cart.clear') }}" method="POST"
+                            onsubmit="return confirm('Vider le panier ?')">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-light text-danger">Vider</button>
+                        </form>
+                    @endif
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Produit</th>
+                                <th class="text-center">Qté</th>
+                                <th class="text-end">P.U</th>
+                                <th class="text-end">Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($cartItems as $item)
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ $item->product->product->name }}</div>
+                                        <small class="text-muted">{{ $item->product->color->name }}</small>
+                                    </td>
+                                    <td class="text-center">{{ $item->quantity }}</td>
+                                    <td class="text-end">{{ number_format($item->unit_price, 2, ',', ' ') }}</td>
+                                    <td class="text-end fw-bold">{{ number_format($item->subtotal, 2, ',', ' ') }} Mga</td>
+                                    <td class="text-end">
+                                        <form action="{{ route('admin.purchases.cart.remove', $item->product->id) }}"
+                                            method="POST">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-link text-danger p-0"><i
+                                                    class="bi bi-x-circle-fill"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">Votre panier est vide</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                @if ($cartItems->isNotEmpty())
+                    <div class="card-footer bg-light">
+                        <form action="{{ route('admin.purchases.store') }}" method="POST">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Fournisseur</label>
+                                <select name="supplier_id" id="supplier-select" class="form-select" required>
+                                    <option value="">-- Choisir un fournisseur --</option>
+                                    @foreach ($suppliers as $supplier)
+                                        <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="h4 mb-0">TOTAL NET</span>
+                                <span
+                                    class="h4 mb-0 text-primary fw-bold">{{ number_format($cartItems->sum('subtotal'), 2, ',', ' ') }}
+                                    Mga</span>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                <i class="bi bi-check-all"></i> Valider la Commande
+                            </button>
+                        </form>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script type="module">
         $(document).ready(function() {
-            const productList = $('#product-list');
-            const originalOptions = $('.product-select').first().html();
-
-            function initS2(el) {
-                el.select2({
-                    theme: 'bootstrap-5',
-                    width: '100%',
-                    placeholder: 'Search product...'
-                });
-            }
-
+            // Initialiser select2 pour le fournisseur seulement
             $('#supplier-select').select2({
                 theme: 'bootstrap-5',
                 width: '100%'
             });
 
-            function fastUpdate() {
-                let totalBrut = 0;
-                const selectedIds = [];
+            // Préparer les données des produits pour la recherche côté client
+            const allProducts = @json($searchProducts);
 
-                $('.product-row').each(function() {
-                    const row = $(this);
-                    const select = row.find('.product-select');
-                    const val = select.val();
+            const productSearchInput = $('#product-search-input');
+            const productSuggestions = $('#product-suggestions');
+            const selectedProductIdInput = $('#selected-product-id');
+            const unitPriceInput = $('#unit-price-input');
 
-                    if (val) {
-                        selectedIds.push(val);
-                        const qty = parseFloat(row.find('.qty-input').val() || 0);
-                        const cost = parseFloat(row.find('.price-input').val() || 0);
-                        const subtotal = qty * cost;
-                        totalBrut += subtotal;
+            // Gérer la saisie dans le champ de recherche
+            productSearchInput.on('input', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                productSuggestions.empty();
+                selectedProductIdInput.val(''); // Réinitialiser l'ID du produit sélectionné
 
-                        row.find('.subtotal-display').val(subtotal.toLocaleString('fr-FR', {
-                            minimumFractionDigits: 2
-                        }) + ' Mga');
-                    }
-                });
+                if (searchTerm.length < 2) { // Afficher les suggestions après 2 caractères
+                    productSuggestions.hide();
+                    return;
+                }
 
-                const discount = parseFloat($('#discount-input').val() || 0);
-                const totalNet = Math.max(0, totalBrut - discount);
+                const filteredProducts = allProducts.filter(product =>
+                    product.searchable.includes(searchTerm)
+                );
 
-                $('#display-brut').text(totalBrut.toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2
-                }) + ' Mga');
-                $('#display-net').text(totalNet.toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2
-                }) + ' Mga');
-
-                $('#btn-submit').prop('disabled', selectedIds.length === 0);
-                return selectedIds;
-            }
-
-            $('#add-product').on('click', function() {
-                const selectedIds = fastUpdate();
-                const index = Date.now();
-
-                const newRow = $(`
-                <tr class="product-row">
-                    <td><select name="products[${index}][product_id]" class="form-select product-select" required>${originalOptions}</select></td>
-                    <td><input type="number" name="products[${index}][quantity]" class="form-control qty-input" min="1" value="1" required></td>
-                    <td><input type="number" name="products[${index}][unit_price]" class="form-control price-input" step="0.01" value="0" required></td>
-                    <td><input type="text" class="form-control subtotal-display" readonly value="0.00 Mga"></td>
-                    <td><button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
-                </tr>`);
-
-                // Retirer les produits déjà sélectionnés
-                selectedIds.forEach(id => {
-                    if (id) newRow.find(`option[value="${id}"]`).remove();
-                });
-
-                productList.append(newRow);
-                const newSelect = newRow.find('.product-select');
-                initS2(newSelect);
-
-                // Ouvre le select et permet de taper immédiatement
-                setTimeout(() => {
-                    newSelect.select2('open');
-                }, 100);
+                if (filteredProducts.length > 0) {
+                    filteredProducts.forEach(product => {
+                        const suggestionItem = $(`
+                            <button type="button" class="list-group-item list-group-item-action"
+                                data-id="${product.id}"
+                                data-price="${product.price}"
+                                data-name="${product.name}">
+                                ${product.name} (Stock: ${product.stock})
+                            </button>
+                        `);
+                        productSuggestions.append(suggestionItem);
+                    });
+                    productSuggestions.show();
+                } else {
+                    productSuggestions.hide();
+                }
             });
 
-            // --- RACCOURCIS CLAVIER ---
+            // Gérer la sélection d'un produit dans les suggestions
+            productSuggestions.on('click', '.list-group-item', function() {
+                const selectedId = $(this).data('id');
+                const selectedPrice = $(this).data('price');
+                const selectedName = $(this).data('name');
+
+                productSearchInput.val(selectedName);
+                selectedProductIdInput.val(selectedId);
+                unitPriceInput.val(selectedPrice).focus().select();
+                productSuggestions.hide();
+            });
+
+            // Cacher les suggestions lorsque l'on clique en dehors
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#product-search-input, #product-suggestions').length) {
+                    productSuggestions.hide();
+                }
+            });
+
+            // Raccourci pour remettre le focus sur la recherche
             $(document).on('keydown', function(e) {
-                // F2 pour ajouter une ligne
                 if (e.key === "F2") {
                     e.preventDefault();
-                    $('#add-product').click();
+                    productSearchInput.focus();
                 }
-                // Entrée dans le dernier champ prix passe à la ligne suivante
-                if (e.key === "Enter" && $(e.target).hasClass('price-input')) {
-                    e.preventDefault();
-                    $('#add-product').click();
-                }
-            });
-
-            // Event Delegation
-            productList.on('change', '.product-select', function() {
-                const row = $(this).closest('tr');
-                const price = $(this).find(':selected').data('price');
-                if (price !== undefined) {
-                    row.find('.price-input').val(price);
-                }
-                fastUpdate();
-            });
-            productList.on('input', '.qty-input, .price-input', fastUpdate);
-            $('#discount-input').on('input', fastUpdate);
-
-            productList.on('click', '.remove-row', function() {
-                if ($('.product-row').length > 1) {
-                    $(this).closest('tr').remove();
-                    fastUpdate();
-                }
-            });
-
-            initS2($('.product-select'));
-            // Alerte avant de quitter si le panier n'est pas vide
-            let isDirty = false;
-            $(document).on('change', 'input, select', () => isDirty = true);
-
-            $(window).on('beforeunload', function() {
-                if (isDirty && $('.product-row').length > 1) {
-                    return "You have unsaved changes. Are you sure you want to leave?";
-                }
-            });
-
-            $('#purchase-form').on('submit', () => isDirty = false);
-            $('#purchase-form').on('submit', function(e) {
-                e.preventDefault();
-                const total = $('#display-net').text();
-
-                Swal.fire({
-                    title: 'Confirm Purchase?',
-                    text: `Total amount is ${total}. This will update your stock levels.`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#198754',
-                    confirmButtonText: 'Yes, validate!',
-                    cancelButtonText: 'Review'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.submit();
-                    }
-                });
             });
         });
     </script>

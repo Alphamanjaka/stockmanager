@@ -105,7 +105,7 @@ class PurchaseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+public function index(Request $request)
     {
         $stats = $this->purchaseService->getPurchaseStatistics();
         $stateCounts = $this->purchaseService->getPurchaseStateCounts();
@@ -121,23 +121,110 @@ class PurchaseController extends Controller
      */
     public function create()
     {
-        $productsVariant = $this->productColorService->getAll([], false);
+        $cart = session()->get('purchase_cart', []);
+        $cartItems = $this->purchaseService->getCartDetails($cart);
+        $productsVariant = $this->productColorService->getAll([], false); // Pour la recherche/ajout
         $suppliers = $this->supplierService->getAllSuppliers();
-        return view('purchases.create', compact('productsVariant', 'suppliers'));
+
+        // Préparation des produits pour la recherche côté client
+        $searchProducts = $productsVariant->map(function ($product) {
+            return [
+                'id' => $product->id,
+                'name' => $product->product->name . ' - ' . $product->color->name,
+                'price' => $product->price,
+                'stock' => $product->stock,
+                'searchable' => strtolower($product->product->name . ' ' . $product->color->name),
+            ];
+        });
+
+        return view('purchases.create', compact('productsVariant', 'suppliers', 'cartItems', 'searchProducts'));
+    }
+
+    /**
+     * Ajoute un produit au panier en session.
+     */
+    public function addToCart(Request $request)
+    {
+        $validated = $request->validate([
+            'product_color_id' => 'required|exists:product_colors,id',
+            'quantity' => 'required|integer|min:1',
+            'unit_price' => 'required|numeric|min:0',
+        ]);
+
+        $cart = session()->get('purchase_cart', []);
+        $id = $validated['product_color_id'];
+
+        if (isset($cart[$id])) {
+            $cart[$id]['quantity'] += $validated['quantity'];
+            $cart[$id]['unit_price'] = $validated['unit_price']; // Met à jour le prix avec le dernier saisi
+        } else {
+            $cart[$id] = [
+                'quantity' => $validated['quantity'],
+                'unit_price' => $validated['unit_price']
+            ];
+        }
+
+        session()->put('purchase_cart', $cart);
+
+        return redirect()->route('admin.purchases.create')->with('success', 'Produit ajouté au panier.');
+    }
+
+    /**
+     * Supprime un produit du panier.
+     */
+    public function removeFromCart(int $id)
+    {
+        $cart = session()->get('purchase_cart', []);
+
+        if (isset($cart[$id])) {
+            unset($cart[$id]);
+            session()->put('purchase_cart', $cart);
+        }
+
+        return redirect()->route('admin.purchases.create')->with('info', 'Produit retiré du panier.');
+    }
+
+    /**
+     * Vide le panier.
+     */
+    public function clearCart()
+    {
+        session()->forget('purchase_cart');
+        return redirect()->route('admin.purchases.create')->with('warning', 'Le panier a été vidé.');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePurchaseRequest $request)
+    public function store(Request $request)
     {
-        $data = $request->validated();
+        $cart = session()->get('purchase_cart', []);
+
+        if (empty($cart)) {
+            return back()->with('error', 'Le panier est vide.');
+        }
+
+        $request->validate([
+            'supplier_id' => 'nullable|exists:suppliers,id',
+        ]);
+
+        // Transformation du panier session au format attendu par le service
+        $items = [];
+        foreach ($cart as $id => $details) {
+            $items[] = [
+                'product_color_id' => $id,
+                'quantity' => $details['quantity'],
+                'unit_price' => $details['unit_price']
+            ];
+        }
 
         try {
             $purchase = $this->purchaseService->processPurchase(
-                $data['supplier_id'] ?? null,
-                $data['products']
+                $request->input('supplier_id'),
+                $items
             );
+
+            session()->forget('purchase_cart');
 
             return redirect()->route('admin.purchases.index')
                 ->with('success', "L'achat {$purchase->reference} a été enregistré. Le stock a été mis à jour.");
@@ -198,7 +285,7 @@ class PurchaseController extends Controller
         $validated = $request->validate([
             'supplier_id'           => 'nullable|exists:suppliers,id',
             'products'              => 'required|array|min:1',
-            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.product_color_id' => 'required|exists:product_colors,id',
             'products.*.quantity'   => 'required|integer|min:1',
             'products.*.unit_price' => 'required|numeric|min:0',
         ]);

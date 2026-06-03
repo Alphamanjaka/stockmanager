@@ -52,15 +52,26 @@ Route::middleware('auth')->group(function () {
 
         // Les routes spécifiques comme 'create-from-shortage' ou 'get-purchases-api' doivent être définies
         // AVANT la route ressource pour éviter que Laravel ne les interprète comme un paramètre {id}.
-        Route::get('/purchases/get-purchases-api', [PurchaseController::class, 'getPurchasesApi'])->name('purchases.get-purchases-api');
-        Route::get('/purchases/create-from-shortage', [PurchaseController::class, 'createFromShortage'])->name('purchases.createFromShortage');
-        Route::post('/purchases/store-from-shortage', [PurchaseController::class, 'storeFromShortage'])->name('purchases.storeFromShortage');
-        Route::resource('purchases', PurchaseController::class);
-        Route::patch('purchases/{id}/state', [PurchaseController::class, 'updateState'])->name('purchases.updateState');
-        Route::get('purchases/{id}/pdf', [PurchaseController::class, 'exportPdf'])->name('purchases.pdf');
+
+
         Route::get('/purchases/{id}/pdf/preview', [PurchaseController::class, 'previewPdf'])
             ->name('purchases.pdf.preview')
             ->middleware('auth'); // Assurez-vous que la route est protégée
+        Route::prefix('purchases')->name('purchases.')->group(function () {
+            Route::get('/{id}/pdf/preview', [PurchaseController::class, 'previewPdf'])->name('pdf.preview');
+            Route::get('/get-purchases-api', [PurchaseController::class, 'getPurchasesApi'])->name('get-purchases-api');
+            Route::get('/create-from-shortage', [PurchaseController::class, 'createFromShortage'])->name('createFromShortage');
+            Route::post('/store-from-shortage', [PurchaseController::class, 'storeFromShortage'])->name('storeFromShortage');
+            // route post cart, delete cart, clear cart
+            Route::post('/cart/add', [PurchaseController::class, 'addToCart'])->name('cart.add');
+            Route::delete('/cart/remove/{id}', [PurchaseController::class, 'removeFromCart'])->name('cart.remove');
+            Route::post('/cart/clear', [PurchaseController::class, 'clearCart'])->name('cart.clear');
+            Route::patch('/{id}/state', [PurchaseController::class, 'updateState'])->name('updateState');
+            Route::get('/{id}/pdf', [PurchaseController::class, 'exportPdf'])->name('pdf');
+        });
+        Route::resource('purchases', PurchaseController::class);
+
+
 
         // Module d'Importation Centralisé
         Route::get('/imports', [ImportController::class, 'index'])->name('imports.index');

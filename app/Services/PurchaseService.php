@@ -359,4 +359,28 @@ class PurchaseService
                 ];
             });
     }
+
+    /**
+     * Transforme le panier brut de la session en collection d'objets complets.
+     *
+     * @param array $cart [product_color_id => ['quantity' => x, 'unit_price' => y]]
+     * @return \Illuminate\Support\Collection
+     */
+    public function getCartDetails(array $cart)
+    {
+        if (empty($cart)) return collect();
+
+        $productIds = array_keys($cart);
+        $products = \App\Models\ProductColor::with(['product', 'color'])->find($productIds);
+
+        return $products->map(function ($product) use ($cart) {
+            $item = $cart[$product->id];
+            return (object) [
+                'product' => $product,
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+                'subtotal' => $item['quantity'] * $item['unit_price']
+            ];
+        });
+    }
 }
