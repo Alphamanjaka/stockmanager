@@ -157,7 +157,7 @@
                                     </td>
                                     <td>
                                         <div class="fw-bold text-dark"> <a
-                                                href="{{ route('admin.products.show', $item->product->id) }}">{{ $item->color->name ?? 'N/A' }}</a>
+                                                href="{{ route('admin.products.show', $item->product->id) }}">{{ $item->color->code ?? '' }}</a>
                                         </div>
                                     </td>
                                     <td class="text pe-4">
@@ -178,7 +178,7 @@
                                                 class="btn btn-sm btn-outline-primary" title="Modifier">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <form action="{{ route('admin.products.destroy', $item->id) }}" method="POST"
+                                            <form action="{{ route('admin.products.destroy', $item->product->id) }}" method="POST"
                                                 class="d-inline" onsubmit="return confirm('Delete this product ?');">
                                                 @csrf
                                                 @method('DELETE')

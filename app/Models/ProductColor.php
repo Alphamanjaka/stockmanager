@@ -29,7 +29,7 @@ class ProductColor extends Model
     }
     public function toString()
     {
-        return $this->product->name . ' - ' . ($this->color->name ?? 'No Color');
+        return $this->product->name . ' ' . ($this->color->code ?? '');
     }
     public function getCategoryNameAttribute()
     {

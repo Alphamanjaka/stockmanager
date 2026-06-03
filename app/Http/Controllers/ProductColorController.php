@@ -58,8 +58,9 @@ class ProductColorController extends Controller
      */
     public function create()
     {
-        $categories = $this->categoryService->getAll();
-        return view('products.create', compact('categories'));
+        $categories = $this->categoryService->getAll([],false);
+        $colors = $this->colorService->getAll([], false);
+        return view('products.create', compact('categories', 'colors'));
     }
 
     /**

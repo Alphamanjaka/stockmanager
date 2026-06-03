@@ -20,14 +20,11 @@ class ProductColorService extends BaseService
 
     public function __construct(
         protected ProductColor $productColor,
-        protected StockManagementService $StockService,
         protected SaleService $saleService,
         protected ProductService $productService,
         protected ColorService $colorService
     ) {
         parent::__construct($productColor); // Appel du constructeur parent
-        $this->StockService = $StockService;
-        $this->saleService = $saleService;
     }
 
     /**
@@ -52,14 +49,15 @@ class ProductColorService extends BaseService
                         // 2. Sauvegarde color si nouvelle via Color (firstOrCreate)
                         $color = Color::firstOrCreate(['name' => $colorName]);
 
-                        // 3. Sauvegarde dans la table productcolor via assignStock
-                        $this->StockService->assignStock(
-                            $product->id,
-                            $color->id,
-                            $data['stocks'][$index] ?? 0,
-                            $data['prices'][$index] ?? $data['price'] ?? 0,
-                            $data['alert_stocks'][$index] ?? null
-                        );
+                        // 3. Sauvegarde dans la table productcolor
+                        ProductColor::updateOrCreate(
+                            ['product_id' => $product->id, 'color_id' => $color->id],
+                            [
+                                'stock' => $data['stocks'][$index] ?? 0,
+                                'price' => $data['prices'][$index] ?? 0,
+                                'alert_stock' => $data['alert_stocks'][$index] ?? null
+                            ]
+                         );
                     }
                 }
 
@@ -69,7 +67,7 @@ class ProductColorService extends BaseService
                     'payload' => $data,
                     'trace' => $e->getTraceAsString()
                 ]);
-                throw new Exception("Impossible de créer le produit. Vérifiez les données des variantes.");
+                throw new Exception("Impossible de créer le produit. Vérifiez les données des variantes." . $e->getMessage());
             }
         });
     }
@@ -184,6 +182,4 @@ class ProductColorService extends BaseService
     {
         return $this->saleService->getLeastSoldProduct();
     }
-
-
 }

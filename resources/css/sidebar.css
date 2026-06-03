@@ -229,3 +229,26 @@ main {
     transform: rotate(180deg);
     transition: var(--transition-icon);
 }
+
+/* ==========================================================================
+   Responsive & Mobile Toggle
+   ========================================================================== */
+@media (max-width: 768px) {
+    .sidebar {
+        left: calc(-1 * var(--sidebar-width-expanded)); /* Caché à gauche */
+        transition: left 0.3s ease-in-out;
+        width: var(--sidebar-width-expanded);
+    }
+
+    .sidebar.show-mobile {
+        left: 0; /* Apparaît en superposition */
+        box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+    }
+
+    main,
+    .sidebar.collapsed+main {
+        margin-left: 0;
+        width: 100%;
+        padding: 15px;
+    }
+}

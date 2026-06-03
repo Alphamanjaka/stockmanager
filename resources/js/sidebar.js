@@ -1,13 +1,12 @@
-const sidebarToggle = document.getElementById("sidebarToggle");
+const sidebarToggle = document.getElementById("toggleSidebar");
 const sidebar = document.querySelector(".sidebar");
 const mainContent = document.querySelector("main");
 
 if (sidebarToggle && sidebar && mainContent) {
     sidebarToggle.addEventListener("click", () => {
         if (window.innerWidth > 768) {
-            // Logique Desktop : Réduire
+            // Logique Desktop : Réduire (Collapse)
             sidebar.classList.toggle("collapsed");
-            mainContent.classList.toggle("expanded");
         } else {
             // Logique Mobile : Afficher/Cacher
             sidebar.classList.toggle("show-mobile");
@@ -28,14 +27,6 @@ document.addEventListener("click", (e) => {
         sidebar.classList.remove("show-mobile");
     }
 });
-
-const toggleSidebarBtn = document.getElementById("toggleSidebar");
-if (toggleSidebarBtn) {
-    toggleSidebarBtn.addEventListener("click", function () {
-        const sb = document.querySelector(".sidebar");
-        if (sb) sb.classList.toggle("collapsed");
-    });
-}
 
 // Gestion intelligente des menus flottants (éviter le débordement bas)
 const menuGroups = document.querySelectorAll(".menu-group");

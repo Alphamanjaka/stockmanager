@@ -44,7 +44,7 @@
 
                             <div class="col-md-6 mb-3">
                                 <label for="price" class="form-label">General Price (MGA)</label>
-                                <input type="number" step="0.01" name="price" id="price"
+                                <input type="number" step="0.01" name="price" required id="price"
                                     class="form-control @error('price') is-invalid @enderror" value="{{ old('price') }}">
                                 @error('price')
                                     <div class="invalid-feedback">{{ $message }}</div>

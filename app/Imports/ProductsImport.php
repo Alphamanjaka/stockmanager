@@ -35,7 +35,9 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
 
         // Nettoyage des données d'entrée
         $name = mb_strtolower(trim($rowData['name']));
+        //  Le prix est traité dans getPriceValue pour gérer les formats comme "8,400"
         $categoryName = isset($rowData['category']) ? mb_strtolower(trim($rowData['category'])) : null;
+        // La couleur est traitée dans getColorIdByNameOrCreate pour gérer les variantes et les couleurs par défaut
         $colorName = isset($rowData['color']) ? mb_strtolower(trim($rowData['color'])) : null;
 
         try {

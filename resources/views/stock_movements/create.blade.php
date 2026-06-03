@@ -22,13 +22,13 @@
 
                         <div id="product-list-container" style="max-height: 400px; overflow-y: auto;">
                             <div class="list-group" id="product-results">
-                                @foreach ($productColors as $color)
+                                @foreach ($productColors as $item)
                                     <button type="button" class="list-group-item list-group-item-action product-item"
-                                        data-id="{{ $color->id }}"
-                                        data-name="{{ $color->product->name }} - {{ $color->color->name }}">
+                                        data-id="{{ $item->id }}"
+                                        data-name="{{ $item->product->name }} - {{ $item->color->name }}">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <span>{{ $color->product->name }}</span>
-                                            <span class="badge bg-secondary rounded-pill">{{ $color->color->name }}</span>
+                                            <span>{{ $item->product->name }}</span>
+                                            <span class="badge bg-secondary rounded-pill">{{ $item->color->code }}</span>
                                         </div>
                                     </button>
                                 @endforeach
