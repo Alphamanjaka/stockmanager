@@ -33,13 +33,14 @@
                 <li class="sidebar-header">Management</li>
 
                 <li class="nav-item menu-group">
+                    {{-- collapse par defaut fermer --}}
                     <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
-                        href="#stockSubmenu" role="button" aria-expanded="true">
+                        href="#stockSubmenu" role="button" aria-expanded="false">
                         <span><i class="fas fa-warehouse fa-fw me-2"></i> <span
                                 class="sidebar-text">Inventory</span></span>
                         <i class="fas fa-chevron-down fa-xs"></i>
                     </a>
-                    <div class="collapse show" id="stockSubmenu">
+                    <div class="collapse hide" id="stockSubmenu">
                         <a href="{{ route('admin.products.index') }}"
                             class="{{ request()->is('admin/products*') ? 'text-primary fw-bold' : '' }}"
                             data-shortcut="p">
@@ -49,6 +50,11 @@
                             class="{{ request()->is('admin/categories*') ? 'text-primary fw-bold' : '' }}"
                             data-shortcut="c">
                             <span class="sidebar-text">Categories</span> <span class="shortcut-badge">Alt+C</span>
+                        </a>
+                        <a href="{{ route('admin.colors.index') }}"
+                            class="{{ request()->is('admin/colors*') ? 'active-link' : '' }}" data-shortcut="c">
+                            <span class="sidebar-text">Colors</span>
+                            <span class="shortcut-badge">Alt+C</span>
                         </a>
                         <a href="{{ route('admin.movements.index') }}"
                             class="{{ request()->is('admin/movements*') ? 'text-primary fw-bold' : '' }}"
@@ -62,12 +68,12 @@
 
                 <li class="nav-item menu-group">
                     <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
-                        href="#commerceSubmenu" role="button" aria-expanded="true">
+                        href="#commerceSubmenu" role="button" aria-expanded="false">
                         <span><i class="fas fa-exchange-alt fa-fw me-2"></i> <span class="sidebar-text">Purchases &
                                 Sales</span></span>
                         <i class="fas fa-chevron-down fa-xs"></i>
                     </a>
-                    <div class="collapse show" id="commerceSubmenu">
+                    <div class="collapse hide" id="commerceSubmenu">
                         <a href="{{ route('admin.suppliers.index') }}"
                             class="{{ request()->is('admin/suppliers*') ? 'text-primary fw-bold' : '' }}"
                             data-shortcut="f">
@@ -105,12 +111,7 @@
                 <span><span class="sidebar-text">Import</span></span>
                 <span class="shortcut-badge">Alt+I</span>
             </a>
-            <a href="{{ route('admin.colors.index') }}"
-                class="{{ request()->is('admin/colors*') ? 'active-link' : '' }}" data-shortcut="c">
-                <i class="fas fa-palette fa-fw me-2"></i>
-                <span class="sidebar-text">Colors</span>
-                <span class="shortcut-badge">Alt+C</span>
-            </a>
+
             <a href="{{ route('admin.settings.index') }}"
                 class="{{ request()->is('admin/settings*') ? 'active-link' : '' }}" data-shortcut="s">
                 <span><i class="fas fa-cog fa-fw me-2"></i> <span class="sidebar-text">Settings</span></span>
