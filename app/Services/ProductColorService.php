@@ -88,6 +88,38 @@ class ProductColorService extends BaseService
         return $this->applyFilters($query, $filters)->paginate($filters['per_page'] ?? 15);
     }
 
+    /**
+     * Create a new ProductColor variant.
+     */
+    public function createProductColor(array $data): ProductColor
+    {
+        // Ensure uniqueness of color for a given product
+        if (ProductColor::where('product_id', $data['product_id'])->where('color_id', $data['color_id'])->exists()) {
+            throw new Exception("Cette couleur est déjà associée à ce produit.");
+        }
+        return ProductColor::create($data);
+    }
+
+    /**
+     * Update an existing ProductColor variant.
+     */
+    public function updateProductColor(int $variantId, array $data): ProductColor
+    {
+        $productColor = ProductColor::findOrFail($variantId);
+        $productColor->update($data);
+        return $productColor;
+    }
+
+    /**
+     * Delete a ProductColor variant.
+     */
+    public function deleteProductColor(int $variantId): bool
+    {
+        $query = ProductColor::with(['product.category', 'color']);
+
+        return $this->applyFilters($query, [])->paginate($filters['per_page'] ?? 15);
+    }
+
 
 
 

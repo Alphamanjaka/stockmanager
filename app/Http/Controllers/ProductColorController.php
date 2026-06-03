@@ -45,7 +45,7 @@ class ProductColorController extends Controller
             'per_page' => 15,
         ];
 
-        $productVariants=$this->productColorService->getAll($filters);
+        $productVariants = $this->productColorService->getAll($filters);
         $categories = $this->categoryService->getAll();
         $mostSoldProduct = $this->saleService->getMostSoldProduct();
         $leastSoldProduct = $this->saleService->getLeastSoldProduct();
@@ -58,7 +58,7 @@ class ProductColorController extends Controller
      */
     public function create()
     {
-        $categories = $this->categoryService->getAll([],false);
+        $categories = $this->categoryService->getAll([], false);
         $colors = $this->colorService->getAll([], false);
         return view('products.create', compact('categories', 'colors'));
     }
@@ -80,18 +80,6 @@ class ProductColorController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    public function update(StoreProductRequest $request, int $id)
-    {
-        $productData = $request->validated();
-        $this->productService->update($id, $productData);
-
-        return redirect()->route('admin.products.index')
-            ->with('success', 'Product updated successfully.');
-    }
-
-    /**
      * Remove the specified resource from storage.
      */
     public function destroy(int $id)
@@ -106,6 +94,7 @@ class ProductColorController extends Controller
                 ->with('error', $e->getMessage());
         }
     }
+
     public function importProducts(Request $request)
     {
         $request->validate([
@@ -159,12 +148,13 @@ class ProductColorController extends Controller
      */
     public function show(int $id)
     {
-        $product = $this->productService->getById($id);
-        $variants = $this->productColorService->listByProduct($id);
-        $categories = $this->categoryService->getAll([], false);
+        $product = $this->productService->getById($id); // Ceci est le modèle Product principal
+        $variants = $this->productColorService->listByProduct($id); // Ce sont les modèles ProductColor
+        $categories = $this->categoryService->getAll([], false); // Toutes les catégories pour l'édition du produit
+        $colors = $this->colorService->getAll([], false); // Toutes les couleurs pour la création/édition de variantes
 
-        // Pass all necessary data to the view for initial rendering
-        return view('products.show', compact('product', 'variants', 'categories'));
+        // Passe toutes les données nécessaires à la vue pour le rendu initial
+        return view('products.show', compact('product', 'variants', 'categories', 'colors'));
     }
 
     /**
@@ -197,5 +187,77 @@ class ProductColorController extends Controller
         $categories = $this->categoryService->getAll();
 
         return view('products.edit', compact('item', 'categories'));
+    }
+
+    /**
+     * Update the main product details.
+     */
+    public function updateProductDetails(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+
+        try {
+            $this->productService->update($id, $validated);
+            return back()->with('success', 'Informations du produit mises à jour.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erreur lors de la mise à jour du produit : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Store a new product variant (ProductColor).
+     */
+    public function storeVariant(Request $request, int $productId)
+    {
+        $validated = $request->validate([
+            'color_id' => 'required|exists:colors,id',
+            'stock' => 'required|integer|min:0',
+            'price' => 'required|numeric|min:0',
+            'alert_stock' => 'nullable|integer|min:0',
+        ]);
+
+        try {
+            $this->productColorService->createProductColor(array_merge($validated, ['product_id' => $productId]));
+            return back()->with('success', 'Variante ajoutée avec succès.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erreur lors de l\'ajout de la variante : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update an existing product variant (ProductColor).
+     */
+    public function updateVariant(Request $request, int $variantId)
+    {
+        $validated = $request->validate([
+            'color_id' => 'required|exists:colors,id', // Allow changing color, but ensure it's unique for the product
+            'stock' => 'required|integer|min:0',
+            'price' => 'required|numeric|min:0',
+            'alert_stock' => 'nullable|integer|min:0',
+        ]);
+
+        try {
+            $this->productColorService->updateProductColor($variantId, $validated);
+            return back()->with('success', 'Variante mise à jour avec succès.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erreur lors de la mise à jour de la variante : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete a product variant (ProductColor).
+     */
+    public function destroyVariant(int $variantId)
+    {
+        try {
+            $this->productColorService->deleteProductColor($variantId);
+            return back()->with('success', 'Variante supprimée avec succès.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erreur lors de la suppression de la variante : ' . $e->getMessage());
+        }
     }
 }

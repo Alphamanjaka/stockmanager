@@ -4,6 +4,20 @@
 
 @section('content')
     <div class="container-fluid py-4">
+        {{-- Affichage des messages de session pour le feedback --}}
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-1"></i> {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         {{-- En-tête avec informations de base --}}
         <div class="card shadow-sm mb-4">
             <div class="card-body d-flex justify-content-between align-items-center">
@@ -36,6 +50,9 @@
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Variantes de couleurs & Stocks</h5>
+                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addVariantModal">
+                            <i class="fas fa-plus me-1"></i> Ajouter une variante
+                        </button>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
@@ -45,7 +62,7 @@
                                     <th>Prix (MGA)</th>
                                     <th>Stock actuel</th>
                                     <th>Seuil d'alerte</th>
-                                    {{-- <th class="text-end">Actions</th> --}}
+                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="variants-table-body">
@@ -59,10 +76,25 @@
                                                 class="badge {{ $variant->stock <= $variant->alert_stock ? 'bg-danger' : 'bg-success' }}">{{ $variant->stock }}</span>
                                         </td>
                                         <td>{{ $variant->alert_stock }}</td>
-                                        {{-- <td class="text-end">
-                                            <a href="{{ route('admin.products.edit', $variant->id) }}"
-                                                class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
-                                        </td> --}}
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-primary edit-variant-btn"
+                                                data-bs-toggle="modal" data-bs-target="#editVariantModal"
+                                                data-id="{{ $variant->id }}" data-color-id="{{ $variant->color_id }}"
+                                                data-stock="{{ $variant->stock }}"
+                                                data-alert-stock="{{ $variant->alert_stock }}"
+                                                data-price="{{ $variant->price }}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <form action="{{ route('admin.products.variants.destroy', $variant->id) }}"
+                                                method="POST" class="d-inline"
+                                                onsubmit="return confirm('Voulez-vous vraiment supprimer cette variante ?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -114,7 +146,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <labe class="form-label">Product Name</labe    l>
+                            <label class="form-label">Product Name</label>
                             <input type="text" name="name" class="form-control" value="{{ $product->name }}"
                                 required>
                         </div>
@@ -136,6 +168,100 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Modal Ajouter une Variante --}}
+    <div class="modal fade" id="addVariantModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <form action="{{ route('admin.products.variants.store', $product->id) }}" method="POST">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">Nouvelle Variante</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Couleur</label>
+                                <select name="color_id" class="form-select" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    @foreach ($colors as $color)
+                                        <option value="{{ $color->id }}">{{ $color->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Prix de vente (MGA)</label>
+                                <input type="number" name="price" class="form-control" step="0.01"
+                                    value="{{ $product->price }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Stock Initial</label>
+                                <input type="number" name="stock" class="form-control" min="0" value="0"
+                                    required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Seuil d'alerte</label>
+                                <input type="number" name="alert_stock" class="form-control" min="0"
+                                    value="5">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-success">Enregistrer la variante</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Modal Modifier une Variante --}}
+    <div class="modal fade" id="editVariantModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <form id="editVariantForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">Modifier la variante</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Couleur</label>
+                                <select name="color_id" id="edit-variant-color" class="form-select" required>
+                                    @foreach ($colors as $color)
+                                        <option value="{{ $color->id }}">{{ $color->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Prix de vente (MGA)</label>
+                                <input type="number" name="price" id="edit-variant-price" class="form-control"
+                                    step="0.01" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Stock actuel</label>
+                                <input type="number" name="stock" id="edit-variant-stock" class="form-control"
+                                    min="0" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Seuil d'alerte</label>
+                                <input type="number" name="alert_stock" id="edit-variant-alert" class="form-control"
+                                    min="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
                     </div>
                 </div>
             </form>
@@ -189,6 +315,22 @@
                             }
                         }
                     });
+                });
+
+                // Gestion de l'ouverture du modal de modification de variante
+                $('.edit-variant-btn').on('click', function() {
+                    const id = $(this).data('id');
+                    const colorId = $(this).data('color-id');
+                    const stock = $(this).data('stock');
+                    const alert = $(this).data('alert-stock');
+                    const price = $(this).data('price');
+
+                    // Remplissage des champs du formulaire
+                    $('#edit-variant-color').val(colorId);
+                    $('#edit-variant-stock').val(stock);
+                    $('#edit-variant-alert').val(alert);
+                    $('#edit-variant-price').val(price);
+                    $('#editVariantForm').attr('action', `/admin/products/variants/${id}`);
                 });
 
                 // Filtre d'historique
