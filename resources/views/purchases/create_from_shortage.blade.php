@@ -65,7 +65,7 @@
                                                     <input type="hidden" name="items[{{ $product->id }}][unit_price]"
                                                         value="{{ $product->last_unit_price }}">
                                                 </td>
-                                                <td>{{ $product->product_name }}</td>
+                                                <td>{{ $product->product_name }} {{ $product->color_code?? '' }}</td>
                                                 <td class="text-center">{{ $product->stock }}</td>
                                                 <td class="text-center">{{ $product->alert_stock }}</td>
                                                 <td class="text-end">
