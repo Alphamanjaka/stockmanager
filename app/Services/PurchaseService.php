@@ -300,6 +300,7 @@ class PurchaseService
                 pc.id, pc.stock, pc.alert_stock, pc.price,
                 p.name as product_name,
                 c.name as color_name,
+                c.code as color_code,
                 lp.unit_price as last_unit_price,
                 lp.supplier_id as last_supplier_id,
                 lp.supplier_name as last_supplier_name
