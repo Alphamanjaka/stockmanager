@@ -208,8 +208,8 @@ class PurchaseServiceTest extends TestCase
     public function it_can_get_purchase_statistics()
     {
         // Arrange
-        Purchase::factory()->create(['state' => 'Paid', 'total_net' => 100, 'discount' => 10]);
-        Purchase::factory()->create(['state' => 'Paid', 'total_net' => 150, 'discount' => 0]);
+        Purchase::factory()->create(['state' => 'Received', 'total_net' => 100, 'discount' => 10]);
+        Purchase::factory()->create(['state' => 'Received', 'total_net' => 150, 'discount' => 0]);
         Purchase::factory()->create(['state' => 'Ordered', 'total_net' => 200, 'discount' => 20]); // Not paid
 
         // Act
