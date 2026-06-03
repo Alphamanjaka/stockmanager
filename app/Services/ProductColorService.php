@@ -117,7 +117,8 @@ class ProductColorService extends BaseService
     {
         $query = ProductColor::with(['product.category', 'color']);
 
-        return $this->applyFilters($query, [])->paginate($filters['per_page'] ?? 15);
+
+        return $query->findOrFail($variantId)->delete();
     }
 
 
