@@ -69,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const positionSubmenu = (submenu, group) => {
         const rect = group.getBoundingClientRect();
+        // position the submenu just to the right of the collapsed sidebar
         submenu.style.left = `${rect.right}px`;
 
         const submenuHeight = submenu.offsetHeight || 200;

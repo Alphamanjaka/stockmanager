@@ -1,34 +1,69 @@
-const themeToggle = document.getElementById("theme-toggle");
-const themeIcon = document.getElementById("theme-icon");
-const body = document.documentElement; // On applique sur <html>
+document.addEventListener("DOMContentLoaded", () => {
+    const themeToggle = document.getElementById("theme-toggle");
+    const themeIcon = document.getElementById("theme-icon");
+    const root = document.documentElement; // apply on <html>
 
-// 1. Vérifier si un thème est déjà enregistré
-const currentTheme = localStorage.getItem("theme");
-if (currentTheme) {
-    body.setAttribute("data-theme", currentTheme);
-    updateIcon(currentTheme);
-}
+    const prefersDarkMQ = window.matchMedia("(prefers-color-scheme: dark)");
 
-// 2. Gérer le clic
-if (themeToggle) {
-    themeToggle.addEventListener("click", () => {
-        let theme =
-            body.getAttribute("data-theme") === "dark" ? "light" : "dark";
-
-        body.setAttribute("data-theme", theme);
-        localStorage.setItem("theme", theme); // Sauvegarde le choix
-        updateIcon(theme);
-    });
-}
-
-function updateIcon(theme) {
-    if (!themeIcon || !themeToggle) return;
-
-    if (theme === "dark") {
-        themeIcon.classList.replace("fa-moon", "fa-sun");
-        themeToggle.classList.replace("text-dark", "text-warning");
-    } else {
-        themeIcon.classList.replace("fa-sun", "fa-moon");
-        themeToggle.classList.replace("text-warning", "text-dark");
+    function updateIcon(theme) {
+        if (!themeIcon || !themeToggle) return;
+        // normalize classes
+        themeIcon.classList.remove("fa-moon", "fa-sun");
+        if (theme === "dark") {
+            themeIcon.classList.add("fa-sun");
+            themeToggle.classList.remove("text-dark");
+            themeToggle.classList.add("text-warning");
+        } else {
+            themeIcon.classList.add("fa-moon");
+            themeToggle.classList.remove("text-warning");
+            themeToggle.classList.add("text-dark");
+        }
+        themeToggle.setAttribute(
+            "aria-pressed",
+            theme === "dark" ? "true" : "false",
+        );
+        themeToggle.title =
+            theme === "dark"
+                ? "Passer au thème clair"
+                : "Passer au thème sombre";
     }
-}
+
+    function setTheme(theme, source = "user") {
+        root.setAttribute("data-theme", theme);
+        root.setAttribute("data-theme-source", source);
+        try {
+            localStorage.setItem("theme", theme);
+        } catch (e) {
+            // ignore storage errors
+        }
+        updateIcon(theme);
+    }
+
+    // Initialize
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+        setTheme(savedTheme, "user");
+    } else {
+        const systemTheme = prefersDarkMQ.matches ? "dark" : "light";
+        root.setAttribute("data-theme", systemTheme);
+        root.setAttribute("data-theme-source", "system");
+        updateIcon(systemTheme);
+    }
+
+    // React to system theme changes only when user hasn't chosen a theme
+    prefersDarkMQ.addEventListener("change", (e) => {
+        if (root.getAttribute("data-theme-source") === "system") {
+            setTheme(e.matches ? "dark" : "light", "system");
+        }
+    });
+
+    // Toggle handler
+    if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+            const current =
+                root.getAttribute("data-theme") === "dark" ? "dark" : "light";
+            const next = current === "dark" ? "light" : "dark";
+            setTheme(next, "user");
+        });
+    }
+});

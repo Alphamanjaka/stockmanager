@@ -160,8 +160,9 @@
             <div class="d-flex align-items-center gap-3">
                 @auth
                     {{-- Theme Toggle --}}
-                    <button id="theme-toggle" class="btn btn-link text-dark shadow-none p-0" title="Changer de thème">
-                        <i id="theme-icon" class="fas fa-moon"></i>
+                    <button id="theme-toggle" class="btn btn-link text-dark shadow-none p-0" aria-pressed="false"
+                        aria-label="Basculer le thème" title="Changer de thème">
+                        <i id="theme-icon" class="fas fa-moon" aria-hidden="true"></i>
                     </button>
 
                     {{-- Notifications --}}

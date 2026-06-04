@@ -105,11 +105,7 @@ main {
 }
 
 .sidebar.collapsed.submenu-open {
-    width: var(--sidebar-width-expanded);
-}
-
-.sidebar.collapsed.submenu-open+main {
-    margin-left: var(--sidebar-width-expanded);
+    /* removed automatic expansion when submenu opens - keep collapsed width */
 }
 
 .sidebar.collapsed .sidebar-text,
@@ -124,6 +120,10 @@ main {
     text-align: center;
     padding: 15px 0 !important;
     justify-content: center !important;
+}
+
+.sidebar.collapsed .menu-group {
+    position: relative;
 }
 
 .sidebar.collapsed .menu-group .collapse {
