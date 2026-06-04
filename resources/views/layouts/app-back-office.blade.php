@@ -23,79 +23,88 @@
                 <li class="nav-item">
                     <a href="{{ route('admin.dashboard') }}"
                         class="{{ request()->is('admin/dashboard*') ? 'active-link' : '' }}" data-shortcut="d"
-                        title="Alt + D">
+                        title="Dashboard (Alt + D)">
                         <span><i class="fas fa-tachometer-alt fa-fw me-2"></i> <span
                                 class="sidebar-text">Dashboard</span></span>
                         <span class="shortcut-badge">Alt+D</span>
                     </a>
                 </li>
 
-                <li class="sidebar-header">Management</li>
+                <li class="sidebar-header"><span class="sidebar-text">Management</span></li>
 
                 <li class="nav-item menu-group">
                     {{-- collapse par defaut fermer --}}
                     <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
-                        href="#stockSubmenu" role="button" aria-expanded="false">
+                        title="Inventory" href="#stockSubmenu" role="button" aria-expanded="false">
                         <span><i class="fas fa-warehouse fa-fw me-2"></i> <span
                                 class="sidebar-text">Inventory</span></span>
-                        <i class="fas fa-chevron-down fa-xs"></i>
+                        <i class="fas fa-chevron-down fa-xs sidebar-text"></i>
                     </a>
                     <div class="collapse hide" id="stockSubmenu">
                         <a href="{{ route('admin.products.index') }}"
                             class="{{ request()->is('admin/products*') ? 'text-primary fw-bold' : '' }}"
-                            data-shortcut="p">
+                            data-shortcut="p" title="Products (Alt + P)">
+                            {{-- icon representation if sidebar collapsed --}}
+                            <span><i class="fas fa-box fa-fw me-2"></i></span>
                             <span class="sidebar-text">Products</span> <span class="shortcut-badge">Alt+P</span>
                         </a>
                         <a href="{{ route('admin.categories.index') }}"
                             class="{{ request()->is('admin/categories*') ? 'text-primary fw-bold' : '' }}"
-                            data-shortcut="c">
+                            data-shortcut="c" title="Categories (Alt + C)">
+                            <span><i class="fas fa-list fa-fw me-2"></i></span>
                             <span class="sidebar-text">Categories</span> <span class="shortcut-badge">Alt+C</span>
                         </a>
                         <a href="{{ route('admin.colors.index') }}"
                             class="{{ request()->is('admin/colors*') ? 'active-link' : '' }}" data-shortcut="c">
+                            <span><i class="fas fa-palette fa-fw me-2"></i></span>
                             <span class="sidebar-text">Colors</span>
                             <span class="shortcut-badge">Alt+C</span>
                         </a>
                         <a href="{{ route('admin.movements.index') }}"
                             class="{{ request()->is('admin/movements*') ? 'text-primary fw-bold' : '' }}"
-                            data-shortcut="m">
+                            data-shortcut="m" title="Movements (Alt + M)">
+                            <span><i class="fas fa-shipping-fast fa-fw me-2"></i></span>
                             <span class="sidebar-text">Movements</span> <span class="shortcut-badge">Alt+M</span>
                         </a>
                     </div>
                 </li>
 
-                <li class="sidebar-header">Commerce</li>
+                <li class="sidebar-header"><span class="sidebar-text">Commerce</span></li>
 
                 <li class="nav-item menu-group">
                     <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
-                        href="#commerceSubmenu" role="button" aria-expanded="false">
+                        title="Purchases & Sales" href="#commerceSubmenu" role="button" aria-expanded="false">
                         <span><i class="fas fa-exchange-alt fa-fw me-2"></i> <span class="sidebar-text">Purchases &
                                 Sales</span></span>
-                        <i class="fas fa-chevron-down fa-xs"></i>
+                        <i class="fas fa-chevron-down fa-xs sidebar-text"></i>
                     </a>
                     <div class="collapse hide" id="commerceSubmenu">
                         <a href="{{ route('admin.suppliers.index') }}"
                             class="{{ request()->is('admin/suppliers*') ? 'text-primary fw-bold' : '' }}"
                             data-shortcut="f">
+                            <span><i class="fas fa-truck fa-fw me-2"></i></span>
                             <span class="sidebar-text">Suppliers</span> <span class="shortcut-badge">Alt+F</span>
                         </a>
                         {{--  Sales link --}}
                         <a href="{{ route('admin.sales.index') }}"
-                            class="{{ request()->is('admin/sales*') ? 'text-primary fw-bold' : '' }}"
-                            data-shortcut="s">
+                            class="{{ request()->is('admin/sales*') ? 'text-primary fw-bold' : '' }}" data-shortcut="s"
+                            title="Sales (Alt + S)">
+                            <span><i class="fas fa-shopping-cart fa-fw me-2"></i></span>
                             <span class="sidebar-text">Sales</span> <span class="shortcut-badge">Alt+S</span>
                         </a>
                         <a href="{{ route('admin.purchases.index') }}"
                             class="{{ request()->is('admin/purchases*') ? 'text-primary fw-bold' : '' }}"
-                            data-shortcut="a">
+                            data-shortcut="a" title="Purchases (Alt + A)">
+                            <span><i class="fas fa-receipt fa-fw me-2"></i></span>
                             <span class="sidebar-text">Purchases</span> <span class="shortcut-badge">Alt+A</span>
                         </a>
                     </div>
                 </li>
-                <li class="sidebar-header">Users</li>
+                <li class="sidebar-header"><span class="sidebar-text">Users</span></li>
                 <li class="nav-item">
                     <a href="{{ route('admin.users.index') }}"
-                        class="{{ request()->is('admin/users*') ? 'text-primary fw-bold' : '' }}" data-shortcut="u">
+                        class="{{ request()->is('admin/users*') ? 'text-primary fw-bold' : '' }}" data-shortcut="u"
+                        title="Users (Alt + U)">
                         <span><i class="fas fa-users fa-fw me-2"></i> <span class="sidebar-text">Users</span></span>
                         <span class="shortcut-badge">Alt+U</span>
                     </a>
@@ -106,14 +115,16 @@
 
         <div class="mt-auto border-top border-secondary pt-2">
             <a href="{{ route('admin.imports.index') }}"
-                class="{{ request()->is('admin/imports*') ? 'active-link' : '' }}" data-shortcut="i">
+                class="{{ request()->is('admin/imports*') ? 'active-link' : '' }}" data-shortcut="i"
+                title="Import (Alt + I)">
                 <i class="fas fa-file-import"></i>
                 <span><span class="sidebar-text">Import</span></span>
                 <span class="shortcut-badge">Alt+I</span>
             </a>
 
             <a href="{{ route('admin.settings.index') }}"
-                class="{{ request()->is('admin/settings*') ? 'active-link' : '' }}" data-shortcut="s">
+                class="{{ request()->is('admin/settings*') ? 'active-link' : '' }}" data-shortcut="s"
+                title="Settings (Alt + S)">
                 <span><i class="fas fa-cog fa-fw me-2"></i> <span class="sidebar-text">Settings</span></span>
                 <span class="shortcut-badge">Alt+S</span>
             </a>
@@ -129,9 +140,15 @@
                 <button id="toggleSidebar" class="btn btn-link text-secondary shadow-none me-3">
                     <i class="fas fa-align-left"></i>
                 </button>
-                <div class="dropdown">
-                    <input type="search" id="global-search-input" class="form-control" placeholder="Rechercher..."
-                        aria-label="Rechercher" data-bs-toggle="dropdown" aria-expanded="false" />
+                <div class="dropdown search-input-wrapper">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-secondary"></i>
+                        </span>
+                        <input type="search" id="global-search-input" class="form-control border-start-0"
+                            placeholder="Rechercher..." aria-label="Rechercher" autocomplete="off"
+                            data-bs-toggle="dropdown" aria-expanded="false" />
+                    </div>
                     <div id="global-search-results" class="dropdown-menu w-100">
                         <!-- Les résultats de recherche seront insérés ici par JavaScript -->
                     </div>

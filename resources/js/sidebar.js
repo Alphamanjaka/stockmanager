@@ -1,85 +1,128 @@
-const sidebarToggle = document.getElementById("toggleSidebar");
-const sidebar = document.querySelector(".sidebar");
-const mainContent = document.querySelector("main");
-
-// 1. Restaurer l'état de la sidebar au chargement
 document.addEventListener("DOMContentLoaded", () => {
-    if (sidebar && localStorage.getItem("sidebar-state") === "collapsed") {
-        sidebar.classList.add("collapsed");
-        // Mettre à jour l'icône si la sidebar est initialement collapsed
+    const sidebarToggle = document.getElementById("toggleSidebar");
+    const sidebar = document.querySelector(".sidebar");
+
+    if (!sidebar || !sidebarToggle) {
+        return;
+    }
+
+    const isDesktop = () => window.innerWidth > 768;
+
+    const updateToggleIcon = (collapsed) => {
         const icon = sidebarToggle.querySelector("i");
-        if (icon) {
-            icon.classList.remove("fa-angle-left");
-            icon.classList.add("fa-angle-right");
+        if (!icon) {
+            return;
         }
-    }
-});
+        icon.classList.toggle("fa-angle-right", collapsed);
+        icon.classList.toggle("fa-angle-left", !collapsed);
+    };
 
-if (sidebarToggle && sidebar && mainContent) {
-    sidebarToggle.addEventListener("click", () => {
-        // Ajouter une animation de transition pour un effet plus doux
-        sidebar.style.transition = "width 0.3s ease";
-        // Forcer un reflow pour que la transition soit appliquée
-        void sidebar.offsetWidth;
+    const setSidebarState = (collapsed) => {
+        sidebar.classList.toggle("collapsed", collapsed);
+        localStorage.setItem(
+            "sidebar-state",
+            collapsed ? "collapsed" : "expanded",
+        );
+        updateToggleIcon(collapsed);
+    };
 
-        if (window.innerWidth > 768) {
-            // Logique Desktop : Réduire (Collapse)
-            sidebar.classList.toggle("collapsed");
-            // Sauvegarder l'état
-            const state = sidebar.classList.contains("collapsed") ? "collapsed" : "expanded";
-            localStorage.setItem("sidebar-state", state);
-            updateToggleIcon(sidebar.classList.contains("collapsed"));
-        } else {
-            // Logique Mobile : Afficher/Cacher
-            // Pas de persistance pour l'état mobile, car c'est temporaire
-            sidebar.classList.toggle("show-mobile");
-        }
-    });
-}
-
-// Fermer le menu mobile si on clique en dehors
-document.addEventListener("click", (e) => {
-    if (
-        sidebar &&
-        sidebarToggle &&
-        window.innerWidth <= 768 &&
-        !sidebar.contains(e.target) &&
-        !sidebarToggle.contains(e.target) &&
-        sidebar.classList.contains("show-mobile")
-    ) {
-        sidebar.classList.remove("show-mobile");
-    }
-});
-
-// Gestion intelligente des menus flottants (éviter le débordement bas)
-const menuGroups = document.querySelectorAll(".menu-group");
-menuGroups.forEach((group) => {
-    group.addEventListener("mouseenter", () => {
-        if (sidebar && sidebar.classList.contains("collapsed")) {
-            const submenu = group.querySelector(".collapse");
-            if (submenu) {
-                const rect = group.getBoundingClientRect();
-                // Si l'élément est dans la moitié inférieure de l'écran, on aligne par le bas (remonte)
-                if (rect.top > window.innerHeight / 2) {
-                    submenu.style.top = "auto";
-                    submenu.style.bottom = "0";
-                } else {
-                    submenu.style.top = "0";
-                    submenu.style.bottom = "auto";
+    const closeCollapsedSubmenus = (except = null) => {
+        sidebar
+            .querySelectorAll(".menu-group .collapse.show")
+            .forEach((openSubmenu) => {
+                if (openSubmenu === except) {
+                    return;
                 }
-            }
+                const instance = bootstrap.Collapse.getOrCreateInstance(
+                    openSubmenu,
+                    {
+                        toggle: false,
+                    },
+                );
+                instance.hide();
+            });
+    };
+
+    if (localStorage.getItem("sidebar-state") === "collapsed") {
+        setSidebarState(true);
+    }
+
+    sidebarToggle.addEventListener("click", () => {
+        if (isDesktop()) {
+            setSidebarState(!sidebar.classList.contains("collapsed"));
+            return;
+        }
+
+        sidebar.classList.toggle("show-mobile");
+    });
+
+    document.addEventListener("click", (event) => {
+        if (
+            !isDesktop() &&
+            sidebar.classList.contains("show-mobile") &&
+            !sidebar.contains(event.target) &&
+            !sidebarToggle.contains(event.target)
+        ) {
+            sidebar.classList.remove("show-mobile");
         }
     });
-});
 
-/**
- * Met à jour l'icône du bouton de bascule de la sidebar.
- * @param {boolean} isCollapsed - Vrai si la sidebar est en état "collapsed".
- */
-function updateToggleIcon(isCollapsed) {
-    const icon = sidebarToggle.querySelector("i");
-    if (icon) {
-        icon.classList.remove("fa-angle-left", "fa-angle-right");
-        icon.classList.add(isCollapsed ? "fa-angle-right" : "fa-angle-left");
-    }
-}
+    const positionSubmenu = (submenu, group) => {
+        const rect = group.getBoundingClientRect();
+        submenu.style.left = `${rect.right}px`;
+
+        const submenuHeight = submenu.offsetHeight || 200;
+        if (rect.top + submenuHeight > window.innerHeight) {
+            submenu.style.top = "auto";
+            submenu.style.bottom = "0";
+        } else {
+            submenu.style.top = `${rect.top}px`;
+            submenu.style.bottom = "auto";
+        }
+    };
+
+    sidebar.querySelectorAll(".menu-group").forEach((group) => {
+        const toggleLink = group.querySelector(
+            ".menu-group > a[data-bs-toggle='collapse']",
+        );
+        const submenu = group.querySelector(".collapse");
+
+        if (!toggleLink || !submenu) {
+            return;
+        }
+
+        toggleLink.addEventListener("click", (event) => {
+            if (!sidebar.classList.contains("collapsed")) {
+                return;
+            }
+
+            event.preventDefault();
+            closeCollapsedSubmenus(submenu);
+            positionSubmenu(submenu, group);
+            const instance = bootstrap.Collapse.getOrCreateInstance(submenu, {
+                toggle: false,
+            });
+            instance.toggle();
+        });
+
+        submenu.addEventListener("shown.bs.collapse", () => {
+            if (sidebar.classList.contains("collapsed")) {
+                sidebar.classList.add("submenu-open");
+            }
+        });
+
+        submenu.addEventListener("hidden.bs.collapse", () => {
+            if (!sidebar.querySelector(".menu-group .collapse.show")) {
+                sidebar.classList.remove("submenu-open");
+            }
+        });
+
+        group.addEventListener("mouseenter", () => {
+            if (!sidebar.classList.contains("collapsed")) {
+                return;
+            }
+
+            positionSubmenu(submenu, group);
+        });
+    });
+});
