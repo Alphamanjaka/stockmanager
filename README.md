@@ -46,6 +46,26 @@ Ce projet se distingue par une approche industrielle de la gestion de stock :
 - **Orchestration via Service Layer** : Utilisation d'un `GlobalSearchService` centralisé qui interroge les services spécialisés, garantissant une séparation stricte des responsabilités.
 - **Format Standardisé** : Toutes les recherches retournent un contrat de données uniforme (`type`, `name`, `url`), facilitant l'affichage groupé et la navigation fluide.
 
+#### 🛠️ Guide technique : Étendre la recherche à une nouvelle entité
+
+Pour intégrer une nouvelle entité (ex: `Customer`) au système de recherche :
+
+1.  **Backend (Service dédié)** : Implémentez la méthode `searchForGlobalSearch` dans le service de l'entité :
+    ```php
+    public function searchForGlobalSearch(string $query, int $limit = 5) {
+        return Customer::where('name', 'like', "%$query%")
+            ->limit($limit)->get()
+            ->map(fn($c) => [
+                'type' => 'customer', // Identifiant unique du type
+                'id' => $c->id,
+                'name' => $c->name,
+                'url' => route('admin.customers.show', $c->id)
+            ]);
+    }
+    ```
+2.  **Enregistrement** : Injectez le nouveau service dans `GlobalSearchService`, appelez sa méthode dans `search()` et fusionnez les résultats dans la collection `$results`.
+3.  **Frontend** : Dans `resources/js/global-search.js`, mettez à jour la logique de regroupement dans `displayResults` pour associer un libellé au nouveau type (ex: `result.type === "customer" ? "Clients"`).
+
 ### � Infrastructure Optimisée
 
 - **Docker Multi-Stage** : Images ultra-légères basées sur Alpine Linux. Séparation stricte entre l'environnement de build (compilateurs, nodejs) et l'environnement de production (runtime PHP pur).

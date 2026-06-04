@@ -129,15 +129,6 @@
                 <button id="toggleSidebar" class="btn btn-link text-secondary shadow-none me-3">
                     <i class="fas fa-align-left"></i>
                 </button>
-                {{-- Barre de recherche globale --}}
-                {{-- <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-0"><i
-                                class="fas fa-search text-muted"></i></span>
-                        <input type="search" id="global-search-input" aria-label="Search" aria-describedby="search-addon"
-                           aria-expanded="false" class="form-control bg-light border-0"
-                            placeholder="Rechercher..." aria-label="Search">
-                    </div> --}}
-                <!-- Exemple de structure HTML pour la barre de recherche -->
                 <div class="dropdown">
                     <input type="search" id="global-search-input" class="form-control" placeholder="Rechercher..."
                         aria-label="Rechercher" data-bs-toggle="dropdown" aria-expanded="false" />
