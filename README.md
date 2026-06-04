@@ -69,7 +69,13 @@ Ce projet se distingue par une approche industrielle de la gestion de stock :
     3.  Incrémentation automatique du stock (Statut : _Reçu_).
 - **Import Excel de Masse** : Module dédié pour importer des centaines de lignes d'achats fournisseurs, avec validation de l'existence des produits et fournisseurs avant import.
 
-### 3. Reporting & Tableau de Bord
+### 3. Recherche Avancée & Navigation
+
+- **Recherche d'Entités** : Localisation rapide par référence (Achats/Ventes) ou par nom/couleur (Produits).
+- **Suivi des Stocks** : Recherche directe dans l'historique des mouvements de stock par raison ou produit.
+- **Navigation Intuitive** : Accès rapide aux pages de configuration et de listes via la barre de recherche.
+
+### 4. Reporting & Tableau de Bord
 
 - Statistiques de ventes journalières.
 - Valorisation du stock en temps réel.
