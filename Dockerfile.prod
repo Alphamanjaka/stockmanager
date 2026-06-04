@@ -1,0 +1,54 @@
+# Dockerfile.prod
+FROM php:8.2-fpm-alpine
+
+# Installation des dépendances système
+RUN apk add --no-cache \
+    postgresql-dev \
+    nginx \
+    supervisor \
+    curl \
+    libzip-dev \
+    zip \
+    unzip \
+    git \
+    nodejs \
+    npm
+
+# Installation des extensions PHP
+RUN docker-php-ext-install pdo_pgsql pgsql zip
+
+# Installation de Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Configuration de PHP
+COPY docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
+
+# Configuration de Supervisor
+COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Création du répertoire de l'application
+WORKDIR /var/www/html
+
+# Copie des fichiers de l'application
+COPY . .
+
+# Installation des dépendances PHP
+RUN composer install --no-interaction --optimize-autoloader --no-dev
+
+# Installation et build des assets (si nécessaire)
+RUN npm install && npm run production || true
+
+# Cache Laravel
+RUN php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache
+
+# Permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Exposition du port
+EXPOSE 9000
+
+# Démarrage avec Supervisor
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
