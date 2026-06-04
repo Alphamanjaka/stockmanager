@@ -17,13 +17,12 @@ if [ -z "$APP_KEY" ]; then
 fi
 
 # Run migrations (optionnel - à désactiver en production si vous les gérez autrement)
-# php artisan migrate --force
+php artisan migrate --force
 
 # Clear caches
 php artisan optimize:clear
 
 # Cache configuration
-php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
@@ -31,6 +30,6 @@ php artisan view:cache
 mkdir -p /var/log/supervisor
 mkdir -p /var/www/html/storage/logs
 
-# Démarrer Supervisor
-echo "Starting Supervisor..."
-exec /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf
+# Exécuter la commande passée au conteneur (CMD dans Dockerfile ou command dans Compose)
+echo "Running command: $@"
+exec "$@"

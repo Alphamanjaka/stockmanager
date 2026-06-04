@@ -1,111 +1,97 @@
-version: '3.9'
+x-laravel-base: &laravel-base
+  build:
+    context: .
+    dockerfile: Dockerfile.prod
+  restart: unless-stopped
+  env_file: .env
+  environment:
+    - APP_ENV=production
+    - APP_DEBUG=false
+  volumes:
+    - ./storage:/var/www/html/storage
+    - static-content:/var/www/html/public
+  networks:
+    - laravel-network
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
 
 services:
-  # Application Laravel
+  # Service 1 : PHP-FPM (application web)
   app:
-    healthcheck:
-      test: ["CMD", "supervisorctl", "status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
-    container_name: laravel_app
-    restart: unless-stopped
-    working_dir: /var/www/html
-    # On ne monte que les volumes persistants, le code est déjà dans l'image
-    volumes:
-      - ./storage:/var/www/html/storage
-      - ./docker/logs/supervisor:/var/log/supervisor
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - laravel-network
-    depends_on:
-      - db
-      - redis
-    environment:
-      - APP_ENV=production
-      - APP_DEBUG=false
-      - APP_URL=${APP_URL}
-      - APP_KEY=${APP_KEY}
-      - DB_CONNECTION=pgsql
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+    <<: *laravel-base
+    container_name: stockmanager_app
+    command: php-fpm
 
-  # Web server Nginx
+  # Service 2 : Queue Worker (indépendant)
+  worker:
+    <<: *laravel-base
+    container_name: stockmanager_worker
+    command: php artisan queue:work --verbose --tries=3 --timeout=90
+
+  # Service 3 : Scheduler (cron)
+  scheduler:
+    <<: *laravel-base
+    container_name: stockmanager_scheduler
+    command: php artisan schedule:work
+
+  # Service 4 : Nginx (web server)
   webserver:
     image: nginx:alpine
-    container_name: laravel_webserver
+    container_name: stockmanager_nginx
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      # On ne monte que le nécessaire pour Nginx (statiques et configs)
+      - static-content:/var/www/html/public:ro
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
-      - ./docker/nginx/ssl:/etc/nginx/ssl
-      # Indispensable pour que Nginx serve les JS/CSS compilés
-      - ./public:/var/www/html/public:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
     networks:
       - laravel-network
     depends_on:
       - app
 
-  # PostgreSQL
+  # Service 5 : PostgreSQL
   db:
     image: postgres:15-alpine
-    container_name: laravel_db
+    container_name: stockmanager_db
     restart: unless-stopped
     environment:
-      - POSTGRES_DB=${DB_DATABASE}
-      - POSTGRES_USER=${DB_USERNAME}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - PGDATA=/var/lib/postgresql/data/pgdata
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # PORT
+      POSTGRES_PORT: ${DB_PORT:-5432}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/init:/docker-entrypoint-initdb.d
     networks:
       - laravel-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      test: ["CMD-SHELL", "pg_isready -d ${DB_DATABASE:-postgres} -U ${DB_USERNAME:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
-  # Redis pour cache et sessions
+  # Service 6 : Redis
   redis:
     image: redis:7-alpine
-    container_name: laravel_redis
+    container_name: stockmanager_redis
     restart: unless-stopped
+    command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
     networks:
       - laravel-network
-    command: redis-server --appendonly yes
-
-  # PHPMyAdmin pour PostgreSQL (Adminer)
-  adminer:
-    image: adminer
-    container_name: laravel_adminer
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    environment:
-      - ADMINER_DEFAULT_SERVER=db
-    networks:
-      - laravel-network
-    depends_on:
-      - db
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   laravel-network:
@@ -114,3 +100,4 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  static-content:
