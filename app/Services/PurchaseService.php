@@ -219,6 +219,30 @@ class PurchaseService
     }
 
     /**
+     * Effectue une recherche légère sur les achats pour la fonctionnalité de recherche globale.
+     *
+     * @param string $query La chaîne de recherche.
+     * @param int $limit Le nombre maximum de résultats.
+     * @return \Illuminate\Support\Collection
+     */
+    public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
+    {
+        return Purchase::with('supplier')
+            ->where('reference', 'like', "%{$query}%")
+            ->orWhereHas('supplier', fn($q) => $q->where('name', 'like', "%{$query}%"))
+            ->limit($limit)
+            ->get()
+            ->map(fn(Purchase $purchase) => [
+                'type' => 'purchase',
+                'id' => $purchase->id,
+                'name' => "Achat #{$purchase->reference} ({$purchase->supplier->name})",
+                'url' => route('admin.purchases.show', $purchase->id),
+            ]);
+    }
+
+
+
+    /**
      * Récupère les achats pour l'API (Tabulator) avec tri dynamique et recherche.
      */
     public function getPurchasesForApi(array $params = [], int $perPage = 15)

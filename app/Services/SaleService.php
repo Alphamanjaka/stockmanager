@@ -130,4 +130,20 @@ class SaleService
     {
         return $this->getVariantSaleStats('asc');
     }
+
+    /**
+     * Recherche les ventes pour la recherche globale.
+     */
+    public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
+    {
+        return Sale::where('reference', 'like', "%{$query}%")
+            ->limit($limit)
+            ->get()
+            ->map(fn(Sale $sale) => [
+                'type' => 'sale',
+                'id' => $sale->id,
+                'name' => "Vente #{$sale->reference}",
+                'url' => route('admin.sales.show', $sale->id),
+            ]);
+    }
 }

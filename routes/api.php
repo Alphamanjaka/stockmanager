@@ -4,6 +4,7 @@ use App\Http\Controllers\API\CategoryControllerAPI;
 use App\Http\Controllers\API\ColorControllerAPI;
 use App\Http\Controllers\API\ProductColorControllerAPI;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GlobalSearchController;
 
 
 // Routes spécifiques pour le Dashboard Produit (AJAX) et pour les mouvements de stock
@@ -12,3 +13,5 @@ Route::get('products/{productId}/stock-evolution', [ProductColorControllerAPI::c
 Route::get('products/{productId}/movements', [ProductColorControllerAPI::class, 'getMovements']);
 Route::apiResource('categories', CategoryControllerAPI::class);
 Route::apiResource('colors', ColorControllerAPI::class);
+// Exemple dans routes/api.php ou web.php si vous préférez
+Route::get('global-search', [GlobalSearchController::class, 'search'])->name('global.search');

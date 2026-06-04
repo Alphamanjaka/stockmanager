@@ -39,7 +39,14 @@ Ce projet se distingue par une approche industrielle de la gestion de stock :
 - **Optimisation N+1** : Utilisation d'un système de cache en mémoire pendant l'import pour minimiser les requêtes vers la base de données.
 - **Normalisation automatique** : Nettoyage des données (prix, stocks, formats de texte) avant validation.
 
-### 📦 Infrastructure Optimisée
+### 🔍 Système de Recherche Globale (Omnisearch)
+
+- **Architecture Hybride** : Combine une recherche instantanée côté client pour la navigation (routes statiques) et une recherche asynchrone côté serveur pour les entités métier (Produits, Achats, Ventes, Stocks).
+- **Performance & Debouncing** : Implémentation d'un délai de saisie (_debounce_) de 300ms pour minimiser la charge serveur et optimiser la réactivité de l'UI.
+- **Orchestration via Service Layer** : Utilisation d'un `GlobalSearchService` centralisé qui interroge les services spécialisés, garantissant une séparation stricte des responsabilités.
+- **Format Standardisé** : Toutes les recherches retournent un contrat de données uniforme (`type`, `name`, `url`), facilitant l'affichage groupé et la navigation fluide.
+
+### � Infrastructure Optimisée
 
 - **Docker Multi-Stage** : Images ultra-légères basées sur Alpine Linux. Séparation stricte entre l'environnement de build (compilateurs, nodejs) et l'environnement de production (runtime PHP pur).
 - **Performance** : Utilisation de **Redis** pour le cache et les files d'attente, et **PostgreSQL** pour la fiabilité des données.

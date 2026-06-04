@@ -246,4 +246,22 @@ class StockService
 
         return array_reverse($dataPoints);
     }
+
+    /**
+     * Recherche les mouvements de stock pour la recherche globale.
+     */
+    public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
+    {
+        return StockMovement::with(['productColor.product'])
+            ->where('reason', 'like', "%{$query}%")
+            ->orWhereHas('productColor.product', fn($q) => $q->where('name', 'like', "%{$query}%"))
+            ->limit($limit)
+            ->get()
+            ->map(fn(StockMovement $movement) => [
+                'type' => 'movement',
+                'id' => $movement->id,
+                'name' => "Mouv. " . strtoupper($movement->type) . ": " . ($movement->reason ?? 'Sans raison'),
+                'url' => route('admin.movements.show', $movement->id),
+            ]);
+    }
 }

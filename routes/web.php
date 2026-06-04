@@ -49,10 +49,13 @@ Route::middleware('auth')->group(function () {
         Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);
         Route::resource('suppliers', SupplierController::class);
         Route::resource('settings', SettingController::class);
-        Route::post('settings/backup', [SettingController::class, 'runBackup'])->name('settings.backup');
-        Route::get('settings/backup/download', [SettingController::class, 'downloadBackup'])->name('settings.download-backup');
-        Route::delete('settings/backup/delete', [SettingController::class, 'deleteBackup'])->name('settings.delete-backup');
-        Route::post('settings/backup/verify', [SettingController::class, 'verifyBackup'])->name('settings.verify-backup');
+        // add prefix settings for backup routes
+        Route::prefix('settings/')->name('settings.')->group(function () {
+            Route::post('backup', [SettingController::class, 'runBackup'])->name('backup');
+            Route::get('backup/download', [SettingController::class, 'downloadBackup'])->name('download-backup');
+            Route::delete('backup/delete', [SettingController::class, 'deleteBackup'])->name('delete-backup');
+            Route::post('backup/verify', [SettingController::class, 'verifyBackup'])->name('verify-backup');
+        });
 
         // Les routes spécifiques comme 'create-from-shortage' ou 'get-purchases-api' doivent être définies
         // AVANT la route ressource pour éviter que Laravel ne les interprète comme un paramètre {id}.

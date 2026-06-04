@@ -57,7 +57,7 @@ class ProductColorService extends BaseService
                                 'price' => $data['prices'][$index] ?? 0,
                                 'alert_stock' => $data['alert_stocks'][$index] ?? null
                             ]
-                         );
+                        );
                     }
                 }
 
@@ -214,5 +214,27 @@ class ProductColorService extends BaseService
     public function getLeastSoldProduct()
     {
         return $this->saleService->getLeastSoldProduct();
+    }
+
+    /**
+     * Effectue une recherche légère sur les variantes de produits pour la fonctionnalité de recherche globale.
+     *
+     * @param string $query La chaîne de recherche.
+     * @param int $limit Le nombre maximum de résultats.
+     * @return \Illuminate\Support\Collection
+     */
+    public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
+    {
+        return ProductColor::with(['product', 'color'])
+            ->whereHas('product', fn($q) => $q->where('name', 'like', "%{$query}%"))
+            ->orWhereHas('color', fn($q) => $q->where('name', 'like', "%{$query}%"))
+            ->limit($limit)
+            ->get()
+            ->map(fn(ProductColor $productColor) => [
+                'type' => 'product',
+                'id' => $productColor->id,
+                'name' => "{$productColor->toString()}",
+                'url' => route('admin.products.show', $productColor->id), // Assumer une route pour l'affichage d'une variante
+            ]);
     }
 }
