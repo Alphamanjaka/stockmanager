@@ -248,9 +248,31 @@ class PurchaseController extends Controller
     public function edit(int $id)
     {
         $purchase = $this->purchaseService->getPurchaseById($id);
-        $products = $this->productColorService->getAll([], false);
+        $productsVariant = $this->productColorService->getAll([], false);
         $suppliers = $this->supplierService->getAllSuppliers();
-        return view('purchases.edit', compact('purchase', 'products', 'suppliers'));
+
+        // Préparation des produits pour la recherche côté client
+        $searchProducts = $productsVariant->map(function ($product) {
+            return [
+                'id' => $product->id,
+                'name' => $product->product->name . ' - ' . $product->color->name,
+                'price' => $product->price,
+                'stock' => $product->stock,
+                'searchable' => strtolower($product->product->name . ' ' . $product->color->name),
+            ];
+        });
+
+        // Préparation des items actuels pour l'interface JS
+        $currentItems = $purchase->items->map(function ($item) {
+            return [
+                'product_color_id' => $item->product_color_id,
+                'name' => $item->productColor->toString(),
+                'quantity' => $item->quantity,
+                'unit_price' => $item->unit_price,
+            ];
+        });
+
+        return view('purchases.edit', compact('purchase', 'productsVariant', 'suppliers', 'searchProducts', 'currentItems'));
     }
 
 
