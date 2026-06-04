@@ -149,7 +149,7 @@
                             placeholder="Rechercher..." aria-label="Rechercher" autocomplete="off"
                             data-bs-toggle="dropdown" aria-expanded="false" />
                     </div>
-                    <div id="global-search-results" class="dropdown-menu w-100">
+                    <div id="global-search-results" class="dropdown-menu">
                         <!-- Les résultats de recherche seront insérés ici par JavaScript -->
                     </div>
                 </div>
