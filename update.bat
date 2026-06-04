@@ -39,12 +39,47 @@ echo [4/6] Mise a jour de la base de donnees...
 REM Note : Les migrations et optimisations sont maintenant executees
 REM automatiquement par le conteneur au demarrage (entrypoint).
 
-REM 6. Assets
-echo [5/6] Extraction des nouveaux assets compiles (CSS/JS)...
-docker compose -f compose.prod.yaml cp php-fpm:/var/www/public/build ./public/
+REM 6. Assets - Compilation frontend
+echo [5/6] Compilation des assets frontend (CSS/JS)...
+
+REM Verifier que Node.js est installe
+node --version >nul 2>&1
+IF %ERRORLEVEL% NEQ 0 (
+    echo [ERREUR] Node.js n'est pas installe sur votre machine.
+    echo Veuillez installer Node.js (https://nodejs.org) et relancer update.bat
+    pause
+    exit /b
+)
+
+echo    - Installation des dependances NPM (localement)...
+call npm install
+IF %ERRORLEVEL% NEQ 0 (
+    echo [ERREUR] Echec npm install
+    pause
+    exit /b
+)
+
+echo    - Build des assets Vite (localement)...
+call npm run build
+IF %ERRORLEVEL% NEQ 0 (
+    echo [ERREUR] Echec npm run build
+    pause
+    exit /b
+)
+
+echo    - Copie des assets compiles vers le conteneur Docker...
+docker compose -f compose.prod.yaml cp ./public/build/. php-fpm:/var/www/public/build/
+IF %ERRORLEVEL% NEQ 0 (
+    echo [ERREUR] Echec copie des assets vers le conteneur
+    echo Cela peut arriver si le conteneur n'est pas en cours d'execution.
+    echo Les assets seront a jour localement, mais peut-etre pas dans Docker.
+)
 
 echo.
 echo ==========================================
 echo   MISE A JOUR TERMINEE AVEC SUCCES !
 echo ==========================================
+echo.
+echo [INFO] Les assets CSS/JS sont maintenant a jour.
+echo       Le conteneur web rechargera les assets au prochain refresh.
 pause

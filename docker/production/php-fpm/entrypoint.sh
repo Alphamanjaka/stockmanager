@@ -17,7 +17,7 @@ if [ "$1" = 'php-fpm' ]; then
     else
         echo ".env file already exists. Skipping copy."
     fi
-    
+
     # 1. Génération de clé intelligente
     # On ne génère la clé QUE si APP_KEY est vide ou absente du .env
     if ! grep -q "APP_KEY=base64:" .env; then

@@ -18,7 +18,7 @@ COPY . /var/www
 RUN npm install && npm run build
 
 # Stage 2: Nginx production image
-FROM nginx:alpine
+FROM nginx:1-alpine-slim
 
 # Copy custom Nginx configuration
 # -----------------------------------------------------------
