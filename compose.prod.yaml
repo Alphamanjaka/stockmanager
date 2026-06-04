@@ -14,9 +14,9 @@ services:
     container_name: laravel_app
     restart: unless-stopped
     working_dir: /var/www/html
+    # On ne monte que les volumes persistants, le code est déjà dans l'image
     volumes:
       - ./storage:/var/www/html/storage
-      - ./storage/logs:/var/www/html/storage/logs
       - ./docker/logs/supervisor:/var/log/supervisor
     logging:
       driver: "json-file"
@@ -32,6 +32,7 @@ services:
       - APP_ENV=production
       - APP_DEBUG=false
       - APP_URL=${APP_URL}
+      - APP_KEY=${APP_KEY}
       - DB_CONNECTION=pgsql
       - DB_HOST=db
       - DB_PORT=5432
@@ -53,8 +54,8 @@ services:
       # On ne monte que le nécessaire pour Nginx (statiques et configs)
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
       - ./docker/nginx/ssl:/etc/nginx/ssl
-      # Optionnel : partager le dossier public si Nginx doit servir les assets directement
-      # - ./public:/var/www/html/public:ro
+      # Indispensable pour que Nginx serve les JS/CSS compilés
+      - ./public:/var/www/html/public:ro
     networks:
       - laravel-network
     depends_on:
@@ -73,7 +74,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d
-    # On retire l'exposition des ports en prod pour la sécurité
     networks:
       - laravel-network
     healthcheck:
@@ -87,8 +87,6 @@ services:
     image: redis:7-alpine
     container_name: laravel_redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     networks:

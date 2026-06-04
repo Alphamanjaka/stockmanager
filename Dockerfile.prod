@@ -1,64 +1,63 @@
-FROM php:8.2-fpm-alpine
+# ==========================================
+# Étape 1 : Dépendances PHP (Composer)
+# ==========================================
+FROM composer:latest AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-interaction --no-dev --no-scripts --no-autoloader --ignore-platform-reqs
 
-# Installation des dépendances
+# ==========================================
+# Étape 2 : Compilation des Assets (Node)
+# ==========================================
+FROM node:20-alpine AS frontend
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# ==========================================
+# Étape 3 : Runtime Final
+# ==========================================
+FROM php:8.4-fpm-alpine
+
+# Installation des dépendances système minimales
 RUN apk add --no-cache \
     postgresql-dev \
-    nginx \
     supervisor \
-    curl \
     libzip-dev \
     zip \
     unzip \
-    git \
-    nodejs \
-    npm \
     bash
 
-# Installation des extensions PHP
 RUN docker-php-ext-install pdo_pgsql pgsql zip
 
-# Installation de Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Configuration PHP
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
-
-# Configuration Supervisor
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Création des dossiers pour les logs
 RUN mkdir -p /var/log/supervisor && \
-    mkdir -p /var/log/nginx && \
     touch /var/log/supervisor/supervisord.log
 
-# Work directory
 WORKDIR /var/www/html
 
-# Copie des fichiers de l'application
-COPY . .
+# Copie du code source avec les bonnes permissions dès le départ
+COPY --chown=www-data:www-data . .
 
-# Installation des dépendances PHP (sans dev)
-RUN composer install --no-interaction --optimize-autoloader --no-dev
+# Récupération des dépendances depuis les étapes de build
+COPY --from=vendor --chown=www-data:www-data /app/vendor/ ./vendor/
+COPY --from=frontend --chown=www-data:www-data /app/public/build/ ./public/build/
 
-# Installation des assets (si nécessaire)
-RUN if [ -f "package.json" ]; then \
-    npm install && npm run production || true; \
-    fi
+# Finalisation de l'autoloader
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
-# Cache Laravel
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+# Optimisation Laravel
+# Note: On ignore les erreurs ici car certaines variables d'env peuvent manquer au build
+RUN php artisan config:cache || true && \
+    php artisan route:cache || true && \
+    php artisan view:cache || true
 
-# Permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache && \
-    chown -R www-data:www-data /var/log/supervisor
+RUN chmod -R 775 storage bootstrap/cache
 
-# Script de démarrage personnalisé
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-EXPOSE 80 443 9000
-
-ENTRYPOINT ["entrypoint.sh"]
+EXPOSE 9000
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
