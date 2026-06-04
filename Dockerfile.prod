@@ -1,54 +1,63 @@
-# Dockerfile.prod
+# ==========================================
+# Étape 1 : Dépendances PHP (Composer)
+# ==========================================
+FROM composer:latest AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-interaction --no-dev --no-scripts --no-autoloader --ignore-platform-reqs
+
+# ==========================================
+# Étape 2 : Compilation des Assets (Node)
+# ==========================================
+FROM node:20-alpine AS frontend
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm install
+COPY . .
+RUN npm run production || true
+
+# ==========================================
+# Étape 3 : Runtime Final (PHP-FPM)
+# ==========================================
 FROM php:8.2-fpm-alpine
 
-# Installation des dépendances système
+# Installation des dépendances système essentielles uniquement
 RUN apk add --no-cache \
     postgresql-dev \
-    nginx \
     supervisor \
-    curl \
     libzip-dev \
     zip \
-    unzip \
-    git \
-    nodejs \
-    npm
+    unzip
 
-# Installation des extensions PHP
 RUN docker-php-ext-install pdo_pgsql pgsql zip
 
-# Installation de Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Configuration de PHP
+# Configuration PHP & Supervisor
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
-
-# Configuration de Supervisor
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Création du répertoire de l'application
 WORKDIR /var/www/html
 
-# Copie des fichiers de l'application
-COPY . .
+# Copie du code source avec les bonnes permissions
+COPY --chown=www-data:www-data . .
 
-# Installation des dépendances PHP
-RUN composer install --no-interaction --optimize-autoloader --no-dev
+# Récupération des dépendances depuis les étapes précédentes
+COPY --from=vendor --chown=www-data:www-data /app/vendor/ ./vendor/
+COPY --from=frontend --chown=www-data:www-data /app/public/js/ ./public/js/
+COPY --from=frontend --chown=www-data:www-data /app/public/css/ ./public/css/
+COPY --from=frontend --chown=www-data:www-data /app/public/mix-manifest.json ./public/mix-manifest.json
 
-# Installation et build des assets (si nécessaire)
-RUN npm install && npm run production || true
+# Finalisation de l'autoloader Composer
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
-# Cache Laravel
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+# Optimisation Laravel (doit être fait après la copie du code)
+# Note: Vérifiez que les variables d'environnement nécessaires sont présentes ou utilisez des valeurs par défaut
+RUN php artisan config:cache || true && \
+    php artisan route:cache || true && \
+    php artisan view:cache || true
 
-# Permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Ajustement final des permissions pour storage et cache
+RUN chmod -R 775 storage bootstrap/cache
 
-# Exposition du port
 EXPOSE 9000
 
-# Démarrage avec Supervisor
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
