@@ -178,7 +178,7 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
         $color = Color::whereRaw('LOWER(name) = ?', [$colorName])->first();
 
         if (!$color) {
-            $color = Color::create(['name' => $colorName, 'code' => '#FFFFFF']);
+            $color = Color::create(['name' => $colorName, 'code' => $colorName]);
         }
 
         $this->colorsCache[$colorName] = $color->id;
