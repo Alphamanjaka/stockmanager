@@ -10,9 +10,12 @@ class ImportService
 {
     public function import(UploadedFile $file, $importClass)
     {
+        // Instancier la classe d'importation avant la transaction
+        $importInstance = is_string($importClass) ? new $importClass : $importClass;
+
         // On enveloppe l'import dans une transaction pour rollback en cas d'erreur
-        DB::transaction(function () use ($file, $importClass) {
-            Excel::import($importClass, $file);
+        DB::transaction(function () use ($file, $importInstance) {
+            Excel::import($importInstance, $file);
         });
 
         return true;
