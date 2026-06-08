@@ -49,6 +49,12 @@
 
 
             <div class="card shadow mb-4">
+                {{-- card header --}}
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Color List</h6>
+                </div>
+
+                <!-- card body -->
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover" width="100%" cellspacing="0">

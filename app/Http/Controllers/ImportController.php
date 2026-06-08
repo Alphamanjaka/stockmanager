@@ -83,6 +83,7 @@ class ImportController extends Controller
                 'user_id' => auth()->id(),
                 'trace' => $e->getTraceAsString()
             ]);
+            // au cas d'une exception générale, on retourne un message d'erreur générique pour éviter de divulguer des informations sensibles
             return back()->with('error', 'Erreur lors de l\'import : ' . $e->getMessage());
         }
     }
