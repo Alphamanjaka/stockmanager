@@ -1,5 +1,5 @@
 # Stage 1: Build environment and Composer dependencies
-FROM php:8.5-fpm AS builder
+FROM php:8.4-fpm AS builder
 
 # Install system dependencies and PHP extensions required for Laravel + MySQL/PostgreSQL support
 # Some dependencies are required for PHP extensions only in the build stage
@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4-openssl-dev \
     libicu-dev \
     libzip-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     pdo_mysql \
     pdo_pgsql \
@@ -22,6 +25,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zip \
     bcmath \
     soap \
+    exif \
+    pcntl \
+    gd \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -47,22 +53,30 @@ WORKDIR /var/www
 # -----------------------------------------------------------
 COPY . /var/www
 
+# Créer les répertoires nécessaires et configurer les permissions pour les scripts de build Laravel
+RUN mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views storage/framework/cache \
+    && chmod -R 775 bootstrap/cache storage
+
 # Install Composer and dependencies
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist
 
 
 # Stage 2: Production environment
-FROM php:8.5-fpm AS production
+FROM php:8.4-fpm AS production
 
 # Install only runtime libraries needed in production
 # libfcgi-bin and procps are required for the php-fpm-healthcheck script
+# libfreetype6 and libjpeg62-turbo are required for the gd extension at runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client \
     libpq-dev \
     libicu-dev \
     libzip-dev \
     libfcgi-bin \
     procps \
+    libfreetype6 \
+    libjpeg62-turbo \
     && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Download and install php-fpm health check script
@@ -139,7 +153,7 @@ RUN if [ "${XDEBUG_ENABLED}" = "true" ]; then \
     echo "xdebug.log_level=${XDEBUG_LOG_LEVEL}" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
     echo "xdebug.client_host=${XDEBUG_HOST}" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini ; \
     echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini ; \
-fi
+    fi
 
 # Add ARGs for syncing permissions
 ARG UID=1000
@@ -147,18 +161,27 @@ ARG GID=1000
 
 # Create a new user with the specified UID and GID, reusing an existing group if GID exists
 RUN if getent group ${GID}; then \
-      group_name=$(getent group ${GID} | cut -d: -f1); \
-      useradd -m -u ${UID} -g ${GID} -s /bin/bash www; \
+    group_name=$(getent group ${GID} | cut -d: -f1); \
+    useradd -m -u ${UID} -g ${GID} -s /bin/bash www; \
     else \
-      groupadd -g ${GID} www && \
-      useradd -m -u ${UID} -g www -s /bin/bash www; \
-      group_name=www; \
+    groupadd -g ${GID} www && \
+    useradd -m -u ${UID} -g www -s /bin/bash www; \
+    group_name=www; \
     fi
 
 # Dynamically update php-fpm to use the new user and group
 RUN sed -i "s/user = www-data/user = www/g" /usr/local/etc/php-fpm.d/www.conf && \
-    sed -i "s/group = www-data/group = $group_name/g" /usr/local/etc/php-fpm.d/www.conf
-
+    sed -i "s/group = www-data/group = $group_name/g" /usr/local/etc/php-fpm.d/www.conf && \
+    # Force PHP-FPM to listen on 9000 (all interfaces) in ALL config files
+    sed -i "s/listen = .*/listen = 9000/g" /usr/local/etc/php-fpm.d/www.conf && \
+    # Enable status path for reliable healthchecks
+    echo "pm.status_path = /status" >> /usr/local/etc/php-fpm.d/www.conf && \
+    # Increase performance for development (prevents 502 when loading many assets)
+    sed -i "s/pm.max_children = 5/pm.max_children = 20/g" /usr/local/etc/php-fpm.d/www.conf && \
+    sed -i "s/pm.start_servers = 2/pm.start_servers = 5/g" /usr/local/etc/php-fpm.d/www.conf && \
+    sed -i "s/pm.min_spare_servers = 1/pm.min_spare_servers = 5/g" /usr/local/etc/php-fpm.d/www.conf && \
+    sed -i "s/pm.max_spare_servers = 3/pm.max_spare_servers = 10/g" /usr/local/etc/php-fpm.d/www.conf && \
+    find /usr/local/etc/php-fpm.d/ -name "*.conf" -exec sed -i "s/listen = .*/listen = 9000/g" {} +
 
 # Set the working directory
 WORKDIR /var/www
@@ -168,7 +191,7 @@ COPY ./docker/development/php-fpm/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Switch back to the non-privileged user to run the application
-USER www-data
+USER www
 
 # Change the default command to run the entrypoint script
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

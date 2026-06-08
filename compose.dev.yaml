@@ -15,7 +15,7 @@ services:
       - laravel-development
     depends_on:
       php-fpm:
-        condition: service_started  # Wait for php-fpm to start
+        condition: service_healthy  # Attendre que PHP-FPM soit PRÊT
 
   php-fpm:
     # For the php-fpm service, we will create a custom image to install the necessary PHP extensions and setup proper permissions.
@@ -32,6 +32,11 @@ services:
         XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
         XDEBUG_LOG: /dev/stdout
         XDEBUG_LOG_LEVEL: 0
+    healthcheck:
+      test: ["CMD", "php-fpm-healthcheck"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
     env_file:
       # Load the environment variables from the Laravel application
       - .env
@@ -43,7 +48,7 @@ services:
       - laravel-development
     depends_on:
       postgres:
-        condition: service_started  # Wait for postgres to start
+        condition: service_healthy  # Attendre que la DB soit prête à accepter des connexions
 
   workspace:
    # For the workspace service, we will also create a custom image to install and setup all the necessary stuff.
@@ -82,6 +87,11 @@ services:
       - postgres-data-development:/var/lib/postgresql/data
     networks:
       - laravel-development
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d app -U laravel"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
