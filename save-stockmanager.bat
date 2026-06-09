@@ -54,7 +54,6 @@ echo ----------------------------------------
 
 REM Créer un docker-compose.yml propre (sans build)
 (
-echo version: '3.8'
 echo.
 echo services:
 echo   php-fpm:
@@ -62,7 +61,10 @@ echo     image: stockmanager-php-fpm:latest
 echo     container_name: stockmanager-php-fpm
 echo     restart: unless-stopped
 echo     volumes:
-echo       - storage_data:/var/www/html/storage
+echo       - storage_data:/var/www/storage
+echo       - public_assets:/var/www/public/build
+echo     env_file:
+echo       - .env
 echo     networks:
 echo       - stockmanager_network
 echo.
@@ -72,6 +74,9 @@ echo     container_name: stockmanager-web
 echo     restart: unless-stopped
 echo     ports:
 echo       - "80:80"
+echo     volumes:
+echo       - storage_data:/var/www/storage:ro
+echo       - public_assets:/var/www/public/build:ro
 echo     depends_on:
 echo       - php-fpm
 echo     networks:
@@ -103,6 +108,9 @@ echo   scheduler:
 echo     image: stockmanager-scheduler:latest
 echo     container_name: stockmanager-scheduler
 echo     restart: unless-stopped
+echo     command: php artisan schedule:work
+echo     env_file:
+echo       - .env
 echo     depends_on:
 echo       - php-fpm
 echo     networks:
@@ -112,6 +120,9 @@ echo   worker:
 echo     image: stockmanager-worker:latest
 echo     container_name: stockmanager-worker
 echo     restart: unless-stopped
+echo     command: php artisan queue:work --verbose --tries=3 --timeout=90
+echo     env_file:
+echo       - .env
 echo     depends_on:
 echo       - php-fpm
 echo     networks:
@@ -123,6 +134,7 @@ echo     driver: bridge
 echo.
 echo volumes:
 echo   storage_data:
+echo   public_assets:
 echo   postgres_data:
 echo   redis_data:
 ) > %PACKAGE_DIR%\docker-compose.yml
@@ -175,7 +187,6 @@ echo echo Lancez setup.bat pour finaliser
 echo echo.
 echo pause
 ) > %PACKAGE_DIR%\install.bat
-
 REM setup.bat (configure l'application)
 (
 echo @echo off
@@ -183,7 +194,7 @@ echo echo ========================================
 echo echo Configuration de StockManager
 echo echo ========================================
 echo echo.
-echo echo [1/5] Copie du fichier .env...
+echo echo [1/6] Copie du fichier .env local...
 echo if not exist .env (
 echo     if exist .env.example (
 echo         copy .env.example .env
@@ -197,10 +208,18 @@ echo ^) else ^(
 echo     echo .env existe deja
 echo ^)
 echo.
-echo echo [2/5] Attente du demarrage des services...
+echo echo [2/6] Copie du .env dans le conteneur...
+echo docker compose exec -T php-fpm cp /var/www/.env.example /var/www/.env 2^>nul
+echo if errorlevel 1 ^(
+echo     echo Creation du .env dans le conteneur...
+echo     docker compose exec -T php-fpm sh -c "echo APP_ENV=production ^> /var/www/.env"
+echo     docker compose exec -T php-fpm sh -c "echo APP_DEBUG=false ^>> /var/www/.env"
+echo ^)
+echo.
+echo echo [3/6] Attente du demarrage des services...
 echo timeout /t 10 /nobreak ^>nul
 echo.
-echo echo [3/5] Generation de la cle application...
+echo echo [4/6] Generation de la cle application...
 echo docker compose exec -T php-fpm php artisan key:generate
 echo if errorlevel 1 ^(
 echo     echo Erreur: PHP-FPM n'est pas pret
@@ -209,16 +228,16 @@ echo     pause
 echo     exit /b 1
 echo ^)
 echo.
-echo echo [4/5] Migration de la base de donnees...
+echo echo [5/6] Migration de la base de donnees...
 echo docker compose exec -T php-fpm php artisan migrate --force
 echo.
-echo echo [5/5] Optimisation du cache...
+echo echo [6/6] Optimisation du cache...
 echo docker compose exec -T php-fpm php artisan config:cache
 echo docker compose exec -T php-fpm php artisan route:cache
 echo docker compose exec -T php-fpm php artisan view:cache
 echo.
 echo echo ========================================
-echo echo ✅ Application prete !
+echo echo  Application prete !
 echo echo ========================================
 echo echo Accedez a : http://localhost
 echo echo.
@@ -227,7 +246,6 @@ echo echo Pour les logs : docker compose logs -f
 echo echo.
 echo pause
 ) > %PACKAGE_DIR%\setup.bat
-
 REM install.sh pour Linux/Mac
 (
 echo #!/bin/bash
@@ -274,7 +292,7 @@ echo echo "[4/4] Migration de la base..."
 echo docker compose exec -T php-fpm php artisan migrate --force
 echo echo ""
 echo echo "========================================"
-echo echo "✅ Application prete !"
+echo echo " Application prete !"
 echo echo "========================================"
 echo echo "Accedez a : http://localhost"
 ) > %PACKAGE_DIR%\setup.sh
@@ -283,10 +301,10 @@ REM README
 (
 echo # StockManager - Application de gestion de stock
 echo.
-echo ## 📋 Description
+echo ##  Description
 echo Application Dockerisee avec Laravel, PostgreSQL et Redis.
 echo.
-echo ## 🚀 Installation
+echo ##  Installation
 echo.
 echo ### Prérequis
 echo - Docker Desktop installe et demarre
@@ -306,7 +324,7 @@ echo ./install.sh
 echo ./setup.sh
 echo ```
 echo.
-echo ## 🔧 Services inclus
+echo ##  Services inclus
 echo - PHP-FPM 8.x
 echo - Nginx
 echo - PostgreSQL 16
@@ -314,7 +332,7 @@ echo - Redis
 echo - Laravel Scheduler
 echo - Laravel Worker
 echo.
-echo ## ⚙️ Commandes utiles
+echo ##  Commandes utiles
 echo ```bash
 echo docker compose down      # Arreter
 echo docker compose up -d     # Redemarrer
@@ -322,7 +340,7 @@ echo docker compose logs -f   # Voir les logs
 echo docker compose exec php-fpm php artisan tinker  # Console Laravel
 echo ```
 echo.
-echo ## 📞 Support
+echo ##  Support
 echo Contacter l'administrateur
 ) > %PACKAGE_DIR%\README.md
 
