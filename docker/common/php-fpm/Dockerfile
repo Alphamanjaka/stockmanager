@@ -1,21 +1,19 @@
 # Stage 1: Build environment and Composer dependencies
-FROM php:8.4-fpm AS builder
+FROM php:8.4-fpm-alpine AS builder
 
 # Install system dependencies and PHP extensions required for Laravel + MySQL/PostgreSQL support
-# Some dependencies are required for PHP extensions only in the build stage
-# We don't need to install Node.js or build assets, as it was done in the Nginx image
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     curl \
     unzip \
-    libpq-dev \
-    libonig-dev \
-    libssl-dev \
+    postgresql-dev \
+    oniguruma-dev \
     libxml2-dev \
-    libcurl4-openssl-dev \
-    libicu-dev \
+    icu-dev \
     libzip-dev \
-    libfreetype6-dev \
-    libjpeg62-turbo-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
+    $PHPIZE_DEPS \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     pdo_mysql \
@@ -30,8 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gd \
     && pecl install redis \
     && docker-php-ext-enable redis \
-    && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
+    && apk del $PHPIZE_DEPS
 
 # Set the working directory inside the container
 WORKDIR /var/www
@@ -63,21 +60,19 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 
 # Stage 2: Production environment
-FROM php:8.4-fpm AS production
+FROM php:8.4-fpm-alpine AS production
 
 # Install only runtime libraries needed in production
-# libfcgi-bin and procps are required for the php-fpm-healthcheck script
-# libfreetype6 and libjpeg62-turbo are required for the gd extension at runtime
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     postgresql-client \
-    libpq-dev \
-    libicu-dev \
-    libzip-dev \
-    libfcgi-bin \
+    libpq \
+    icu-libs \
+    libzip \
+    fcgi \
     procps \
-    libfreetype6 \
-    libjpeg62-turbo \
-    && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    freetype \
+    libjpeg-turbo \
+    libpng
 
 # Download and install php-fpm health check script
 RUN curl -o /usr/local/bin/php-fpm-healthcheck \

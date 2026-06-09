@@ -1,12 +1,5 @@
 # Stage 1: Build assets
-FROM debian AS builder
-
-# Install Node.js and build tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    nodejs \
-    npm \
-    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /var/www
