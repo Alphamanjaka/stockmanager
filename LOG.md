@@ -1,5 +1,31 @@
 # Journal de Bord - Vitrine (StockManager)
 
+## [11-06-2026] - Optimisation de l'Espace UI et Amélioration de la Gestion des Variantes
+
+### 📊 Refonte des KPI (Barre d'État Compacte)
+
+- **Problématique** : Les cartes de KPI (Indicateurs clés) occupaient trop d'espace vertical sur le Dashboard, la gestion des catégories et les ventes, masquant le contenu principal.
+- **Solution** : Transformation des blocs massifs en une "Barre d'État" (Status Bar) horizontale ultra-compacte.
+    - Regroupement des métriques dans un bandeau léger.
+    - Remplacement des icônes larges par des icônes inline colorées.
+    - Uniformisation du design sur l'ensemble du Back-Office (Dashboard, Catégories, Ventes, Achats) et de l'interface Vendeur.
+- **Résultat** : Gain d'espace vertical de plus de 50% et une lecture immédiate des performances sans scroller.
+
+### 💎 Modernisation des Modaux de Variantes
+
+- **Problématique** : Les modaux de création/édition des variantes étaient trop rudimentaires et il manquait le champ "Prix d'achat" pour un suivi précis de la rentabilité.
+- **Solution** :
+    - Refonte complète de l'UI des modaux avec des groupes d'entrées (Input Groups) et des icônes FontAwesome.
+    - **Intégration du Prix d'Achat** : Ajout du champ `price_purchase` dans les formulaires, la validation du contrôleur et l'affichage de la table des variantes.
+    - Amélioration de la hiérarchie visuelle (labels en majuscules, boutons arrondis "pill", ombres portées).
+- **Résultat** : Une saisie de données plus intuitive et professionnelle, permettant désormais de calculer les marges à l'avenir.
+
+### 🔧 Cohérence Globale
+
+- **Action** : Synchronisation du style visuel des KPI entre le Dashboard, la liste des catégories et les historiques de ventes (Back & Front Office).
+
+---
+
 ## [04-06-2026] - Refonte UI & Système de Recherche Globale
 
 ### 🔍 Système de Recherche (Omnisearch)
@@ -32,24 +58,28 @@
 ## [04-06-2026] - Optimisation de l'Ergonomie et de la Gestion des Achats
 
 ### 🛒 Interface de Commande Interactive
+
 - **Section** : Feature/Refacto
 - **Problématique** : La sélection de produits par menus déroulants (`select2`) devenait fastidieuse avec un catalogue croissant et manquait de réactivité.
 - **Solution** : Remplacement des selects par un système d'autocomplétion asynchrone et refonte complète des vues `create` et `edit` des achats en deux colonnes (Recherche/Saisie à gauche, Panier dynamique à droite).
 - **Résultat** : Une expérience utilisateur fluide et une saisie de commande considérablement accélérée.
 
 ### 📦 Gestion des Variantes One-Page
+
 - **Section** : Feature
 - **Problématique** : La modification des informations de variantes (prix, stock, alertes) nécessitait trop de navigations entre différentes pages.
 - **Solution** : Intégration de modaux de gestion CRUD (Ajout/Édition/Suppression) directement dans la vue `products.show`.
 - **Résultat** : Centralisation complète de la gestion d'un produit et de ses déclinaisons sur une seule vue.
 
 ### 🛠️ Nettoyage du Workflow d'Achat
+
 - **Section** : Refacto
 - **Problématique** : Le statut "Paid" surchargeait inutilement le suivi logistique des achats dans cette application de gestion de stock.
 - **Solution** : Suppression du statut "Paid" dans la base de données, les services et l'interface pour se concentrer sur le cycle Draft -> Ordered -> Received.
 - **Résultat** : Un cycle de vie de commande plus simple, plus lisible et aligné sur les besoins métiers.
 
 ### 🐛 Corrections de Stabilité et de Syntaxe
+
 - **Section** : Bug
 - **Problématique** : Présence d'erreurs de routes indéfinies (`admin.purchases.cart.add`) et de `ParseError` dans Blade lors de l'injection de données JSON complexes multi-lignes.
 - **Solution** : Correction de la définition des routes et déportation de la logique de formatage des données JSON depuis les fichiers Blade vers le `PurchaseController`.

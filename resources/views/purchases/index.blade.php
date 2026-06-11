@@ -1,7 +1,14 @@
 @extends('layouts.app-back-office')
 
 @section('title', 'Achats')
-
+@section('actions')
+    <a href="{{ route('admin.purchases.createFromShortage') }}" class="btn btn-warning">
+        <i class="fas fa-exclamation-triangle"></i> Commande par rupture
+    </a>
+    <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nouvel Achat
+    </a>
+@endsection
 @section('content')
     <style>
         /* Tabulator Customization */
@@ -21,18 +28,55 @@
         }
     </style>
 
-    <div class="py-4">
-        {{-- Header --}}
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div class="d-flex gap-2">
-                <a href="{{ route('admin.purchases.createFromShortage') }}" class="btn btn-warning">
-                    <i class="fas fa-exclamation-triangle"></i> Commande par rupture
-                </a>
-                <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Nouvel Achat
-                </a>
+    {{-- KPI Section Compact --}}
+    <div class="card shadow-sm mb-3 border-0 bg-light">
+        <div class="card-body py-2">
+            <div class="row align-items-center text-center text-md-start">
+                <div class="col-md-3 border-end-md">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-credit-card text-primary me-2"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Total Achats (Net)</span>
+                            <span class="h6 mb-0 font-weight-bold">{{ number_format($totalSpent, 2) }} <small>MGA</small></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 border-end-md">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-percent text-warning me-2"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Remises Obtenues</span>
+                            <span class="h6 mb-0 font-weight-bold">{{ number_format($totalDiscounts, 2) }} <small>MGA</small></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 border-end-md">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-shopping-basket text-success me-2"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Nombre d'Achats</span>
+                            <span class="h6 mb-0 font-weight-bold">{{ $totalPurchases }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-chart-pie text-info me-2"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Panier Moyen</span>
+                            <span class="h6 mb-0 font-weight-bold">{{ number_format($averagePurchaseValue, 2) }} <small>MGA</small></span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+
+    <div class="row">
         <!-- Nav Tabs -->
         <ul class="nav nav-tabs" id="purchaseTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -93,80 +137,7 @@
             {{-- Tab 2: Statistiques --}}
             <div class="tab-pane fade" id="stats-pane" role="tabpanel" aria-labelledby="stats-tab" tabindex="0">
                 <div class="py-4">
-                    {{-- KPI Section --}}
-                    <div class="row">
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-start border-info border-4 shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total
-                                                Achats (Net)</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                {{ number_format($totalSpent, 2) }} Mga
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-euro-sign fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-start border-warning border-4 shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Remises
-                                                Obtenues
-                                            </div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                {{ number_format($totalDiscounts, 2) }}
-                                                Mga</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-percent fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-start border-success border-4 shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Nombre
-                                                d'Achats</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalPurchases }}
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-shopping-basket fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-start border-primary border-4 shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Panier
-                                                Moyen</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                {{ number_format($averagePurchaseValue, 2) }} Mga</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-chart-pie fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <p class="text-center text-muted">Statistiques détaillées à venir (graphiques d'évolution, top fournisseurs, etc.).</p>
                 </div>
             </div>
         </div>
