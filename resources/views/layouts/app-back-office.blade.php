@@ -237,7 +237,7 @@
         {{-- 2. Fil d'Ariane (Breadcrumb) & Titre de la page --}}
         <div class="d-flex justify-content-between align-items-center mb-4 px-2">
             <div>
-                <h1 class="h3 mb-0 text-gray-800">@yield('title')</h1>
+                {{-- <h1 class="h3 mb-0 text-gray-800">@yield('title')</h1> --}}
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 small bg-transparent p-0">
                         <li class="breadcrumb-item">
