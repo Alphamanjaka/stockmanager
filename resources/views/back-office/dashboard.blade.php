@@ -11,6 +11,7 @@
                 <div class="col-md-3 border-end-md">
                     <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
                         <i class="fas fa-box text-primary me-2"></i>
+                        {{-- lien vers la page des produits --}}
                         <div>
                             <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
                                 style="font-size: 0.65rem;">Total Products</span>
@@ -21,6 +22,7 @@
                 <div class="col-md-3 border-end-md">
                     <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
                         <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                        {{-- lien vers la page des produits avec stock --}}
                         <div>
                             <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
                                 style="font-size: 0.65rem;">Stock Alert</span>
@@ -31,6 +33,7 @@
                 <div class="col-md-3 border-end-md">
                     <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
                         <i class="fas fa-tags text-info me-2"></i>
+                        {{-- lien vers la page des categories --}}
                         <div>
                             <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
                                 style="font-size: 0.65rem;">Categories</span>
@@ -41,6 +44,8 @@
                 <div class="col-md-3">
                     <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
                         <i class="fas fa-truck text-warning me-2"></i>
+                        {{-- lien vers la page des fournisseurs --}}
+
                         <div>
                             <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
                                 style="font-size: 0.65rem;">Suppliers</span>
