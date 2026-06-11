@@ -35,7 +35,6 @@
             <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Color</th>
                 <th>category</th>
                 <th>Price</th>
                 <th>Stock Quantity</th>
@@ -46,7 +45,6 @@
                 <tr>
                     <td>{{ $item->id }}</td>
                     <td>{{ $item->product ? $item->product->name : 'N/A' }}</td>
-                    <td>{{ $item->color ? $item->color->name : 'N/A' }}</td>
                     <td>{{ $item->getCategoryNameAttribute()}}</td>
                     <td>{{ number_format($item->price, 2) }} MGA</td>
                     <td>{{ $item->stock }}</td>

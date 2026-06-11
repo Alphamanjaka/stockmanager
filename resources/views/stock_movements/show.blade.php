@@ -6,10 +6,10 @@
     <div class="card shadow-sm">
         <div class="card-body">
             <p><strong>Produit :</strong>
-                {{ $stockMovement->productColor->product->name }}
-                <span class="badge" style="background-color: {{ $stockMovement->productColor->color->code }}">
-                    {{ $stockMovement->productColor->color->name }}
-                </span>
+                {{-- link to product detail--}}
+                <a href="{{ route('admin.products.show', $stockMovement->productColor->product->id) }}" class="text-decoration-none">
+                    {{ $stockMovement->productColor->toString() }}
+                </a>
             </p>
             <p><strong>Type de mouvement :</strong> {{ $stockMovement->type }}</p>
             <p><strong>Quantité :</strong> {{ $stockMovement->quantity }}</p>

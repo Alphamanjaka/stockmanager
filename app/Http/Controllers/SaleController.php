@@ -74,6 +74,7 @@ class SaleController extends Controller
 
         return view('sales.show', compact('sale'));
     }
+    
 
     /**
      * Export sale as PDF.
@@ -85,4 +86,12 @@ class SaleController extends Controller
 
         return $pdf->download("facture_{$sale->reference}.pdf");
     }
+    
+    /*
+     * Search sales for global search.
+    */
+    public function searchForGlobalSearch(string $query, int $limit = 5)
+    {
+        return $this->saleService->searchForGlobalSearch($query, $limit);
+    } 
 }

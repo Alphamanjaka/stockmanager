@@ -129,7 +129,12 @@
                                                         {{ $movement->created_at->format('H:i') }}</div>
                                                 </td>
                                                 <td>
-                                                    <span class="fw-bold text-dark">{{ $movement->productColor->product->name }}</span>
+                                                    {{-- link to movement detail --}}
+                                                    <a href="{{ route('admin.movements.show', $movement->id) }}"
+                                                        class="fw-bold text-dark">
+                                                        {{ $movement->productColor->toString() }}
+                                                    </a>
+                                                    
                                                     @if ($isLowStock)
                                                         <i class="fas fa-exclamation-triangle text-danger ms-1"
                                                             title="Stock bas"></i>
