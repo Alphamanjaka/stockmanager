@@ -112,8 +112,9 @@ class SaleService
     }
     /**
      * Common logic for top/least sold variants
+     * 
      */
-    private function getVariantSaleStats(string $direction = 'desc')
+    private function getVariantSaleStats(string $direction = 'desc'): ?SaleItem
     {
         return SaleItem::select('product_color_id', DB::raw('SUM(quantity) as total_quantity'))
             ->groupBy('product_color_id')
@@ -122,7 +123,7 @@ class SaleService
             ->first();
     }
 
-    public function getMostSoldProduct()
+    public function getMostSoldProduct(): ?SaleItem
     {
         return $this->getVariantSaleStats('desc');
     }

@@ -2,34 +2,36 @@
 
 @section('title', 'Products Management')
 
+@section('actions')
+    <div>
+        <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Product
+        </a>
+        <a href="{{ route('admin.products.exportPdf') }}" class="btn btn-success">
+            <i class="fas fa-file-pdf"></i> Export PDF
+        </a>
+    </div>
+@endsection
+
 @section('content')
-    <div class="container-fluid py-4">
-        {{-- Header --}}
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 text-gray-800">Products</h1>
-            <div>
-                <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> New Product
-                </a>
-                <a href="{{ route('admin.products.exportPdf') }}" class="btn btn-success">
-                    <i class="fas fa-file-pdf"></i> Export PDF
-                </a>
-            </div>
-
-        </div>
-
         {{-- KPI Section --}}
-        <div class="row mb-4">
+        <div class="row">
             <div class="col-md-6 mb-4">
                 <div class="card border-start border-success border-4 shadow h-100 py-2">
                     <div class="card-body">
+                        {{-- Most Sold Product --}}
+                        {{-- add link to product detail page --}}
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
                                 <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Top Selling</div>
-                                @if ($mostSoldProduct && $mostSoldProduct->product)
+                                @if ($mostSoldProduct && $mostSoldProduct->productColor)
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        {{ $mostSoldProduct->product->name }}</div>
-                                    <div class="small text-muted">Sold {{ $mostSoldProduct->total_sold }} times</div>
+                                        <a href="{{ route('admin.products.show', $mostSoldProduct->productColor->product->id) }}"
+                                            class="text-decoration-none">
+                                            {{ $mostSoldProduct->productColor->toString() }}
+                                        </a>
+                                    </div>
+                                    <div class="small text-muted">Sold {{ $mostSoldProduct->total_quantity }} times</div>
                                 @else
                                     <div class="text-muted small">No sales recorded</div>
                                 @endif
@@ -44,13 +46,18 @@
             <div class="col-md-6 mb-4">
                 <div class="card border-start border-warning border-4 shadow h-100 py-2">
                     <div class="card-body">
+                        {{-- Least Sold Product --}}
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
                                 <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Least Sold</div>
-                                @if ($leastSoldProduct && $leastSoldProduct->product)
+                                @if ($leastSoldProduct && $leastSoldProduct->productColor)
                                     <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        {{ $leastSoldProduct->product->name }}</div>
-                                    <div class="small text-muted">Sold {{ $leastSoldProduct->total_sold }} times</div>
+                                        <a href="{{ route('admin.products.show', $leastSoldProduct->productColor->product->id) }}"
+                                            class="text-decoration-none">
+                                            {{ $leastSoldProduct->productColor->toString() }}
+                                        </a>
+                                    </div>
+                                    <div class="small text-muted">Sold {{ $leastSoldProduct->total_quantity }} times</div>
                                 @else
                                     <div class="text-muted small">No sales recorded</div>
                                 @endif
@@ -65,8 +72,8 @@
         </div>
 
         {{-- Filters --}}
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
+        <div class="card shadow mb-2">
+            <div class="card-header py-2">
                 <h6 class="m-0 font-weight-bold text-primary">Filters & Search</h6>
             </div>
             <div class="card-body bg-light">
@@ -85,7 +92,8 @@
                         <select name="category" class="form-select">
                             <option value="">All Categories</option>
                             @foreach ($categories as $cat)
-                                <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
+                                <option value="{{ $cat->id }}"
+                                    {{ request('category') == $cat->id ? 'selected' : '' }}>
                                     {{ $cat->name }}
                                 </option>
                             @endforeach
@@ -123,14 +131,10 @@
                                             class="fas fa-sort{{ request('sort') == 'product_id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                     </a>
                                 </th>
-                                {{-- variant des produits --}}
                                 <th>
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'color_id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
-                                        class="text-dark text-decoration-none">
-                                        Color <i
-                                            class="fas fa-sort{{ request('sort') == 'color_id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
-                                    </a>
+                                    Category
                                 </th>
+
                                 {{-- stats des produits dispo ou en rupture ou en commande --}}
                                 <th>
                                     <a href="{{ request()->fullUrlWithQuery(['sort' => 'stock', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
@@ -139,9 +143,7 @@
                                             class="fas fa-sort{{ request('sort') == 'stock' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                     </a>
                                 </th>
-                                <th>
-                                    Category
-                                </th>
+
 
                                 <th class="text-end pe-4">Actions</th>
                             </tr>
@@ -152,22 +154,18 @@
                                     <td class="ps-4 text-muted small">#{{ $item->id }}</td>
                                     <td>
                                         <div class="fw-bold text-dark"> <a
-                                                href="{{ route('admin.products.show', $item->product->id) }}">{{ $item->product->name ?? 'N/A' }}</a>
+                                                href="{{ route('admin.products.show', $item->product->id) }}">{{ $item->toString() ?? 'N/A' }}</a>
                                         </div>
-                                    </td>
-                                    <td>
-                                        <div class="fw-bold text-dark"> <a
-                                                href="{{ route('admin.products.show', $item->product->id) }}">{{ $item->color->code ?? '' }}</a>
-                                        </div>
-                                    </td>
-                                    <td class="text pe-4">
-                                        {{ $item->stock }} {{ $item->stock <= 5 ? ' (Low Stock)' : '' }}
                                     </td>
                                     <td>
                                         <span
                                             class="badge bg-light text-dark border">{{ $item->getCategoryNameAttribute() ?? 'N/A' }}</span>
 
                                     </td>
+                                    <td class="text pe-4">
+                                        {{ $item->stock }} {{ $item->stock <= 5 ? ' (Low Stock)' : '' }}
+                                    </td>
+
                                     <td class="text-end pe-4">
                                         <div class="btn-group">
                                             <a href="{{ route('admin.products.show', $item->id) }}"
@@ -178,8 +176,9 @@
                                                 class="btn btn-sm btn-outline-primary" title="Modifier">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <form action="{{ route('admin.products.destroy', $item->product->id) }}" method="POST"
-                                                class="d-inline" onsubmit="return confirm('Delete this product ?');">
+                                            <form action="{{ route('admin.products.destroy', $item->product->id) }}"
+                                                method="POST" class="d-inline"
+                                                onsubmit="return confirm('Delete this product ?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger"
@@ -208,5 +207,4 @@
                 </div>
             </div>
         </div>
-    </div>
 @endsection

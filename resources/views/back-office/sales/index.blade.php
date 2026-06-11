@@ -1,6 +1,6 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Historique des Ventes')
+@section('title', 'Ventes')
 
 @section('content')
 
@@ -22,13 +22,18 @@
             </div>
         </div>
     </div>
-
-    <div class="card shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Recent Transactions</h5>
-            <a href="{{ route('admin.sales.create') }}" class="btn btn-primary btn-sm"> <i class="bi bi-plus-circle"></i>
-                New Sale</a>
+    {{-- boutton creer vente --}}
+    <div class="row mb-4">
+        <div class="col-md-12 text-end">
+            <a href="{{ route('admin.sales.create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Create Sale
+            </a>
         </div>
+    </div>
+
+    
+    
+    <div class="card shadow-sm">
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
                 <thead class="table-light">

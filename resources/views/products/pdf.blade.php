@@ -44,7 +44,7 @@
             @foreach ($products as $item)
                 <tr>
                     <td>{{ $item->id }}</td>
-                    <td>{{ $item->product ? $item->product->name : 'N/A' }}</td>
+                    <td>{{ $item->product ? $item->product->xname : 'N/A' }}</td>
                     <td>{{ $item->getCategoryNameAttribute()}}</td>
                     <td>{{ number_format($item->price, 2) }} MGA</td>
                     <td>{{ $item->stock }}</td>
