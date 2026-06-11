@@ -135,7 +135,7 @@
 
         {{-- 1. Top Navbar : Navigation globale et outils --}}
         <div
-            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom bg-white shadow-sm rounded px-3 mt-3">
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom bg-white shadow-sm rounded px-3">
             <div class="d-flex align-items-center">
                 <button id="toggleSidebar" class="btn btn-link text-secondary shadow-none me-3">
                     <i class="fas fa-align-left"></i>
@@ -280,11 +280,39 @@
         </div>
 
         {{-- 3. Contenu Principal --}}
-        <div class="content">
+        <div class="content-fluid">
             @yield('content')
         </div>
+        <br />
+
     </main>
 
+    {{-- 4. Pied de Page text align end --}}
+    <footer class="py-2 bg-light border-top text-end">
+        <div class="container-fluid">
+            {{-- contact whatsApp and Mail and porfolio --}}
+            <a href="https://wa.me/0346258154" class="text-decoration-none me-3" target="_blank">
+                <i class="fab fa-whatsapp fa-lg"></i>
+            </a>
+            <a href="mailto:alphamanjaka@gmail.com" class="text-decoration-none me-3">
+                <i class="fas fa-envelope fa-lg"></i>
+            </a>
+            <a href="https://alphamanjaka.github.io/porfolio/" class="text-decoration-none me-3" target="_blank">
+                <i class="fas fa-globe fa-lg"></i>
+            </a>
+            <a href="https://github.com/alphamanjaka/" class="text-decoration-none" target="_blank">
+                <i class="fab fa-github fa-lg"></i>
+            </a>
+
+            @php
+                $currentYear = date('Y');
+                $startYear = 2025;
+            @endphp
+            <span class="text-muted ms-3">©
+                {{ $startYear }}{{ $currentYear > $startYear ? '-' . $currentYear : '' }} Alpha Manjaka. All rights
+                reserved.</span>
+        </div>
+    </footer>
     @stack('scripts')
 </body>
 
