@@ -1,6 +1,6 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Modifier le Fournisseur : ' . $supplier->name)
+@section('title', 'Edit Supplier: ' . $supplier->name)
 
 @section('content')
     <div class="container">

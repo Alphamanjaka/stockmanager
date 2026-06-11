@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StockMaster - Back Office @yield('title')</title>
-    {{-- Chargement des assets spécifiques au Back-Office --}}
+    {{-- Load assets specific to the back office --}}
     @vite(['resources/css/custom.css', 'resources/css/sidebar.css', 'resources/js/app.js', 'resources/js/back.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @stack('css')
@@ -33,7 +33,7 @@
                 <li class="sidebar-header"><span class="sidebar-text">Management</span></li>
 
                 <li class="nav-item menu-group">
-                    {{-- collapse par defaut fermer --}}
+                    {{-- default collapse state closed --}}
                     <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
                         title="Inventory" href="#stockSubmenu" role="button" aria-expanded="false">
                         <span><i class="fas fa-warehouse fa-fw me-2"></i> <span
@@ -146,8 +146,8 @@
                             <i class="fas fa-search text-secondary"></i>
                         </span>
                         <input type="search" id="global-search-input" class="form-control border-start-0"
-                            placeholder="Rechercher..." aria-label="Rechercher" autocomplete="off"
-                            data-bs-toggle="dropdown" aria-expanded="false" />
+                            placeholder="Search..." aria-label="Search" autocomplete="off" data-bs-toggle="dropdown"
+                            aria-expanded="false" />
                     </div>
                     <div id="global-search-results" class="dropdown-menu">
                         <!-- Les résultats de recherche seront insérés ici par JavaScript -->
@@ -156,12 +156,12 @@
 
             </div>
 
-            {{-- Outils Utilisateur (Droite) --}}
+            {{-- User tools (Right) --}}
             <div class="d-flex align-items-center gap-3">
                 @auth
                     {{-- Theme Toggle --}}
                     <button id="theme-toggle" class="btn btn-link text-dark shadow-none p-0" aria-pressed="false"
-                        aria-label="Basculer le thème" title="Changer de thème">
+                        aria-label="Toggle theme" title="Change theme">
                         <i id="theme-icon" class="fas fa-moon" aria-hidden="true"></i>
                     </button>
 
@@ -234,7 +234,7 @@
             </div>
         </div>
 
-        {{-- 2. Fil d'Ariane (Breadcrumb) & Titre de la page --}}
+        {{-- 2. Breadcrumb & Page title --}}
         <div class="d-flex justify-content-between align-items-center mb-4 px-2">
             <div>
                 {{-- <h1 class="h3 mb-0 text-gray-800">@yield('title')</h1> --}}
@@ -245,7 +245,7 @@
                                 <i class="fas fa-home"></i> Admin
                             </a>
                         </li>
-                        {{-- Génération dynamique du fil d'ariane basé sur l'URL --}}
+                        {{-- Dynamic breadcrumb generation based on the URL --}}
                         @php
                             $segments = request()->segments();
                             $currentUrl = '';
@@ -255,10 +255,10 @@
                                 $currentUrl .= '/' . $segment;
                                 if ($segment === 'admin') {
                                     continue;
-                                } // Déjà affiché comme racine
+                                } // Already shown as root
                                 if (is_numeric($segment)) {
                                     continue;
-                                } // Ignorer les ID numériques
+                                } // Ignore numeric IDs
                             @endphp
                             @if ($loop->last)
                                 <li class="breadcrumb-item active text-muted" aria-current="page">
@@ -273,13 +273,13 @@
                     </ol>
                 </nav>
             </div>
-            {{-- Zone pour des boutons d'action spécifiques à la page (optionnel) --}}
+            {{-- Area for page-specific action buttons (optional) --}}
             <div>
                 @yield('actions')
             </div>
         </div>
 
-        {{-- 3. Contenu Principal --}}
+        {{-- 3. Main Content --}}
         <div class="content-fluid">
             @yield('content')
         </div>
@@ -287,10 +287,10 @@
 
     </main>
 
-    {{-- 4. Pied de Page text align end --}}
+    {{-- 4. Footer text align end --}}
     <footer class="py-2 bg-light border-top text-end">
         <div class="container-fluid">
-            {{-- contact whatsApp and Mail and porfolio --}}
+            {{-- Contact WhatsApp, mail, and portfolio --}}
             <a href="https://wa.me/0346258154" class="text-decoration-none me-3" target="_blank">
                 <i class="fab fa-whatsapp fa-lg"></i>
             </a>

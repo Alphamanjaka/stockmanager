@@ -12,7 +12,7 @@
         <div class="card-body ">
             <form action="{{ url('admin/suppliers') }}" method="GET" class="row">
                 <div class="col-md-8">
-                    <input type="text" name="search" class="form-control" placeholder="Rechercher un fournisseur..."
+                    <input type="text" name="search" class="form-control" placeholder="Search supplier..."
                         value="{{ request('search') }}">
                 </div>
 
@@ -45,7 +45,7 @@
                         <td>{{ $supplier->address }}</td>
                         <td>
                             <a href="{{ route('admin.suppliers.show', $supplier->id) }}"
-                                class="btn btn-info btn-sm">Voir</a>
+                                class="btn btn-info btn-sm">View</a>
                         </td>
                     </tr>
                 @endforeach

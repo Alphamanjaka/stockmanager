@@ -1,6 +1,6 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Détail Fournisseur : ' . $supplier->name)
+@section('title', 'Supplier Detail: ' . $supplier->name)
 
 @section('content')
     <div class="container">
@@ -19,14 +19,14 @@
             <div class="col-md-8">
                 <div class="card shadow-sm h-100">
                     <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations</h5>
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Information</h5>
                     </div>
                     <div class="card-body">
                         <h3 class="mb-3">{{ $supplier->name }}</h3>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item d-flex justify-content-between">
                                 <strong><i class="bi bi-envelope"></i> Email:</strong>
-                                <span>{{ $supplier->email ?? 'Non renseigné' }}</span>
+                                <span>{{ $supplier->email ?? 'Not provided' }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
                                 <strong><i class="bi bi-telephone"></i> Phone:</strong>
@@ -34,10 +34,10 @@
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
                                 <strong><i class="bi bi-geo-alt"></i> Address:</strong>
-                                <span>{{ $supplier->address ?? 'Non renseignée' }}</span>
+                                <span>{{ $supplier->address ?? 'Not provided' }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
-                                <strong>Adding Date:</strong>
+                                <strong>Created At:</strong>
                                 <span>{{ $supplier->created_at->format('d/m/Y') }}</span>
                             </li>
                         </ul>
