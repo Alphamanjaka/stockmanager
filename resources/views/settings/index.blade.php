@@ -48,7 +48,33 @@
                     </button>
                 </div>
             </div>
+        <!-- Main Content Area (Tab Pane) -->
+        <div class="col-md-9">
 
+            <!-- General Settings Tab Content -->
+            <!-- General tab placeholders — content provided by the main form below (partials should be moved into partial files) -->
+            <!-- Use @include in blade partials; content is defined in resources/views/settings/partials/ -->
+
+            <!-- Regional & Currency Settings Tab Content -->
+            <div class="tab-pane fade" id="v-pills-regional" role="tabpanel" aria-labelledby="v-pills-regional-tab">
+                @include('settings.partials.regional')
+            </div>
+
+            <!-- Stock & Products Settings Tab Content -->
+            <div class="tab-pane fade" id="v-pills-stock" role="tabpanel" aria-labelledby="v-pills-stock-tab">
+                @include('settings.partials.stock_products')
+            </div>
+
+            <!-- Interface & System Settings Tab Content -->
+            <div class="tab-pane fade" id="v-pills-interface" role="tabpanel" aria-labelledby="v-pills-interface-tab">
+                @include('settings.partials.interface')
+            </div>
+
+            <!-- Backup Settings Tab Content -->
+            <div class="tab-pane fade" id="v-pills-backup" role="tabpanel" aria-labelledby="v-pills-backup-tab">
+                @include('settings.partials.backup')
+            </div>
+        </div>
             <!-- Content -->
             <div class="col-md-9">
                 <form id="settings-form" action="{{ route('admin.settings.update', ['setting' => 1]) }}" method="POST"
