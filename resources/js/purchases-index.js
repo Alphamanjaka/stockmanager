@@ -128,13 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </button>
                 `;
                 break;
-            case "Received":
-                buttons = `
-                    <button class="btn btn-sm btn-primary quick-update-state" data-url="${urls.update_state}" data-token="${urls.csrf}" data-new-state="Paid" title="Marquer comme Payé">
-                        <i class="fas fa-dollar-sign"></i> Payé
-                    </button>
-                `;
-                break;
+
         }
 
         // Le bouton "Voir" est toujours présent

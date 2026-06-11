@@ -3,78 +3,48 @@
 @section('title', 'Back Office - Products Dashboard')
 @section('content')
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    </div>
 
-    <!-- line 1 : Indicator key (KPIs) -->
-    <div class="row mb-4">
-        <!--Total Products -->
-        <div class="col-md-3 mb-3">
-            <div class="card border-start border-4 border-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Products</div>
-                            <div class="h5 mb-0 font-weight-bold text-dark">{{ $totalProducts }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-box fa-2x text-gray-300 text-secondary opacity-25"></i>
+    {{-- KPI Section --}}
+    <div class="card shadow-sm mb-3 border-0 bg-light">
+        <div class="card-body py-2">
+            <div class="row align-items-center text-center text-md-start">
+                <div class="col-md-3 border-end-md">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-box text-primary me-2"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Total Products</span>
+                            <span class="h6 mb-0 font-weight-bold">{{ $totalProducts }}</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Stock Bas (Alert) -->
-        <div class="col-md-3 mb-3">
-            <div class="card border-start border-4 border-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                Stock Alert</div>
-                            <div class="h5 mb-0 font-weight-bold text-dark">{{ $lowStockProducts }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-exclamation-triangle fa-2x text-secondary opacity-25"></i>
+                <div class="col-md-3 border-end-md">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Stock Alert</span>
+                            <span class="h6 mb-0 font-weight-bold">{{ $lowStockProducts }}</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Categories -->
-        <div class="col-md-3 mb-3">
-            <div class="card border-start border-4 border-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Categories</div>
-                            <div class="h5 mb-0 font-weight-bold text-dark">{{ $totalCategories }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-tags fa-2x text-secondary opacity-25"></i>
+                <div class="col-md-3 border-end-md">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-tags text-info me-2"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Categories</span>
+                            <span class="h6 mb-0 font-weight-bold">{{ $totalCategories }}</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Suppliers -->
-        <div class="col-md-3 mb-3">
-            <div class="card border-start border-4 border-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Suppliers</div>
-                            <div class="h5 mb-0 font-weight-bold text-dark">{{ $totalSuppliers }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-truck fa-2x text-secondary opacity-25"></i>
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-truck text-warning me-2"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Suppliers</span>
+                            <span class="h6 mb-0 font-weight-bold">{{ $totalSuppliers }}</span>
                         </div>
                     </div>
                 </div>
@@ -129,7 +99,8 @@
                     </div>
                     <div class="mb-4">
                         <div class="small text-muted mb-1">this Month Sales</div>
-                        <div class="h4 mb-0 font-weight-bold text-dark">{{ number_format($salesThisMonth, 2, ',', ' ') }} MGA
+                        <div class="h4 mb-0 font-weight-bold text-dark">{{ number_format($salesThisMonth, 2, ',', ' ') }}
+                            MGA
                         </div>
                         <div class="progress mt-2" style="height: 5px;">
                             <div class="progress-bar bg-info" role="progressbar" style="width: 100%"></div>

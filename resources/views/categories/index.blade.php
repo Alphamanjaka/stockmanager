@@ -10,6 +10,47 @@
 @endsection
 @section('content')
 
+    {{-- KPI Section --}}
+    <div class="card shadow-sm mb-3 border-0 bg-light">
+        <div class="card-body py-2">
+            <div class="row align-items-center text-center text-md-start">
+                <div class="col-md-4 border-end-md">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-folder text-primary me-2"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Total Catégories</span>
+                            <span class="h6 mb-0 font-weight-bold">{{ $stats['total_categories'] }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 border-end-md">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-box-open text-success me-2"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Produits Classés</span>
+                            <span class="h6 mb-0 font-weight-bold">{{ $stats['total_products_linked'] }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-trophy text-info me-2"></i>
+                        <div class="text-truncate">
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Plus Populaire</span>
+                            <span class="h6 mb-0 font-weight-bold text-truncate">
+                                {{ $stats['most_populated']->name ?? 'N/A' }}
+                                <small
+                                    class="text-muted fw-normal">({{ $stats['most_populated']->products_count ?? 0 }})</small>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- Tabs Navigation --}}
     <ul class="nav nav-tabs mb-2" id="categoryTabs" role="tablist">
@@ -141,71 +182,15 @@
 
         {{-- Tab 2: Graphique --}}
         <div class="tab-pane fade" id="chart" role="tabpanel" aria-labelledby="chart-tab">
-            <div class="row">
-                {{-- KPI Section --}}
-                {{-- --}}
-                <div class="col-md-6">
-                    <div class="card border-start border-primary shadow py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-capitalize mb-1">Total
-                                        Catégories
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        {{ $stats['total_categories'] }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-folder fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card border-start border-success shadow py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-success text-capitalize mb-1">
-                                        Produits
-                                        Classés
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        {{ $stats['total_products_linked'] }}
-                                    </div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-box-open fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card border-start border-info shadow py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-info text-capitalize mb-1">Plus
-                                        Populaire</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800 text-truncate">
-                                        {{ $stats['most_populated']->name ?? 'N/A' }}</div>
-                                    <div class="small text-muted">
-                                        {{ $stats['most_populated']->products_count ?? 0 }} produits
-                                    </div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-trophy fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
                             <h6 class="m-0 font-weight-bold text-primary">Répartition des produits par catégorie mère</h6>
                         </div>
                         <div class="card-body">
                             <div class="row justify-content-center">
-                                <div class="col-md-8 col-lg-6">
+                                <div class="col-md-10">
                                     <div style="height: 400px;">
                                         <canvas id="categoryPieChart"></canvas>
                                     </div>

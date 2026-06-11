@@ -99,7 +99,6 @@
                                         <option value="Draft" @selected($purchase->state == 'Draft')>Draft</option>
                                         <option value="Ordered" @selected($purchase->state == 'Ordered')>Ordered</option>
                                         <option value="Received" @selected($purchase->state == 'Received')>received</option>
-                                        <option value="Paid" @selected($purchase->state == 'Paid')>Paid</option>
                                     </select>
                                     <button type="submit" class="btn btn-success">
                                         <i class="bi bi-check-circle"></i>update

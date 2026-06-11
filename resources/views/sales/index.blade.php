@@ -4,20 +4,33 @@
 
 @section('content')
 
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card bg-success text-white shadow-sm">
-                <div class="card-body">
-                    <h6>Business Volume </h6>
-                    <h3>{{ number_format($total_revenue, 2) }} Mga</h3>
+    {{-- KPI Section Compact --}}
+    <div class="card shadow-sm mb-3 border-0 bg-light">
+        <div class="card-body py-2">
+            <div class="row align-items-center text-center text-md-start">
+                <div class="col-md-6 border-end-md">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-wallet text-success me-3"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Business Volume</span>
+                            <span class="h6 mb-0 font-weight-bold">
+                                {{ number_format($total_revenue, 2) }} <small>MGA</small>
+                            </span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card bg-danger text-white shadow-sm">
-                <div class="card-body">
-                    <h6>Total Discounts </h6>
-                    <h3>{{ number_format($total_discount, 2) }} Mga</h3>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
+                        <i class="fas fa-tag text-danger me-3"></i>
+                        <div>
+                            <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
+                                style="font-size: 0.65rem;">Total Discounts</span>
+                            <span class="h6 mb-0 font-weight-bold text-danger">
+                                {{ number_format($total_discount, 2) }} <small>MGA</small>
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -26,7 +39,8 @@
     <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Recent Transactions</h5>
-            <a href="{{ route('saler.create') }}" class="btn btn-primary btn-sm"> <i class="bi bi-plus-circle"></i> New Sale</a>
+            <a href="{{ route('saler.create') }}" class="btn btn-primary btn-sm"> <i class="bi bi-plus-circle"></i> New
+                Sale</a>
         </div>
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
