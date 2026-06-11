@@ -47,7 +47,7 @@
                         <i class="fas fa-percent text-warning me-2"></i>
                         <div>
                             <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
-                                style="font-size: 0.65rem;">Remises Obtenues</span>
+                                style="font-size: 0.65rem;">Discounts Obtained</span>
                             <span class="h6 mb-0 font-weight-bold">{{ number_format($totalDiscounts, 2) }} <small>MGA</small></span>
                         </div>
                     </div>
@@ -67,7 +67,7 @@
                         <i class="fas fa-chart-pie text-info me-2"></i>
                         <div>
                             <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
-                                style="font-size: 0.65rem;">Panier Moyen</span>
+                                style="font-size: 0.65rem;">Average Cart</span>
                             <span class="h6 mb-0 font-weight-bold">{{ number_format($averagePurchaseValue, 2) }} <small>MGA</small></span>
                         </div>
                     </div>

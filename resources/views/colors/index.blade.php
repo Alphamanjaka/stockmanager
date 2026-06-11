@@ -61,15 +61,15 @@
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
                                             <a href="{{ route('admin.colors.edit', $item->id) }}"
-                                                class="btn btn-sm btn-info" title="Modifier">
+                                                class="btn btn-sm btn-info" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <form action="{{ route('admin.colors.destroy', $item->id) }}" method="POST"
-                                                onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette couleur ?');"
+                                                onsubmit="return confirm('Are you sure you want to delete this color?');"
                                                 style="display: inline-block;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Delete">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
@@ -103,7 +103,7 @@
                 const name = row.getAttribute('data-name');
                 const code = row.getAttribute('data-code');
 
-                // On ignore les lignes qui n'ont pas les attributs de recherche (ex: ligne "Aucun résultat")
+                // Ignore rows that don't have search attributes (e.g., "No results" row)
                 if (!name && !code) return;
 
                 if (name.includes(query) || (code && code.includes(query))) {

@@ -1,6 +1,6 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Détails du Produit : ' . $product->name)
+@section('title', 'Product Details : ' . $product->name)
 
 @section('content')
     <div class="container-fluid py-4">
@@ -62,9 +62,9 @@
                                     <th>Prix d'achat (MGA)</th>
                                     {{-- Prix de vente --}}
                                     <th>Prix (MGA)</th>
-                                    {{-- Stock actuel --}}
-                                    <th>Stock actuel</th>
-                                    <th>Seuil d'alerte</th>
+                                    {{-- Current stock --}}
+                                    <th>Current Stock</th>
+                                    <th>Alert Threshold</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
@@ -103,7 +103,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted">Aucune variante pour ce produit.
+                                        <td colspan="5" class="text-center text-muted">No variants for this product.
                                         </td>
                                     </tr>
                                 @endforelse
@@ -313,7 +313,7 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Stock actuel</label>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Current Stock</label>
                                 <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                     <span class="input-group-text bg-white border-0"><i
                                             class="fas fa-cubes text-muted"></i></span>
@@ -496,7 +496,7 @@
                                 beginAtZero: true,
                                 title: {
                                     display: true,
-                                    text: 'Quantité en stock'
+                                    text: 'Quantity in stock'
                                 }
                             }
                         }

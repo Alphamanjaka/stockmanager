@@ -134,7 +134,7 @@
                                 Category
                             </th>
 
-                            {{-- stats des produits dispo ou en rupture ou en commande --}}
+                            {{-- stats for available, out-of-stock, or on-order products --}}
                             <th>
                                 <a href="{{ request()->fullUrlWithQuery(['sort' => 'stock', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
                                     class="text-dark text-decoration-none">

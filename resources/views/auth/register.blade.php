@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockMaster - Inscription</title>
+    <title>StockMaster - Register</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -185,16 +185,16 @@
     <div class="register-container">
         <div class="register-header">
             <h1>
-                <i class="fas fa-user-plus"></i> Inscription
+                <i class="fas fa-user-plus"></i> Register
             </h1>
-            <p>Créez votre compte StockMaster</p>
+            <p>Create your StockMaster account</p>
         </div>
 
         <div class="register-body">
             @if ($errors->any())
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-circle"></i>
-                    <strong>Erreur !</strong>
+                    <strong>Error!</strong>
                     @foreach ($errors->all() as $error)
                         <div>{{ $error }}</div>
                     @endforeach
@@ -207,7 +207,7 @@
 
                 <!-- Nom -->
                 <div class="form-group">
-                    <label for="name" class="form-label">Nom Complet</label>
+                    <label for="name" class="form-label">Full name</label>
                     <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
                         name="name" value="{{ old('name') }}" required>
                     @error('name')
@@ -217,7 +217,7 @@
 
                 <!-- Email -->
                 <div class="form-group">
-                    <label for="email" class="form-label">Adresse Email</label>
+                    <label for="email" class="form-label">Email address</label>
                     <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"
                         name="email" value="{{ old('email') }}" required>
                     @error('email')
@@ -227,7 +227,7 @@
 
                 <!-- Mot de passe -->
                 <div class="form-group">
-                    <label for="password" class="form-label">Mot de Passe</label>
+                    <label for="password" class="form-label">Password</label>
                     <input type="password" class="form-control @error('password') is-invalid @enderror" id="password"
                         name="password" required>
                     @error('password')
@@ -237,21 +237,21 @@
 
                 <!-- Confirmation du mot de passe -->
                 <div class="form-group">
-                    <label for="password_confirmation" class="form-label">Confirmer le Mot de Passe</label>
+                    <label for="password_confirmation" class="form-label">Confirm Password</label>
                     <input type="password" class="form-control" id="password_confirmation" name="password_confirmation"
                         required>
                 </div>
 
                 <!-- Sélection du Rôle -->
                 <div class="role-selection">
-                    <p>Sélectionnez votre profil</p>
+                    <p>Select your role</p>
 
                     <div class="role-option">
                         <input type="radio" id="front_office" name="role" value="front_office"
                             {{ old('role') === 'front_office' ? 'checked' : '' }} required>
                         <label for="front_office">
                             <strong><i class="fas fa-shopping-cart"></i> Front Office</strong>
-                            <small>Gestion des ventes uniquement</small>
+                            <small>Sales management only</small>
                         </label>
                     </div>
 
@@ -260,7 +260,7 @@
                             {{ old('role') === 'back_office' ? 'checked' : '' }} required>
                         <label for="back_office">
                             <strong><i class="fas fa-cogs"></i> Back Office</strong>
-                            <small>Accès complet à tous les modules</small>
+                            <small>Full access to all modules</small>
                         </label>
                     </div>
 
@@ -270,12 +270,12 @@
                 </div>
 
                 <button type="submit" class="btn-register">
-                    <i class="fas fa-user-check"></i> Créer un Compte
+                    <i class="fas fa-user-check"></i> Create Account
                 </button>
             </form>
 
             <div class="login-link">
-                Déjà inscrit ? <a href="{{ route('login') }}">Se connecter</a>
+                Already registered? <a href="{{ route('login') }}">Login</a>
             </div>
         </div>
     </div>

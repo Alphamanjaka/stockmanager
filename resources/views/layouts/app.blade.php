@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -83,9 +83,8 @@
                                         <li>
                                             <a class="dropdown-item"
                                                 href="{{ route('products.index', ['search' => $notification->data['product_name'] ?? '']) }}">
-                                                <strong class="text-danger"><i class="bi bi-exclamation-circle"></i>
-                                                    Attention !</strong><br>
-                                                {{ $notification->data['product_name'] ?? 'Produit' }}
+                                                <strong class="text-danger"><i class="bi bi-exclamation-circle"></i> Warning!</strong><br>
+                                                {{ $notification->data['product_name'] ?? 'Product' }}
                                                 <small class="text-muted d-block">(Stock :
                                                     {{ $notification->data['current_stock'] ?? 0 }})</small>
                                             </a>
@@ -96,7 +95,7 @@
                                             </li>
                                         @endif
                                     @empty
-                                        <li><span class="dropdown-item text-muted">Aucune alerte</span></li>
+                                        <li><span class="dropdown-item text-muted">No alerts</span></li>
                                     @endforelse
                                 </ul>
                             </li>

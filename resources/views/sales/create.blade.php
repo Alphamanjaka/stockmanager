@@ -128,7 +128,7 @@
                         const price = parseFloat(opt.data('price') || 0);
                         const stock = parseInt(opt.data('stock') || 0);
                         const remaining = stock - qty;
-                        row.find('.stock-feedback').text(`${remaining} restants`).toggleClass('text-danger',
+                        row.find('.stock-feedback').text(`${remaining} remaining`).toggleClass('text-danger',
                             remaining < 5);
 
                         // Calcul direct
@@ -203,7 +203,7 @@
             // Init première ligne
             initS2($('.product-select'));
             $('#reset-cart').on('click', function() {
-                if (confirm('Voulez-vous vider le panier ?')) {
+                if (confirm('Clear the cart?')) {
                     $('.product-row').not(':first').remove(); // Garde une ligne
                     $('.product-select').val('').trigger('change');
                     $('.qty-input').val(1);
@@ -212,7 +212,7 @@
             });
         });
         $(document).on('keydown', function(e) {
-            // F2 pour ajouter un produit
+            // F2 to add a product
             if (e.key === "F2") {
                 $('#add-product').click();
             }

@@ -1,6 +1,6 @@
 @extends('layouts.app-back-office')
 
-@section('title', '- Paramètres')
+@section('title', '- Settings')
 
 @section('content')
     <div class="container">
@@ -18,33 +18,33 @@
                     <button class="nav-link active text-start" id="v-pills-general-tab" data-bs-toggle="pill"
                         data-bs-target="#v-pills-general" type="button" role="tab" aria-controls="v-pills-general"
                         aria-selected="true">
-                        <i class="fas fa-building me-2"></i> Entreprise
+                        <i class="fas fa-building me-2"></i> Company
                     </button>
                     <button class="nav-link text-start" id="v-pills-regional-tab" data-bs-toggle="pill"
                         data-bs-target="#v-pills-regional" type="button" role="tab" aria-controls="v-pills-regional"
                         aria-selected="false">
-                        <i class="fas fa-globe me-2"></i> Régional & Devise
+                        <i class="fas fa-globe me-2"></i> Regional & Currency
                     </button>
                     <button class="nav-link text-start" id="v-pills-stock-tab" data-bs-toggle="pill"
                         data-bs-target="#v-pills-stock" type="button" role="tab" aria-controls="v-pills-stock"
                         aria-selected="false">
-                        <i class="fas fa-boxes me-2"></i> Stock & Produits
+                        <i class="fas fa-boxes me-2"></i> Stock & Products
                     </button>
                     <button class="nav-link text-start" id="v-pills-interface-tab" data-bs-toggle="pill"
                         data-bs-target="#v-pills-interface" type="button" role="tab" aria-controls="v-pills-interface"
                         aria-selected="false">
-                        <i class="fas fa-sliders-h me-2"></i> Interface & Système
+                        <i class="fas fa-sliders-h me-2"></i> Interface & System
                     </button>
                     <button class="nav-link text-start" id="v-pills-backup-tab" data-bs-toggle="pill"
                         data-bs-target="#v-pills-backup" type="button" role="tab" aria-controls="v-pills-backup"
                         aria-selected="false">
-                        <i class="fas fa-database me-2"></i> Sauvegardes
+                        <i class="fas fa-database me-2"></i> Backups
                     </button>
                 </div>
 
                 <div class="mt-4 d-grid">
                     <button type="submit" class="btn btn-primary" form="settings-form">
-                        <i class="fas fa-save me-2"></i> Enregistrer tout
+                        <i class="fas fa-save me-2"></i> Save all
                     </button>
                 </div>
             </div>
@@ -60,7 +60,7 @@
                         <div class="tab-pane fade show active" id="v-pills-general" role="tabpanel"
                             aria-labelledby="v-pills-general-tab">
                             <div class="card shadow-sm">
-                                <div class="card-header bg-white fw-bold">Informations sur l'Entreprise</div>
+                                <div class="card-header bg-white fw-bold">Company Information</div>
                                 <div class="card-body">
                                     <div class="mb-3">
                                         <label class="form-label">Nom du Magasin / Entreprise</label>
@@ -81,12 +81,12 @@
 
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label">Email de contact</label>
+                                            <label class="form-label">Contact email</label>
                                             <input type="email" class="form-control" name="company_email"
                                                 value="{{ $settings['company_email'] ?? '' }}">
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label">Téléphone</label>
+                                            <label class="form-label">Phone</label>
                                             <input type="text" class="form-control" name="company_phone"
                                                 value="{{ $settings['company_phone'] ?? '' }}">
                                         </div>
@@ -98,7 +98,7 @@
                                     </div>
 
                                     <hr>
-                                    <h6 class="text-muted mb-3">Identifiants Fiscaux</h6>
+                                    <h6 class="text-muted mb-3">Tax Identifiers</h6>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">Numéro SIRET</label>
@@ -119,29 +119,29 @@
                         <div class="tab-pane fade" id="v-pills-regional" role="tabpanel"
                             aria-labelledby="v-pills-regional-tab">
                             <div class="card shadow-sm">
-                                <div class="card-header bg-white fw-bold">Configuration Régionale</div>
+                                <div class="card-header bg-white fw-bold">Regional Configuration</div>
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label">Symbole Monétaire</label>
+                                            <label class="form-label">Currency Symbol</label>
                                             <input type="text" class="form-control" name="currency_symbol"
                                                 value="{{ $settings['currency_symbol'] ?? '€' }}">
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label">Position de la devise</label>
+                                            <label class="form-label">Currency position</label>
                                             <select class="form-select" name="currency_position">
                                                 <option value="after"
                                                     {{ ($settings['currency_position'] ?? '') == 'after' ? 'selected' : '' }}>
-                                                    Après le montant (100 €)</option>
+                                                    After the amount (100 €)</option>
                                                 <option value="before"
                                                     {{ ($settings['currency_position'] ?? '') == 'before' ? 'selected' : '' }}>
-                                                    Avant le montant (€ 100)</option>
+                                                    Before the amount (€ 100)</option>
                                             </select>
                                         </div>
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label">Fuseau Horaire</label>
+                                        <label class="form-label">Timezone</label>
                                         <select class="form-select" name="timezone">
                                             @foreach (timezone_identifiers_list() as $timezone)
                                                 <option value="{{ $timezone }}"
@@ -152,7 +152,7 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label">Format de Date</label>
+                                        <label class="form-label">Date format</label>
                                         <select class="form-select" name="date_format">
                                             <option value="d/m/Y"
                                                 {{ ($settings['date_format'] ?? '') == 'd/m/Y' ? 'selected' : '' }}>
@@ -173,31 +173,30 @@
                         <div class="tab-pane fade" id="v-pills-stock" role="tabpanel"
                             aria-labelledby="v-pills-stock-tab">
                             <div class="card shadow-sm">
-                                <div class="card-header bg-white fw-bold">Paramètres de Stock</div>
+                                <div class="card-header bg-white fw-bold">Stock Settings</div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <label class="form-label">Seuil d'alerte global (par défaut)</label>
+                                        <label class="form-label">Global alert threshold (default)</label>
                                         <input type="number" class="form-control" name="global_alert_threshold"
                                             value="{{ $settings['global_alert_threshold'] ?? 5 }}">
-                                        <div class="form-text">Utilisé si aucun seuil spécifique n'est défini sur le
-                                            produit.</div>
+                                        <div class="form-text">Used if no product-specific threshold is set.</div>
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label">Taux de TVA par défaut (%)</label>
+                                        <label class="form-label">Default VAT rate (%)</label>
                                         <input type="number" step="0.01" class="form-control"
                                             name="default_tax_rate" value="{{ $settings['default_tax_rate'] ?? 20 }}">
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label">Méthode de valorisation</label>
+                                        <label class="form-label">Valuation method</label>
                                         <select class="form-select" name="stock_valuation_method">
                                             <option value="FIFO"
                                                 {{ ($settings['stock_valuation_method'] ?? '') == 'FIFO' ? 'selected' : '' }}>
-                                                FIFO (Premier entré, premier sorti)</option>
+                                                FIFO (First in, first out)</option>
                                             <option value="CUMP"
                                                 {{ ($settings['stock_valuation_method'] ?? '') == 'CUMP' ? 'selected' : '' }}>
-                                                CUMP (Coût Unitaire Moyen Pondéré)</option>
+                                                CUMP (Weighted Average Unit Cost)</option>
                                         </select>
                                     </div>
                                 </div>
@@ -208,10 +207,10 @@
                         <div class="tab-pane fade" id="v-pills-interface" role="tabpanel"
                             aria-labelledby="v-pills-interface-tab">
                             <div class="card shadow-sm">
-                                <div class="card-header bg-white fw-bold">Interface & Système</div>
+                                <div class="card-header bg-white fw-bold">Interface & System</div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <label class="form-label">Pagination (éléments par page)</label>
+                                        <label class="form-label">Pagination (items per page)</label>
                                         <select class="form-select" name="pagination_per_page">
                                             <option value="10"
                                                 {{ ($settings['pagination_per_page'] ?? '') == '10' ? 'selected' : '' }}>10
@@ -236,37 +235,33 @@
                             aria-labelledby="v-pills-backup-tab">
                             <div class="card shadow-sm border-warning">
                                 <div class="card-header bg-warning bg-opacity-10 fw-bold text-dark">
-                                    <i class="fas fa-shield-alt me-2"></i>Zone de Maintenance
+                                    <i class="fas fa-shield-alt me-2"></i>Maintenance Area
                                 </div>
                                 <div class="card-body">
                                     <div class="alert alert-info">
-                                        <h6 class="alert-heading"><i class="fas fa-database me-2"></i>Sauvegarde de la
-                                            base
-                                            de données</h6>
+                                        <h6 class="alert-heading"><i class="fas fa-database me-2"></i>Database backup</h6>
                                         <p class="mb-2 mt-1 small">
-                                            Cette action va générer un fichier SQL complet de votre base de données
-                                            actuelle.
-                                            Le fichier sera stocké de manière sécurisée sur le serveur.
+                                            This action will generate a full SQL file of your current database.
+                                            The file will be stored securely on the server.
                                         </p>
                                         <button type="button" class="btn btn-dark backup-action-btn"
                                             data-action="{{ route('admin.settings.backup') }}">
-                                            <i class="fas fa-play-circle me-2"></i>Lancer une nouvelle sauvegarde
+                                            <i class="fas fa-play-circle me-2"></i>Run new backup
                                         </button>
                                         <p class="mb-0 mt-2 small text-muted">
-                                            <i class="fas fa-clock me-1"></i> La tâche s'exécute en arrière-plan.
-                                            Rafraîchissez la page après quelques secondes.
+                                            <i class="fas fa-clock me-1"></i> The task runs in the background. Refresh the page after a few seconds.
                                         </p>
                                     </div>
 
                                     @if (isset($backups) && count($backups) > 0)
-                                        <h6 class="text-muted mb-3 mt-4">Historique des sauvegardes disponibles</h6>
+                                        <h6 class="text-muted mb-3 mt-4">Available backups</h6>
                                         <div class="table-responsive">
                                             <table class="table table-hover border align-middle">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th>Fichier</th>
-                                                        <th>Taille</th>
-                                                        <th>Date de création</th>
+                                                        <th>File</th>
+                                                        <th>Size</th>
+                                                        <th>Created at</th>
                                                         <th class="text-end">Actions</th>
                                                     </tr>
                                                 </thead>
@@ -283,23 +278,23 @@
                                                                 <div class="btn-group btn-group-sm">
                                                                     <a href="{{ route('admin.settings.download-backup', ['path' => $backup['path']]) }}"
                                                                         class="btn btn-outline-primary"
-                                                                        title="Télécharger">
+                                                                        title="Download">
                                                                         <i class="fas fa-download"></i>
                                                                     </a>
                                                                     <button type="button"
                                                                         class="btn btn-outline-success backup-action-btn"
-                                                                        title="Vérifier l'intégrité"
+                                                                        title="Verify integrity"}
                                                                         data-action="{{ route('admin.settings.verify-backup') }}"
                                                                         data-path="{{ $backup['path'] }}">
                                                                         <i class="fas fa-check-circle"></i>
                                                                     </button>
                                                                     <button type="button"
                                                                         class="btn btn-outline-danger backup-action-btn"
-                                                                        title="Supprimer"
+                                                                        title="Delete"}
                                                                         data-action="{{ route('admin.settings.delete-backup') }}"
                                                                         data-method="DELETE"
                                                                         data-path="{{ $backup['path'] }}"
-                                                                        data-confirm="Êtes-vous sûr de vouloir supprimer définitivement cette sauvegarde ?">
+                                                                        data-confirm="Are you sure you want to permanently delete this backup?">
                                                                         <i class="fas fa-trash"></i>
                                                                     </button>
                                                                 </div>

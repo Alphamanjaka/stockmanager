@@ -27,14 +27,14 @@
             <form action="{{ url('admin/users') }}" method="GET" class="row align-items-center">
                 @csrf
                 <div class="col-md-6">
-                    <input type="text" name="search" class="form-control" placeholder="Rechercher un utilisateur..."
+                    <input type="text" name="search" class="form-control" placeholder="Search for a user..."
                         value="{{ request('search') }}">
                 </div>
-                {{--  filtre d'utilisateurs: vendeur et administrateur --}}
+                {{--  user filter: seller and administrator --}}
                 <div class="col-md-2">
                     <select name="role" class="form-select" aria-label="Default select example">
-                        <option value="vendeur">vendeur</option>
-                        <option value="administrateur">administrateur</option>
+                        <option value="vendeur">seller</option>
+                        <option value="administrateur">administrator</option>
                     </select>
                 </div>
 
@@ -49,11 +49,11 @@
                 <table class="table table-bordered table-hover" width="100%" cellspacing="0">
                     <thead class="table-light">
                         <tr>
-                            <th>Nom</th>
+                            <th>Name</th>
                             <th>Email</th>
-                            <th>Rôle</th>
-                            <th class="text-center">Ventes effectuées</th>
-                            <th>Date de création</th>
+                            <th>Role</th>
+                            <th class="text-center">Sales made</th>
+                            <th>Created at</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
@@ -64,22 +64,22 @@
                                 <td>{{ $user->email }}</td>
                                 <td>
                                     <span class="badge {{ $user->isBackOffice() ? 'bg-success' : 'bg-info text-dark' }}">
-                                        {{ $user->isBackOffice() ? 'Administrateur' : 'Vendeur' }}
+                                        {{ $user->isBackOffice() ? 'Administrator' : 'Seller' }}
                                     </span>
                                 </td>
                                 <td class="text-center">{{ $user->sales_count }}</td>
                                 <td>{{ $user->created_at->format('d/m/Y') }}</td>
                                 <td class="text-center">
                                     <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-warning"
-                                        title="Modifier">
+                                        title="Edit">
                                         <i class="fa fa-pencil-alt"></i>
                                     </a>
                                     <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
                                         class="d-inline"
-                                        onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                        onsubmit="return confirm('Are you sure you want to delete this user?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Supprimer"
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete"
                                             {{ auth()->id() === $user->id ? 'disabled' : '' }}>
                                             <i class="fa fa-trash"></i>
                                         </button>
@@ -88,7 +88,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center">Aucun utilisateur trouvé.</td>
+                                <td colspan="6" class="text-center">No users found.</td>
                             </tr>
                         @endforelse
                     </tbody>

@@ -1,6 +1,6 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Détail de la Catégorie : ' . $category->name)
+@section('title', 'Category Details : ' . $category->name)
 
 @section('content')
     <div class="container">
@@ -23,11 +23,11 @@
                     </div>
                     <div class="card-body">
                         <h2 class="mb-3">{{ $category->name }}</h2>
-                        <p class="text-muted">{{ $category->description ?? 'Aucune description pour cette catégorie.' }}</p>
+                        <p class="text-muted">{{ $category->description ?? 'No description for this category.' }}</p>
                         <hr>
                         <div class="row">
                             <div class="col-md-6">
-                                <strong>Catégorie Parente :</strong>
+                                <strong>Parent Category :</strong>
                                 @if ($category->parent)
                                     <a href="{{ route('admin.categories.show', $category->parent->id) }}"
                                         class="badge bg-info text-decoration-none">{{ $category->parent->name }}</a>
@@ -45,9 +45,9 @@
             <div class="col-md-4">
                 <div class="card shadow-sm h-100 bg-light">
                     <div class="card-body text-center d-flex flex-column justify-content-center">
-                        <h6 class="text-muted">Produits Associés</h6>
+                        <h6 class="text-muted">Associated Products</h6>
                         <h1 class="display-4 fw-bold text-primary">{{ $category->products_count }}</h1>
-                        <p class="mb-0">Valeur estimée du stock :</p>
+                        <p class="mb-0">Estimated stock value :</p>
                         <h4 class="text-success">{{ number_format($stockValue, 2) }} MGA</h4>
                     </div>
                 </div>
@@ -56,13 +56,13 @@
 
         <div class="card shadow-sm">
             <div class="card-header bg-white">
-                <h5 class="mb-0">Produits dans cette catégorie</h5>
+                <h5 class="mb-0">Products in this category</h5>
             </div>
             <div class="card-body">
                 <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
-                            <th>Produit</th>
+                            <th>Product</th>
                             <th>Prix</th>
                             <th>Stock</th>
                             <th>Action</th>
@@ -82,7 +82,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center text-muted">Aucun produit dans cette catégorie.</td>
+                                <td colspan="4" class="text-center text-muted">No products in this category.</td>
                             </tr>
                         @endforelse
                     </tbody>

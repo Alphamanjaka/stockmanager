@@ -1,5 +1,5 @@
 @extends('layouts.app-back-office')
-@section('title', 'Modifier la Catégorie')
+@section('title', 'Edit Category')
 
 @section('content')
     <form id="category-form" action="{{ route('admin.categories.update', $category->id) }}" method="POST">
@@ -10,13 +10,13 @@
             <div class="col-lg-5">
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Informations de la catégorie</h5>
+                        <h5 class="mb-0">Category information</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="parent_id" class="form-label">Catégorie Parente</label>
+                            <label for="parent_id" class="form-label">Parent Category</label>
                             <select name="parent_id" id="parent_id" class="form-control">
-                                <option value="">Sélectionnez une catégorie parente</option>
+                                <option value="">Select a parent category</option>
                                 @foreach ($categoriesParent as $id => $name)
                                     @if ($id !== $category->id)
                                         {{-- Empêcher de se sélectionner soi-même --}}
@@ -27,10 +27,10 @@
                                     @endif
                                 @endforeach
                             </select>
-                            <div class="form-text">Laisser vide si c'est une catégorie principale.</div>
+                            <div class="form-text">Leave empty if this is a top-level category.</div>
                         </div>
                         <div class="mb-3">
-                            <label for="name" class="form-label">Nom de la catégorie</label>
+                            <label for="name" class="form-label">Category name</label>
                             <input type="text" name="name" id="name"
                                 class="form-control @error('name') is-invalid @enderror"
                                 value="{{ old('name', $category->name) }}">
@@ -51,7 +51,7 @@
             <div class="col-lg-7">
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Gestion des sous-catégories (Enfants)</h5>
+                        <h5 class="mb-0">Manage sub-categories (Children)</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -69,7 +69,7 @@
                                     @php
                                         $currentChildrenIds = $category->children->pluck('id')->toArray();
                                     @endphp
-                                    @foreach ($categories as $id => $name) {{-- On n'affiche pas la catégorie elle-même ni sa catégorie parente --}}
+                                    @foreach ($categories as $id => $name) {{-- We don't show the category itself nor its parent category --}}
                                         @if ($id !== $category->id && !in_array($id, $currentChildrenIds))
                                             <div class="form-check child-item" data-name="{{ strtolower($name) }}">
                                                 <input class="form-check-input check-available" type="checkbox"
@@ -85,8 +85,8 @@
 
                             <div class="col-md-2 d-flex flex-column justify-content-center align-items-center">
                                 <button type="button" id="btn-move-right" class="btn btn-primary mb-2 w-100"
-                                    title="Ajouter">
-                                    <i class="bi bi-arrow-right"></i> Ajouter &gt;
+                                    title="Add">
+                                    <i class="bi bi-arrow-right"></i> Add &gt;
                                 </button>
                                 <button type="button" id="btn-move-left" class="btn btn-secondary w-100" title="Retirer">
                                     &lt; Retirer <i class="bi bi-arrow-left"></i>
@@ -118,7 +118,7 @@
         <div class="card shadow-sm mt-4">
             <div class="card-body d-flex justify-content-between">
                 <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">Annuler</a>
-                <button type="submit" class="btn btn-success px-4">Mettre à jour la catégorie</button>
+                <button type="submit" class="btn btn-success px-4">Update category</button>
             </div>
         </div>
     </form>
@@ -146,7 +146,7 @@
                 });
             });
 
-            // Déplacer vers la droite (Ajouter)
+            // Move to the right (Add)
             btnRight.addEventListener('click', function() {
                 const checked = listAvailable.querySelectorAll('.check-available:checked');
                 checked.forEach(checkbox => {

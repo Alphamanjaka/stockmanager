@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Alerte Stock</title>
+    <title>Stock Alert</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -35,10 +35,9 @@
 </head>
 
 <body>
-    <h2>Alerte de sécurité - Variation de Stock</h2>
+    <h2>Stock Alert - Significant Change</h2>
     <p>Bonjour,</p>
-    <p>Notre système de surveillance a détecté une <span class="alert">chute anormale</span> de la valorisation globale
-        du stock.</p>
+    <p>Our monitoring system detected an <span class="alert">abnormal drop</span> in the overall stock valuation.</p>
 
     <div class="data-box">
         <p>📉 <strong>Variation détectée : {{ number_format($dropPercentage, 2) }}%</strong></p>
@@ -46,8 +45,8 @@
         <p>Valeur Actuelle : <strong>{{ number_format($currentValue, 2) }} €</strong></p>
     </div>
 
-    <p>Veuillez vérifier les mouvements récents (vols, pertes, ou erreurs de saisie) immédiatement.</p>
-    <p><a href="{{ route('admin.dashboard') }}" class="btn">Accéder au Dashboard</a></p>
+    <p>Please review recent movements (theft, losses, or data entry errors) immediately.</p>
+    <p><a href="{{ route('admin.dashboard') }}" class="btn">Go to Dashboard</a></p>
 </body>
 
 </html>

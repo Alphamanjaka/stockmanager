@@ -1,6 +1,6 @@
 @extends('layouts.app-front-office')
 
-@section('title', 'Catalogue Produits')
+@section('title', 'Product Catalog')
 
 @section('content')
     <div class="card shadow-sm">
@@ -23,9 +23,9 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th>Designation</th>
+                            <th>Name</th>
                             <th class="text-center">Category</th>
-                            <th class="text-end">price</th>
+                            <th class="text-end">Price</th>
                             <th class="text-center">Stock</th>
                             <th class="text-end pe-4">Action</th>
                         </tr>
@@ -57,7 +57,7 @@
                                     @endif
                                 </td>
                                 <td class="text-end pe-4">
-                                    {{-- Lien vers l'ajout au panier si vous implémentez cette fonctionnalité plus tard --}}
+                                    {{-- Link to add to cart (if implemented later) --}}
                                 </td>
                             </tr>
                         @empty

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
-    <title>Facture {{ $sale->reference }}</title>
+    <title>Invoice {{ $sale->reference }}</title>
     <style>
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
@@ -129,18 +129,18 @@
                     <img src="{{ public_path('storage/' . $settings['company_logo']) }}" alt="Logo" style="max-height: 60px;">
                 </div>
             @endif
-            <div class="company-name">{{ $settings['company_name'] ?? 'Nom Société' }}</div>
+            <div class="company-name">{{ $settings['company_name'] ?? 'Company Name' }}</div>
             <div>{{ $settings['company_address'] ?? '' }}</div>
             @if (!empty($settings['company_phone']))
-                <div>Tél: {{ $settings['company_phone'] }}</div>
+                <div>Tel: {{ $settings['company_phone'] }}</div>
             @endif
             @if (!empty($settings['company_email']))
                 <div>Email: {{ $settings['company_email'] }}</div>
             @endif
         </div>
         <div class="invoice-details">
-            <div class="invoice-title">Facture</div>
-            <div>Réf: <strong>{{ $sale->reference }}</strong></div>
+            <div class="invoice-title">Invoice</div>
+            <div>Ref: <strong>{{ $sale->reference }}</strong></div>
             <div>Date: {{ $sale->created_at->format('d/m/Y') }}</div>
         </div>
     </div>
@@ -148,9 +148,9 @@
     <table>
         <thead>
             <tr>
-                <th>Produit</th>
-                <th class="text-center" width="15%">Quantité</th>
-                <th class="text-right" width="20%">Prix Unitaire</th>
+                <th>Product</th>
+                <th class="text-center" width="15%">Quantity</th>
+                <th class="text-right" width="20%">Unit Price</th>
                 <th class="text-right" width="20%">Total</th>
             </tr>
         </thead>
@@ -169,19 +169,19 @@
     <div class="clearfix">
         <div class="totals">
             <div class="total-row clearfix">
-                <span style="float:left">Total Brut</span>
+                <span style="float:left">Total Gross</span>
                 <span style="float:right">{{ number_format($sale->total_brut, 2, ',', ' ') }}
                     {{ $currency }}</span>
             </div>
             @if ($sale->discount > 0)
                 <div class="total-row clearfix" style="color: #e74c3c;">
-                    <span style="float:left">Remise</span>
+                    <span style="float:left">Discount</span>
                     <span style="float:right">- {{ number_format($sale->discount, 2, ',', ' ') }}
                         {{ $currency }}</span>
                 </div>
             @endif
             <div class="total-row final clearfix">
-                <span style="float:left">Net à Payer</span>
+                <span style="float:left">Total Due</span>
                 <span style="float:right">{{ number_format($sale->total_net, 2, ',', ' ') }}
                     {{ $currency }}</span>
             </div>
@@ -197,7 +197,7 @@
             - TVA: {{ $settings['company_vat'] }}
         @endif
         <br>
-        Document généré automatiquement le {{ date('d/m/Y H:i') }}
+        Document automatically generated on {{ date('d/m/Y H:i') }}
     </div>
 </body>
 

@@ -17,14 +17,14 @@
             <div class="card-body p-5">
                 <div class="row mb-4">
                     <div class="col-sm-6">
-                        <h5 class="mb-3 text-uppercase text-muted">Émetteur</h5>
+                        <h5 class="mb-3 text-uppercase text-muted">Issuer</h5>
                         <div><strong>{{ $sale->company_name }}</strong></div>
                         <div>{{ $sale->company_address ?? ''}}</div>
-                        <div>Tél: {{ $sale->company_phone ?? '+261 34 22 12345' }}</div>
+                        <div>Tel: {{ $sale->company_phone ?? '+261 34 22 12345' }}</div>
                         <div>Email: {{ $sale->company_email ?? 'contact@stockmaster.test' }}</div>
                     </div>
                     <div class="col-sm-6 text-sm-end">
-                        <h5 class="mb-3 text-uppercase text-muted">Détails Facture</h5>
+                        <h5 class="mb-3 text-uppercase text-muted">Invoice Details</h5>
                         <div class="h4 text-primary">{{ $sale->reference }}</div>
                         <div>Date : {{ $sale->created_at->format('d/m/Y H:i') }}</div>
                     </div>

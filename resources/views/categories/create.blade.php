@@ -1,20 +1,20 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Ajouter une nouvelle catégorie')
+@section('title', 'Add a new category')
 
 @section('content')
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Détails de la catégorie</h5>
+                    <h5 class="mb-0">Category details</h5>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('admin.categories.store') }}" method="POST" id="category-form">
                         @csrf
                         <div class="mb-3">
                             <select name="parents_id" id="parents_id" class="form-control" value="{{ old('parents_id') }}">
-                                <option value="">Sélectionnez une catégorie parente</option>
+                                <option value="">Select a parent category</option>
                                 @foreach ($categories as $id => $name)
                                     <option value="{{ $id }}" {{ old('parents_id') == $id ? 'selected' : '' }}>
                                         {{ $name }}
@@ -24,7 +24,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="name" class="form-label">Nom de la catégorie</label>
+                            <label for="name" class="form-label">Category name</label>
                             <input type="text" name="name" id="name"
                                 class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}">
                             @error('name')
@@ -39,7 +39,7 @@
 
                         {{-- Gestion des enfants (Double Liste) --}}
                         <hr>
-                        <h5 class="mb-3">Sous-catégories (Enfants)</h5>
+                        <h5 class="mb-3">Sub-categories (Children)</h5>
 
                         <div class="mb-3">
                             <label for="child-search" class="form-label">Recherche rapide (mots clés séparés par des
@@ -68,7 +68,7 @@
 
                             <div class="col-md-2 d-flex flex-column justify-content-center align-items-center">
                                 <button type="button" id="btn-move-right" class="btn btn-primary mb-2" title="Ajouter">
-                                    <i class="bi bi-arrow-right"></i> Ajouter &gt;
+                                    <i class="bi bi-arrow-right"></i> Add &gt;
                                 </button>
                                 <button type="button" id="btn-move-left" class="btn btn-secondary" title="Retirer">
                                     &lt; Retirer <i class="bi bi-arrow-left"></i>
@@ -89,7 +89,7 @@
 
                         <div class="d-flex justify-content-between">
                             <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">Annuler</a>
-                            <button type="submit" class="btn btn-success px-4">Enregistrer la catégorie</button>
+                            <button type="submit" class="btn btn-success px-4">Save category</button>
                         </div>
                     </form>
                 </div>
@@ -122,7 +122,7 @@
                 });
             });
 
-            // Déplacer vers la droite (Ajouter)
+            // Move to the right (Add)
             btnRight.addEventListener('click', function() {
                 const checked = listAvailable.querySelectorAll('.check-available:checked');
                 checked.forEach(checkbox => {

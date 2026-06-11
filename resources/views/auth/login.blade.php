@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockMaster - Connexion</title>
+    <title>StockMaster - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -219,14 +219,14 @@
             <h1>
                 <i class="fas fa-box-open"></i> StockMaster
             </h1>
-            <p>Gestion d'Inventaire Intelligente</p>
+            <p>Smart Inventory Management</p>
         </div>
 
         <div class="login-body">
             @if ($errors->any())
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-circle me-2"></i>
-                    <strong>Erreur !</strong>
+                    <strong>Error!</strong>
                     <ul class="mb-0 ps-3 mt-1">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -240,7 +240,7 @@
                 @csrf
 
                 <!-- Sélection du Rôle (Mis en avant) -->
-                <label class="form-label mb-2 d-block">Sélectionnez votre espace</label>
+                <label class="form-label mb-2 d-block">Select your workspace</label>
                 <div class="role-selection">
                     <div class="role-card">
                         <input type="radio" id="front_office" name="role" value="front_office"
@@ -266,7 +266,7 @@
 
                 <!-- Email -->
                 <div class="mb-3">
-                    <label for="email" class="form-label">Adresse Email</label>
+                    <label for="email" class="form-label">Email address</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                         <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"
@@ -279,11 +279,11 @@
 
                 <!-- Mot de passe -->
                 <div class="mb-3">
-                    <label for="password" class="form-label">Mot de Passe</label>
+                    <label for="password" class="form-label">Password</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-lock"></i></span>
                         <input type="password" class="form-control @error('password') is-invalid @enderror"
-                            id="password" name="password" placeholder="Votre mot de passe" required
+                            id="password" name="password" placeholder="Your password" required
                             style="border-right: none; border-radius: 0;">
                         <span class="input-group-text password-toggle" onclick="togglePassword()">
                             <i class="far fa-eye" id="toggleIcon"></i>
@@ -300,18 +300,18 @@
                         <input class="form-check-input" type="checkbox" name="remember" id="remember"
                             {{ old('remember') ? 'checked' : '' }}>
                         <label class="form-check-label text-muted" for="remember">
-                            Se souvenir de moi
+                            Remember me
                         </label>
                     </div>
                 </div>
 
                 <button type="submit" class="btn-login">
-                    <i class="fas fa-sign-in-alt"></i> Se Connecter
+                    <i class="fas fa-sign-in-alt"></i> Login
                 </button>
             </form>
 
             {{-- <div class="register-link">
-                Pas encore inscrit ? <a href="{{ route('register') }}">Créer un compte</a>
+                Not registered yet? <a href="{{ route('register') }}">Create an account</a>
             </div> --}}
         </div>
     </div>

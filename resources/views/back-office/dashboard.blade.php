@@ -11,7 +11,7 @@
                 <div class="col-md-3 border-end-md">
                     <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
                         <i class="fas fa-box text-primary me-2"></i>
-                        {{-- lien vers la page des produits --}}
+                        {{-- link to the products page --}}
                         <div>
                             <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
                                 style="font-size: 0.65rem;">Total Products</span>
@@ -22,7 +22,7 @@
                 <div class="col-md-3 border-end-md">
                     <div class="d-flex align-items-center justify-content-center justify-content-md-start px-2">
                         <i class="fas fa-exclamation-triangle text-danger me-2"></i>
-                        {{-- lien vers la page des produits avec stock --}}
+                        {{-- link to the products page with stock --}}
                         <div>
                             <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
                                 style="font-size: 0.65rem;">Stock Alert</span>
@@ -63,13 +63,13 @@
         <div class="col-xl-8 col-lg-7">
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-white">
-                    <h6 class="m-0 font-weight-bold text-primary">Évolution du Chiffre d'Affaires</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Sales Over Time</h6>
                     <select name="period" id="salesChartPeriodSelector" class="form-select form-select-sm"
                         style="width: auto;">
-                        <option value="7days" @if ($period == '7days') selected @endif>7 Derniers Jours</option>
-                        <option value="1month" @if ($period == '1month') selected @endif>4 Dernières Semaines
+                        <option value="7days" @if ($period == '7days') selected @endif>Last 7 Days</option>
+                        <option value="1month" @if ($period == '1month') selected @endif>Last 4 Weeks
                         </option>
-                        <option value="1year" @if ($period == '1year') selected @endif>12 Derniers Mois</option>
+                        <option value="1year" @if ($period == '1year') selected @endif>Last 12 Months</option>
                     </select>
                 </div>
                 <div class="card-body">
@@ -95,7 +95,7 @@
                 </div>
                 <div class="card-body d-flex flex-column justify-content-center">
                     <div class="mb-4">
-                        <div class="small text-muted mb-1">Today Sales</div>
+                        <div class="small text-muted mb-1">Today's Sales</div>
                         <div class="h4 mb-0 font-weight-bold text-dark">{{ number_format($salesToday, 2, ',', ' ') }} MGA
                         </div>
                         <div class="progress mt-2" style="height: 5px;">
@@ -103,7 +103,7 @@
                         </div>
                     </div>
                     <div class="mb-4">
-                        <div class="small text-muted mb-1">this Month Sales</div>
+                        <div class="small text-muted mb-1">This Month Sales</div>
                         <div class="h4 mb-0 font-weight-bold text-dark">{{ number_format($salesThisMonth, 2, ',', ' ') }}
                             MGA
                         </div>
@@ -112,7 +112,7 @@
                         </div>
                     </div>
                     <div class="mb-4">
-                        <div class="small text-muted mb-1">Sale's Target</div>
+                        <div class="small text-muted mb-1">Sales Target</div>
                         <div class="h4 mb-0 font-weight-bold text-dark">{{ $totalSales }}</div>
                         <div class="progress mt-2" style="height: 5px;">
                             <div class="progress-bar bg-warning" role="progressbar" style="width: 100%"></div>
@@ -226,8 +226,8 @@
                         spinner.addClass('d-none').removeClass('d-flex');
                     },
                     error: function(xhr) {
-                        console.error("Erreur lors du chargement des données :", xhr.responseText);
-                        alert("Impossible de charger les données du graphique.");
+                        console.error("Error loading chart data:", xhr.responseText);
+                        alert("Unable to load chart data.");
                         spinner.addClass('d-none').removeClass('d-flex');
                     }
                 });

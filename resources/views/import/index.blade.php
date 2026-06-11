@@ -32,10 +32,10 @@
                         <ul class="mb-0 mt-2">
                             @foreach ((array) session('import_validation_errors') as $failure)
                                 <li>
-                                    Ligne <strong>{{ $failure['row'] }}</strong> (champ
+                                    Row <strong>{{ $failure['row'] }}</strong> (field
                                     <em>{{ $failure['attribute'] }}</em>) :
                                     {{ implode(', ', $failure['errors']) }}
-                                    <span class="text-muted"> - Valeur lue :
+                                    <span class="text-muted"> - Read value :
                                         "{{ $failure['values'][$failure['attribute']] ?? 'N/A' }}"</span>
                                 </li>
                             @endforeach

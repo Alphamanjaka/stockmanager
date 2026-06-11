@@ -1,10 +1,10 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Gestion des Catégories')
+@section('title', 'Category Management')
 @section('actions')
     <div>
         <a href="{{ route('admin.categories.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Nouvelle Catégorie
+            <i class="fas fa-plus"></i> New Category
         </a>
     </div>
 @endsection
@@ -19,7 +19,7 @@
                         <i class="fas fa-folder text-primary me-2"></i>
                         <div>
                             <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
-                                style="font-size: 0.65rem;">Total Catégories</span>
+                                style="font-size: 0.65rem;">Total Categories</span>
                             <span class="h6 mb-0 font-weight-bold">{{ $stats['total_categories'] }}</span>
                         </div>
                     </div>
@@ -29,7 +29,7 @@
                         <i class="fas fa-box-open text-success me-2"></i>
                         <div>
                             <span class="text-xs text-uppercase font-weight-bold text-muted d-block"
-                                style="font-size: 0.65rem;">Produits Classés</span>
+                                style="font-size: 0.65rem;">Categorized Products</span>
                             <span class="h6 mb-0 font-weight-bold">{{ $stats['total_products_linked'] }}</span>
                         </div>
                     </div>
@@ -57,7 +57,7 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="list-tab" data-bs-toggle="tab" data-bs-target="#list" type="button"
                 role="tab" aria-controls="list" aria-selected="true">
-                <i class="fas fa-list me-2"></i>Liste des Catégories
+                <i class="fas fa-list me-2"></i>Category List
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -76,18 +76,18 @@
                 <div class="card-body bg-light">
                     <form action="{{ url('/admin/categories') }}" method="GET" class="row g-3 align-items-end">
                         <div class="col-md-5">
-                            <label class="form-label small text-muted">Recherche</label>
+                            <label class="form-label small text-muted">Looking for... </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
                                 <input type="text" name="search" class="form-control"
-                                    placeholder="Nom de la catégorie..." value="{{ request('search') }}">
+                                    placeholder="Category name..." value="{{ request('search') }}">
                             </div>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label small text-muted">Filtrer par</label>
                             <select name="category" class="form-select">
-                                <option value="">Toutes les catégories</option>
+                                <option value="">All categories</option>
                                 @foreach ($categories as $cat)
                                     <option value="{{ $cat->id }}"
                                         {{ request('category') == $cat->id ? 'selected' : '' }}>
@@ -129,7 +129,7 @@
                                                 class="fas fa-sort{{ request('sort') == 'parent_id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                         </a>
                                     </th>
-                                    <th>Produits</th>
+                                    <th>Products</th>
                                     <th class="text-end pe-4">Actions</th>
                                 </tr>
                             </thead>
@@ -156,7 +156,7 @@
                                                 </a>
                                                 <form action="{{ route('admin.categories.destroy', $category->id) }}"
                                                     method="POST" class="d-inline"
-                                                    onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')">
+                                                    onsubmit="return confirm('Are you sure you want to delete this category?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-sm btn-outline-danger"
@@ -186,7 +186,7 @@
                 <div class="col-lg-8">
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Répartition des produits par catégorie mère</h6>
+                            <h6 class="m-0 font-weight-bold text-primary">Distribution of products by parent category</h6>
                         </div>
                         <div class="card-body">
                             <div class="row justify-content-center">

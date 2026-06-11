@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StockMaster - Selling @yield('title')</title>
-    {{-- Chargement des assets spécifiques au Front-Office --}}
+    {{-- Load assets specific to the Front Office --}}
     @vite(['resources/css/custom.css', 'resources/css/front.css', 'resources/js/app.js', 'resources/js/front.js'])
     @stack('css')
 </head>

@@ -101,10 +101,10 @@
             const productList = $('#product-list');
             const saleForm = $('#sale-form');
 
-            // On stocke le HTML des options UNE SEULE FOIS au chargement
+            // Store options HTML ONCE at load
             const originalOptionsHtml = $('.product-select').first().html();
 
-            // Initialisation légère
+            // Lightweight initialization
             function initS2(el) {
                 el.select2({
                     theme: 'bootstrap-5',
@@ -112,12 +112,12 @@
                 });
             }
 
-            // --- CALCULS OPTIMISÉS ---
+            // --- OPTIMIZED CALCULATIONS ---
             function fastUpdate() {
                 let totalBrut = 0;
                 const selectedIds = [];
 
-                // Une seule boucle pour tout faire
+                // Single loop to do everything
                 $('.product-row').each(function() {
                     const row = $(this);
                     const select = row.find('.product-select');
@@ -130,7 +130,7 @@
                         const price = parseFloat(opt.data('price') || 0);
                         const stock = parseInt(opt.data('stock') || 0);
                         const remaining = stock - qty;
-                        row.find('.stock-feedback').text(`${remaining} restants`).toggleClass('text-danger',
+                        row.find('.stock-feedback').text(`${remaining} remaining`).toggleClass('text-danger',
                             remaining < 5);
 
                         // Calcul direct
@@ -153,12 +153,12 @@
                 return selectedIds;
             }
 
-            // --- AJOUT DE LIGNE ULTRA-RAPIDE ---
+            // --- FAST ROW ADD ---
             $('#add-product').on('click', function() {
                 const selectedIds = fastUpdate();
                 const index = Date.now();
 
-                // On crée le HTML en string (beaucoup plus rapide que .clone())
+                // Create HTML string (faster than .clone())
                 const newRowHtml = `
                 <tr class="product-row">
                     <td>
@@ -174,7 +174,7 @@
 
                 const $newRow = $(newRowHtml);
 
-                // On retire les options déjà prises AVANT d'injecter dans le DOM
+                // Remove already selected options BEFORE injecting into the DOM
                 selectedIds.forEach(id => {
                     if (id) $newRow.find(`option[value="${id}"]`).remove();
                 });
@@ -184,7 +184,7 @@
                 $newRow.find('.product-select').select2('open');
             });
 
-            // --- DÉLÉGATION D'ÉVÉNEMENTS (Un seul écouteur pour toute la table) ---
+            // --- EVENT DELEGATION (single listener for the table) ---
             productList.on('change', '.product-select', function() {
                 const row = $(this).closest('tr');
                 const price = $(this).find(':selected').data('price') || 0;
@@ -205,7 +205,7 @@
             // Init première ligne
             initS2($('.product-select'));
             $('#reset-cart').on('click', function() {
-                if (confirm('Voulez-vous vider le panier ?')) {
+                if (confirm('Clear the cart?')) {
                     $('.product-row').not(':first').remove(); // Garde une ligne
                     $('.product-select').val('').trigger('change');
                     $('.qty-input').val(1);
@@ -214,7 +214,7 @@
             });
         });
         $(document).on('keydown', function(e) {
-            // F2 pour ajouter un produit
+            // F2 to add a product
             if (e.key === "F2") {
                 $('#add-product').click();
             }

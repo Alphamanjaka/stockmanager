@@ -4,12 +4,12 @@
 
 @section('content')
     <div class="container">
-        {{-- ajouter une section sur l'information du vendeur qui permettra de le contacter rapidement  --}}
+        {{-- add a section with seller information for quick contact --}}
         <div class="card shadow-sm mb-4">
             <div class="card-body">
-                <h5 class="card-title">Vendeur : {{ $sale->user->name ?? 'N/A' }}</h5>
+                <h5 class="card-title">Seller : {{ $sale->user->name ?? 'N/A' }}</h5>
                 <p class="card-text">Email : {{ $sale->user->email ?? 'N/A' }}</p>
-                <p class="card-text">Téléphone : {{ $sale->user->phone ?? 'N/A' }}</p>
+                <p class="card-text">Phone : {{ $sale->user->phone ?? 'N/A' }}</p>
             </div>
         </div>
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -25,14 +25,14 @@
             <div class="card-body p-5">
                 <div class="row mb-4">
                     <div class="col-sm-6">
-                        <h5 class="mb-3 text-uppercase text-muted">Émetteur</h5>
+                        <h5 class="mb-3 text-uppercase text-muted">Issuer</h5>
                         <div><strong>{{ $sale->company_name }}</strong></div>
                         <div>{{ $sale->company_address ?? ''}}</div>
-                        <div>Tél: {{ $sale->company_phone ?? '+261 34 22 12345' }}</div>
+                        <div>Tel: {{ $sale->company_phone ?? '+261 34 22 12345' }}</div>
                         <div>Email: {{ $sale->company_email ?? 'contact@stockmaster.test' }}</div>
                     </div>
                     <div class="col-sm-6 text-sm-end">
-                        <h5 class="mb-3 text-uppercase text-muted">Détails Facture</h5>
+                        <h5 class="mb-3 text-uppercase text-muted">Invoice Details</h5>
                         <div class="h4 text-primary">{{ $sale->reference }}</div>
                         <div>Date : {{ $sale->created_at->format('d/m/Y H:i') }}</div>
                     </div>

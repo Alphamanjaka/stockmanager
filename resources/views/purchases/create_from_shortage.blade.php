@@ -3,18 +3,18 @@
 @section('content')
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1>Créer une commande (Rupture de stock)</h1>
+            <h1>Create an order (Stock shortage)</h1>
         </div>
 
         <p class="text-muted">
-            Cette page suggère des commandes pour les produits dont le stock est bas (inférieur ou égal au seuil d'alerte).
-            Vous pouvez décocher les produits que vous ne souhaitez pas commander ou ajuster les quantités avant de valider.
+            This page suggests orders for products with low stock (less than or equal to the alert threshold).
+            You can uncheck products you don't wish to order or adjust quantities before confirming.
         </p>
 
         @if ($groupedProducts->isEmpty())
             <div class="alert alert-success">
-                <h4 class="alert-heading">🎉 Bonne nouvelle !</h4>
-                <p>Aucun produit ne nécessite de réapprovisionnement pour le moment.</p>
+                <h4 class="alert-heading">🎉 Good news!</h4>
+                <p>No product requires restocking at the moment.</p>
             </div>
         @else
             <form action="{{ route('admin.purchases.storeFromShortage') }}" method="POST">
@@ -31,7 +31,7 @@
                             </h3>
                             @if (!$group['supplier_id'])
                                 <p class="mb-0 small text-muted">Impossible de créer une commande car aucun fournisseur
-                                    n'est associé à ces produits dans l'historique. Vous devrez créer une commande
+                                    is associated to these products in history. You will need to create an order
                                     manuellement.</p>
                             @endif
                         </div>
@@ -41,11 +41,11 @@
                                     <thead>
                                         <tr>
                                             <th style="width: 5%;">Commander</th>
-                                            <th>Produit</th>
-                                            <th class="text-center" style="width: 10%;">Stock Actuel</th>
-                                            <th class="text-center" style="width: 10%;">Seuil d'Alerte</th>
-                                            <th class="text-end" style="width: 15%;">Dernier Coût Unitaire</th>
-                                            <th style="width: 15%;">Quantité à commander</th>
+                                            <th>Product</th>
+                                            <th class="text-center" style="width: 10%;">Current Stock</th>
+                                            <th class="text-center" style="width: 10%;">Alert Threshold</th>
+                                            <th class="text-end" style="width: 15%;">Last Unit Cost</th>
+                                            <th style="width: 15%;">Quantity to order</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -57,7 +57,7 @@
                                                             name="items[{{ $product->id }}][selected]" value="1"
                                                             checked>
                                                     </div>
-                                                    {{-- Ces champs doivent toujours être présents pour éviter les erreurs "Undefined array key" lors de la soumission --}}
+                                                    {{-- These fields must always be present to avoid "Undefined array key" errors on submission --}}
                                                     <input type="hidden" name="items[{{ $product->id }}][supplier_id]"
                                                         value="{{ $group['supplier_id'] }}">
                                                     <input type="hidden" name="items[{{ $product->id }}][product_id]"
@@ -86,7 +86,7 @@
 
                 <div class="d-flex justify-content-end mt-4">
                     <button type="submit" class="btn btn-primary btn-lg">
-                        Créer les commandes sélectionnées
+                        Create selected orders
                     </button>
                 </div>
             </form>

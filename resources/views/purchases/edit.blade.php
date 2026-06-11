@@ -1,5 +1,5 @@
 @extends('layouts.app-back-office')
-@section('title', 'Modifier l\'achat #' . $purchase->reference)
+@section('title', 'Edit Purchase #' . $purchase->reference)
 
 @section('content')
     <div class="row">
@@ -7,24 +7,24 @@
         <div class="col-md-5">
             <div class="card shadow-sm border-0 mb-4 sticky-top" style="top: 20px;">
                 <div class="card-header bg-dark text-white fw-bold">
-                    <i class="bi bi-search"></i> Ajouter / Modifier un Produit
+                    <i class="bi bi-search"></i> Add / Edit a Product
                 </div>
                 <div class="card-body">
                     <div class="mb-3 position-relative">
-                        <label class="form-label fw-bold">Produit</label>
+                        <label class="form-label fw-bold">Product</label>
                         <input type="text" id="product-search-input" class="form-control"
-                            placeholder="Rechercher par nom ou couleur..." autocomplete="off">
+                            placeholder="Search by name or color..." autocomplete="off">
                         <input type="hidden" id="selected-product-id">
                         <div id="product-suggestions" class="list-group position-absolute w-100"
                             style="z-index: 1000; display: none;"></div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Quantité</label>
+                            <label class="form-label fw-bold">Quantity</label>
                             <input type="number" id="input-quantity" class="form-control" min="1" value="1">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Prix d'Achat (U)</label>
+                            <label class="form-label fw-bold">Purchase Price (U)</label>
                             <div class="input-group">
                                 <input type="number" id="input-price" class="form-control" step="0.01">
                                 <span class="input-group-text">Mga</span>
@@ -32,7 +32,7 @@
                         </div>
                     </div>
                     <button type="button" id="btn-add-item" class="btn btn-primary w-100">
-                        <i class="bi bi-plus-circle"></i> Mettre à jour la liste
+                        <i class="bi bi-plus-circle"></i> Update list
                     </button>
                 </div>
             </div>
@@ -46,16 +46,16 @@
 
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <span class="fw-bold"><i class="bi bi-cart3"></i> Contenu de la commande</span>
+                        <span class="fw-bold"><i class="bi bi-cart3"></i> Order Contents</span>
                         <span class="badge bg-light text-primary">Ref: {{ $purchase->reference }}</span>
                     </div>
                     <div class="card-body p-0">
                         <table class="table table-hover align-middle mb-0" id="items-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Produit</th>
-                                    <th class="text-center">Qté</th>
-                                    <th class="text-end">P.U</th>
+                                    <th>Product</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Unit Price</th>
                                     <th class="text-end">Total</th>
                                     <th style="width: 80px;"></th>
                                 </tr>
@@ -68,9 +68,9 @@
                     <div class="card-footer bg-light p-4">
                         <div class="row mb-4">
                             <div class="col-md-12">
-                                <label class="form-label fw-bold">Fournisseur</label>
+                                <label class="form-label fw-bold">Supplier</label>
                                 <select name="supplier_id" id="supplier-select" class="form-select" required>
-                                    <option value="">-- Choisir un fournisseur --</option>
+                                    <option value="">-- Choose a supplier --</option>
                                     @foreach ($suppliers as $supplier)
                                         <option value="{{ $supplier->id }}" @selected($purchase->supplier_id == $supplier->id)>
                                             {{ $supplier->name }}
@@ -88,10 +88,10 @@
                         <div class="d-flex gap-2">
                             <a href="{{ route('admin.purchases.show', $purchase->id) }}"
                                 class="btn btn-outline-secondary flex-grow-1">
-                                Annuler
+                                Cancel
                             </a>
                             <button type="submit" class="btn btn-success flex-grow-2 px-5">
-                                <i class="bi bi-check-all"></i> Enregistrer les modifications
+                                <i class="bi bi-check-all"></i> Save changes
                             </button>
                         </div>
                     </div>
@@ -174,7 +174,7 @@
                 }
             });
 
-            // Sélection d'un produit
+            // Product selection
             productSuggestions.on('click', '.list-group-item', function() {
                 const p = $(this).data();
                 productSearchInput.val(p.name);
@@ -192,7 +192,7 @@
                 const price = parseFloat(inputPrice.val());
 
                 if (!id || qty <= 0 || isNaN(price)) {
-                    alert('Veuillez remplir correctement les champs produit, quantité et prix.');
+                    alert('Please fill product, quantity and price fields correctly.');
                     return;
                 }
 

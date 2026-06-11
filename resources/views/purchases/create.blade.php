@@ -1,28 +1,28 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Gestion du Panier d\'Achat')
+@section('title', 'Purchase Cart Management')
 @section('content')
     <div class="row">
         <!-- Colonne de Gauche : Recherche et Ajout -->
         <div class="col-md-5">
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-dark text-white fw-bold">
-                    <i class="bi bi-search"></i> Rechercher un Produit
+                    <i class="bi bi-search"></i> Search Product
                 </div>
                 <div class="card-body">
                     <form action="{{ route('admin.purchases.cart.add') }}" method="POST" id="add-to-cart-form">
                         @csrf
                         <div class="mb-3 position-relative"> {{-- Ajout de position-relative pour le positionnement des suggestions --}}
-                            <label class="form-label fw-bold">Produit</label>
+                            <label class="form-label fw-bold">Product</label>
                             <input type="text" id="product-search-input" class="form-control"
-                                placeholder="Rechercher un produit par nom ou couleur..." autocomplete="off">
+                                placeholder="Search a product by name or color..." autocomplete="off">
                             <input type="hidden" name="product_color_id" id="selected-product-id" required>
                             <div id="product-suggestions" class="list-group position-absolute w-100"
                                 style="z-index: 1000; display: none;"></div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Quantité</label>
+                                <label class="form-label fw-bold">Quantity</label>
                                 <input type="number" name="quantity" class="form-control" min="1" value="1"
                                     required>
                             </div>
@@ -36,7 +36,7 @@
                             </div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-cart-plus"></i> Ajouter au panier
+                            <i class="bi bi-cart-plus"></i> Add to cart
                         </button>
                     </form>
                 </div>
@@ -51,14 +51,14 @@
             </div>
         </div>
 
-        <!-- Colonne de Droite : Le Panier -->
+        <!-- Right column: The Cart -->
         <div class="col-md-7">
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <span class="fw-bold"><i class="bi bi-cart3"></i> Panier Actuel</span>
+                    <span class="fw-bold"><i class="bi bi-cart3"></i> Current Cart</span>
                     @if ($cartItems->isNotEmpty())
                         <form action="{{ route('admin.purchases.cart.clear') }}" method="POST"
-                            onsubmit="return confirm('Vider le panier ?')">
+                            onsubmit="return confirm('Clear the cart?')">
                             @csrf
                             <button type="submit" class="btn btn-sm btn-light text-danger">Vider</button>
                         </form>
@@ -68,7 +68,7 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Produit</th>
+                                <th>Product</th>
                                 <th class="text-center">Qté</th>
                                 <th class="text-end">P.U</th>
                                 <th class="text-end">Total</th>
@@ -96,7 +96,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">Votre panier est vide</td>
+                                    <td colspan="5" class="text-center py-4 text-muted">Your cart is empty</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -141,7 +141,7 @@
                 width: '100%'
             });
 
-            // Préparer les données des produits pour la recherche côté client
+            // Prepare product data for client-side search
             const allProducts = @json($searchProducts);
 
             const productSearchInput = $('#product-search-input');
@@ -153,7 +153,7 @@
             productSearchInput.on('input', function() {
                 const searchTerm = $(this).val().toLowerCase();
                 productSuggestions.empty();
-                selectedProductIdInput.val(''); // Réinitialiser l'ID du produit sélectionné
+                selectedProductIdInput.val(''); // Reset the selected product ID
 
                 if (searchTerm.length < 2) { // Afficher les suggestions après 2 caractères
                     productSuggestions.hide();
@@ -182,7 +182,7 @@
                 }
             });
 
-            // Gérer la sélection d'un produit dans les suggestions
+            // Handle selection of a product in suggestions
             productSuggestions.on('click', '.list-group-item', function() {
                 const selectedId = $(this).data('id');
                 const selectedPrice = $(this).data('price');

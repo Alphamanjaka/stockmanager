@@ -5,14 +5,14 @@
     <h1>Détails du Mouvement de Stock #{{ $stockMovement->id }}</h1>
     <div class="card shadow-sm">
         <div class="card-body">
-            <p><strong>Produit :</strong>
+            <p><strong>Product:</strong>
                 {{-- link to product detail--}}
                 <a href="{{ route('admin.products.show', $stockMovement->productColor->product->id) }}" class="text-decoration-none">
                     {{ $stockMovement->productColor->toString() }}
                 </a>
             </p>
             <p><strong>Type de mouvement :</strong> {{ $stockMovement->type }}</p>
-            <p><strong>Quantité :</strong> {{ $stockMovement->quantity }}</p>
+            <p><strong>Quantity:</strong> {{ $stockMovement->quantity }}</p>
             <p><strong>Stock avant :</strong> {{ $stockMovement->stock_before }}</p>
             <p><strong>Stock après :</strong> {{ $stockMovement->stock_after }}</p>
             <p><strong>Raison :</strong> {{ $stockMovement->reason ?? 'N/A' }}</p>

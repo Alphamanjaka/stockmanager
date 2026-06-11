@@ -150,7 +150,7 @@
                             aria-expanded="false" />
                     </div>
                     <div id="global-search-results" class="dropdown-menu">
-                        <!-- Les résultats de recherche seront insérés ici par JavaScript -->
+                        <!-- Search results will be inserted here by JavaScript -->
                     </div>
                 </div>
 
@@ -192,7 +192,7 @@
                                                 class="d-block text-dark">{{ $notification->data['product_name'] ?? 'Product' }}</strong>
                                             <small class="text-muted">Critical Stock Alert:
                                                 {{ $notification->data['current_stock'] ?? 0 }} left</small>
-                                            {{-- <small class="text-muted">Alerte de stock critique : {{ $notification->data['current_stock'] ?? 0 }} restants</small> --- IGNORE --- --}}
+                                            {{-- <small class="text-muted">Critical stock alert: {{ $notification->data['current_stock'] ?? 0 }} remaining</small> --- IGNORE --- --}}
                                         </div>
                                     </a>
                                 </li>
@@ -207,7 +207,7 @@
                         </ul>
                     </div>
 
-                    {{-- Profil Utilisateur --}}
+                    {{-- User profile --}}
                     <div class="dropdown">
                         <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle"
                             data-bs-toggle="dropdown" aria-expanded="false">
