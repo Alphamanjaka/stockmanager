@@ -24,13 +24,13 @@
                 <div>
                     <h1 class="h3 mb-1" id="display-name">{{ $product->name }}</h1>
                     <p class="text-muted mb-0">
-                        Catégorie : <span id="display-category"
+                        category : <span id="display-category"
                             class="badge bg-info text-dark">{{ $product->category->name ?? 'N/A' }}</span> |
-                        Nombre de variantes : <span id="variant-count" class="fw-bold">{{ $variants->count() }}</span>
+                        variant number : <span id="variant-count" class="fw-bold">{{ $variants->count() }}</span>
                     </p>
                 </div>
                 <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProductModal">
-                    <i class="fas fa-edit me-1"></i> Modifier infos générales
+                    <i class="fas fa-edit me-1"></i> edit general information
                 </button>
             </div>
         </div>
@@ -40,7 +40,7 @@
             <div class="col-lg-8">
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-white">
-                        <h5 class="mb-0">Évolution du Stock Global</h5>
+                        <h5 class="mb-0">Global Stock Evolution</h5>
                     </div>
                     <div class="card-body">
                         <canvas id="stockEvolutionChart" height="100"></canvas>
@@ -49,19 +49,19 @@
                 {{-- Table des Variantes --}}
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Variantes de couleurs & Stocks</h5>
+                        <h5 class="mb-0">Color Variants & Stocks</h5>
                         <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addVariantModal">
-                            <i class="fas fa-plus me-1"></i> Ajouter une variante
+                            <i class="fas fa-plus me-1"></i> Add a variant
                         </button>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Couleur</th>
-                                    <th>Prix d'achat (MGA)</th>
+                                    <th>Color</th>
+                                    <th>Purchase Price (MGA)</th>
                                     {{-- Prix de vente --}}
-                                    <th>Prix (MGA)</th>
+                                    <th>Price (MGA)</th>
                                     {{-- Current stock --}}
                                     <th>Current Stock</th>
                                     <th>Alert Threshold</th>
@@ -92,7 +92,7 @@
                                             </button>
                                             <form action="{{ route('admin.products.variants.destroy', $variant->id) }}"
                                                 method="POST" class="d-inline"
-                                                onsubmit="return confirm('Voulez-vous vraiment supprimer cette variante ?');">
+                                                onsubmit="return confirm('Are you sure you want to delete this variant?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -117,9 +117,9 @@
             <div class="col-lg-4">
                 <div class="card shadow-sm">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Historique Mouvements</h5>
+                        <h5 class="mb-0">Movement History</h5>
                         <select id="variant-filter" class="form-select form-select-sm w-50">
-                            <option value="">Toutes les variantes</option>
+                            <option value="">All variants</option>
                             @foreach ($variants as $variant)
                                 <option value="{{ $variant->id }}">
                                     {{ $variant->color->name }} (ID: {{ $variant->id }})
@@ -129,11 +129,11 @@
                     </div>
                     <div class="card-body p-0">
                         <ul class="list-group list-group-flush" id="history-list">
-                            {{-- Chargé via AJAX --}}
+                            {{-- Loaded via AJAX --}}
                         </ul>
                     </div>
                     <div class="card-footer bg-white text-center">
-                        <button id="load-more-history" class="btn btn-sm btn-link">Voir plus</button>
+                        <button id="load-more-history" class="btn btn-sm btn-link">Load more</button>
                     </div>
                 </div>
             </div>
@@ -186,20 +186,19 @@
                 @csrf
                 <div class="modal-content">
                     <div class="modal-header bg-success text-white border-0">
-                        <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>Ajouter une nouvelle
-                            variante</h5>
+                        <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>Add a new variant</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body p-4">
                         <div class="row">
                             <div class="col-md-12 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Couleur &
-                                    Identité</label>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Color &
+                                    Identity</label>
                                 <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                     <span class="input-group-text bg-white border-0"><i
                                             class="fas fa-palette text-muted"></i></span>
                                     <select name="color_id" class="form-select border-0 shadow-none" required>
-                                        <option value="">Sélectionner une couleur...</option>
+                                        <option value="">Select a color...</option>
                                         @foreach ($colors as $color)
                                             <option value="{{ $color->id }}">{{ $color->name }}</option>
                                         @endforeach
@@ -208,7 +207,8 @@
                             </div>
 
                             <div class="col-md-6 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Prix d'achat</label>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Purchase
+                                    Price</label>
                                 <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                     <span class="input-group-text bg-white border-0"><i
                                             class="fas fa-file-invoice-dollar text-muted"></i></span>
@@ -218,8 +218,8 @@
                                 </div>
                             </div>
                             <div class="col-md-6 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Prix de
-                                    vente</label>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Selling
+                                    Price</label>
                                 <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                     <span class="input-group-text bg-white border-0"><i
                                             class="fas fa-tag text-muted"></i></span>
@@ -230,8 +230,8 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Stock
-                                    Initial</label>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Initial
+                                    Stock</label>
                                 <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                     <span class="input-group-text bg-white border-0"><i
                                             class="fas fa-cubes text-muted"></i></span>
@@ -240,8 +240,8 @@
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Seuil
-                                    d'alerte</label>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Alert
+                                    Threshold</label>
                                 <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                     <span class="input-group-text bg-white border-0"><i
                                             class="fas fa-bell text-warning"></i></span>
@@ -253,9 +253,9 @@
                     </div>
                     <div class="modal-footer bg-light border-0">
                         <button type="button" class="btn btn-link text-muted text-decoration-none px-4"
-                            data-bs-dismiss="modal">Annuler</button>
+                            data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-success px-4 rounded-pill shadow-sm">
-                            <i class="fas fa-save me-2"></i>Enregistrer la variante
+                            <i class="fas fa-save me-2"></i>Save variant
                         </button>
                     </div>
                 </div>
@@ -271,13 +271,13 @@
                 @method('PUT')
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-white border-0">
-                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Modifier la variante</h5>
+                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Edit variant</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body p-4">
                         <div class="row">
                             <div class="col-md-12 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Couleur</label>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Color</label>
                                 <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                     <span class="input-group-text bg-white border-0"><i
                                             class="fas fa-palette text-muted"></i></span>
@@ -291,7 +291,8 @@
                             </div>
 
                             <div class="col-md-6 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Prix d'achat</label>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Purchase
+                                    Price</label>
                                 <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                     <span class="input-group-text bg-white border-0"><i
                                             class="fas fa-file-invoice-dollar text-muted"></i></span>
@@ -301,8 +302,8 @@
                                 </div>
                             </div>
                             <div class="col-md-6 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Prix de
-                                    vente</label>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Selling
+                                    Price</label>
                                 <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                     <span class="input-group-text bg-white border-0"><i
                                             class="fas fa-tag text-muted"></i></span>
@@ -313,7 +314,8 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Current Stock</label>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Current
+                                    Stock</label>
                                 <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                     <span class="input-group-text bg-white border-0"><i
                                             class="fas fa-cubes text-muted"></i></span>
@@ -322,8 +324,8 @@
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Seuil
-                                    d'alerte</label>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Alert
+                                    Threshold</label>
                                 <div class="input-group border rounded-3 overflow-hidden shadow-sm">
                                     <span class="input-group-text bg-white border-0"><i
                                             class="fas fa-bell text-warning"></i></span>
@@ -335,9 +337,9 @@
                     </div>
                     <div class="modal-footer bg-light border-0">
                         <button type="button" class="btn btn-link text-muted text-decoration-none px-4"
-                            data-bs-dismiss="modal">Annuler</button>
+                            data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary px-4 rounded-pill shadow-sm">
-                            <i class="fas fa-check me-2"></i>Appliquer les modifications
+                            <i class="fas fa-check me-2"></i>Apply changes
                         </button>
                     </div>
                 </div>
@@ -420,25 +422,26 @@
 
             function loadHistory(variantId = '') {
                 const $list = $('#history-list');
-                $list.html('<li class="list-group-item text-center">Chargement...</li>');
+                $list.html('<li class="list-group-item text-center">Loading...</li>');
 
                 $.getJSON(`/api/products/${PRODUCT_ID}/movements?variant_id=${variantId}`)
                     .done(function(res) {
                         const html = res.data.map(m => `
                             <li class="list-group-item border-0 border-bottom">
                                 <div class="d-flex justify-content-between">
-                                    <small class="fw-bold text-uppercase">${m.type === 'in' ? 'Entrée' : 'Sortie'}</small>
+                                    <small class="fw-bold text-uppercase">${m.type === 'in' ? 'In' : 'Out'}</small>
                                     <small class="text-muted">${new Date(m.created_at).toLocaleDateString()}</small>
                                 </div>
-                                <div class="small">${m.product_color.color.name} : <strong>${m.quantity} unités</strong></div>
+                                <div class="small">${m.product_color.color.name} : <strong>${m.quantity} units</strong></div>
                                 <div class="text-muted extra-small">${m.reason || ''}</div>
                             </li>
                         `).join('');
-                        $list.html(html || '<li class="list-group-item text-center text-muted">Aucun mouvement</li>');
+                        $list.html(html ||
+                            '<li class="list-group-item text-center text-muted">No movements found</li>');
                     })
                     .fail(function() {
                         $list.html(
-                            '<li class="list-group-item text-center text-danger small">Erreur de chargement</li>');
+                            '<li class="list-group-item text-center text-danger small">Loading error</li>');
                     });
             }
 
@@ -472,7 +475,7 @@
                     data: {
                         labels: chartData.map(item => item.x),
                         datasets: [{
-                            label: 'Stock total',
+                            label: 'Total Stock',
                             data: chartData.map(item => item.y),
                             fill: false,
                             borderColor: 'rgb(75, 192, 192)',

@@ -79,13 +79,13 @@
                             <label class="form-label small text-muted">Looking for... </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                                <input type="text" name="search" class="form-control"
-                                    placeholder="Category name..." value="{{ request('search') }}">
+                                <input type="text" name="search" class="form-control" placeholder="Category name..."
+                                    value="{{ request('search') }}">
                             </div>
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label small text-muted">Filtrer par</label>
+                            <label class="form-label small text-muted">Sort by</label>
                             <select name="category" class="form-select">
                                 <option value="">All categories</option>
                                 @foreach ($categories as $cat)
@@ -118,7 +118,7 @@
                                     <th>
                                         <a href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
                                             class="text-dark text-decoration-none">
-                                            Nom <i
+                                            Name <i
                                                 class="fas fa-sort{{ request('sort') == 'name' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
                                         </a>
                                     </th>
