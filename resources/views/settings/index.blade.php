@@ -48,7 +48,7 @@
                     </button>
                 </div>
             </div>
-        
+
             <!-- Content -->
             <div class="col-md-9">
                 <form id="settings-form" action="{{ route('admin.settings.update', ['setting' => 1]) }}" method="POST"
@@ -56,26 +56,29 @@
                     @csrf
                     @method('PUT')
                     <div class="tab-content" id="v-pills-tabContent">
-    <div class="tab-pane fade show active" id="v-pills-general" role="tabpanel" aria-labelledby="v-pills-general-tab">
-        @include('settings.partials.general')
-    </div>
+                        <div class="tab-pane fade show active" id="v-pills-general" role="tabpanel"
+                            aria-labelledby="v-pills-general-tab">
+                            @include('settings.partials.general')
+                        </div>
 
-    <div class="tab-pane fade" id="v-pills-regional" role="tabpanel" aria-labelledby="v-pills-regional-tab">
-        @include('settings.partials.regional')
-    </div>
+                        <div class="tab-pane fade" id="v-pills-regional" role="tabpanel"
+                            aria-labelledby="v-pills-regional-tab">
+                            @include('settings.partials.regional')
+                        </div>
 
-    <div class="tab-pane fade" id="v-pills-stock" role="tabpanel" aria-labelledby="v-pills-stock-tab">
-        @include('settings.partials.stock_products')
-    </div>
+                        <div class="tab-pane fade" id="v-pills-stock" role="tabpanel" aria-labelledby="v-pills-stock-tab">
+                            @include('settings.partials.stock_products')
+                        </div>
 
-    <div class="tab-pane fade" id="v-pills-interface" role="tabpanel" aria-labelledby="v-pills-interface-tab">
-        @include('settings.partials.interface')
-    </div>
+                        <div class="tab-pane fade" id="v-pills-interface" role="tabpanel"
+                            aria-labelledby="v-pills-interface-tab">
+                            @include('settings.partials.interface')
+                        </div>
 
-    <div class="tab-pane fade" id="v-pills-backup" role="tabpanel" aria-labelledby="v-pills-backup-tab">
-        @include('settings.partials.backup')
-    </div>
-</div>
+                        <div class="tab-pane fade" id="v-pills-backup" role="tabpanel" aria-labelledby="v-pills-backup-tab">
+                            @include('settings.partials.backup')
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
