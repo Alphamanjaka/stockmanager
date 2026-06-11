@@ -47,14 +47,15 @@ class ProductColorService extends BaseService
                         if (empty($colorName)) continue;
 
                         // 2. Sauvegarde color si nouvelle via Color (firstOrCreate)
-                        $color = Color::firstOrCreate(['name' => $colorName]);
-
+                        $color = Color::firstOrCreate(['name' => $colorName, 'code' => $colorName]);
+    
                         // 3. Sauvegarde dans la table productcolor
                         ProductColor::updateOrCreate(
                             ['product_id' => $product->id, 'color_id' => $color->id],
                             [
                                 'stock' => $data['stocks'][$index] ?? 0,
                                 'price' => $data['prices'][$index] ?? 0,
+                                'price_purchase' => $data['price_purchases'][$index] ?? 0,
                                 'alert_stock' => $data['alert_stocks'][$index] ?? null
                             ]
                         );

@@ -59,7 +59,10 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Couleur</th>
+                                    <th>Prix d'achat (MGA)</th>
+                                    {{-- Prix de vente --}}
                                     <th>Prix (MGA)</th>
+                                    {{-- Stock actuel --}}
                                     <th>Stock actuel</th>
                                     <th>Seuil d'alerte</th>
                                     <th class="text-end">Actions</th>
@@ -71,6 +74,7 @@
                                         <td><span class="badge" style="background-color: {{ $variant->color->code }}">
                                             </span>
                                             {{ $variant->color->name }}</td>
+                                        <td>{{ number_format($variant->price_purchase, 2) }} MGA</td>
                                         <td>{{ number_format($variant->price, 2) }} MGA</td>
                                         <td><span
                                                 class="badge {{ $variant->stock <= $variant->alert_stock ? 'bg-danger' : 'bg-success' }}">{{ $variant->stock }}</span>
@@ -82,7 +86,8 @@
                                                 data-id="{{ $variant->id }}" data-color-id="{{ $variant->color_id }}"
                                                 data-stock="{{ $variant->stock }}"
                                                 data-alert-stock="{{ $variant->alert_stock }}"
-                                                data-price="{{ $variant->price }}">
+                                                data-price="{{ $variant->price }}"
+                                                data-price-purchase="{{ $variant->price_purchase }}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                             <form action="{{ route('admin.products.variants.destroy', $variant->id) }}"
@@ -180,41 +185,78 @@
             <form action="{{ route('admin.products.variants.store', $product->id) }}" method="POST">
                 @csrf
                 <div class="modal-content">
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title">Nouvelle Variante</h5>
+                    <div class="modal-header bg-success text-white border-0">
+                        <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>Ajouter une nouvelle
+                            variante</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body p-4">
                         <div class="row">
+                            <div class="col-md-12 mb-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Couleur &
+                                    Identité</label>
+                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                    <span class="input-group-text bg-white border-0"><i
+                                            class="fas fa-palette text-muted"></i></span>
+                                    <select name="color_id" class="form-select border-0 shadow-none" required>
+                                        <option value="">Sélectionner une couleur...</option>
+                                        @foreach ($colors as $color)
+                                            <option value="{{ $color->id }}">{{ $color->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Prix d'achat</label>
+                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                    <span class="input-group-text bg-white border-0"><i
+                                            class="fas fa-file-invoice-dollar text-muted"></i></span>
+                                    <input type="number" name="price_purchase" class="form-control border-0 shadow-none"
+                                        step="0.01" placeholder="0.00" required>
+                                    <span class="input-group-text bg-light border-0 small">MGA</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Prix de
+                                    vente</label>
+                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                    <span class="input-group-text bg-white border-0"><i
+                                            class="fas fa-tag text-muted"></i></span>
+                                    <input type="number" name="price" class="form-control border-0 shadow-none"
+                                        step="0.01" value="{{ $product->price }}" required>
+                                    <span class="input-group-text bg-light border-0 small">MGA</span>
+                                </div>
+                            </div>
+
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Couleur</label>
-                                <select name="color_id" class="form-select" required>
-                                    <option value="">-- Sélectionner --</option>
-                                    @foreach ($colors as $color)
-                                        <option value="{{ $color->id }}">{{ $color->name }}</option>
-                                    @endforeach
-                                </select>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Stock
+                                    Initial</label>
+                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                    <span class="input-group-text bg-white border-0"><i
+                                            class="fas fa-cubes text-muted"></i></span>
+                                    <input type="number" name="stock" class="form-control border-0 shadow-none"
+                                        min="0" value="0" required>
+                                </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Prix de vente (MGA)</label>
-                                <input type="number" name="price" class="form-control" step="0.01"
-                                    value="{{ $product->price }}" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Stock Initial</label>
-                                <input type="number" name="stock" class="form-control" min="0" value="0"
-                                    required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Seuil d'alerte</label>
-                                <input type="number" name="alert_stock" class="form-control" min="0"
-                                    value="5">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Seuil
+                                    d'alerte</label>
+                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                    <span class="input-group-text bg-white border-0"><i
+                                            class="fas fa-bell text-warning"></i></span>
+                                    <input type="number" name="alert_stock" class="form-control border-0 shadow-none"
+                                        min="0" value="5">
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-success">Enregistrer la variante</button>
+                    <div class="modal-footer bg-light border-0">
+                        <button type="button" class="btn btn-link text-muted text-decoration-none px-4"
+                            data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-success px-4 rounded-pill shadow-sm">
+                            <i class="fas fa-save me-2"></i>Enregistrer la variante
+                        </button>
                     </div>
                 </div>
             </form>
@@ -228,40 +270,75 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title">Modifier la variante</h5>
+                    <div class="modal-header bg-primary text-white border-0">
+                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Modifier la variante</h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body p-4">
                         <div class="row">
+                            <div class="col-md-12 mb-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Couleur</label>
+                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                    <span class="input-group-text bg-white border-0"><i
+                                            class="fas fa-palette text-muted"></i></span>
+                                    <select name="color_id" id="edit-variant-color"
+                                        class="form-select border-0 shadow-none" required>
+                                        @foreach ($colors as $color)
+                                            <option value="{{ $color->id }}">{{ $color->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Prix d'achat</label>
+                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                    <span class="input-group-text bg-white border-0"><i
+                                            class="fas fa-file-invoice-dollar text-muted"></i></span>
+                                    <input type="number" name="price_purchase" id="edit-variant-price-purchase"
+                                        class="form-control border-0 shadow-none" step="0.01" required>
+                                    <span class="input-group-text bg-light border-0 small">MGA</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Prix de
+                                    vente</label>
+                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                    <span class="input-group-text bg-white border-0"><i
+                                            class="fas fa-tag text-muted"></i></span>
+                                    <input type="number" name="price" id="edit-variant-price"
+                                        class="form-control border-0 shadow-none" step="0.01" required>
+                                    <span class="input-group-text bg-light border-0 small">MGA</span>
+                                </div>
+                            </div>
+
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Couleur</label>
-                                <select name="color_id" id="edit-variant-color" class="form-select" required>
-                                    @foreach ($colors as $color)
-                                        <option value="{{ $color->id }}">{{ $color->name }}</option>
-                                    @endforeach
-                                </select>
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Stock actuel</label>
+                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                    <span class="input-group-text bg-white border-0"><i
+                                            class="fas fa-cubes text-muted"></i></span>
+                                    <input type="number" name="stock" id="edit-variant-stock"
+                                        class="form-control border-0 shadow-none" min="0" required>
+                                </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Prix de vente (MGA)</label>
-                                <input type="number" name="price" id="edit-variant-price" class="form-control"
-                                    step="0.01" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Stock actuel</label>
-                                <input type="number" name="stock" id="edit-variant-stock" class="form-control"
-                                    min="0" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Seuil d'alerte</label>
-                                <input type="number" name="alert_stock" id="edit-variant-alert" class="form-control"
-                                    min="0">
+                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Seuil
+                                    d'alerte</label>
+                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
+                                    <span class="input-group-text bg-white border-0"><i
+                                            class="fas fa-bell text-warning"></i></span>
+                                    <input type="number" name="alert_stock" id="edit-variant-alert"
+                                        class="form-control border-0 shadow-none" min="0">
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                    <div class="modal-footer bg-light border-0">
+                        <button type="button" class="btn btn-link text-muted text-decoration-none px-4"
+                            data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary px-4 rounded-pill shadow-sm">
+                            <i class="fas fa-check me-2"></i>Appliquer les modifications
+                        </button>
                     </div>
                 </div>
             </form>
@@ -324,12 +401,14 @@
                     const stock = $(this).data('stock');
                     const alert = $(this).data('alert-stock');
                     const price = $(this).data('price');
+                    const pricePurchase = $(this).data('price-purchase');
 
                     // Remplissage des champs du formulaire
                     $('#edit-variant-color').val(colorId);
                     $('#edit-variant-stock').val(stock);
                     $('#edit-variant-alert').val(alert);
                     $('#edit-variant-price').val(price);
+                    $('#edit-variant-price-purchase').val(pricePurchase);
                     $('#editVariantForm').attr('action', `/admin/products/variants/${id}`);
                 });
 

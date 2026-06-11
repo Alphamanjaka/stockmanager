@@ -132,6 +132,7 @@ class PurchaseController extends Controller
                 'id' => $product->id,
                 'name' => $product->product->name . ' - ' . $product->color->name,
                 'price' => $product->price,
+                'price_purchase' => $product->price_purchase,
                 'stock' => $product->stock,
                 'searchable' => strtolower($product->product->name . ' ' . $product->color->name),
             ];

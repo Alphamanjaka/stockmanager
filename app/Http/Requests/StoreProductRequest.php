@@ -32,6 +32,9 @@ class StoreProductRequest extends FormRequest
             'prices' => "required|array|size:{$colorCount}",
             'prices.*' => 'nullable|numeric|min:0',
 
+            'price_purchases' => "nullable|array|size:{$colorCount}",
+            'price_purchases.*' => 'nullable|numeric|min:0',
+
             'alert_stocks' => "nullable|array|size:{$colorCount}",
             'alert_stocks.*' => 'nullable|integer|min:0',
         ];
@@ -42,6 +45,7 @@ class StoreProductRequest extends FormRequest
         return [
             'stocks.size' => 'Le nombre de stocks doit correspondre au nombre de couleurs ajoutées.',
             'prices.size' => 'Le nombre de prix doit correspondre au nombre de couleurs ajoutées.',
+            'price_purchases.size' => 'Le nombre de prix de vente doit correspondre au nombre de couleurs ajoutées.',
             'colors.required' => 'Vous devez ajouter au moins une variante (couleur/stock).',
         ];
     }

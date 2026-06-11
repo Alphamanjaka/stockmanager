@@ -78,7 +78,8 @@
                                         <th class="ps-3">Color Name</th>
                                         <th>Initial Stock</th>
                                         <th>Alert Threshold</th>
-                                        <th>Price (MGA)</th>
+                                        <th>Price (MGA)</th> 
+                                        <th>Cost Price (MGA)</th>
                                         <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
@@ -93,6 +94,8 @@
                                         <td><input type="number" name="alert_stocks[]" class="form-control" placeholder="5"
                                                 min="0"></td>
                                         <td><input type="number" name="prices[]" class="form-control" placeholder="0.00"
+                                                min="0" step="0.01"></td>
+                                        <td><input type="number" name="price_purchases[]" class="form-control" placeholder="0.00"
                                                 min="0" step="0.01"></td>
                                         <td class="text-center"><button type="button"
                                                 class="btn btn-outline-danger btn-sm removeColor"><i
@@ -153,6 +156,7 @@
                 <td><input type="number" name="stocks[]" class="form-control" placeholder="0" min="0" required></td>
                 <td><input type="number" name="alert_stocks[]" class="form-control" placeholder="5" min="0"></td>
                 <td><input type="number" name="prices[]" class="form-control" placeholder="0.00" min="0" step="0.01"></td>
+                <td><input type="number" name="price_purchases[]" class="form-control" placeholder="0.00" min="0" step="0.01"></td>
                 <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm removeColor"><i class="bi bi-trash"></i></button></td>
             `;
             tableBody.appendChild(newRow);

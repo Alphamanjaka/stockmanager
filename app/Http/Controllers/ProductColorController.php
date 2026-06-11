@@ -216,6 +216,7 @@ class ProductColorController extends Controller
         $validated = $request->validate([
             'color_id' => 'required|exists:colors,id',
             'stock' => 'required|integer|min:0',
+            'price_purchase' => 'required|numeric|min:0',
             'price' => 'required|numeric|min:0',
             'alert_stock' => 'nullable|integer|min:0',
         ]);
@@ -236,6 +237,7 @@ class ProductColorController extends Controller
         $validated = $request->validate([
             'color_id' => 'required|exists:colors,id', // Allow changing color, but ensure it's unique for the product
             'stock' => 'required|integer|min:0',
+            'price_purchase' => 'required|numeric|min:0',
             'price' => 'required|numeric|min:0',
             'alert_stock' => 'nullable|integer|min:0',
         ]);
