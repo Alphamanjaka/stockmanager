@@ -4,6 +4,7 @@ use App\Http\Controllers\{ProductController, SaleController, AuthController, Das
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\ProductColorController;
 use App\Http\Controllers\SaleAdminController;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
 // Routes d'authentification (publiques)
@@ -13,6 +14,16 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegisterPage'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
 });
+// language settings
+Route::get('lang/{locale}', function (string $locale) {
+    if (! in_array($locale, ['en', 'fr', 'es'])) {
+        abort(400);
+    }
+
+    session(['locale' => $locale]);
+
+    return Redirect::back();
+})->name('lang.switch');
 
 // Redirection de la page d'accueil vers le login ou dashboard
 Route::get('/', function () {

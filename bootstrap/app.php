@@ -12,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Enregistre le middleware pour toutes les requêtes web
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocaleMiddleware::class,
+        ]);
+
         $middleware->alias([
             'ensure.back.office' => \App\Http\Middleware\EnsureBackOfficeAccess::class,
             'ensure.front.office' => \App\Http\Middleware\EnsureFrontOfficeAccess::class,
