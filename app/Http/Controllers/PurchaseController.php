@@ -345,12 +345,8 @@ class PurchaseController extends Controller
         $purchase = $this->purchaseService->getPurchaseById($id);
 
         try {
-            // Special logic for 'Received' state to update stock
-            if ($validated['state'] === 'Received' && $purchase->state !== 'Received') {
-                $this->purchaseService->markAsReceived($purchase);
-            } else {
-                $purchase->update(['state' => $validated['state']]);
-            }
+            // Le service met à jour le stock lors de la réception et refuse toute modification d'un achat déjà reçu.
+            $this->purchaseService->changeState($purchase, $validated['state']);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([

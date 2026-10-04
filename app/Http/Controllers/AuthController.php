@@ -65,7 +65,8 @@ class AuthController extends Controller
     public function register(RegisterUserRequest $request)
     {
         try {
-            $user = $this->userService->create($request->validated());
+            // Le rôle est imposé côté serveur : un visiteur ne doit jamais pouvoir s'attribuer le back office.
+            $user = $this->userService->create(array_merge($request->validated(), ['role' => 'front_office']));
 
             Auth::login($user);
 

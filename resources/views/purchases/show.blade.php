@@ -90,21 +90,26 @@
                             <h5 class="mb-0 capitalize">state</h5>
                         </div>
                         <div class="card-body">
-                            {{-- if purchase is in draft state --}}
-                            <form action="{{ route('admin.purchases.updateState', $purchase->id) }}" method="POST">
-                                @csrf
-                                @method('PATCH')
-                                <div class="input-group">
-                                    <select name="state" class="form-select">
-                                        <option value="Draft" @selected($purchase->state == 'Draft')>Draft</option>
-                                        <option value="Ordered" @selected($purchase->state == 'Ordered')>Ordered</option>
-                                        <option value="Received" @selected($purchase->state == 'Received')>received</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-success">
-                                        <i class="bi bi-check-circle"></i>update
-                                    </button>
-                                </div>
-                            </form>
+                            {{-- Received is final: stock has already been added --}}
+                            @if ($purchase->state === 'Received')
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Received</span>
+                                <p class="text-muted small mt-2 mb-0">Stock has been updated. The state can no longer be changed.</p>
+                            @else
+                                <form action="{{ route('admin.purchases.updateState', $purchase->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <div class="input-group">
+                                        <select name="state" class="form-select">
+                                            <option value="Draft" @selected($purchase->state == 'Draft')>Draft</option>
+                                            <option value="Ordered" @selected($purchase->state == 'Ordered')>Ordered</option>
+                                            <option value="Received">received</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-check-circle"></i>update
+                                        </button>
+                                    </div>
+                                </form>
+                            @endif
                         </div>
                     </div>
 

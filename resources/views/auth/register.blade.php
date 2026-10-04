@@ -77,60 +77,6 @@
             display: block;
         }
 
-        .role-selection {
-            margin: 25px 0;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-
-        .role-selection p {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .role-option {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .role-option:hover {
-            background: white;
-            border-color: #667eea;
-        }
-
-        .role-option input[type="radio"] {
-            width: 20px;
-            height: 20px;
-            margin-right: 12px;
-            cursor: pointer;
-            accent-color: #667eea;
-        }
-
-        .role-option label {
-            margin: 0;
-            cursor: pointer;
-            flex: 1;
-        }
-
-        .role-option strong {
-            display: block;
-            color: #333;
-        }
-
-        .role-option small {
-            display: block;
-            color: #999;
-            margin-top: 4px;
-        }
-
         .btn-register {
             width: 100%;
             padding: 12px;
@@ -240,33 +186,6 @@
                     <label for="password_confirmation" class="form-label">Confirm Password</label>
                     <input type="password" class="form-control" id="password_confirmation" name="password_confirmation"
                         required>
-                </div>
-
-                <!-- Sélection du Rôle -->
-                <div class="role-selection">
-                    <p>Select your role</p>
-
-                    <div class="role-option">
-                        <input type="radio" id="front_office" name="role" value="front_office"
-                            {{ old('role') === 'front_office' ? 'checked' : '' }} required>
-                        <label for="front_office">
-                            <strong><i class="fas fa-shopping-cart"></i> Front Office</strong>
-                            <small>Sales management only</small>
-                        </label>
-                    </div>
-
-                    <div class="role-option">
-                        <input type="radio" id="back_office" name="role" value="back_office"
-                            {{ old('role') === 'back_office' ? 'checked' : '' }} required>
-                        <label for="back_office">
-                            <strong><i class="fas fa-cogs"></i> Back Office</strong>
-                            <small>Full access to all modules</small>
-                        </label>
-                    </div>
-
-                    @error('role')
-                        <span class="error-message">{{ $message }}</span>
-                    @enderror
                 </div>
 
                 <button type="submit" class="btn-register">

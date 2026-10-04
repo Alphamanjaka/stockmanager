@@ -30,18 +30,42 @@ class PurchaseService
 
 
     // Make a purchase as received: update stock and purchase state
-    public function markAsReceived(Purchase $purchase)
+    public function markAsReceived(Purchase $purchase): Purchase
     {
-        DB::transaction(function () use ($purchase) {
-            foreach ($purchase->items as $item) {
-                //We increase stock for each item in the purchase
-                $this->stockService->addStock(
-                    $item->product_color_id,
-                    $item->quantity,
-                    "Réception Achat #{$purchase->reference}"
-                );
+        return $this->changeState($purchase, 'Received');
+    }
+
+    /**
+     * Change le statut d'un achat.
+     * "Received" est un statut final : le stock a déjà été incrémenté, et revenir en arrière
+     * permettrait de réceptionner la même commande plusieurs fois.
+     *
+     * @throws \Exception si l'achat est déjà réceptionné
+     */
+    public function changeState(Purchase $purchase, string $state): Purchase
+    {
+        return DB::transaction(function () use ($purchase, $state) {
+            // Verrou sur la ligne : deux requêtes simultanées (double clic) ne peuvent pas réceptionner deux fois.
+            $locked = Purchase::with('items')->lockForUpdate()->findOrFail($purchase->id);
+
+            if ($locked->state === 'Received') {
+                throw new \Exception("L'achat #{$locked->reference} a déjà été réceptionné : son statut ne peut plus être modifié.");
             }
-            $purchase->update(['state' => 'Received']);
+
+            if ($state === 'Received') {
+                foreach ($locked->items as $item) {
+                    //We increase stock for each item in the purchase
+                    $this->stockService->addStock(
+                        $item->product_color_id,
+                        $item->quantity,
+                        "Réception Achat #{$locked->reference}"
+                    );
+                }
+            }
+
+            $locked->update(['state' => $state]);
+
+            return $locked;
         });
     }
 

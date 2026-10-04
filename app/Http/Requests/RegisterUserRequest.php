@@ -27,7 +27,8 @@ class RegisterUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8|confirmed',
-            'role' => 'required|in:front_office,back_office',
+            // Pas de champ 'role' : l'inscription publique crée toujours un compte front_office.
+            // Les comptes back_office sont créés par un administrateur (admin/users).
         ];
     }
     public function messages(): array
@@ -40,7 +41,6 @@ class RegisterUserRequest extends FormRequest
             'password.required' => 'Le mot de passe est requis.',
             'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
             'password.confirmed' => 'Les mots de passe ne correspondent pas.',
-            'role.required' => 'Veuillez sélectionner un profil.',
         ];
     }
 }

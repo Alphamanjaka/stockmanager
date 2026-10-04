@@ -205,6 +205,55 @@ class PurchaseServiceTest extends TestCase
     }
 
     /** @test */
+    public function it_cannot_change_the_state_of_a_received_purchase()
+    {
+        // Arrange
+        $purchase = Purchase::factory()->create(['state' => 'Received']);
+
+        // Le stock ne doit jamais être touché
+        $this->stockServiceMock->shouldNotReceive('addStock');
+
+        // Act : revenir en brouillon permettrait ensuite de réceptionner une seconde fois
+        $thrown = null;
+        try {
+            $this->service->changeState($purchase, 'Draft');
+        } catch (\Exception $e) {
+            $thrown = $e;
+        }
+
+        // Assert
+        $this->assertNotNull($thrown);
+        $this->assertDatabaseHas('purchases', [
+            'id' => $purchase->id,
+            'state' => 'Received',
+        ]);
+    }
+
+    /** @test */
+    public function it_adds_stock_only_once_when_a_purchase_is_received_twice()
+    {
+        // Arrange
+        $variant = ProductColor::create(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $purchase = Purchase::factory()->create(['state' => 'Ordered']);
+        PurchaseItem::create([
+            'purchase_id' => $purchase->id,
+            'product_color_id' => $variant->id,
+            'quantity' => 5,
+            'unit_price' => 100,
+            'subtotal' => 500,
+        ]);
+
+        $this->stockServiceMock->shouldReceive('addStock')->once();
+
+        // Act
+        $this->service->markAsReceived($purchase);
+
+        // Assert : second appel avec la même instance, désormais périmée (cas du double clic)
+        $this->expectException(\Exception::class);
+        $this->service->markAsReceived($purchase);
+    }
+
+    /** @test */
     public function it_can_get_purchase_statistics()
     {
         // Arrange
