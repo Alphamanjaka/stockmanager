@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Modules\Catalog\Http\Controllers;
+
+use App\Modules\Catalog\Http\Requests\StoreColorRequest;
+use Illuminate\Foundation\Http\FormRequest;
+use App\Modules\Catalog\Services\ColorService;
+use App\Core\Http\Controllers\BaseResourceController;
+
+class ColorController extends BaseResourceController
+{
+
+    public function __construct(ColorService $colorService)
+    {
+        parent::__construct($colorService);
+        // Définir les propriétés spécifiques à la ressource Color
+        $this->viewPath = 'catalog::colors';
+        $this->routeNamePrefix = 'admin.colors';
+        $this->resourceName = 'color';
+    }
+
+    /**
+     * Enregistre une nouvelle couleur.
+     */
+    public function store(FormRequest $request)
+    {
+        // On force la résolution de StoreColorRequest pour déclencher sa validation spécifique
+        $validatedRequest = app(StoreColorRequest::class);
+
+        return parent::store($validatedRequest);
+    }
+
+    /**
+     * Met à jour une couleur existante.
+     */
+    public function update(FormRequest $request, $id)
+    {
+        $validatedRequest = app(StoreColorRequest::class);
+
+        return parent::update($validatedRequest, $id);
+    }
+}

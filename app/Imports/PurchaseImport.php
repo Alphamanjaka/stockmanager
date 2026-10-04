@@ -2,10 +2,10 @@
 
 namespace App\Imports;
 
-use App\Models\ProductColor;
+use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Contact\Models\Supplier;
-use App\Services\ProductColorService;
-use App\Services\ProductService;
+use App\Modules\Catalog\Services\ProductColorService;
+use App\Modules\Catalog\Services\ProductService;
 use App\Services\PurchaseService;
 use App\Modules\Contact\Services\SupplierService;
 use Illuminate\Support\Collection;

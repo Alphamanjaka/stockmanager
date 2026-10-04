@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Http;
 
-use App\Models\Category;
-use App\Models\Color;
-use App\Models\Product;
-use App\Models\ProductColor;
+use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\Models\Color;
+use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductColor;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\Sale;

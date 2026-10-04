@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\service;
 
-use App\Models\Product;
+use App\Modules\Catalog\Models\Product;
 use App\Models\Sale;
-use App\Models\ProductColor;
+use App\Modules\Catalog\Models\ProductColor;
 use App\Services\SaleService;
 use App\Services\StockService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,7 +37,7 @@ class SaleServiceTest extends TestCase
         $product = Product::factory()->create();
         $variant = ProductColor::create([
             'product_id' => $product->id,
-            'color_id' => \App\Models\Color::factory()->create()->id,
+            'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id,
             'price' => 100.00,
             'alert_stock' => 5,
             'stock' => 50
@@ -81,7 +81,7 @@ class SaleServiceTest extends TestCase
         $product = Product::factory()->create(['name' => 'Test Product']);
         $variant = ProductColor::create([
             'product_id' => $product->id,
-            'color_id' => \App\Models\Color::factory()->create()->id,
+            'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id,
             'stock' => 1
         ]);
 

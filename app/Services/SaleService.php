@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\ProductColor;
+use App\Modules\Catalog\Models\ProductColor;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use Illuminate\Support\Facades\DB;

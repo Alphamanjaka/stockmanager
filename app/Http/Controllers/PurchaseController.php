@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\PurchaseApiResourceCollection;
-use App\Services\ProductColorService;
+use App\Modules\Catalog\Services\ProductColorService;
 use App\Services\PurchaseService;
 use App\Modules\Contact\Services\SupplierService;
 use Barryvdh\DomPDF\Facade\Pdf;

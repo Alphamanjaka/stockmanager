@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSaleRequest;
-use App\Services\ProductColorService;
+use App\Modules\Catalog\Services\ProductColorService;
 use App\Services\SaleService;
 use Barryvdh\DomPDF\Facade\Pdf;
 

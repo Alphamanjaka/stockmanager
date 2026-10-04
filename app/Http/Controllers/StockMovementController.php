@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreStockMovementRequest;
 use App\Services\StockService;
-use App\Services\ProductColorService;
+use App\Modules\Catalog\Services\ProductColorService;
 use Illuminate\Http\Request;
 
 class StockMovementController extends Controller

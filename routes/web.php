@@ -4,15 +4,11 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\PurchaseController;
-use App\Http\Controllers\SalerProductController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ColorController;
-use App\Http\Controllers\ProductColorController;
 use App\Http\Controllers\SaleAdminController;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
@@ -54,18 +50,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('sales', SaleAdminController::class);
         // export pdf for sale details in back office
         Route::get('/sales/{id}/pdf', [SaleAdminController::class, 'exportPdf'])->name('sales.pdf');
-        // Routes AJAX spécifiques pour l'édition rapide
-        Route::patch('/products/main/{id}/update-details', [ProductColorController::class, 'updateDetails'])->name('products.updateDetails');
-        Route::patch('/product-variants/{id}/update-stock', [ProductColorController::class, 'updateStock'])->name('product-colors.updateStock');
-        Route::patch('/product-variants/{id}/update-price', [ProductColorController::class, 'updatePrice'])->name('product-colors.updatePrice');
-        // New routes for variant management on product show page
-        Route::post('/products/{productId}/variants', [ProductColorController::class, 'storeVariant'])->name('products.variants.store');
-        Route::put('/products/variants/{variantId}', [ProductColorController::class, 'updateVariant'])->name('products.variants.update');
-        Route::delete('/products/variants/{variantId}', [ProductColorController::class, 'destroyVariant'])->name('products.variants.destroy');
 
-        Route::resource('products', ProductColorController::class);
-        Route::get('/products/export/pdf', [ProductColorController::class, 'exportPdf'])->name('products.exportPdf');
-        Route::resource('categories', CategoryController::class);
 
         Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);
         Route::resource('settings', SettingController::class);
@@ -107,13 +92,11 @@ Route::middleware('auth')->group(function () {
 
         // user module
         Route::resource('users', UserController::class);
-        Route::resource('colors', ColorController::class);
     });
 
     // Routes Front Office
     Route::middleware('ensure.front.office')->prefix('saler')->name('saler.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'frontOffice'])->name('dashboard');
-        Route::get('/products', [SalerProductController::class, 'index'])->name('products.index');
         Route::resource('', SaleController::class)->parameters(['' => 'sale'])->only(['index', 'create', 'store', 'show']);
         Route::get('/{sale}/pdf', [SaleController::class, 'exportPdf'])->name('pdf'); // Devient sales.pdf
     });

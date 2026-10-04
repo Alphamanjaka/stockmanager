@@ -2,12 +2,12 @@
 
 namespace Tests\Feature\service;
 
-use App\Models\Product;
+use App\Modules\Catalog\Models\Product;
 use App\Models\User;
 use App\Models\Purchase;
 use App\Modules\Contact\Models\Supplier;
 use App\Services\PurchaseService;
-use App\Models\ProductColor;
+use App\Modules\Catalog\Models\ProductColor;
 use App\Services\StockService;
 use App\Models\PurchaseItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -49,8 +49,8 @@ class PurchaseServiceTest extends TestCase
         $product1 = Product::factory()->create(['price' => 100]);
         $product2 = Product::factory()->create(['price' => 200]);
 
-        $variant1 = ProductColor::create(['product_id' => $product1->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 0]);
-        $variant2 = ProductColor::create(['product_id' => $product2->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $variant1 = ProductColor::create(['product_id' => $product1->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $variant2 = ProductColor::create(['product_id' => $product2->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
 
         // Créer une commande en Draft
         $purchase = Purchase::factory()->create([
@@ -117,7 +117,7 @@ class PurchaseServiceTest extends TestCase
             'state' => 'Received', // Déjà reçu
         ]);
 
-        $variant = ProductColor::create(['product_id' => $product->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $variant = ProductColor::create(['product_id' => $product->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
 
         $data = [
             'supplier_id' => $supplier->id,
@@ -138,8 +138,8 @@ class PurchaseServiceTest extends TestCase
         $product1 = Product::factory()->create();
         $product2 = Product::factory()->create();
 
-        $variant1 = ProductColor::create(['product_id' => $product1->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 0]);
-        $variant2 = ProductColor::create(['product_id' => $product2->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $variant1 = ProductColor::create(['product_id' => $product1->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $variant2 = ProductColor::create(['product_id' => $product2->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
 
         $items = [
             ['product_color_id' => $variant1->id, 'quantity' => 5, 'unit_price' => 10.00], // 50
@@ -182,7 +182,7 @@ class PurchaseServiceTest extends TestCase
         // Arrange
         $purchase = Purchase::factory()
             ->hasItems(2, function (array $attributes, Purchase $purchase) {
-                return ['product_color_id' => ProductColor::create(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 0])->id];
+                return ['product_color_id' => ProductColor::create(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0])->id];
             })
             ->create(['state' => 'Ordered']);
 
@@ -233,7 +233,7 @@ class PurchaseServiceTest extends TestCase
     public function it_adds_stock_only_once_when_a_purchase_is_received_twice()
     {
         // Arrange
-        $variant = ProductColor::create(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $variant = ProductColor::create(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
         $purchase = Purchase::factory()->create(['state' => 'Ordered']);
         PurchaseItem::create([
             'purchase_id' => $purchase->id,

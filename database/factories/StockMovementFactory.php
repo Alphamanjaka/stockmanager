@@ -22,7 +22,7 @@ class StockMovementFactory extends Factory
         $before = $this->faker->numberBetween(100, 500);
 
         return [
-            'product_color_id' => \App\Models\ProductColor::factory(),
+            'product_color_id' => \App\Modules\Catalog\Models\ProductColor::factory(),
             'type' => $type,
             'quantity' => $signedQty,
             'stock_before' => $before,

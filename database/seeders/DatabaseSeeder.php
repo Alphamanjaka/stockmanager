@@ -4,10 +4,10 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Category;
-use App\Models\Color;
-use App\Models\Product;
-use App\Models\ProductColor;
+use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\Models\Color;
+use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductColor;
 use App\Services\SaleService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;

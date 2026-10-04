@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSaleRequest;
 use App\Services\SaleService;
-use App\Services\ProductColorService;
+use App\Modules\Catalog\Services\ProductColorService;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SaleController extends Controller

@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\ProductColor;
+use App\Modules\Catalog\Models\ProductColor;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 

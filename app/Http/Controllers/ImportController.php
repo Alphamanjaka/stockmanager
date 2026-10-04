@@ -3,19 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreImportRequest;
-use App\Imports\ProductsImport;
+use App\Modules\Catalog\Imports\ProductsImport;
 use App\Imports\PurchaseImport;
-use App\Imports\ColorImport;
-use App\Imports\CategoryImport;
+use App\Modules\Catalog\Imports\ColorImport;
+use App\Modules\Catalog\Imports\CategoryImport;
 use App\Modules\Contact\Imports\SupplierImport;
-use App\Services\ProductService;
+use App\Modules\Catalog\Services\ProductService;
 use App\Services\PurchaseService;
 use App\Modules\Contact\Services\SupplierService;
 use App\Services\ImportService;
 use App\Services\SettingService;
-use App\Services\ColorService;
-use App\Services\ProductColorService;
-use App\Services\CategoryService;
+use App\Modules\Catalog\Services\ColorService;
+use App\Modules\Catalog\Services\ProductColorService;
+use App\Modules\Catalog\Services\CategoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Validators\ValidationException;

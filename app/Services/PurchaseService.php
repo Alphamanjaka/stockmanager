@@ -420,7 +420,7 @@ class PurchaseService
         if (empty($cart)) return collect();
 
         $productIds = array_keys($cart);
-        $products = \App\Models\ProductColor::with(['product', 'color'])->find($productIds);
+        $products = \App\Modules\Catalog\Models\ProductColor::with(['product', 'color'])->find($productIds);
 
         return $products->map(function ($product) use ($cart) {
             $item = $cart[$product->id];
