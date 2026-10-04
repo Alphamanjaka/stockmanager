@@ -74,9 +74,11 @@ class SupplierService
         $lastPurchase = $purchases->latest()->first();
 
         // Top 5 des produits achetés chez ce fournisseur
+        // purchase_items référence une variante (product_colors), pas directement un produit
         $topProducts = DB::table('purchase_items')
             ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
-            ->join('products', 'purchase_items.product_color_id', '=', 'products.id')
+            ->join('product_colors', 'purchase_items.product_color_id', '=', 'product_colors.id')
+            ->join('products', 'product_colors.product_id', '=', 'products.id')
             ->where('purchases.supplier_id', $supplier->id)
             ->where('purchases.state', 'Received') // Only consider received purchases for top products
             ->select(

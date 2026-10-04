@@ -13,20 +13,24 @@ class PurchaseService
     public function __construct(protected StockService $stockService) {}
     public function deletePurchase(int $id)
     {
-        $purchase = Purchase::findOrFail($id);
+        // Tout ou rien : si le retrait du stock échoue pour une ligne (articles déjà vendus),
+        // aucun retrait n'est conservé et l'achat n'est pas supprimé.
+        DB::transaction(function () use ($id) {
+            $purchase = Purchase::with('items')->lockForUpdate()->findOrFail($id);
 
-        // Si l'achat est déjà reçu, il faut d'abord retirer le stock avant de supprimer l'achat
-        if ($purchase->state === 'Received') {
-            foreach ($purchase->items as $item) {
-                $this->stockService->removeStock(
-                    $item->product_color_id,
-                    $item->quantity,
-                    "Annulation Réception Achat #{$purchase->reference}"
-                );
+            // Si l'achat est déjà reçu, il faut d'abord retirer le stock avant de supprimer l'achat
+            if ($purchase->state === 'Received') {
+                foreach ($purchase->items as $item) {
+                    $this->stockService->removeStock(
+                        $item->product_color_id,
+                        $item->quantity,
+                        "Annulation Réception Achat #{$purchase->reference}"
+                    );
+                }
             }
-        }
 
-        $purchase->delete();
+            $purchase->delete();
+        });
     }
 
 
@@ -119,20 +123,6 @@ class PurchaseService
     }
 
     /**
-     * Get all purchases with pagination
-     */
-    public function getAllPurchases(int $perPage = 15, array $filters = [])
-    {
-        $query = Purchase::with('supplier')->latest();
-
-        if (!empty($filters['search'])) {
-            $query->where('reference', 'like', "%{$filters['search']}%")
-                ->orWhereHas('supplier', fn($q) => $q->where('name', 'like', "%{$filters['search']}%"));
-        }
-        return $this->applyFilters($query, $filters)->paginate($perPage)->withQueryString();
-    }
-
-    /**
      * Get single purchase by ID
      * @param integer $id
      * @return Purchase
@@ -206,24 +196,6 @@ class PurchaseService
             return $purchase;
         });
     }
-    // Method to apply filters to the purchase query
-    public function applyFilters($query, $filters)
-    {
-        if (!empty($filters['date_from'])) {
-            $query->whereDate('created_at', '>=', $filters['date_from']);
-        }
-        if (!empty($filters['date_to'])) {
-            $query->whereDate('created_at', '<=', $filters['date_to']);
-        }
-        if (!empty($filters['supplier_id'])) {
-            $query->where('supplier_id', $filters['supplier_id']);
-        }
-        if (!empty($filters['state'])) {
-            $query->where('state', $filters['state']);
-        }
-        return $query;
-    }
-
     /**
      * Get the count of purchases for each state, plus a total.
      *
@@ -260,7 +232,7 @@ class PurchaseService
             ->map(fn(Purchase $purchase) => [
                 'type' => 'purchase',
                 'id' => $purchase->id,
-                'name' => "Achat #{$purchase->reference} ({$purchase->supplier->name})",
+                'name' => "Achat #{$purchase->reference} (" . ($purchase->supplier->name ?? 'Sans fournisseur') . ")",
                 'url' => route('admin.purchases.show', $purchase->id),
             ]);
     }
@@ -294,10 +266,13 @@ class PurchaseService
         }
 
         // Tri dynamique
+        // Seules les colonnes de la table purchases sont triables : un champ inconnu (ex. "supplier.name")
+        // provoquait une erreur SQL.
+        $sortable = ['reference', 'total_amount', 'discount', 'total_net', 'state', 'created_at'];
         if (!empty($params['sort']) && is_array($params['sort'])) {
             foreach ($params['sort'] as $s) {
-                if (isset($s['field']) && isset($s['dir'])) {
-                    $query->orderBy($s['field'], $s['dir']);
+                if (in_array($s['field'] ?? null, $sortable, true)) {
+                    $query->orderBy($s['field'], ($s['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc');
                 }
             }
         } else {

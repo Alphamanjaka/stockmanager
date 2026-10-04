@@ -94,7 +94,9 @@ class PurchaseController extends Controller
     {
         // On passe tous les paramètres de la requête (filtres, tri, page) au service
         $params = $request->all();
-        $purchases = $this->purchaseService->getPurchasesForApi($params, $request->get('size', 15));
+        // Taille de page bornée : une valeur énorme chargerait toute la table
+        $size = min(max((int) $request->get('size', 15), 1), 100);
+        $purchases = $this->purchaseService->getPurchasesForApi($params, $size);
 
         return new PurchaseApiResourceCollection($purchases);
     }
