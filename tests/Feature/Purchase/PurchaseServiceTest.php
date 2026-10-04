@@ -1,15 +1,15 @@
 <?php
 
-namespace Tests\Feature\service;
+namespace Tests\Feature\Purchase;
 
 use App\Modules\Catalog\Models\Product;
 use App\Models\User;
-use App\Models\Purchase;
+use App\Modules\Purchase\Models\Purchase;
 use App\Modules\Contact\Models\Supplier;
-use App\Services\PurchaseService;
+use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Stock\Services\StockService;
-use App\Models\PurchaseItem;
+use App\Modules\Purchase\Models\PurchaseItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use Mockery;

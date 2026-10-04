@@ -5,7 +5,7 @@ namespace App\Modules\Contact\Models;
 use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Modules\Catalog\Models\Product;
-use App\Models\Purchase;
+use App\Modules\Purchase\Models\Purchase;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use App\Modules\Contact\Database\Factories\SupplierFactory;
 

@@ -6,7 +6,7 @@ use App\Modules\Contact\Http\Requests\StoreSupplierRequest;
 use App\Modules\Contact\Models\Supplier;
 use Illuminate\Http\Request;
 use App\Modules\Contact\Services\SupplierService;
-use App\Services\PurchaseService;
+use App\Modules\Purchase\Services\PurchaseService;
 use App\Http\Controllers\Controller;
 
 class SupplierController extends Controller

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Modules\Purchase\Services;
 
-use App\Models\Purchase;
+use App\Modules\Purchase\Models\Purchase;
 use Illuminate\Support\Facades\DB;
 use App\Modules\Stock\Services\StockService;
 

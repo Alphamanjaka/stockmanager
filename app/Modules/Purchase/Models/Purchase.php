@@ -1,11 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace App\Modules\Purchase\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Modules\Contact\Models\Supplier;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use App\Modules\Purchase\Database\Factories\PurchaseFactory;
 
+#[UseFactory(PurchaseFactory::class)]
 class   Purchase extends Model
 {
     use HasFactory;

@@ -7,4 +7,5 @@ return [
     App\Modules\Catalog\CatalogServiceProvider::class,
     App\Modules\Contact\ContactServiceProvider::class,
     App\Modules\Stock\StockServiceProvider::class,
+    App\Modules\Purchase\PurchaseServiceProvider::class,
 ];

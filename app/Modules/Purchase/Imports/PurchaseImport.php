@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Imports;
+namespace App\Modules\Purchase\Imports;
 
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Contact\Models\Supplier;
 use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Catalog\Services\ProductService;
-use App\Services\PurchaseService;
+use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Contact\Services\SupplierService;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;

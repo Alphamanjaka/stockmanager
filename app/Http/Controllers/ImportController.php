@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreImportRequest;
 use App\Modules\Catalog\Imports\ProductsImport;
-use App\Imports\PurchaseImport;
+use App\Modules\Purchase\Imports\PurchaseImport;
 use App\Modules\Catalog\Imports\ColorImport;
 use App\Modules\Catalog\Imports\CategoryImport;
 use App\Modules\Contact\Imports\SupplierImport;
 use App\Modules\Catalog\Services\ProductService;
-use App\Services\PurchaseService;
+use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Contact\Services\SupplierService;
 use App\Services\ImportService;
 use App\Services\SettingService;

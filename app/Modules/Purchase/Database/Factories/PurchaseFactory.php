@@ -1,14 +1,17 @@
 <?php
 
-namespace Database\Factories;
+namespace App\Modules\Purchase\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Modules\Purchase\Models\Purchase;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Purchase>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Purchase\Models\Purchase>
  */
 class PurchaseFactory extends Factory
 {
+    protected $model = Purchase::class;
+
     /**
      * Define the model's default state.
      *

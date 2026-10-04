@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Modules\Purchase\Http\Controllers;
 
-use App\Http\Resources\PurchaseApiResourceCollection;
+use App\Modules\Purchase\Http\Resources\PurchaseApiResourceCollection;
 use App\Modules\Catalog\Services\ProductColorService;
-use App\Services\PurchaseService;
+use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Contact\Services\SupplierService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use App\Http\Controllers\Controller;
 
 class PurchaseController extends Controller
 {
@@ -32,7 +33,7 @@ class PurchaseController extends Controller
 
         // Génération du PDF en utilisant la vue 'purchases.pdf'
         // Note : Cela nécessite le package barryvdh/laravel-dompdf
-        $pdf = Pdf::loadView('purchases.pdf', compact('purchase'));
+        $pdf = Pdf::loadView('purchase::purchases.pdf', compact('purchase'));
 
         // stream() permet d'afficher le PDF dans le navigateur
         // download() l'aurait forcé en téléchargement
@@ -49,7 +50,7 @@ class PurchaseController extends Controller
     {
         $groupedProducts = $this->purchaseService->getShortageProductsGroupedBySupplier();
 
-        return view('purchases.create_from_shortage', [
+        return view('purchase::purchases.create_from_shortage', [
             'groupedProducts' => $groupedProducts
         ]);
     }
@@ -109,7 +110,7 @@ class PurchaseController extends Controller
         $stats = $this->purchaseService->getPurchaseStatistics();
         $stateCounts = $this->purchaseService->getPurchaseStateCounts();
 
-        return view('purchases.index', array_merge(
+        return view('purchase::purchases.index', array_merge(
             compact('stateCounts'),
             $stats
         ));
@@ -137,7 +138,7 @@ class PurchaseController extends Controller
             ];
         });
 
-        return view('purchases.create', compact('productsVariant', 'suppliers', 'cartItems', 'searchProducts'));
+        return view('purchase::purchases.create', compact('productsVariant', 'suppliers', 'cartItems', 'searchProducts'));
     }
 
     /**
@@ -239,7 +240,7 @@ class PurchaseController extends Controller
     public function show(int $id)
     {
         $purchase = $this->purchaseService->getPurchaseById($id);
-        return view('purchases.show', compact('purchase'));
+        return view('purchase::purchases.show', compact('purchase'));
     }
 
     /**
@@ -272,7 +273,7 @@ class PurchaseController extends Controller
             ];
         });
 
-        return view('purchases.edit', compact('purchase', 'productsVariant', 'suppliers', 'searchProducts', 'currentItems'));
+        return view('purchase::purchases.edit', compact('purchase', 'productsVariant', 'suppliers', 'searchProducts', 'currentItems'));
     }
 
 
@@ -327,7 +328,7 @@ class PurchaseController extends Controller
     {
         $purchase = $this->purchaseService->getPurchaseById($id);
 
-        $pdf = Pdf::loadView('purchases.pdf', compact('purchase'));
+        $pdf = Pdf::loadView('purchase::purchases.pdf', compact('purchase'));
 
         return $pdf->download('achat_' . $purchase->reference . '.pdf');
     }
