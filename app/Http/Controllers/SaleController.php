@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSaleRequest;
-use App\Services\{SaleService, ProductColorService};
+use App\Services\SaleService;
+use App\Services\ProductColorService;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SaleController extends Controller

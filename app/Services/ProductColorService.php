@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\ProductColor;
 use App\Models\Color;
-use App\Services\BaseService;
+use App\Core\Services\BaseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;

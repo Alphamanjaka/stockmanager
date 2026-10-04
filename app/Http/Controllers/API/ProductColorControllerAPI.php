@@ -6,7 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Resources\StockMovementResource;
 use App\Models\StockMovement;
-use App\Services\{ProductService, CategoryService, ColorService, ProductColorService, SaleService, StockManagementService};
+use App\Services\ProductService;
+use App\Services\CategoryService;
+use App\Services\ColorService;
+use App\Services\ProductColorService;
+use App\Services\SaleService;
+use App\Services\StockManagementService;
 
 class ProductColorControllerAPI extends Controller
 {

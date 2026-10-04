@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\{SettingService, BackupService};
+use App\Services\SettingService;
+use App\Services\BackupService;
 use Illuminate\Http\Request;
 
 class SettingController extends Controller

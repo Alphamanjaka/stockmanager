@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Core\Services\BaseService;
 
 class ProductService extends BaseService
 {

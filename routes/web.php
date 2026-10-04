@@ -1,6 +1,17 @@
 <?php
 
-use App\Http\Controllers\{ProductController, SaleController, AuthController, DashboardController, CategoryController, ImportController, StockMovementController, SupplierController, PurchaseController, SalerProductController, SettingController, UserController};
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ImportController;
+use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SalerProductController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\ProductColorController;
 use App\Http\Controllers\SaleAdminController;

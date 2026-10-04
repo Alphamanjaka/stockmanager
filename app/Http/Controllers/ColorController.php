@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreColorRequest;
 use Illuminate\Foundation\Http\FormRequest;
 use App\Services\ColorService;
+use App\Core\Http\Controllers\BaseResourceController;
 
 class ColorController extends BaseResourceController
 {

@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\Color;
-use App\Services\BaseService;
+use App\Core\Services\BaseService;
 
 class ColorService extends BaseService
 {

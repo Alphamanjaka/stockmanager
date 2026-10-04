@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
-use App\Services\{
-    SupplierService,
-    PurchaseService
-};
+use App\Services\SupplierService;
+use App\Services\PurchaseService;
 
 class SupplierController extends Controller
 {

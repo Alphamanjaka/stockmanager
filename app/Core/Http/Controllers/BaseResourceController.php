@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Core\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\BaseService;
+use App\Core\Services\BaseService;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Controllers\Controller;
 
 abstract class BaseResourceController extends Controller
 {

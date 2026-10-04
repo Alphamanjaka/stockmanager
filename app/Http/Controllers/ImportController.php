@@ -3,10 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreImportRequest;
-use App\Imports\{ProductsImport, PurchaseImport, ColorImport,};
+use App\Imports\ProductsImport;
+use App\Imports\PurchaseImport;
+use App\Imports\ColorImport;
 use App\Imports\CategoryImport;
 use App\Imports\SupplierImport;
-use App\Services\{ProductService, PurchaseService, SupplierService, ImportService, SettingService, ColorService, ProductColorService};
+use App\Services\ProductService;
+use App\Services\PurchaseService;
+use App\Services\SupplierService;
+use App\Services\ImportService;
+use App\Services\SettingService;
+use App\Services\ColorService;
+use App\Services\ProductColorService;
 use App\Services\CategoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

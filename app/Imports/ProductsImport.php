@@ -3,7 +3,9 @@
 namespace App\Imports;
 
 use App\Models\Color;
-use App\Services\{SettingService, ProductService, CategoryService};
+use App\Services\SettingService;
+use App\Services\ProductService;
+use App\Services\CategoryService;
 use App\Services\ProductColorService;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
