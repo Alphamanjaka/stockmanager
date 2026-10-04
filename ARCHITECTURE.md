@@ -1,0 +1,123 @@
+# Architecture : structure par modules
+
+Le code métier est découpé en **modules** indépendants dans `app/Modules/`, autour d'un **socle** commun dans `app/Core/`.
+Chaque module regroupe tout ce qui le concerne : modèles, services, contrôleurs, vues, routes, migrations et factories.
+
+## Vue d'ensemble
+
+```
+app/
+├── Core/                     Socle : authentification, utilisateurs, paramètres, sauvegardes,
+│                             tableaux de bord, recherche globale, import centralisé
+├── Modules/
+│   ├── Catalog/              Produits, variantes (produit + couleur), catégories, couleurs
+│   ├── Stock/                Mouvements de stock, alertes, valorisation
+│   ├── Purchase/             Achats fournisseurs, panier, réapprovisionnement depuis les ruptures
+│   ├── Sale/                 Ventes (back office et vendeurs), factures PDF
+│   └── Contact/              Fournisseurs
+│
+├── Http/Controllers/Controller.php   Contrôleur de base Laravel
+├── Http/Middleware/          Contrôle d'accès (back office / front office), langue
+├── Models/User.php           Reste ici : son nom de classe est stocké en base (notifications, jetons)
+└── Providers/                AppServiceProvider
+resources/views/layouts/      Layouts partagés par tous les modules
+routes/web.php                Points d'entrée publics (connexion, inscription, langue, accueil)
+routes/console.php            Tâches planifiées
+```
+
+## Contenu d'un module
+
+```
+app/Modules/Purchase/
+├── PurchaseServiceProvider.php   Déclare le module (nom court : 'purchase')
+├── Models/                       Namespace App\Modules\Purchase\Models
+├── Services/                     Logique métier
+├── Http/Controllers/  Http/Requests/  Http/Resources/
+├── Imports/                      Imports Excel/CSV du module
+├── Console/Commands/             Commandes Artisan (déclarées dans $commands du provider)
+├── Database/Migrations/          Migrations du module
+├── Database/Factories/           Factories (liées au modèle par #[UseFactory])
+├── Resources/views/              Vues : view('purchase::purchases.index')
+└── Routes/
+    ├── admin.php                 Back office  : /admin/..., noms admin.*
+    ├── saler.php                 Front office : /saler/..., noms saler.*
+    └── api.php                   AJAX du back office : /api/...
+```
+
+Le chargement est automatique grâce à `App\Core\Support\ModuleServiceProvider`, dont hérite chaque provider de module.
+Tous les providers sont listés dans `bootstrap/providers.php`.
+
+### Sécurité des routes
+
+La protection est appliquée **par le nom du fichier**, dans `ModuleServiceProvider` :
+
+| Fichier | Préfixe | Noms | Middlewares |
+|---|---|---|---|
+| `Routes/admin.php` | `/admin` | `admin.*` | `web`, `auth`, `ensure.back.office` |
+| `Routes/saler.php` | `/saler` | `saler.*` | `web`, `auth`, `ensure.front.office` |
+| `Routes/api.php` | `/api` | (libres) | `web`, `auth`, `ensure.back.office` |
+
+Une route placée dans le bon fichier ne peut donc pas être exposée sans contrôle d'accès par oubli.
+Les paramètres d'URL numériques partagés entre modules (ex. `{sale}` sous `/saler`) sont contraints à des chiffres
+pour que l'ordre de chargement des modules n'ait pas d'importance.
+
+## Règles de dépendance
+
+| Module | Peut utiliser |
+|---|---|
+| Catalog | — |
+| Contact | — |
+| Stock | Catalog |
+| Sale | Stock, Catalog |
+| Purchase | Stock, Catalog, Contact |
+
+- Un module n'utilise jamais un module situé plus bas que lui dans ce tableau (pas de dépendance circulaire).
+- **Toute variation de stock passe par `StockService`** (`addStock` / `removeStock`), qui crée le mouvement historisé.
+- Tous les modules peuvent utiliser le socle (`App\Core`) : `BaseService`, `BaseResourceController`, `settings()`, `User`.
+- Les fonctions **transverses du Core** (tableaux de bord, recherche globale, import centralisé) lisent les modules ;
+  un module ne doit jamais dépendre de ces fonctions.
+
+### Exceptions connues (lecture seule, à résorber)
+
+| Dépendance | Où | Raison |
+|---|---|---|
+| Catalog → Sale | `ProductColorController@index` | La liste des produits affiche les produits les plus / moins vendus |
+| Contact → Purchase | `SupplierController@show`, `SupplierService`, `Supplier::purchases()` | La fiche fournisseur affiche son historique d'achats |
+
+## Recettes
+
+**Créer une migration dans un module**
+
+```bash
+php artisan make:migration add_xxx_to_purchases_table --path=app/Modules/Purchase/Database/Migrations
+```
+
+Laravel ne mémorise que le nom des fichiers de migration : les migrations existantes ont été déplacées dans les modules
+sans être rejouées.
+
+**Ajouter une page au back office d'un module**
+
+1. Le contrôleur dans `Http/Controllers/`, la vue dans `Resources/views/`.
+2. La route dans `Routes/admin.php` (sans préfixe ni middleware : ils sont ajoutés automatiquement).
+3. Dans le contrôleur : `return view('<module>::dossier.vue', [...])`. Les vues étendent `layouts.app-back-office`.
+
+**Créer un nouveau module**
+
+1. `app/Modules/<Nom>/<Nom>ServiceProvider.php` qui étend `ModuleServiceProvider` avec `protected string $name = '<nom>';`.
+2. L'ajouter dans `bootstrap/providers.php`.
+3. Créer les dossiers nécessaires (seuls ceux qui existent sont chargés).
+
+**Factories d'un modèle de module**
+
+```php
+#[UseFactory(PurchaseFactory::class)]
+class Purchase extends Model { use HasFactory; }
+
+class PurchaseFactory extends Factory { protected $model = Purchase::class; }
+```
+
+## Tests
+
+Les tests sont rangés par module dans `tests/Feature/<Module>/`.
+`tests/Feature/Http/` contient les tests transverses : accès à l'API, inscription, et `PagesRenderTest`,
+qui ouvre chaque page avec des données réelles et échoue si une vue ou une classe est introuvable.

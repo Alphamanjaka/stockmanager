@@ -4,7 +4,6 @@ namespace App\Modules\Contact\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Modules\Catalog\Models\Product;
 use App\Modules\Purchase\Models\Purchase;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use App\Modules\Contact\Database\Factories\SupplierFactory;
@@ -21,10 +20,6 @@ class Supplier extends Model
         'phone',
         'address',
     ];
-    public function products()
-    {
-        return $this->hasMany(Product::class);
-    }
     public function purchases()
     {
         return $this->hasMany(Purchase::class);

@@ -63,7 +63,7 @@ Pour intégrer une nouvelle entité (ex: `Customer`) au système de recherche :
             ]);
     }
     ```
-2.  **Enregistrement** : Injectez le nouveau service dans `GlobalSearchService`, appelez sa méthode dans `search()` et fusionnez les résultats dans la collection `$results`.
+2.  **Enregistrement** : Injectez le nouveau service dans `GlobalSearchService` (`app/Core/Services`), appelez sa méthode dans `search()` et fusionnez les résultats dans la collection `$results`.
 3.  **Frontend** : Dans `resources/js/global-search.js`, mettez à jour la logique de regroupement dans `displayResults` pour associer un libellé au nouveau type (ex: `result.type === "customer" ? "Clients"`).
 
 ### � Infrastructure Optimisée
@@ -156,6 +156,12 @@ Le projet utilise une stratégie de conteneurisation avancée en **3 étapes** p
 ## Architecture Technique (Backend)
 
 Le code suit les principes **SOLID** et une **Architecture Orientée Services (SOA)** pour une maintenabilité maximale.
+
+### Structure par modules
+
+Le code métier est découpé en modules dans `app/Modules/` (**Catalog**, **Stock**, **Purchase**, **Sale**, **Contact**), autour d'un socle commun `app/Core/` (authentification, utilisateurs, paramètres, sauvegardes, tableaux de bord, recherche globale, import).
+Chaque module contient ses modèles, services, contrôleurs, vues, routes, migrations et factories.
+Conventions, règles de dépendance et recettes : voir [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ### Couches Applicatives
 
