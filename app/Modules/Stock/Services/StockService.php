@@ -61,6 +61,38 @@ class StockService
             ]);
         });
     }
+    /**
+     * Ramène le stock d'une variante à une quantité cible (inventaire, correction manuelle, import)
+     * en enregistrant le mouvement correspondant à l'écart.
+     *
+     * @return StockMovement|null le mouvement créé, ou null si le stock était déjà à la cible
+     */
+    public function adjustTo(int $productColorId, int $target, string $reason): ?StockMovement
+    {
+        return DB::transaction(function () use ($productColorId, $target, $reason) {
+            $variant = ProductColor::lockForUpdate()->findOrFail($productColorId);
+
+            $target = max(0, $target);
+            $before = $variant->stock;
+            $delta = $target - $before;
+
+            if ($delta === 0) {
+                return null;
+            }
+
+            $variant->update(['stock' => $target]);
+
+            return $this->createStockMovement([
+                'product_color_id' => $productColorId,
+                'quantity' => $delta,
+                'type' => $delta > 0 ? 'in' : 'out',
+                'reason' => $reason,
+                'stock_before' => $before,
+                'stock_after' => $target,
+            ]);
+        });
+    }
+
     public function getAllStockMovements(array $filters = [], int $perPage = 15)
     {
         $query = StockMovement::with(['productColor.product', 'productColor.color']);

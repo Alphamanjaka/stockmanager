@@ -2,6 +2,7 @@
 
 namespace App\Modules\Catalog\Services;
 
+use App\Modules\Catalog\Events\VariantStockDeclared;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Catalog\Models\Color;
 use App\Core\Services\BaseService;
@@ -49,15 +50,17 @@ class ProductColorService extends BaseService
                         $color = Color::firstOrCreate(['name' => $colorName, 'code' => $colorName]);
     
                         // 3. Sauvegarde dans la table productcolor
-                        ProductColor::updateOrCreate(
+                        $variant = ProductColor::updateOrCreate(
                             ['product_id' => $product->id, 'color_id' => $color->id],
                             [
-                                'stock' => $data['stocks'][$index] ?? 0,
                                 'price' => $data['prices'][$index] ?? 0,
                                 'price_purchase' => $data['price_purchases'][$index] ?? 0,
-                                'alert_stock' => $data['alert_stocks'][$index] ?? null
+                                'alert_stock' => $data['alert_stocks'][$index] ?? $this->defaultAlertStock(),
                             ]
                         );
+
+                        // 4. Stock initial : enregistré comme mouvement par le module Stock
+                        VariantStockDeclared::dispatch($variant, (int) ($data['stocks'][$index] ?? 0), 'Stock initial (création du produit)');
                     }
                 }
 
@@ -70,6 +73,12 @@ class ProductColorService extends BaseService
                 throw new Exception("Impossible de créer le produit. Vérifiez les données des variantes." . $e->getMessage());
             }
         });
+    }
+
+    /** Seuil d'alerte appliqué quand il n'est pas saisi (la colonne n'accepte pas NULL). */
+    private function defaultAlertStock(): int
+    {
+        return (int) settings('global_alert_threshold', 5);
     }
 
     /**
@@ -97,17 +106,48 @@ class ProductColorService extends BaseService
         if (ProductColor::where('product_id', $data['product_id'])->where('color_id', $data['color_id'])->exists()) {
             throw new Exception("Cette couleur est déjà associée à ce produit.");
         }
-        return ProductColor::create($data);
+
+        return DB::transaction(function () use ($data) {
+            $stock = (int) ($data['stock'] ?? 0);
+            unset($data['stock']);
+            $data['alert_stock'] ??= $this->defaultAlertStock();
+
+            $productColor = ProductColor::create($data);
+            // Stock initial : enregistré comme mouvement par le module Stock
+            VariantStockDeclared::dispatch($productColor, $stock, 'Stock initial (nouvelle variante)');
+
+            return $productColor;
+        });
     }
 
     /**
      * Update an existing ProductColor variant.
+     * Un changement de stock saisi ici est enregistré comme mouvement de correction.
      */
     public function updateProductColor(int $variantId, array $data): ProductColor
     {
         $productColor = ProductColor::findOrFail($variantId);
-        $productColor->update($data);
-        return $productColor;
+
+        // Une couleur ne peut apparaître qu'une fois par produit
+        if (isset($data['color_id']) && (int) $data['color_id'] !== $productColor->color_id
+            && ProductColor::where('product_id', $productColor->product_id)->where('color_id', $data['color_id'])->exists()) {
+            throw new Exception("Cette couleur est déjà associée à ce produit.");
+        }
+
+        return DB::transaction(function () use ($productColor, $data) {
+            $stock = array_key_exists('stock', $data) ? (int) $data['stock'] : null;
+            unset($data['stock']);
+            if (array_key_exists('alert_stock', $data)) {
+                $data['alert_stock'] ??= $this->defaultAlertStock();
+            }
+
+            $productColor->update($data);
+            if ($stock !== null) {
+                VariantStockDeclared::dispatch($productColor, $stock, 'Correction manuelle (fiche produit)');
+            }
+
+            return $productColor;
+        });
     }
 
     /**

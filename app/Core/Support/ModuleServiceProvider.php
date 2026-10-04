@@ -2,6 +2,7 @@
 
 namespace App\Core\Support;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,10 +26,22 @@ abstract class ModuleServiceProvider extends ServiceProvider
     /** Commandes Artisan fournies par le module. */
     protected array $commands = [];
 
+    /**
+     * Écouteurs d'événements : [Evenement::class => [Ecouteur::class, ...]].
+     * C'est ainsi qu'un module réagit à un autre sans que celui-ci dépende de lui.
+     */
+    protected array $listen = [];
+
     public function boot(): void
     {
         $this->loadViewsFrom($this->path('Resources/views'), $this->name);
         $this->loadMigrationsFrom($this->path('Database/Migrations'));
+
+        foreach ($this->listen as $event => $listeners) {
+            foreach ((array) $listeners as $listener) {
+                Event::listen($event, $listener);
+            }
+        }
 
         if ($this->commands && $this->app->runningInConsole()) {
             $this->commands($this->commands);

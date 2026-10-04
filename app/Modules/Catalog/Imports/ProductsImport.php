@@ -2,6 +2,7 @@
 
 namespace App\Modules\Catalog\Imports;
 
+use App\Modules\Catalog\Events\VariantStockDeclared;
 use App\Modules\Catalog\Models\Color;
 use App\Core\Services\SettingService;
 use App\Modules\Catalog\Services\ProductService;
@@ -199,17 +200,22 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
             'product_id' => $productId,
             'color_id' => $colorId,
             'price' => $this->getPriceValue($rowData['price']),
-            'stock' => $this->getStockValue($rowData['stock'] ?? 0),
             'alert_stock' => $this->getAlertStockValue(isset($rowData['alert_stock']) ? (int)$rowData['alert_stock'] : null),
             'description' => $this->getDescriptionValue($rowData['description'] ?? null),
         ];
 
         if ($variant) {
-            $this->productColorService->update($variant->id, $data);
+            $variant = $this->productColorService->update($variant->id, $data);
             $this->updated++;
         } else {
-            $this->productColorService->create($data);
+            $variant = $this->productColorService->create($data);
             $this->created++;
+        }
+
+        // Le stock n'est appliqué que s'il est renseigné dans le fichier (une cellule vide ne remet plus le stock à 0).
+        // Il est enregistré comme mouvement par le module Stock.
+        if (isset($rowData['stock']) && $rowData['stock'] !== '') {
+            VariantStockDeclared::dispatch($variant, $this->getStockValue((int) $rowData['stock']), 'Import Excel');
         }
     }
 
