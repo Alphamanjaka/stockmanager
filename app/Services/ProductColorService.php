@@ -20,7 +20,6 @@ class ProductColorService extends BaseService
 
     public function __construct(
         protected ProductColor $productColor,
-        protected SaleService $saleService,
         protected ProductService $productService,
         protected ColorService $colorService
     ) {
@@ -199,22 +198,6 @@ class ProductColorService extends BaseService
 
         return $query
             ->orderBy($sort, $order);
-    }
-
-    /**
-     * Get the most sold product.
-     */
-    public function getMostSoldProduct()
-    {
-        return $this->saleService->getMostSoldProduct();
-    }
-
-    /**
-     * Get the least sold product among those that have been sold.
-     */
-    public function getLeastSoldProduct()
-    {
-        return $this->saleService->getLeastSoldProduct();
     }
 
     /**

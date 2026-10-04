@@ -8,8 +8,6 @@ use App\Services\ColorService;
 use App\Services\ProductColorService;
 use App\Services\ProductService;
 use App\Services\SaleService;
-use App\Services\StockManagementService;
-use App\Services\StockService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
@@ -18,11 +16,9 @@ class ProductColorController extends Controller
     public function __construct(
         protected ProductService $productService,
         protected CategoryService $categoryService,
-        protected StockService $stockService,
         protected ColorService $colorService,
         protected ProductColorService $productColorService,
-        protected SaleService $saleService,
-        protected StockManagementService $stockManagementService
+        protected SaleService $saleService
     ) {}
     public function exportPdf(Request $request)
     {
@@ -95,53 +91,6 @@ class ProductColorController extends Controller
         }
     }
 
-    public function importProducts(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:csv,txt'
-        ]);
-
-        $mapping = [
-            'name'           => 'nom',      // 'colonne_db' => 'entete_csv'
-            'price'          => 'prix',
-            'category_id'    => 'id_categorie'
-        ];
-
-        $rules = [
-            'nom'  => 'required',
-            'prix' => 'required|numeric',
-        ];
-
-        try {
-            \Maatwebsite\Excel\Facades\Excel::import(
-                new \App\Imports\GenericImport(\App\Models\Product::class, $mapping, $rules),
-                $request->file('file')
-            );
-
-            return back()->with('success', 'Importation terminée !');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Erreur : ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Affiche la liste des produits pour le vendeur (lecture seule).
-     */
-    public function salerIndex(Request $request)
-    {
-        $filters = [
-            'search' => $request->get('search'),
-            'per_page' => 20,
-            'sort' => 'name',
-            'order' => 'asc'
-        ];
-
-        $products = $this->productService->getAll($filters);
-
-        return view('front-office.products.index', compact('products'));
-    }
-
-
     /**
      * Affiche la page de détails du produit.
      * Charge uniquement le produit et les catégories pour le modal d'édition.
@@ -187,25 +136,6 @@ class ProductColorController extends Controller
         $categories = $this->categoryService->getAll();
 
         return view('products.edit', compact('item', 'categories'));
-    }
-
-    /**
-     * Update the main product details.
-     */
-    public function updateProductDetails(Request $request, int $id)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category_id' => 'required|exists:categories,id',
-        ]);
-
-        try {
-            $this->productService->update($id, $validated);
-            return back()->with('success', 'Informations du produit mises à jour.');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Erreur lors de la mise à jour du produit : ' . $e->getMessage());
-        }
     }
 
     /**

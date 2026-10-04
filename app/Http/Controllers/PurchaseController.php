@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePurchaseRequest;
 use App\Http\Resources\PurchaseApiResourceCollection;
 use App\Services\ProductColorService;
 use App\Services\PurchaseService;
