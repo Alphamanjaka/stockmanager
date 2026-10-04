@@ -240,13 +240,14 @@ class StockService
 
     /**
      * Calcule l'évolution de la valeur totale du stock sur les X derniers jours.
+     * La valeur est calculée au prix de vente de chaque variante, aussi bien pour la valeur actuelle
+     * que pour la reconstitution des jours précédents (le prix du produit parent n'est plus utilisé).
      */
     public function getTotalStockValueEvolution(int $days = 30): array
     {
-        $currentTotalValue = ProductColor::join('products', 'product_colors.product_id', '=', 'products.id')
-            ->sum(DB::raw('product_colors.stock * product_colors.price'));
+        $currentTotalValue = ProductColor::sum(DB::raw('stock * price'));
 
-        $movements = StockMovement::with('productColor.product')
+        $movements = StockMovement::with('productColor')
             ->where('created_at', '>=', now()->subDays($days)->startOfDay())
             ->orderBy('created_at', 'desc')
             ->get();
@@ -269,8 +270,8 @@ class StockService
 
             if (isset($movementsByDay[$dateString])) {
                 foreach ($movementsByDay[$dateString] as $movement) {
-                    if ($movement->productColor && $movement->productColor->product) {
-                        $runningValue -= ($movement->quantity * $movement->productColor->product->price);
+                    if ($movement->productColor) {
+                        $runningValue -= ($movement->quantity * $movement->productColor->price);
                     }
                 }
             }
