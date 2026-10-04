@@ -188,13 +188,9 @@
 
                                 <td class="text-end pe-4">
                                     <div class="btn-group">
-                                        <a href="{{ route('admin.products.show', $item->id) }}"
+                                        <a href="{{ route('admin.products.show', $item->product_id) }}"
                                             class="btn btn-sm btn-outline-secondary" title="Voir">
                                             <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('admin.products.edit', $item->id) }}"
-                                            class="btn btn-sm btn-outline-primary" title="Modifier">
-                                            <i class="fas fa-edit"></i>
                                         </a>
                                         <form action="{{ route('admin.products.destroy', $item->product->id) }}"
                                             method="POST" class="d-inline"

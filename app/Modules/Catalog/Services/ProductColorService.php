@@ -218,7 +218,7 @@ class ProductColorService extends BaseService
                 'type' => 'product',
                 'id' => $productColor->id,
                 'name' => "{$productColor->toString()}",
-                'url' => route('admin.products.show', $productColor->id), // Assumer une route pour l'affichage d'une variante
+                'url' => route('admin.products.show', $productColor->product_id),
             ]);
     }
 }

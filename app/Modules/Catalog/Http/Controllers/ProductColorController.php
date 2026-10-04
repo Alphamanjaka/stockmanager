@@ -131,14 +131,6 @@ class ProductColorController extends Controller
         ]);
     }
 
-    public function edit(int $id)
-    {
-        $item = $this->productService->getById($id);
-        $categories = $this->categoryService->getAll();
-
-        return view('catalog::products.edit', compact('item', 'categories'));
-    }
-
     /**
      * Store a new product variant (ProductColor).
      */

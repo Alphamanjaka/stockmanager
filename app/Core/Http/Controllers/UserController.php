@@ -37,11 +37,6 @@ class UserController extends Controller
             ->with('success', 'Utilisateur créé avec succès.');
     }
 
-    public function show(User $user)
-    {
-        return view('core::users.show', compact('user'));
-    }
-
     public function edit(User $user)
     {
         return view('core::users.edit', compact('user'));

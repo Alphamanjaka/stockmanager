@@ -12,7 +12,7 @@ Route::get('/dashboard', [DashboardController::class, 'backOffice'])->name('dash
 Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartDataApi'])->name('dashboard.chart-data');
 
 // Paramètres et sauvegardes
-Route::resource('settings', SettingController::class);
+Route::resource('settings', SettingController::class)->only(['index', 'update']);
 Route::prefix('settings/')->name('settings.')->group(function () {
     Route::post('backup', [SettingController::class, 'runBackup'])->name('backup');
     Route::get('backup/download', [SettingController::class, 'downloadBackup'])->name('download-backup');
@@ -26,4 +26,4 @@ Route::post('/imports', [ImportController::class, 'store'])->name('imports.store
 Route::get('/imports/template/{type}', [ImportController::class, 'downloadTemplate'])->name('imports.template');
 
 // Utilisateurs
-Route::resource('users', UserController::class);
+Route::resource('users', UserController::class)->except(['show']);

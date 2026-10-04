@@ -85,7 +85,6 @@ class PagesRenderTest extends TestCase
             '/admin/products',
             '/admin/products/create',
             "/admin/products/{$i['product']}",
-            // "/admin/products/{id}/edit" : page cassée avant la restructuration (la vue attend une variante), à corriger
             '/admin/products/export/pdf',
             '/admin/categories',
             '/admin/categories/create',
