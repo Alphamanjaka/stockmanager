@@ -4,8 +4,6 @@ namespace App\Modules\Catalog\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Modules\Catalog\Models\Category;
-use App\Modules\Catalog\Models\Color;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use App\Modules\Catalog\Database\Factories\ProductFactory;
 

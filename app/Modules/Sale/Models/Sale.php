@@ -3,7 +3,6 @@
 namespace App\Modules\Sale\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Modules\Sale\Models\SaleItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
