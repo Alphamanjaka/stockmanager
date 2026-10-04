@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\Requests;
+namespace Tests\Feature\Sale;
 
-use App\Http\Requests\StoreSaleRequest;
+use App\Modules\Sale\Http\Requests\StoreSaleRequest;
 use App\Modules\Catalog\Models\ProductColor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;

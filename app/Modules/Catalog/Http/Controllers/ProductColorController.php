@@ -7,7 +7,7 @@ use App\Modules\Catalog\Services\CategoryService;
 use App\Modules\Catalog\Services\ColorService;
 use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Catalog\Services\ProductService;
-use App\Services\SaleService;
+use App\Modules\Sale\Services\SaleService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;

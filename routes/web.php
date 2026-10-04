@@ -1,13 +1,11 @@
 <?php
 
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\SaleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\SaleAdminController;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
@@ -44,10 +42,6 @@ Route::middleware('auth')->group(function () {
     Route::middleware('ensure.back.office')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'backOffice'])->name('dashboard');
         Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartDataApi'])->name('dashboard.chart-data');
-        // sales routes for back office
-        Route::resource('sales', SaleAdminController::class);
-        // export pdf for sale details in back office
-        Route::get('/sales/{id}/pdf', [SaleAdminController::class, 'exportPdf'])->name('sales.pdf');
 
 
         Route::resource('settings', SettingController::class);
@@ -74,7 +68,5 @@ Route::middleware('auth')->group(function () {
     // Routes Front Office
     Route::middleware('ensure.front.office')->prefix('saler')->name('saler.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'frontOffice'])->name('dashboard');
-        Route::resource('', SaleController::class)->parameters(['' => 'sale'])->only(['index', 'create', 'store', 'show']);
-        Route::get('/{sale}/pdf', [SaleController::class, 'exportPdf'])->name('pdf'); // Devient sales.pdf
     });
 });

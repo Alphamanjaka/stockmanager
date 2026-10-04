@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Modules\Sale\Http\Controllers;
 
-use App\Http\Requests\StoreSaleRequest;
+use App\Modules\Sale\Http\Requests\StoreSaleRequest;
 use App\Modules\Catalog\Services\ProductColorService;
-use App\Services\SaleService;
+use App\Modules\Sale\Services\SaleService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\Controller;
 
 class SaleAdminController extends Controller
 {
@@ -19,7 +20,7 @@ class SaleAdminController extends Controller
     {
         $sales = $this->saleService->getAllSales();
         $stats   = $this->saleService->getSalesStatistics();
-        return view('back-office.sales.index', array_merge(compact('sales'), $stats));
+        return view('sale::back-office.sales.index', array_merge(compact('sales'), $stats));
     }
 
     /**
@@ -29,7 +30,7 @@ class SaleAdminController extends Controller
     {
         $sale = $this->saleService->getSaleById($id);
 
-        return view('back-office.sales.show', compact('sale'));
+        return view('sale::back-office.sales.show', compact('sale'));
     }
 
     /**
@@ -38,7 +39,7 @@ class SaleAdminController extends Controller
     public function exportPdf(int $id)
     {
         $sale = $this->saleService->getSaleById($id);
-        $pdf = Pdf::loadView('sales.pdf', compact('sale'));
+        $pdf = Pdf::loadView('sale::sales.pdf', compact('sale'));
 
         return $pdf->download("facture_{$sale->reference}.pdf");
     }
@@ -49,7 +50,7 @@ class SaleAdminController extends Controller
     public function create(){
         // provide a list of available products with their stock and price for the form
         $items = $this->productColorService->getAvailableProducts();
-        return view('back-office.sales.create', compact('items') );
+        return view('sale::back-office.sales.create', compact('items') );
     }
     /**
      * Store a newly created resource in storage.

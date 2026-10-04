@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Modules\Sale\Http\Controllers;
 
-use App\Http\Requests\StoreSaleRequest;
-use App\Services\SaleService;
+use App\Modules\Sale\Http\Requests\StoreSaleRequest;
+use App\Modules\Sale\Services\SaleService;
 use App\Modules\Catalog\Services\ProductColorService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\Controller;
 
 class SaleController extends Controller
 {
@@ -25,7 +26,7 @@ class SaleController extends Controller
     {
         $currency = settings('currency_symbol', 'Mga');
         $items = $this->productColorService->getAvailableProducts();
-        return view('sales.create', compact('items', 'currency'));
+        return view('sale::sales.create', compact('items', 'currency'));
     }
 
     /**
@@ -60,7 +61,7 @@ class SaleController extends Controller
         $sales = $this->saleService->getAllSales(15);
         $stats = $this->saleService->getSalesStatistics();
 
-        return view('sales.index', array_merge(
+        return view('sale::sales.index', array_merge(
             compact('sales'),
             $stats
         ));
@@ -73,7 +74,7 @@ class SaleController extends Controller
     {
         $sale = $this->saleService->getSaleById($id);
 
-        return view('sales.show', compact('sale'));
+        return view('sale::sales.show', compact('sale'));
     }
     
 
@@ -83,7 +84,7 @@ class SaleController extends Controller
     public function exportPdf(int $id)
     {
         $sale = $this->saleService->getSaleById($id);
-        $pdf = Pdf::loadView('sales.pdf', compact('sale'));
+        $pdf = Pdf::loadView('sale::sales.pdf', compact('sale'));
 
         return $pdf->download("facture_{$sale->reference}.pdf");
     }

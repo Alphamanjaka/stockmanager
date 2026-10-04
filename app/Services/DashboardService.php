@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Sale;
+use App\Modules\Sale\Models\Sale;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Contact\Models\Supplier;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Modules\Sale\Services\SaleService;
 
 class DashboardService
 {

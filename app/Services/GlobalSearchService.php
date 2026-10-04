@@ -6,6 +6,7 @@ use Illuminate\Support\Collection;
 use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Stock\Services\StockManagementService;
 use App\Modules\Purchase\Services\PurchaseService;
+use App\Modules\Sale\Services\SaleService;
 
 class GlobalSearchService
 {

@@ -1,11 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace App\Modules\Sale\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Modules\Catalog\Models\ProductColor;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use App\Modules\Sale\Database\Factories\SaleItemFactory;
 
+#[UseFactory(SaleItemFactory::class)]
 class SaleItem extends Model
 {
     use HasFactory;

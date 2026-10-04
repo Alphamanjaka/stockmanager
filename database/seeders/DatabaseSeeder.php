@@ -8,7 +8,7 @@ use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Color;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
-use App\Services\SaleService;
+use App\Modules\Sale\Services\SaleService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 

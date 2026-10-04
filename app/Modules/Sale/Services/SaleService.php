@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Services;
+namespace App\Modules\Sale\Services;
 
 use App\Modules\Catalog\Models\ProductColor;
-use App\Models\Sale;
-use App\Models\SaleItem;
+use App\Modules\Sale\Models\Sale;
+use App\Modules\Sale\Models\SaleItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Modules\Stock\Services\StockService;

@@ -1,14 +1,17 @@
 <?php
 
-namespace Database\Factories;
+namespace App\Modules\Sale\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Modules\Sale\Models\Sale;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Sale>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Sale\Models\Sale>
  */
 class SaleFactory extends Factory
 {
+    protected $model = Sale::class;
+
     /**
      * Define the model's default state.
      *
