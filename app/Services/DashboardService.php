@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Sale;
 use App\Models\ProductColor;
 use App\Models\Category;
-use App\Models\Supplier;
+use App\Modules\Contact\Models\Supplier;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 

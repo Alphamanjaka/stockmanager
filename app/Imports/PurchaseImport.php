@@ -3,11 +3,11 @@
 namespace App\Imports;
 
 use App\Models\ProductColor;
-use App\Models\Supplier;
+use App\Modules\Contact\Models\Supplier;
 use App\Services\ProductColorService;
 use App\Services\ProductService;
 use App\Services\PurchaseService;
-use App\Services\SupplierService;
+use App\Modules\Contact\Services\SupplierService;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;

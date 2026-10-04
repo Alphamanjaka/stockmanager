@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\PurchaseApiResourceCollection;
 use App\Services\ProductColorService;
 use App\Services\PurchaseService;
-use App\Services\SupplierService;
+use App\Modules\Contact\Services\SupplierService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

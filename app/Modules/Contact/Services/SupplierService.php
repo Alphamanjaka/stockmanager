@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Modules\Contact\Services;
 
-use App\Models\Supplier;
+use App\Modules\Contact\Models\Supplier;
 use Illuminate\Support\Facades\DB;
 
 class SupplierService

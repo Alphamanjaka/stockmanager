@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Modules\Contact\Http\Controllers;
 
-use App\Http\Requests\StoreSupplierRequest;
-use App\Models\Supplier;
+use App\Modules\Contact\Http\Requests\StoreSupplierRequest;
+use App\Modules\Contact\Models\Supplier;
 use Illuminate\Http\Request;
-use App\Services\SupplierService;
+use App\Modules\Contact\Services\SupplierService;
 use App\Services\PurchaseService;
+use App\Http\Controllers\Controller;
 
 class SupplierController extends Controller
 {
@@ -29,7 +30,7 @@ class SupplierController extends Controller
         // Récupération des fournisseurs via le service
         $suppliers = $this->supplierService->getAllSuppliers($filters);
         // Affichage de la vue
-        return view('suppliers.index', compact('suppliers'));
+        return view('contact::suppliers.index', compact('suppliers'));
     }
 
     /**
@@ -37,7 +38,7 @@ class SupplierController extends Controller
      */
     public function create()
     {
-        return view('suppliers.create');
+        return view('contact::suppliers.create');
     }
 
     /**
@@ -63,7 +64,7 @@ class SupplierController extends Controller
         $purchases = $this->purchaseService->getPurchasesForSupplier($supplier->id, 10);
 
         // On fusionne toutes les données et on les passe    à la vue
-        return view('suppliers.show', array_merge(compact('supplier', 'purchases'), $details));
+        return view('contact::suppliers.show', array_merge(compact('supplier', 'purchases'), $details));
     }
 
     /**
@@ -71,7 +72,7 @@ class SupplierController extends Controller
      */
     public function edit(Supplier $supplier)
     {
-        return view('suppliers.edit', compact('supplier'));
+        return view('contact::suppliers.edit', compact('supplier'));
     }
 
     /**

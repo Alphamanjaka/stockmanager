@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Imports;
+namespace App\Modules\Contact\Imports;
 
-use App\Services\SupplierService;
+use App\Modules\Contact\Services\SupplierService;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;

@@ -1,10 +1,15 @@
 <?php
 
-namespace App\Models;
+namespace App\Modules\Contact\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Product;
+use App\Models\Purchase;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use App\Modules\Contact\Database\Factories\SupplierFactory;
 
+#[UseFactory(SupplierFactory::class)]
 class Supplier extends Model
 {
     use HasFactory;  // Uncomment if you want to use factories for Supplier model

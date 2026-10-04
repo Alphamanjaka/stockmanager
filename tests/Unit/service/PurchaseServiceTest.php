@@ -5,7 +5,7 @@ namespace Tests\Feature\service;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Purchase;
-use App\Models\Supplier;
+use App\Modules\Contact\Models\Supplier;
 use App\Services\PurchaseService;
 use App\Models\ProductColor;
 use App\Services\StockService;

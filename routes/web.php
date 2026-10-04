@@ -7,7 +7,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\StockMovementController;
-use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SalerProductController;
 use App\Http\Controllers\SettingController;
@@ -69,7 +68,6 @@ Route::middleware('auth')->group(function () {
         Route::resource('categories', CategoryController::class);
 
         Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);
-        Route::resource('suppliers', SupplierController::class);
         Route::resource('settings', SettingController::class);
         // add prefix settings for backup routes
         Route::prefix('settings/')->name('settings.')->group(function () {

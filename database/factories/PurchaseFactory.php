@@ -20,7 +20,7 @@ class PurchaseFactory extends Factory
         $discount = $this->faker->randomFloat(2, 0, 100);
 
         return [
-            'supplier_id' => \App\Models\Supplier::factory(),
+            'supplier_id' => \App\Modules\Contact\Models\Supplier::factory(),
             'reference' => 'PUR-' . $this->faker->unique()->numerify('########'),
             'total_amount' => $total,
             'discount' => $discount,
