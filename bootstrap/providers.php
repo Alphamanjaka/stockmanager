@@ -2,6 +2,7 @@
 
 return [
     App\Providers\AppServiceProvider::class,
+    App\Core\CoreServiceProvider::class,
 
     // Modules métier (app/Modules/*)
     App\Modules\Catalog\CatalogServiceProvider::class,

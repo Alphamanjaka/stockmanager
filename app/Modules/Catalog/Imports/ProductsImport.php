@@ -3,7 +3,7 @@
 namespace App\Modules\Catalog\Imports;
 
 use App\Modules\Catalog\Models\Color;
-use App\Services\SettingService;
+use App\Core\Services\SettingService;
 use App\Modules\Catalog\Services\ProductService;
 use App\Modules\Catalog\Services\CategoryService;
 use App\Modules\Catalog\Services\ProductColorService;
