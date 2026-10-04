@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Modules\Stock\Http\Controllers;
 
-use App\Http\Requests\StoreStockMovementRequest;
-use App\Services\StockService;
+use App\Modules\Stock\Http\Requests\StoreStockMovementRequest;
+use App\Modules\Stock\Services\StockService;
 use App\Modules\Catalog\Services\ProductColorService;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class StockMovementController extends Controller
 {
@@ -29,7 +30,7 @@ class StockMovementController extends Controller
         $rotationStats = $this->stockService->getRotationStats();
         $stockValueEvolution = $this->stockService->getTotalStockValueEvolution();
 
-        return view('stock_movements.index', compact('stockMovements', 'dormantProducts', 'rotationStats', 'stockValueEvolution'));
+        return view('stock::stock_movements.index', compact('stockMovements', 'dormantProducts', 'rotationStats', 'stockValueEvolution'));
     }
 
 
@@ -39,7 +40,7 @@ class StockMovementController extends Controller
     public function create()
     {
         $productColors = $this->productColorService->getAll([], false);
-        return view('stock_movements.create', compact('productColors'));
+        return view('stock::stock_movements.create', compact('productColors'));
     }
 
     /**
@@ -76,6 +77,6 @@ class StockMovementController extends Controller
     public function show(int $id)
     {
         $stockMovement = $this->stockService->getStockMovementById($id);
-        return view('stock_movements.show', compact('stockMovement'));
+        return view('stock::stock_movements.show', compact('stockMovement'));
     }
 }

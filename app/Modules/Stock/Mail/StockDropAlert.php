@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Mail;
+namespace App\Modules\Stock\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -24,6 +24,6 @@ class StockDropAlert extends Mailable
     public function build()
     {
         return $this->subject('⚠️ Alerte Critique : Chute brutale de la valeur du stock')
-            ->view('emails.stock_drop_alert');
+            ->view('stock::emails.stock_drop_alert');
     }
 }

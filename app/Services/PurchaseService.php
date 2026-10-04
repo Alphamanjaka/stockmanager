@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Purchase;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Stock\Services\StockService;
 
 class PurchaseService
 {

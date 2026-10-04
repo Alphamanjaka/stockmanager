@@ -4,7 +4,6 @@ namespace App\Modules\Catalog\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\StockMovement;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use App\Modules\Catalog\Database\Factories\ProductColorFactory;
 
@@ -27,10 +26,6 @@ class ProductColor extends Model
         return $this->belongsTo(Color::class);
     }
 
-    public function stockMovements()
-    {
-        return $this->hasMany(StockMovement::class, 'product_color_id');
-    }
     public function toString()
     {
         return $this->product->name . ' ' . ($this->color->code ?? '');

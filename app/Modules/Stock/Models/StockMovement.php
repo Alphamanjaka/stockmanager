@@ -1,11 +1,14 @@
 <?php
 
-namespace App\Models;
+namespace App\Modules\Stock\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Modules\Catalog\Models\ProductColor;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use App\Modules\Stock\Database\Factories\StockMovementFactory;
 
+#[UseFactory(StockMovementFactory::class)]
 class StockMovement extends Model
 {
     use HasFactory;

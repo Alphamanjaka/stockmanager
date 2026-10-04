@@ -6,7 +6,7 @@ use App\Modules\Catalog\Models\Product;
 use App\Models\Sale;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Services\SaleService;
-use App\Services\StockService;
+use App\Modules\Stock\Services\StockService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;

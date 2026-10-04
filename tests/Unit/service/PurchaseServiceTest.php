@@ -8,7 +8,7 @@ use App\Models\Purchase;
 use App\Modules\Contact\Models\Supplier;
 use App\Services\PurchaseService;
 use App\Modules\Catalog\Models\ProductColor;
-use App\Services\StockService;
+use App\Modules\Stock\Services\StockService;
 use App\Models\PurchaseItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

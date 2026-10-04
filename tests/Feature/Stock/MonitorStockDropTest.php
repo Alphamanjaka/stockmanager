@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\Feature\Console\Commands;
+namespace Tests\Feature\Stock;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Services\StockService;
+use App\Modules\Stock\Services\StockService;
 use App\Models\User;
-use App\Mail\StockDropAlert;
+use App\Modules\Stock\Mail\StockDropAlert;
 use Illuminate\Support\Facades\Mail;
 use Mockery\MockInterface;
 

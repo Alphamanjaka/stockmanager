@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Color;
-use App\Models\StockMovement;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use App\Modules\Catalog\Database\Factories\ProductFactory;
 
@@ -36,11 +35,6 @@ class Product extends Model
     public function productColors()
     {
         return $this->hasMany(ProductColor::class);
-    }
-
-    public function stockMovements()
-    {
-        return $this->hasManyThrough(StockMovement::class, ProductColor::class);
     }
 
     public function colors()

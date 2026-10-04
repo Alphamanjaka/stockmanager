@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Feature\service;
+namespace Tests\Feature\Stock;
 
 use App\Modules\Catalog\Models\Product;
-use App\Services\StockService;
+use App\Modules\Stock\Services\StockService;
 use App\Modules\Catalog\Models\ProductColor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;

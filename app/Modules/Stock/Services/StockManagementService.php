@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Modules\Stock\Services;
 
 use App\Modules\Catalog\Models\ProductColor;
 

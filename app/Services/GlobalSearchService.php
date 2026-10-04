@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Collection;
 use App\Modules\Catalog\Services\ProductColorService;
+use App\Modules\Stock\Services\StockManagementService;
 
 class GlobalSearchService
 {

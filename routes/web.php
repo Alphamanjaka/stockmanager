@@ -5,7 +5,6 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportController;
-use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
@@ -52,7 +51,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/sales/{id}/pdf', [SaleAdminController::class, 'exportPdf'])->name('sales.pdf');
 
 
-        Route::resource('movements', StockMovementController::class)->only(['index', 'create', 'store', 'show']);
         Route::resource('settings', SettingController::class);
         // add prefix settings for backup routes
         Route::prefix('settings/')->name('settings.')->group(function () {

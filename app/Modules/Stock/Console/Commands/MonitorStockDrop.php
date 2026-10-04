@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Modules\Stock\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Services\StockService;
+use App\Modules\Stock\Services\StockService;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\StockDropAlert;
+use App\Modules\Stock\Mail\StockDropAlert;
 use App\Models\User;
 
 class MonitorStockDrop extends Command

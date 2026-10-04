@@ -7,6 +7,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Modules\Stock\Services\StockService;
 
 class SaleService
 {

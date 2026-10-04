@@ -1,14 +1,17 @@
 <?php
 
-namespace Database\Factories;
+namespace App\Modules\Stock\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Modules\Stock\Models\StockMovement;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\StockMovement>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Stock\Models\StockMovement>
  */
 class StockMovementFactory extends Factory
 {
+    protected $model = StockMovement::class;
+
     /**
      * Define the model's default state.
      *

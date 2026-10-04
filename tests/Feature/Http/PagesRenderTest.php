@@ -10,7 +10,7 @@ use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\Sale;
 use App\Models\SaleItem;
-use App\Models\StockMovement;
+use App\Modules\Stock\Models\StockMovement;
 use App\Models\User;
 use App\Modules\Contact\Models\Supplier;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services;
+namespace App\Modules\Stock\Services;
 
 use App\Modules\Catalog\Models\ProductColor;
-use App\Models\StockMovement;
+use App\Modules\Stock\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 
 class StockService
