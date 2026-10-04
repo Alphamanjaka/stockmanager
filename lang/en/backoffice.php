@@ -8,6 +8,7 @@ return [
     'products' => 'Products',
     'categories' => 'Categories',
     'colors' => 'Colors',
+    'stock_counts' => 'Stock counts',
     'movements' => 'Movements',
     'purchases_sales' => 'Purchases & Sales',
     'customers' => 'Customers',

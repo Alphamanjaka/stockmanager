@@ -12,6 +12,7 @@ app/
 ├── Modules/
 │   ├── Catalog/              Produits, variantes (produit + couleur), catégories, couleurs
 │   ├── Stock/                Mouvements de stock, alertes, valorisation
+│   ├── Inventory/            Inventaires physiques (comptage, écarts, ajustement du stock)
 │   ├── Purchase/             Achats fournisseurs, panier, réapprovisionnement depuis les ruptures
 │   ├── Sale/                 Ventes (back office et vendeurs), client de la vente, factures PDF
 │   └── Contact/              Fournisseurs et clients
@@ -69,10 +70,13 @@ pour que l'ordre de chargement des modules n'ait pas d'importance.
 | Contact | — |
 | Stock | Catalog |
 | Sale | Stock, Catalog, Contact (client de la vente) |
+| Inventory | Stock, Catalog |
 | Purchase | Stock, Catalog, Contact |
 
 - Un module n'utilise jamais un module situé plus bas que lui dans ce tableau (pas de dépendance circulaire).
-- **Toute variation de stock passe par `StockService`** (`addStock` / `removeStock`), qui crée le mouvement historisé.
+- **Toute variation de stock passe par `StockService`** (`addStock`, `removeStock`, `adjustTo`), qui crée le mouvement historisé.
+  Catalog, qui ne dépend pas de Stock, déclare le stock saisi (création, fiche produit, import) avec l'événement
+  `VariantStockDeclared` ; le module Stock l'écoute (propriété `$listen` de son provider) et enregistre le mouvement.
 - Tous les modules peuvent utiliser le socle (`App\Core`) : `BaseService`, `BaseResourceController`, `settings()`, `User`.
 - Les fonctions **transverses du Core** (tableaux de bord, recherche globale, import centralisé) lisent les modules ;
   un module ne doit jamais dépendre de ces fonctions.

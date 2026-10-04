@@ -10,4 +10,5 @@ return [
     App\Modules\Stock\StockServiceProvider::class,
     App\Modules\Purchase\PurchaseServiceProvider::class,
     App\Modules\Sale\SaleServiceProvider::class,
+    App\Modules\Inventory\InventoryServiceProvider::class,
 ];

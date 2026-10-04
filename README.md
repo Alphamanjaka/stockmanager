@@ -159,7 +159,7 @@ Le code suit les principes **SOLID** et une **Architecture Orientée Services (S
 
 ### Structure par modules
 
-Le code métier est découpé en modules dans `app/Modules/` (**Catalog**, **Stock**, **Purchase**, **Sale**, **Contact**), autour d'un socle commun `app/Core/` (authentification, utilisateurs, paramètres, sauvegardes, tableaux de bord, recherche globale, import).
+Le code métier est découpé en modules dans `app/Modules/` (**Catalog**, **Stock**, **Inventory**, **Purchase**, **Sale**, **Contact**), autour d'un socle commun `app/Core/` (authentification, utilisateurs, paramètres, sauvegardes, tableaux de bord, recherche globale, import).
 Chaque module contient ses modèles, services, contrôleurs, vues, routes, migrations et factories.
 Conventions, règles de dépendance et recettes : voir [ARCHITECTURE.md](ARCHITECTURE.md).
 

@@ -70,6 +70,11 @@
                             <span class="sidebar-text">{{ __('backoffice.movements') }}</span> <span
                                 class="shortcut-badge">Alt+M</span>
                         </a>
+                        <a href="{{ route('admin.inventories.index') }}"
+                            class="{{ request()->is('admin/inventories*') ? 'text-primary fw-bold' : '' }}">
+                            <span><i class="fas fa-clipboard-check fa-fw me-2"></i></span>
+                            <span class="sidebar-text">{{ __('backoffice.stock_counts') }}</span>
+                        </a>
                     </div>
                 </li>
 
