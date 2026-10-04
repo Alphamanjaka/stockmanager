@@ -7,20 +7,30 @@ use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Sale\Services\SaleService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
+use App\Modules\Contact\Models\Customer;
+use App\Modules\Contact\Services\CustomerService;
+use Illuminate\Http\Request;
 
 class SaleAdminController extends Controller
 {
     // constructor to inject SaleService and ProductColorService
-    public function __construct(protected SaleService $saleService, protected ProductColorService $productColorService) {}
+    public function __construct(
+        protected SaleService $saleService,
+        protected ProductColorService $productColorService,
+        protected CustomerService $customerService
+    ) {}
 
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $sales = $this->saleService->getAllSales();
+        // ?customer=ID : historique des ventes d'un client (lien depuis la fiche client)
+        $customer = $request->filled('customer') ? Customer::find($request->integer('customer')) : null;
+
+        $sales = $this->saleService->getAllSales(15, ['customer' => $customer?->id])->withQueryString();
         $stats   = $this->saleService->getSalesStatistics();
-        return view('sale::back-office.sales.index', array_merge(compact('sales'), $stats));
+        return view('sale::back-office.sales.index', array_merge(compact('sales', 'customer'), $stats));
     }
 
     /**
@@ -50,7 +60,8 @@ class SaleAdminController extends Controller
     public function create(){
         // provide a list of available products with their stock and price for the form
         $items = $this->productColorService->getAvailableProducts();
-        return view('sale::back-office.sales.create', compact('items') );
+        $customers = $this->customerService->getAll([], false);
+        return view('sale::back-office.sales.create', compact('items', 'customers'));
     }
     /**
      * Store a newly created resource in storage.
@@ -62,7 +73,8 @@ class SaleAdminController extends Controller
             $sale = $this->saleService->createSale(
                 $validated['products'],
                 $validated['discount'] ?? 0,
-                auth()->id() // Associer la vente à l'utilisateur connecté
+                auth()->id(), // Associer la vente à l'utilisateur connecté
+                $validated
             );
             return redirect()
                 ->route('admin.sales.show', $sale->id)

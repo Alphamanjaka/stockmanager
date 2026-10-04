@@ -142,6 +142,15 @@
             <div class="invoice-title">Invoice</div>
             <div>Ref: <strong>{{ $sale->reference }}</strong></div>
             <div>Date: {{ $sale->created_at->format('d/m/Y') }}</div>
+            @if ($sale->customer)
+                <div style="margin-top: 10px;">Customer: <strong>{{ $sale->customer->name }}</strong></div>
+                @if ($sale->customer->phone)
+                    <div>Tel: {{ $sale->customer->phone }}</div>
+                @endif
+                @if ($sale->customer->address)
+                    <div>{{ $sale->customer->address }}</div>
+                @endif
+            @endif
         </div>
     </div>
 

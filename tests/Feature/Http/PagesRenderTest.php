@@ -12,6 +12,7 @@ use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleItem;
 use App\Modules\Stock\Models\StockMovement;
 use App\Models\User;
+use App\Modules\Contact\Models\Customer;
 use App\Modules\Contact\Models\Supplier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -57,7 +58,8 @@ class PagesRenderTest extends TestCase
             'subtotal' => 1400,
         ]);
 
-        $sale = Sale::factory()->create(['user_id' => $this->seller->id, 'total_brut' => 1000, 'total_net' => 1000]);
+        $customer = Customer::factory()->create();
+        $sale = Sale::factory()->create(['user_id' => $this->seller->id, 'customer_id' => $customer->id, 'total_brut' => 1000, 'total_net' => 1000]);
         SaleItem::create([
             'sale_id' => $sale->id,
             'product_color_id' => $variant->id,
@@ -68,7 +70,7 @@ class PagesRenderTest extends TestCase
 
         $movement = StockMovement::factory()->create(['product_color_id' => $variant->id]);
 
-        $this->ids = compact('category', 'color', 'product', 'variant', 'supplier', 'purchase', 'sale', 'movement');
+        $this->ids = compact('category', 'color', 'product', 'variant', 'supplier', 'customer', 'purchase', 'sale', 'movement');
         $this->ids = array_map(fn ($model) => $model->id, $this->ids);
     }
 
@@ -116,6 +118,11 @@ class PagesRenderTest extends TestCase
             '/admin/suppliers/create',
             "/admin/suppliers/{$i['supplier']}",
             "/admin/suppliers/{$i['supplier']}/edit",
+            '/admin/customers',
+            '/admin/customers/create',
+            "/admin/customers/{$i['customer']}",
+            "/admin/customers/{$i['customer']}/edit",
+            "/admin/sales?customer={$i['customer']}",
             // Administration
             '/admin/settings',
             '/admin/imports',

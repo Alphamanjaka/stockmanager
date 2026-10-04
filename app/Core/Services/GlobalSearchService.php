@@ -7,6 +7,7 @@ use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Stock\Services\StockManagementService;
 use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Sale\Services\SaleService;
+use App\Modules\Contact\Services\CustomerService;
 
 class GlobalSearchService
 {
@@ -14,7 +15,8 @@ class GlobalSearchService
         protected ProductColorService   $productColorService,
         protected PurchaseService $purchaseService,
         protected SaleService $saleService,
-        protected StockManagementService $stockMovementService
+        protected StockManagementService $stockMovementService,
+        protected CustomerService $customerService
     ) {}
 
     /**
@@ -43,6 +45,9 @@ class GlobalSearchService
         // Recherche de mouvements de stock (si StockMovementService existait)
         $movementResults = $this->stockMovementService->searchForGlobalSearch($query, $limit);
         $results = $results->merge($movementResults);
+
+        // Recherche de clients (nom, téléphone, email)
+        $results = $results->merge($this->customerService->searchForGlobalSearch($query, $limit));
 
         return $results->sortBy('name')->values(); // Tri alphabétique pour une meilleure lisibilité
     }

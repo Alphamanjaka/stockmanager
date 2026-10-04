@@ -27,7 +27,7 @@ class SaleServiceTest extends TestCase
         $this->stockServiceMock = Mockery::mock(StockService::class);
         $this->app->instance(StockService::class, $this->stockServiceMock);
         // On injecte le mock dans notre service
-        $this->service = new SaleService($this->app->make(StockService::class));
+        $this->service = new SaleService($this->app->make(StockService::class), $this->app->make(\App\Modules\Contact\Services\CustomerService::class));
     }
 
     /** @test */

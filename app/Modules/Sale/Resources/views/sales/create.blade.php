@@ -60,6 +60,8 @@
                 <div class="card shadow-sm sticky-top" style="top: 20px;">
                     <div class="card-header bg-dark text-white fw-bold">Transaction Summary</div>
                     <div class="card-body">
+                        @include('sale::partials.customer-picker')
+
                         <div class="d-flex justify-content-between mb-2">
                             <span>Total Gross :</span>
                             <span id="display-brut" class="fw-bold">0.00 {{ $currency ?? 'Mga' }}</span>

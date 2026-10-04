@@ -13,8 +13,8 @@ app/
 │   ├── Catalog/              Produits, variantes (produit + couleur), catégories, couleurs
 │   ├── Stock/                Mouvements de stock, alertes, valorisation
 │   ├── Purchase/             Achats fournisseurs, panier, réapprovisionnement depuis les ruptures
-│   ├── Sale/                 Ventes (back office et vendeurs), factures PDF
-│   └── Contact/              Fournisseurs
+│   ├── Sale/                 Ventes (back office et vendeurs), client de la vente, factures PDF
+│   └── Contact/              Fournisseurs et clients
 │
 ├── Http/Controllers/Controller.php   Contrôleur de base Laravel
 ├── Http/Middleware/          Contrôle d'accès (back office / front office), langue
@@ -68,7 +68,7 @@ pour que l'ordre de chargement des modules n'ait pas d'importance.
 | Catalog | — |
 | Contact | — |
 | Stock | Catalog |
-| Sale | Stock, Catalog |
+| Sale | Stock, Catalog, Contact (client de la vente) |
 | Purchase | Stock, Catalog, Contact |
 
 - Un module n'utilise jamais un module situé plus bas que lui dans ce tableau (pas de dépendance circulaire).

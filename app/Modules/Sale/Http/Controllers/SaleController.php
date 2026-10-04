@@ -7,13 +7,18 @@ use App\Modules\Sale\Services\SaleService;
 use App\Modules\Catalog\Services\ProductColorService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
+use App\Modules\Contact\Services\CustomerService;
 
 class SaleController extends Controller
 {
     /**
      * Initialize the controller.
      */
-    public function __construct(private SaleService $saleService, private ProductColorService $productColorService)
+    public function __construct(
+        private SaleService $saleService,
+        private ProductColorService $productColorService,
+        private CustomerService $customerService
+    )
     {
         $this->saleService = $saleService;
         $this->productColorService = $productColorService;
@@ -26,7 +31,8 @@ class SaleController extends Controller
     {
         $currency = settings('currency_symbol', 'Mga');
         $items = $this->productColorService->getAvailableProducts();
-        return view('sale::sales.create', compact('items', 'currency'));
+        $customers = $this->customerService->getAll([], false);
+        return view('sale::sales.create', compact('items', 'currency', 'customers'));
     }
 
     /**
@@ -40,7 +46,8 @@ class SaleController extends Controller
             $sale = $this->saleService->createSale(
                 $validated['products'],
                 $validated['discount'] ?? 0,
-                auth()->id() // Associer la vente à l'utilisateur connecté
+                auth()->id(), // Associer la vente à l'utilisateur connecté
+                $validated
             );
 
             return redirect()

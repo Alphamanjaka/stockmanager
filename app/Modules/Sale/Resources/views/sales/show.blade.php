@@ -27,6 +27,13 @@
                         <h5 class="mb-3 text-uppercase text-muted">Invoice Details</h5>
                         <div class="h4 text-primary">{{ $sale->reference }}</div>
                         <div>Date : {{ $sale->created_at->format('d/m/Y H:i') }}</div>
+                        @if ($sale->customer)
+                            <h5 class="mt-3 mb-1 text-uppercase text-muted">Customer</h5>
+                            <div><strong>{{ $sale->customer->name }}</strong></div>
+                            @if ($sale->customer->phone)
+                                <div>Tel: {{ $sale->customer->phone }}</div>
+                            @endif
+                        @endif
                     </div>
                 </div>
 

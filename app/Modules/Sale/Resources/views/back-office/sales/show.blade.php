@@ -12,6 +12,18 @@
                 <p class="card-text">Phone : {{ $sale->user->phone ?? 'N/A' }}</p>
             </div>
         </div>
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                @if ($sale->customer)
+                    <h5 class="card-title">Customer :
+                        <a href="{{ route('admin.customers.show', $sale->customer->id) }}">{{ $sale->customer->name }}</a>
+                    </h5>
+                    <p class="card-text mb-0">Phone : {{ $sale->customer->phone ?: 'N/A' }}</p>
+                @else
+                    <h5 class="card-title mb-0">Customer : <span class="text-muted">Walk-in customer</span></h5>
+                @endif
+            </div>
+        </div>
         <div class="d-flex justify-content-between align-items-center mb-4">
             <a href="{{ route('admin.sales.index') }}" class="btn btn-secondary shadow-sm">
                 <i class="bi bi-arrow-left"></i> Back to History

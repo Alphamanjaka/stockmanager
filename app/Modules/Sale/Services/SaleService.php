@@ -8,18 +8,19 @@ use App\Modules\Sale\Models\SaleItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Modules\Stock\Services\StockService;
+use App\Modules\Contact\Services\CustomerService;
 
 class SaleService
 {
-    public function __construct(protected StockService $stockService)
-    {
-        $this->stockService = $stockService;
-    }
+    public function __construct(protected StockService $stockService, protected CustomerService $customerService) {}
     /**
      * Crée une vente en l'associant à un utilisateur.
      * Si l'ID utilisateur n'est pas fourni, il utilise l'utilisateur authentifié.
+     *
+     * @param array $customer client facultatif : ['customer_id' => id] pour un client existant,
+     *                        ou ['new_customer_name' => ..., 'new_customer_phone' => ...] pour le créer
      */
-    public function createSale(array $productsData, float $discount = 0, ?int $user_id = null): Sale
+    public function createSale(array $productsData, float $discount = 0, ?int $user_id = null, array $customer = []): Sale
     {
         $userId = $user_id ?? auth()->id();
 
@@ -27,9 +28,10 @@ class SaleService
             throw new \Exception("Impossible de créer une vente : aucun utilisateur n'est authentifié ou fourni.");
         }
 
-        return DB::transaction(function () use ($productsData, $discount, $userId) {
-            // 1. On prépare la vente
+        return DB::transaction(function () use ($productsData, $discount, $userId, $customer) {
+            // 1. On prépare la vente (un client créé ici est annulé si la vente échoue)
             $sale = new Sale([
+                'customer_id' => $this->resolveCustomerId($customer),
                 'reference'  => 'SALE-' . strtoupper(Str::random(8)),
                 'discount'   => $discount,
                 'user_id'    => $userId, // Toujours mieux de savoir qui a vendu
@@ -83,22 +85,43 @@ class SaleService
     }
 
     /**
+     * Client de la vente : existant, créé à la volée (nom saisi), ou aucun.
+     */
+    private function resolveCustomerId(array $customer): ?int
+    {
+        if (!empty($customer['customer_id'])) {
+            return (int) $customer['customer_id'];
+        }
+
+        if (!empty($customer['new_customer_name'])) {
+            return $this->customerService->create([
+                'name' => $customer['new_customer_name'],
+                'phone' => $customer['new_customer_phone'] ?? null,
+            ])->id;
+        }
+
+        return null;
+    }
+
+    /**
      * Liste des ventes simplifiée.
      */
     public function getAllSales(int $perPage = 15, array $filters = [])
     {
-        // On retire le 'user' du Eager Loading
-        return Sale::with(['items.productColor.product', 'items.productColor.color'])
+        return Sale::with(['items.productColor.product', 'items.productColor.color', 'customer', 'user'])
             ->latest()
             ->when($filters['search'] ?? null, function ($query, $search) {
                 $query->whereLike('reference', "%{$search}%");
+            })
+            ->when($filters['customer'] ?? null, function ($query, $customerId) {
+                $query->where('customer_id', $customerId);
             })
             ->paginate($perPage);
     }
 
     public function getSaleById(int $id): Sale
     {
-        return Sale::with(['items.productColor.product', 'items.productColor.color'])->findOrFail($id);
+        return Sale::with(['items.productColor.product', 'items.productColor.color', 'customer', 'user'])->findOrFail($id);
     }
 
 

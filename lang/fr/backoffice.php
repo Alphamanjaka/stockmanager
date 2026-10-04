@@ -10,6 +10,7 @@ return [
     'colors' => 'Couleurs',
     'movements' => 'Mouvements',
     'purchases_sales' => 'Achats & Ventes',
+    'customers' => 'Clients',
     'suppliers' => 'Fournisseurs',
     'sales' => 'Ventes',
     'purchases' => 'Achats',

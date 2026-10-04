@@ -30,11 +30,10 @@ document.addEventListener("DOMContentLoaded", function () {
         { type: "route", name: "Ventes", url: "/admin/sales" },
         { type: "route", name: "Créer une vente", url: "/admin/sales/create" },
         { type: "route", name: "Fournisseurs", url: "/admin/suppliers" },
-        // { type: "route", name: "Clients", url: "/admin/customers" },
+        { type: "route", name: "Clients", name_alt: "Customers", url: "/admin/customers" },
         { type: "route", name: "Utilisateurs", url: "/admin/users" },
-        { type: "route", name: "Rôles et Permissions", url: "/admin/roles" },
         { type: "route", name: "Paramètres", url: "/admin/settings" },
-        { type: "route", name: "Sauvegardes", url: "/admin/backups" },
+        { type: "route", name: "Sauvegardes", url: "/admin/settings" },
         {
             type: "route",
             name: "Mouvements de stock",
@@ -110,6 +109,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         ? "Ventes"
                         : result.type === "movement"
                           ? "Stocks"
+                      : result.type === "customer"
+                        ? "Clients"
                       : result.type === "route"
                         ? "Pages"
                         : "Autres";

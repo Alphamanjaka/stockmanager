@@ -47,6 +47,13 @@
 
 
 
+    @if ($customer)
+        <div class="alert alert-info d-flex justify-content-between align-items-center">
+            <span>Sales of customer <strong>{{ $customer->name }}</strong></span>
+            <a href="{{ route('admin.sales.index') }}" class="btn btn-sm btn-outline-secondary">Show all sales</a>
+        </div>
+    @endif
+
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
@@ -54,6 +61,7 @@
                     <tr>
                         <th>Reference</th>
                         <th>Date</th>
+                        <th>Customer</th>
                         <th>Total Gross</th>
                         <th>Discount</th>
                         <th>Total Net</th>
@@ -67,6 +75,7 @@
                         <tr>
                             <td class="fw-bold">{{ $sale->reference }}</td>
                             <td>{{ $sale->created_at->format('d/m/Y H:i') }}</td>
+                            <td>{{ $sale->customer->name ?? '—' }}</td>
                             <td>{{ number_format($sale->total_brut, 2) }} Mga</td>
                             <td class="text-danger">-{{ number_format($sale->discount, 2) }} Mga</td>
                             <td class="fw-bold text-success">{{ number_format($sale->total_net, 2) }} Mga</td>

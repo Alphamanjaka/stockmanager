@@ -91,6 +91,11 @@
                             <span class="sidebar-text">{{ __('backoffice.suppliers') }}</span> <span
                                 class="shortcut-badge">Alt+F</span>
                         </a>
+                        <a href="{{ route('admin.customers.index') }}"
+                            class="{{ request()->is('admin/customers*') ? 'text-primary fw-bold' : '' }}">
+                            <span><i class="fas fa-user-friends fa-fw me-2"></i></span>
+                            <span class="sidebar-text">{{ __('backoffice.customers') }}</span>
+                        </a>
                         {{--  Sales link --}}
                         <a href="{{ route('admin.sales.index') }}"
                             class="{{ request()->is('admin/sales*') ? 'text-primary fw-bold' : '' }}" data-shortcut="s"

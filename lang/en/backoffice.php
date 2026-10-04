@@ -10,6 +10,7 @@ return [
     'colors' => 'Colors',
     'movements' => 'Movements',
     'purchases_sales' => 'Purchases & Sales',
+    'customers' => 'Customers',
     'suppliers' => 'Suppliers',
     'sales' => 'Sales',
     'purchases' => 'Purchases',
