@@ -7,6 +7,8 @@ use App\Core\Services\BaseService;
 
 class ColorService extends BaseService
 {
+    protected array $sortable = ['id', 'name', 'code', 'created_at'];
+
     public function __construct(Color $color)
     {
         parent::__construct($color); // Appel du constructeur parent

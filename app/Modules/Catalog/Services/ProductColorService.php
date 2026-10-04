@@ -17,6 +17,8 @@ use Exception;
  */
 class ProductColorService extends BaseService
 {
+    protected array $sortable = ['id', 'stock', 'price', 'price_purchase', 'alert_stock', 'created_at'];
+
 
 
     public function __construct(
@@ -224,7 +226,7 @@ class ProductColorService extends BaseService
 
         $query->when($filters['search'] ?? null, function ($q, $search) {
             $q->whereHas('product', function ($sq) use ($search) {
-                $sq->where('name', 'like', "%{$search}%");
+                $sq->whereLike('name', "%{$search}%");
             });
         })
             ->when($filters['color'] ?? null, function ($q, $colorId) {
@@ -250,8 +252,8 @@ class ProductColorService extends BaseService
     public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
     {
         return ProductColor::with(['product', 'color'])
-            ->whereHas('product', fn($q) => $q->where('name', 'like', "%{$query}%"))
-            ->orWhereHas('color', fn($q) => $q->where('name', 'like', "%{$query}%"))
+            ->whereHas('product', fn($q) => $q->whereLike('name', "%{$query}%"))
+            ->orWhereHas('color', fn($q) => $q->whereLike('name', "%{$query}%"))
             ->limit($limit)
             ->get()
             ->map(fn(ProductColor $productColor) => [

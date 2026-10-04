@@ -91,7 +91,7 @@ class SaleService
         return Sale::with(['items.productColor.product', 'items.productColor.color'])
             ->latest()
             ->when($filters['search'] ?? null, function ($query, $search) {
-                $query->where('reference', 'like', "%{$search}%");
+                $query->whereLike('reference', "%{$search}%");
             })
             ->paginate($perPage);
     }
@@ -138,7 +138,7 @@ class SaleService
      */
     public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
     {
-        return Sale::where('reference', 'like', "%{$query}%")
+        return Sale::whereLike('reference', "%{$query}%")
             ->limit($limit)
             ->get()
             ->map(fn(Sale $sale) => [

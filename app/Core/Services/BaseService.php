@@ -6,6 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 abstract class BaseService
 {
+    /**
+     * Colonnes autorisées pour le tri ; la première sert de tri par défaut.
+     * Le paramètre de tri vient de la requête : une colonne inconnue provoquait une erreur SQL.
+     */
+    protected array $sortable = ['id'];
+
+    /** Taille de page maximale acceptée depuis la requête. */
+    protected int $maxPerPage = 100;
+
     public function __construct(protected Model $model) {}
 
     public function getAll(array $filters = [], bool $isPaginated = true)
@@ -20,13 +29,15 @@ abstract class BaseService
         if (!empty($filters['category'])) {
             $query->where('category_id', $filters['category']);
         }
-        // Ajout de la logique de tri générique
-        $sort = $filters['sort'] ?? 'id'; // Tri par défaut par 'id'
-        $order = $filters['order'] ?? 'asc';
+        // Tri générique, limité aux colonnes déclarées dans $sortable
+        $sort = in_array($filters['sort'] ?? null, $this->sortable, true) ? $filters['sort'] : $this->sortable[0];
+        $order = strtolower((string) ($filters['order'] ?? 'asc')) === 'desc' ? 'desc' : 'asc';
         $query->orderBy($sort, $order);
 
+        $perPage = min(max((int) ($filters['per_page'] ?? 15), 1), $this->maxPerPage);
+
         return $isPaginated
-            ? $query->paginate($filters['per_page'] ?? 15)->withQueryString()
+            ? $query->paginate($perPage)->withQueryString()
             : $query->get();
     }
 

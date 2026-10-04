@@ -38,13 +38,15 @@ class ProductColor extends Model
     // scope pour la recherche
     public function scopeSearch( $query, string $term){
         $term = '%' . strtolower($term) . '%';
-        $query->whereHas('product', function($q) use ($term) {
-            $q->whereRaw('LOWER(name) LIKE ?', [$term]);
-        })->orWhereHas('color', function($q) use ($term) {
-            $q->whereRaw('LOWER(name) LIKE ?', [$term]);
-        })->orWhereHas('product.category', function($q) use ($term) {
-            $q->whereRaw('LOWER(name) LIKE ?', [$term]);
+        // Regroupé entre parenthèses : sinon les OR contournent les autres filtres de la requête
+        $query->where(function ($query) use ($term) {
+            $query->whereHas('product', function($q) use ($term) {
+                $q->whereRaw('LOWER(name) LIKE ?', [$term]);
+            })->orWhereHas('color', function($q) use ($term) {
+                $q->whereRaw('LOWER(name) LIKE ?', [$term]);
+            })->orWhereHas('product.category', function($q) use ($term) {
+                $q->whereRaw('LOWER(name) LIKE ?', [$term]);
+            });
         });
-        ;
     }
 }

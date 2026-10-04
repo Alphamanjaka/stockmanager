@@ -99,9 +99,9 @@ class StockService
 
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('reason', 'like', "%{$filters['search']}%")
+                $q->whereLike('reason', "%{$filters['search']}%")
                     ->orWhereHas('productColor.product', function ($sq) use ($filters) {
-                        $sq->where('name', 'like', "%{$filters['search']}%");
+                        $sq->whereLike('name', "%{$filters['search']}%");
                     });
             });
         }
@@ -285,8 +285,8 @@ class StockService
     public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
     {
         return StockMovement::with(['productColor.product'])
-            ->where('reason', 'like', "%{$query}%")
-            ->orWhereHas('productColor.product', fn($q) => $q->where('name', 'like', "%{$query}%"))
+            ->whereLike('reason', "%{$query}%")
+            ->orWhereHas('productColor.product', fn($q) => $q->whereLike('name', "%{$query}%"))
             ->limit($limit)
             ->get()
             ->map(fn(StockMovement $movement) => [

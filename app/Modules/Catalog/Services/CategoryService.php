@@ -10,6 +10,8 @@ use App\Core\Services\BaseService;
 
 class CategoryService extends BaseService
 {
+    protected array $sortable = ['id', 'name', 'created_at'];
+
     public function __construct(Category $category)
     {
         parent::__construct($category); // Appel du constructeur parent avec une instance de Category
@@ -131,7 +133,7 @@ class CategoryService extends BaseService
         $query = $query->where(function ($q) use ($filters) {
             if (isset($filters['search'])) {
                 $searchTerm = mb_strtolower($filters['search']);
-                $q->where('name', 'like', '%' . $searchTerm . '%');
+                $q->whereLike('name', '%' . $searchTerm . '%');
             }
         });
 

@@ -225,8 +225,8 @@ class PurchaseService
     public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
     {
         return Purchase::with('supplier')
-            ->where('reference', 'like', "%{$query}%")
-            ->orWhereHas('supplier', fn($q) => $q->where('name', 'like', "%{$query}%"))
+            ->whereLike('reference', "%{$query}%")
+            ->orWhereHas('supplier', fn($q) => $q->whereLike('name', "%{$query}%"))
             ->limit($limit)
             ->get()
             ->map(fn(Purchase $purchase) => [
@@ -254,11 +254,11 @@ class PurchaseService
                         $query->where('state', '=', $filter['value']);
                     }
                     if ($filter['field'] === 'reference') {
-                        $query->where('reference', 'like', '%' . $filter['value'] . '%');
+                        $query->whereLike('reference', '%' . $filter['value'] . '%');
                     }
                     if ($filter['field'] === 'supplier.name') {
                         $query->whereHas('supplier', function ($q) use ($filter) {
-                            $q->where('name', 'like', '%' . $filter['value'] . '%');
+                            $q->whereLike('name', '%' . $filter['value'] . '%');
                         });
                     }
                 }

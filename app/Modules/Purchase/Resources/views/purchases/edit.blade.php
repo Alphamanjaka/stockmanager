@@ -122,6 +122,11 @@
             });
 
             // Rendu de la table
+            // Les noms de produits/couleurs sont des saisies : on les échappe avant de les insérer dans le HTML
+            const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+
             function renderTable() {
                 itemsContainer.empty();
                 let total = 0;
@@ -133,7 +138,7 @@
                     itemsContainer.append(`
                         <tr>
                             <td>
-                                <div class="fw-bold">${item.name}</div>
+                                <div class="fw-bold">${escapeHtml(item.name)}</div>
                                 <input type="hidden" name="products[${index}][product_color_id]" value="${item.product_color_id}">
                                 <input type="hidden" name="products[${index}][quantity]" value="${item.quantity}">
                                 <input type="hidden" name="products[${index}][unit_price]" value="${item.unit_price}">
@@ -165,8 +170,8 @@
                     filtered.forEach(p => {
                         productSuggestions.append(`
                             <button type="button" class="list-group-item list-group-item-action"
-                                data-id="${p.id}" data-name="${p.name}" data-price="${p.price}">
-                                ${p.name} (Stock: ${p.stock})
+                                data-id="${p.id}" data-name="${escapeHtml(p.name)}" data-price="${p.price}">
+                                ${escapeHtml(p.name)} (Stock: ${p.stock})
                             </button>
                         `);
                     });

@@ -70,9 +70,9 @@ class BackupService
      */
     public function downloadBackup(Request $request)
     {
-        $path = $request->input('path');
+        $path = $this->backupPath($request->input('path'));
 
-        if ($this->disk->exists($path)) {
+        if ($path && $this->disk->exists($path)) {
             return $this->disk->download($path);
         }
 
@@ -86,13 +86,26 @@ class BackupService
      */
     public function deleteBackup(Request $request): bool
     {
-        $path = $request->input('path');
+        $path = $this->backupPath($request->input('path'));
 
-        if ($this->disk->exists($path)) {
+        if ($path && $this->disk->exists($path)) {
             return $this->disk->delete($path);
         }
 
         return false;
+    }
+
+    /**
+     * N'accepte qu'un fichier .zip situé directement dans le dossier des sauvegardes :
+     * le chemin vient de la requête et ne doit pas permettre d'atteindre d'autres fichiers du disque.
+     */
+    private function backupPath(?string $path): ?string
+    {
+        if (!$path || str_contains($path, '..') || dirname($path) !== $this->backupName || !str_ends_with($path, '.zip')) {
+            return null;
+        }
+
+        return $path;
     }
 
     /**
@@ -115,7 +128,9 @@ class BackupService
      */
     public function verifyBackup(string $path): array
     {
-        if (!$this->disk->exists($path)) {
+        $path = $this->backupPath($path);
+
+        if (!$path || !$this->disk->exists($path)) {
             return ['valid' => false, 'message' => 'Le fichier de sauvegarde est introuvable.'];
         }
 

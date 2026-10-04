@@ -149,6 +149,11 @@
             const selectedProductIdInput = $('#selected-product-id');
             const unitPriceInput = $('#unit-price-input');
 
+            // Les noms de produits/couleurs sont des saisies : on les échappe avant de les insérer dans le HTML
+            const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+
             // Gérer la saisie dans le champ de recherche
             productSearchInput.on('input', function() {
                 const searchTerm = $(this).val().toLowerCase();
@@ -170,8 +175,8 @@
                             <button type="button" class="list-group-item list-group-item-action"
                                 data-id="${product.id}"
                                 data-price="${product.price}"
-                                data-name="${product.name}">
-                                ${product.name} (Stock: ${product.stock})
+                                data-name="${escapeHtml(product.name)}">
+                                ${escapeHtml(product.name)} (Stock: ${product.stock})
                             </button>
                         `);
                         productSuggestions.append(suggestionItem);

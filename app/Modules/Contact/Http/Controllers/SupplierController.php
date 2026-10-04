@@ -25,7 +25,7 @@ class SupplierController extends Controller
             'search' => $request->get('search'),
             'sort' => $request->get('sort'),
             'order' => $request->get('order'),
-            'per_page' => $request->get('per_page', 10),
+            'per_page' => min(max((int) $request->get('per_page', 10), 1), 100),
         ];
         // Récupération des fournisseurs via le service
         $suppliers = $this->supplierService->getAllSuppliers($filters);

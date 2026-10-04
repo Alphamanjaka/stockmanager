@@ -50,8 +50,8 @@ class SupplierService
 
         return $query->when($filters['search'] ?? null, function ($q, $search) {
             $search = mb_strtolower($search);
-            $q->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%");
+            $q->whereLike('name', "%{$search}%")
+                ->orWhereLike('email', "%{$search}%");
         })
             ->orderBy($sort, $order);
     }

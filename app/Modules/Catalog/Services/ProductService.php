@@ -7,6 +7,8 @@ use App\Core\Services\BaseService;
 
 class ProductService extends BaseService
 {
+    protected array $sortable = ['id', 'name', 'price', 'created_at'];
+
     public function __construct(private Product $product)
     {
         parent::__construct($product);

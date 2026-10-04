@@ -23,7 +23,7 @@ class ProductColorController extends Controller
     ) {}
     public function exportPdf(Request $request)
     {
-        $products = $this->productColorService->getAll(['per_page' => 50000]); // Get all products without pagination
+        $products = $this->productColorService->getAll([], false); // Toutes les variantes, sans pagination
 
         $pdf = Pdf::loadView('catalog::products.pdf', compact('products'));
 
