@@ -45,11 +45,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    # The 'depends_on' attribute with 'condition: service_healthy' ensures that
-    # this service will not start until the 'postgres' service passes its health check.
-    # This prevents the application from trying to connect to the database before it's ready.
+    # Added dependency on ollama to ensure the LLM service is ready before starting PHP-FPM.
     depends_on:
       postgres:
+        condition: service_healthy
+      ollama:
         condition: service_healthy
 
   worker:
@@ -66,10 +66,13 @@ services:
       - .env
     networks:
       - laravel-production
+    # Added dependency on ollama to ensure the LLM service is ready before running queue jobs.
     depends_on:
       redis:
         condition: service_healthy
       postgres:
+        condition: service_healthy
+      ollama:
         condition: service_healthy
 
   scheduler:
@@ -89,6 +92,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  ollama: # === NOUVEAU SERVICE LLM LOCAL ===
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      # Persiste les modèles téléchargés localement pour un redémarrage stable.
+      - ollama-models:/root/.ollama
+    networks:
+      - laravel-production
+    healthcheck: # Vérifie la disponibilité de l'API HTTP sur le port 11434
+      test: ["CMD", "curl", "-s", "http://localhost:11434/api/generate"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
 
   postgres:
     image: postgres:16
@@ -137,6 +154,7 @@ networks:
   # -----------------------------------------------------------
   # This custom network allows all services within it to communicate using their service names as hostnames.
   # For example, 'php-fpm' can connect to 'postgres' by using 'postgres' as the hostname.
+  # The LLM service will be accessible at http://ollama:11434.
   # -----------------------------------------------------------
   laravel-production:
 
@@ -144,3 +162,4 @@ volumes:
   postgres-data-production:
   laravel-storage-production:
   laravel-public-assets:
+  ollama-models: # === VOLUME POUR LES MODÈLES LLM ===
