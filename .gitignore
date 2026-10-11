@@ -1,6 +1,9 @@
 *.log
 .DS_Store
+# Fichiers d'environnement : ne jamais versionner de secrets. Seul .env.example (sans valeurs sensibles) est suivi.
 .env
+.env.*
+!.env.example
 .phpactor.json
 .phpunit.result.cache
 /.fleet
@@ -20,5 +23,3 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
-.env.local
-.env.production

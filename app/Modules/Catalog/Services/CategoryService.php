@@ -1,0 +1,163 @@
+<?php
+
+namespace App\Modules\Catalog\Services;
+
+use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\Models\Product;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use App\Core\Services\BaseService;
+
+class CategoryService extends BaseService
+{
+    protected array $sortable = ['id', 'name', 'created_at'];
+
+    public function __construct(Category $category)
+    {
+        parent::__construct($category); // Appel du constructeur parent avec une instance de Category
+    }
+    public function getAvailableChildren($parentId = null)
+    {
+        return Category::where('parent_id', $parentId)->pluck('name', 'id');
+    }
+
+    public function create(array $data)
+    {
+        if (isset($data['name'])) {
+            $data['name'] = mb_strtolower(trim($data['name']));
+        }
+        // Logic to create a category
+        $category = Category::create($data);
+        $this->syncChildren($category->id, $data['children'] ?? []);
+        return $category;
+    }
+    public function getAllCategory($filters = [], $isPaginated = true)
+    {
+        // On charge le parent et le nombre de produits associés pour éviter les requêtes N+1
+        $query = Category::with('parent')->withCount('products')->with('children'); // On charge aussi les enfants pour éviter les N+1 dans la vue de création/édition
+
+        // 2. On applique les filtres UNIQUEMENT s'ils sont présents
+        if (!empty($filters)) {
+            $query = $this->applyFilters($query, $filters);
+        }
+        if ($isPaginated) {
+            // 3. Retourne une pagination
+            return $query->paginate($filters['per_page'] ?? 15)->withQueryString();
+        } else {
+            // 3. Retourne une collection simple
+            return $query->get();
+        }
+    }
+
+    /**
+     * Récupère les catégories sous forme de liste plate (ID => Nom)
+     * Idéal pour les selects de formulaires.
+     */
+    public function getCategoriesList(): \Illuminate\Support\Collection
+    {
+        return Category::orderBy('name')->pluck('name', 'id');
+    }
+
+    public function getCategoryById(int $id)
+    {
+        return Category::with('parent')->withCount('products')->with('children')->findOrFail($id);
+    }
+
+    public function getProductsByCategory(int $categoryId, $perPage = 10)
+    {
+        return Product::where('category_id', $categoryId)
+            ->orderBy('name')
+            ->paginate($perPage);
+    }
+
+    public function getCategoryStats()
+    {
+        return [
+            'total_categories' => Category::count(),
+            'most_populated' => Category::withCount('products')
+                ->orderBy('products_count', 'desc')
+                ->first(),
+            'total_products_linked' => Product::whereNotNull('category_id')->count(),
+        ];
+    }
+
+    public function getParentCategoryDistribution()
+    {
+        $categories = Category::whereNull('parent_id')
+            ->withCount('products')
+            ->get();
+
+        return [
+            'labels' => $categories->pluck('name'),
+            'data' => $categories->pluck('products_count'),
+        ];
+    }
+
+    public function update(int $id, array $data)
+    {
+        $category = DB::transaction(function () use ($id, $data) {
+            if (isset($data['name'])) {
+                $data['name'] = mb_strtolower(trim($data['name']));
+            }
+            $category = Category::findOrFail($id);
+            $category->update($data);
+            $this->syncChildren($category->id, $data['children'] ?? []);
+            return $category;
+        });
+        return $category;
+    }
+
+    public function destroy(int $id)
+    {
+        $category = Category::findOrFail($id);
+
+        // Check if category has child categories
+        if ($category->children()->count() > 0) {
+            throw new \Exception("Cannot delete category with child categories.");
+        }
+
+        $category->delete();
+        return true;
+    }
+    public function applyfilters($query, $filters)
+    {
+        $sortableColumns = ['name', 'parent_id', 'created_at'];
+        $sort = in_array($filters['sort'] ?? '', $sortableColumns) ? $filters['sort'] : 'name';
+        $order = ($filters['order'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+
+        $query->when(isset($filters['sort']) && isset($filters['order']), function ($q) use ($sort, $order) {
+            $q->orderBy($sort, $order);
+        })->when(isset($filters['parent_id']), function ($q) use ($filters) {
+            $q->where('parent_id', $filters['parent_id']);
+        });
+        $query = $query->where(function ($q) use ($filters) {
+            if (isset($filters['search'])) {
+                $searchTerm = mb_strtolower($filters['search']);
+                $q->whereLike('name', '%' . $searchTerm . '%');
+            }
+        });
+
+        return $query->orderBy($sort, $order);
+    }
+
+    /**
+     * update category children relationships
+     */
+    protected function syncChildren(int $parentId, array $childrenIds)
+    {
+        // Sécurité : s'assurer que c'est un tableau et qu'on ne s'ajoute pas soi-même comme enfant
+        $childrenIds = is_array($childrenIds) ? $childrenIds : [];
+        $childrenIds = array_diff($childrenIds, [$parentId]);
+
+        // 1. Détacher les anciens enfants (ils deviennent orphelins ou racines)
+        Category::where('parent_id', $parentId)->update(['parent_id' => null]);
+        Log::info("Detached children for category $parentId");
+        Log::info("Children IDs: " . implode(', ', $childrenIds));
+
+        // 2. Attacher les nouveaux enfants sélectionnés
+        if (!empty($childrenIds)) {
+            Log::info("Syncing children for category $parentId: " . implode(', ', $childrenIds));
+            Category::whereIn('id', $childrenIds)->update(['parent_id' => $parentId]);
+        }
+    }
+}

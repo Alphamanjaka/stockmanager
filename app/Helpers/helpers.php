@@ -1,6 +1,6 @@
 <?php
 
-use App\Services\SettingService;
+use App\Core\Services\SettingService;
 
 if (! function_exists('settings')) {
     /**
@@ -8,7 +8,7 @@ if (! function_exists('settings')) {
      *
      * @param  string|null  $key
      * @param  mixed  $default
-     * @return mixed|\App\Services\SettingService
+     * @return mixed|\App\Core\Services\SettingService
      */
     function settings($key = null, $default = null)
     {

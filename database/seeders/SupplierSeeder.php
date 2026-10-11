@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Services\SupplierService;
+use App\Modules\Contact\Services\SupplierService;
 
 class SupplierSeeder extends Seeder
 {

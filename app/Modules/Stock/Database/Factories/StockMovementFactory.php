@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Modules\Stock\Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Modules\Stock\Models\StockMovement;
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Stock\Models\StockMovement>
+ */
+class StockMovementFactory extends Factory
+{
+    protected $model = StockMovement::class;
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        $type = $this->faker->randomElement(['in', 'out']);
+        $qty = $this->faker->numberBetween(1, 100);
+        $signedQty = $type === 'in' ? $qty : -$qty;
+        $before = $this->faker->numberBetween(100, 500);
+
+        return [
+            'product_color_id' => \App\Modules\Catalog\Models\ProductColor::factory(),
+            'type' => $type,
+            'quantity' => $signedQty,
+            'stock_before' => $before,
+            'stock_after' => $before + $signedQty,
+            'reason' => $this->faker->sentence(),
+            'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
+        ];
+    }
+}

@@ -52,7 +52,7 @@ class User extends Authenticatable
      */
     public function sales()
     {
-        return $this->hasMany(\App\Models\Sale::class);
+        return $this->hasMany(\App\Modules\Sale\Models\Sale::class);
     }
 
     /**

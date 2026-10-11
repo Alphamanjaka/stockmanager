@@ -1,0 +1,138 @@
+<?php
+
+namespace App\Modules\Contact\Services;
+
+use App\Modules\Contact\Models\Supplier;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class SupplierService
+{
+    public function getAllSuppliers(array $filters = [])
+    {
+        // Initial query
+        $query = Supplier::query();
+        // Apply filters if any
+        if (!empty($filters)) {
+            $query = $this->applyFilters($query, $filters);
+        }
+        // Return paginated results
+        return $query->paginate($filters['per_page'] ?? 15)->appends(request()->except('page'));
+    }
+
+    public function createSupplier(array $data): Supplier
+    {
+        if (isset($data['name'])) {
+            $data['name'] = mb_strtolower(trim($data['name']));
+        }
+        if (isset($data['email'])) {
+            $data['email'] = mb_strtolower(trim($data['email']));
+        }
+        return Supplier::create($data);
+    }
+
+    public function findByEmail(string $email): ?Supplier
+    {
+        return Supplier::where('email', mb_strtolower(trim($email)))->first();
+    }
+
+    public function getSuppliersByEmails(array $emails)
+    {
+        return Supplier::whereIn('email', $emails)->pluck('id', 'email');
+    }
+
+    public function  applyFilters($query, array $filters)
+    {
+        // On réutilise ta logique de colonnes autorisées
+        $sortableColumns = ['name', 'email', 'created_at'];
+
+        $sort = in_array($filters['sort'] ?? '', $sortableColumns) ? $filters['sort'] : 'created_at';
+        $order = ($filters['order'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
+
+        return $query->when($filters['search'] ?? null, function ($q, $search) {
+            $search = mb_strtolower($search);
+            $q->whereLike('name', "%{$search}%")
+                ->orWhereLike('email', "%{$search}%");
+        })
+            ->orderBy($sort, $order);
+    }
+    public function getSupplierById(int $id)
+    {
+        return Supplier::findOrFail($id);
+    }
+
+    /**
+     * Récupère les détails et statistiques pour un fournisseur donné.
+     *
+     * @param Supplier $supplier
+     * @return array
+     */
+    public function getSupplierDetails(Supplier $supplier): array
+    {
+        $purchases = $supplier->purchases()->where('state', 'Received');
+        // Statistiques globales pour ce fournisseur
+        $totalSpent = $purchases->sum('total_net');
+        $lastPurchase = $purchases->latest()->first();
+
+        // Top 5 des produits achetés chez ce fournisseur
+        // purchase_items référence une variante (product_colors), pas directement un produit
+        $topProducts = DB::table('purchase_items')
+            ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
+            ->join('product_colors', 'purchase_items.product_color_id', '=', 'product_colors.id')
+            ->join('products', 'product_colors.product_id', '=', 'products.id')
+            ->where('purchases.supplier_id', $supplier->id)
+            ->where('purchases.state', 'Received') // Only consider received purchases for top products
+            ->select(
+                'products.name',
+                DB::raw('SUM(purchase_items.quantity) as total_qty'),
+                DB::raw('SUM(purchase_items.subtotal) as total_cost')
+            )
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_qty')
+            ->limit(5)
+            ->get();
+
+        return compact('totalSpent', 'lastPurchase', 'topProducts');
+    }
+
+    public function updateSupplier(Supplier $supplier, array $data): Supplier
+    {
+        if (isset($data['name'])) {
+            $data['name'] = mb_strtolower(trim($data['name']));
+        }
+        if (isset($data['email'])) {
+            $data['email'] = mb_strtolower(trim($data['email']));
+        }
+        $supplier->update($data);
+        return $supplier;
+    }
+
+    /**
+     * @param Supplier $supplier
+     * @return bool
+     * @throws \Exception
+     */
+    /**
+     * Supprime un fournisseur sans jamais effacer ses achats : ils sont conservés, détachés du fournisseur.
+     * (La clé étrangère purchases.supplier_id est aussi en SET NULL ; le détachement explicite garantit
+     * le même résultat quelle que soit la contrainte en base.)
+     *
+     * @return int le nombre d'achats conservés sans fournisseur
+     */
+    public function deleteSupplier(Supplier $supplier): int
+    {
+        return DB::transaction(function () use ($supplier) {
+            $orphaned = $supplier->purchases()->update(['supplier_id' => null]);
+            $supplier->delete();
+
+            Log::warning('Fournisseur supprimé', [
+                'supplier_id' => $supplier->id,
+                'name' => $supplier->name,
+                'purchases_kept_without_supplier' => $orphaned,
+                'by_user_id' => auth()->id(),
+            ]);
+
+            return $orphaned;
+        });
+    }
+}

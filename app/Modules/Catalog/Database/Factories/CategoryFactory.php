@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Modules\Catalog\Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Modules\Catalog\Models\Category;
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Catalog\Models\Category>
+ */
+class CategoryFactory extends Factory
+{
+    protected $model = Category::class;
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            "name" => $this->faker->unique()->randomElement(['tissu', 'creme', 'postiche', 'pommade']),
+            "description" => $this->faker->sentence(),
+            "parent_id" => null, // by default, no parent category
+        ];
+    }
+}

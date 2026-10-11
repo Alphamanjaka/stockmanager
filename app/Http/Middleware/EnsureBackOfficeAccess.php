@@ -19,6 +19,11 @@ class EnsureBackOfficeAccess
             return $next($request);
         }
 
+        // Les appels AJAX/API attendent un code HTTP, pas une redirection vers une page HTML.
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        }
+
         return redirect()->route('dashboard')->with('error', 'Accès refusé. Vous n\'avez pas les permissions nécessaires.');
     }
 }
