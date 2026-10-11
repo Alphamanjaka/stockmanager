@@ -44,7 +44,7 @@ class StockService
             $variant = ProductColor::with('product', 'color')->lockForUpdate()->findOrFail($productColorId);
 
             if ($variant->stock < $quantity) {
-                throw new \Exception("insufficient stock for {$variant->product->name} ({$variant->color->name}).");
+                throw new \Exception("insufficient stock for {$variant->label}.");
             }
 
             $before = $variant->stock;
@@ -95,7 +95,7 @@ class StockService
 
     public function getAllStockMovements(array $filters = [], int $perPage = 15)
     {
-        $query = StockMovement::with(['productColor.product', 'productColor.color']);
+        $query = StockMovement::with(['productColor.product', 'productColor.color', 'productColor.brand']);
 
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
@@ -119,7 +119,7 @@ class StockService
     }
     public function getStockMovementById(int $id): StockMovement
     {
-        return StockMovement::with(['productColor.product', 'productColor.color'])->findOrFail($id);
+        return StockMovement::with(['productColor.product', 'productColor.color', 'productColor.brand'])->findOrFail($id);
     }
 
     public function getStockMovementsForProduct(int $productId, int $perPage = 10)
@@ -127,7 +127,7 @@ class StockService
         return StockMovement::whereHas('productColor', function ($q) use ($productId) {
             $q->where('product_id', $productId);
         })
-            ->with(['productColor.color'])
+            ->with(['productColor.color', 'productColor.product', 'productColor.brand'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
     }
@@ -214,7 +214,7 @@ class StockService
     {
         $cutoffDate = now()->subDays($days);
 
-        return ProductColor::with(['product', 'color'])
+        return ProductColor::with(['product', 'color', 'brand'])
             ->where('stock', '>', 0)
             ->whereNotExists(function ($query) use ($cutoffDate) {
                 $query->select(DB::raw(1))
@@ -233,7 +233,7 @@ class StockService
             ->where('type', 'out')
             ->groupBy('product_color_id')
             ->orderByDesc('total_out')
-            ->with(['productColor.product', 'productColor.color'])
+            ->with(['productColor.product', 'productColor.color', 'productColor.brand'])
             ->limit($limit)
             ->get();
     }

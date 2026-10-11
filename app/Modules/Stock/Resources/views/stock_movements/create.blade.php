@@ -25,10 +25,10 @@
                                 @foreach ($productColors as $item)
                                     <button type="button" class="list-group-item list-group-item-action product-item"
                                         data-id="{{ $item->id }}"
-                                        data-name="{{ $item->product->name }} - {{ $item->color->name }}">
+                                        data-name="{{ $item->label }}">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <span>{{ $item->product->name }}</span>
-                                            <span class="badge bg-secondary rounded-pill">{{ $item->color->code }}</span>
+                                            <span>{{ $item->label }}</span>
+                                            <span class="badge bg-secondary rounded-pill">{{ $item->sku }}</span>
                                         </div>
                                     </button>
                                 @endforeach

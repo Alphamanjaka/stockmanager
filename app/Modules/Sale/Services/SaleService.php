@@ -48,10 +48,10 @@ class SaleService
 
             foreach ($productsData as $item) {
                 // VERROUILLAGE : On verrouille la variante spécifique (Produit + Couleur)
-                $variant = ProductColor::with('product', 'color')->lockForUpdate()->findOrFail($item['product_color_id']);
+                $variant = ProductColor::with('product', 'color', 'brand')->lockForUpdate()->findOrFail($item['product_color_id']);
 
                 if ($variant->stock < $item['quantity']) {
-                    throw new \Exception("Stock insuffisant pour : {$variant->product->name} ({$variant->color->name}) (Disponible: {$variant->stock})");
+                    throw new \Exception("Stock insuffisant pour : {$variant->label} (Disponible: {$variant->stock})");
                 }
 
                 $subtotal = $variant->price * $item['quantity'];
@@ -108,7 +108,7 @@ class SaleService
      */
     public function getAllSales(int $perPage = 15, array $filters = [])
     {
-        return Sale::with(['items.productColor.product', 'items.productColor.color', 'customer', 'user'])
+        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user'])
             ->latest()
             ->when($filters['search'] ?? null, function ($query, $search) {
                 $query->whereLike('reference', "%{$search}%");
@@ -124,7 +124,7 @@ class SaleService
 
     public function getSaleById(int $id): Sale
     {
-        return Sale::with(['items.productColor.product', 'items.productColor.color', 'customer', 'user'])->findOrFail($id);
+        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user'])->findOrFail($id);
     }
 
     /**
@@ -132,7 +132,7 @@ class SaleService
      */
     public function getSaleForSeller(int $id, int $userId): Sale
     {
-        return Sale::with(['items.productColor.product', 'items.productColor.color', 'customer', 'user'])
+        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user'])
             ->where('user_id', $userId)
             ->findOrFail($id);
     }

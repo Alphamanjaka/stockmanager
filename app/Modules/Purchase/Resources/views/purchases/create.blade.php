@@ -79,8 +79,8 @@
                             @forelse($cartItems as $item)
                                 <tr>
                                     <td>
-                                        <div class="fw-bold">{{ $item->product->product->name }}</div>
-                                        <small class="text-muted">{{ $item->product->color->name }}</small>
+                                        <div class="fw-bold">{{ $item->product->label }}</div>
+                                        <small class="text-muted">{{ $item->product->sku }}</small>
                                     </td>
                                     <td class="text-center">{{ $item->quantity }}</td>
                                     <td class="text-end">{{ number_format($item->unit_price, 2, ',', ' ') }}</td>

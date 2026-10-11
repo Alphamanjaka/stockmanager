@@ -132,11 +132,11 @@ class PurchaseController extends Controller
         $searchProducts = $productsVariant->map(function ($product) {
             return [
                 'id' => $product->id,
-                'name' => $product->product->name . ' - ' . $product->color->name,
+                'name' => $product->label,
                 'price' => $product->price,
                 'price_purchase' => $product->price_purchase,
                 'stock' => $product->stock,
-                'searchable' => strtolower($product->product->name . ' ' . $product->color->name),
+                'searchable' => mb_strtolower($product->label . ' ' . $product->sku),
             ];
         });
 
@@ -258,10 +258,10 @@ class PurchaseController extends Controller
         $searchProducts = $productsVariant->map(function ($product) {
             return [
                 'id' => $product->id,
-                'name' => $product->product->name . ' - ' . $product->color->name,
+                'name' => $product->label,
                 'price' => $product->price,
                 'stock' => $product->stock,
-                'searchable' => strtolower($product->product->name . ' ' . $product->color->name),
+                'searchable' => mb_strtolower($product->label . ' ' . $product->sku),
             ];
         });
 

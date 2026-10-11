@@ -2,6 +2,7 @@
 
 namespace App\Modules\Purchase\Services;
 
+use App\Modules\Catalog\Support\VariantOptions;
 use App\Modules\Purchase\Models\Purchase;
 use Illuminate\Support\Facades\DB;
 use App\Modules\Stock\Services\StockService;
@@ -323,14 +324,15 @@ class PurchaseService
             SELECT
                 pc.id, pc.stock, pc.alert_stock, pc.price,
                 p.name as product_name,
-                c.name as color_name,
-                c.code as color_code,
+                p.options as product_options,
+                pc.option_values, pc.sku,
+                b.name as brand_name,
                 lp.unit_price as last_unit_price,
                 lp.supplier_id as last_supplier_id,
                 lp.supplier_name as last_supplier_name
             FROM product_colors pc
             INNER JOIN products p ON pc.product_id = p.id
-            INNER JOIN colors c ON pc.color_id = c.id
+            LEFT JOIN brands b ON pc.brand_id = b.id
             LEFT JOIN (
                 SELECT pi.product_color_id, pi.unit_price, s.id as supplier_id, s.name as supplier_name
                 FROM purchase_items pi
@@ -357,6 +359,13 @@ class PurchaseService
             foreach ($item as $key => $value) {
                 $product->$key = $value;
             }
+
+            $product->label = VariantOptions::label(
+                $product->product_name,
+                json_decode($product->option_values ?? '[]', true) ?? [],
+                $product->brand_name,
+                json_decode($product->product_options ?? 'null', true)
+            );
 
             // Données de repli si aucun historique fournisseur
             if (!$product->last_supplier_id) {
@@ -396,7 +405,7 @@ class PurchaseService
         if (empty($cart)) return collect();
 
         $productIds = array_keys($cart);
-        $products = \App\Modules\Catalog\Models\ProductColor::with(['product', 'color'])->find($productIds);
+        $products = \App\Modules\Catalog\Models\ProductColor::with(['product', 'color', 'brand'])->find($productIds);
 
         return $products->map(function ($product) use ($cart) {
             $item = $cart[$product->id];

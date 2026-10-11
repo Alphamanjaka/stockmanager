@@ -94,7 +94,7 @@ class ProductColorService extends BaseService
     }
     public function getAllWithRelations($filters = [])
     {
-        $query = ProductColor::with(['product.category', 'color']);
+        $query = ProductColor::with(['product.category', 'color', 'brand']);
 
         return $this->applyFilters($query, $filters)->paginate($filters['per_page'] ?? 15);
     }
@@ -157,7 +157,7 @@ class ProductColorService extends BaseService
      */
     public function deleteProductColor(int $variantId): bool
     {
-        $query = ProductColor::with(['product.category', 'color']);
+        $query = ProductColor::with(['product.category', 'color', 'brand']);
 
 
         return $query->findOrFail($variantId)->delete();
@@ -179,14 +179,14 @@ class ProductColorService extends BaseService
      */
     public function getProductById(int $id)
     {
-        return ProductColor::with(['product.category', 'color'])->findOrFail($id);
+        return ProductColor::with(['product.category', 'color', 'brand'])->findOrFail($id);
     }
 
     // Get all stocks with product and color details
 
     public function listAllStocks()
     {
-        return ProductColor::with(['product', 'color'])
+        return ProductColor::with(['product', 'color', 'brand'])
             ->orderBy('created_at', 'desc')
             ->get();
     }
@@ -195,7 +195,7 @@ class ProductColorService extends BaseService
      */
     public function listByProduct(int $productId)
     {
-        return ProductColor::with('color')
+        return ProductColor::with(['color', 'brand', 'product'])
             ->where('product_id', $productId)
             ->get();
     }
@@ -251,7 +251,7 @@ class ProductColorService extends BaseService
      */
     public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
     {
-        return ProductColor::with(['product', 'color'])
+        return ProductColor::with(['product', 'color', 'brand'])
             ->whereHas('product', fn($q) => $q->whereLike('name', "%{$query}%"))
             ->orWhereHas('color', fn($q) => $q->whereLike('name', "%{$query}%"))
             ->limit($limit)

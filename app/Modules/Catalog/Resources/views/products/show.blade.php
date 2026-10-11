@@ -58,7 +58,7 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Color</th>
+                                    <th>Variant</th>
                                     <th>Purchase Price (MGA)</th>
                                     {{-- Prix de vente --}}
                                     <th>Price (MGA)</th>
@@ -71,9 +71,10 @@
                             <tbody id="variants-table-body">
                                 @forelse ($variants as $variant)
                                     <tr>
-                                        <td><span class="badge" style="background-color: {{ $variant->color->code }}">
-                                            </span>
-                                            {{ $variant->color->name }}</td>
+                                        <td>
+                                            <div class="fw-bold">{{ $variant->variant_name ?: 'Default' }}</div>
+                                            <small class="text-muted">{{ $variant->sku }}</small>
+                                        </td>
                                         <td>{{ number_format($variant->price_purchase, 2) }} MGA</td>
                                         <td>{{ number_format($variant->price, 2) }} MGA</td>
                                         <td><span
@@ -122,7 +123,7 @@
                             <option value="">All variants</option>
                             @foreach ($variants as $variant)
                                 <option value="{{ $variant->id }}">
-                                    {{ $variant->color->name }} (ID: {{ $variant->id }})
+                                    {{ $variant->variant_name ?: 'Default' }} ({{ $variant->sku }})
                                 </option>
                             @endforeach
                         </select>
@@ -437,7 +438,7 @@
                                     <small class="fw-bold text-uppercase">${m.type === 'in' ? 'In' : 'Out'}</small>
                                     <small class="text-muted">${new Date(m.created_at).toLocaleDateString()}</small>
                                 </div>
-                                <div class="small">${escapeHtml(m.product_color.color.name)} : <strong>${m.quantity} units</strong></div>
+                                <div class="small">${escapeHtml(m.variant_label)} : <strong>${m.quantity} units</strong></div>
                                 <div class="text-muted extra-small">${escapeHtml(m.reason)}</div>
                             </li>
                         `).join('');

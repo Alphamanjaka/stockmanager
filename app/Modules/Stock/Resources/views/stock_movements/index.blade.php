@@ -236,7 +236,7 @@
                                             <li
                                                 class="list-group-item d-flex justify-content-between align-items-center px-0 py-1">
                                                 <span class="text-truncate"
-                                                    style="max-width: 150px;">{{ $stat->productColor->product->name }}</span>
+                                                    style="max-width: 150px;" title="{{ $stat->productColor->label }}">{{ $stat->productColor->label }}</span>
                                                 <span class="badge bg-primary rounded-pill">-{{ $stat->total_out }}</span>
                                             </li>
                                         @endforeach

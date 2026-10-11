@@ -166,7 +166,7 @@
         <tbody>
             @foreach ($sale->items as $item)
                 <tr>
-                    <td>{{ $item->productColor->product->name }}</td>
+                    <td>{{ $item->productColor->label }}</td>
                     <td class="text-center">{{ $item->quantity }}</td>
                     <td class="text-right">{{ number_format($item->unit_price, 2, ',', ' ') }}</td>
                     <td class="text-right">{{ number_format($item->subtotal, 2, ',', ' ') }}</td>

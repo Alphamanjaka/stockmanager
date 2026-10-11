@@ -16,7 +16,9 @@ class ProductColorControllerAPI extends Controller
             'variants' => $variants->map(function ($variant) {
                 return [
                     'id' => $variant->id,
-                    'color' => $variant->color->name,
+                    'label' => $variant->label,
+                    'sku' => $variant->sku,
+                    'options' => $variant->option_values,
                     'stock' => $variant->stock,
                     'alert_stock' => $variant->alert_stock,
                 ];

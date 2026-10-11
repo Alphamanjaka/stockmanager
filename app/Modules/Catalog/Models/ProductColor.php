@@ -77,6 +77,16 @@ class ProductColor extends Model
         return $this->belongsTo(Brand::class);
     }
 
+    /** Déclinaison seule : "Noir / 30 cm — Bella" (vide pour une variante par défaut). */
+    public function getVariantNameAttribute(): string
+    {
+        return VariantOptions::describe(
+            $this->option_values ?? VariantOptions::fromColor($this->color),
+            $this->brand?->name,
+            $this->product?->options
+        );
+    }
+
     /** Libellé complet : "Postiche lisse — Noir / 30 cm — Bella". */
     public function getLabelAttribute(): string
     {
@@ -88,9 +98,10 @@ class ProductColor extends Model
         );
     }
 
+    /** Libellé complet de la variante (utilisé par toutes les vues). */
     public function toString()
     {
-        return $this->product->name . ' ' . ($this->color->code ?? '');
+        return $this->label;
     }
     public function getCategoryNameAttribute()
     {

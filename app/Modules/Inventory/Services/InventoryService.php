@@ -68,9 +68,9 @@ class InventoryService
     public function linesFor(Inventory $inventory)
     {
         return $inventory->lines()
-            ->with(['productColor.product', 'productColor.color'])
+            ->with(['productColor.product', 'productColor.color', 'productColor.brand'])
             ->get()
-            ->sortBy(fn ($line) => mb_strtolower(($line->productColor->product->name ?? '') . ' ' . ($line->productColor->color->name ?? '')))
+            ->sortBy(fn ($line) => mb_strtolower($line->productColor->label ?? ''))
             ->values();
     }
 

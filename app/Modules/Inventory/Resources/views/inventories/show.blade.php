@@ -65,7 +65,7 @@
 
     <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <input type="search" id="line-filter" class="form-control form-control-sm w-50" placeholder="Filter by product or color...">
+            <input type="search" id="line-filter" class="form-control form-control-sm w-50" placeholder="Filter by product, variant or SKU...">
             @if ($inventory->isDraft())
                 <span class="small text-muted">Leave a line empty to keep its stock unchanged.</span>
             @endif
@@ -75,7 +75,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>Product</th>
-                        <th>Color</th>
+                        <th>Variant</th>
                         <th class="text-end">Expected</th>
                         @if ($inventory->isDraft())
                             <th class="text-end">Current stock</th>
@@ -92,7 +92,10 @@
                         @php $gap = $line->gap(); @endphp
                         <tr class="inventory-line">
                             <td>{{ $line->productColor->product->name ?? '—' }}</td>
-                            <td>{{ $line->productColor->color->name ?? '—' }}</td>
+                            <td>
+                                {{ $line->productColor->variant_name ?: '—' }}
+                                <div class="small text-muted">{{ $line->productColor->sku }}</div>
+                            </td>
                             <td class="text-end">{{ $line->expected_quantity }}</td>
                             @if ($inventory->isDraft())
                                 <td class="text-end">

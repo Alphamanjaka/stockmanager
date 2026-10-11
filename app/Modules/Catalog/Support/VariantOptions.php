@@ -111,20 +111,20 @@ class VariantOptions
     /** Libellé affiché : "Postiche lisse — Noir / 30 cm — Bella". */
     public static function label(string $productName, array $optionValues, ?string $brandName = null, ?array $productOptions = null): string
     {
+        $description = self::describe($optionValues, $brandName, $productOptions);
+
+        return $description === '' ? $productName : "{$productName} — {$description}";
+    }
+
+    /** Déclinaison seule, sans le nom du produit : "Noir / 30 cm — Bella" ('' pour une variante par défaut sans marque). */
+    public static function describe(array $optionValues, ?string $brandName = null, ?array $productOptions = null): string
+    {
         $values = array_filter(
             array_map(fn ($value) => trim((string) $value), self::orderedValues($optionValues, $productOptions)),
             fn ($value) => $value !== ''
         );
 
-        $label = $productName;
-        if ($values) {
-            $label .= ' — ' . implode(' / ', $values);
-        }
-        if ($brandName) {
-            $label .= ' — ' . $brandName;
-        }
-
-        return $label;
+        return implode(' — ', array_filter([implode(' / ', $values), (string) $brandName]));
     }
 
     /**
