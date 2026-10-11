@@ -65,7 +65,7 @@
                         'id' => 'products',
                         'name' => 'Products',
                         'icon' => 'fa-box',
-                        'desc' => 'Import your products and manage their inventory.',
+                        'desc' => 'One row per variant: name, category, brand, price, price_purchase, stock, alert_stock, sku, and one option_<name> column per option (e.g. option_volume, option_color). Existing variants are updated (same SKU, or same product + options + brand).',
                     ],
                     [
                         'id' => 'purchases',

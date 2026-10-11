@@ -11,6 +11,7 @@ use App\Core\Services\BaseService;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Exception;
 
 /**
@@ -225,6 +226,39 @@ class ProductColorService extends BaseService
 
             return $product;
         });
+    }
+
+    /**
+     * Étend les options d'un produit avec une combinaison (import) : axe nouveau ajouté,
+     * valeur nouvelle ajoutée à son axe. Les noms d'axes sont rapprochés sans tenir compte de la casse ni des accents.
+     *
+     * @return array la combinaison avec les noms d'axes du produit
+     */
+    public function extendOptions(Product $product, array $values): array
+    {
+        $product = $this->ensureOptions($product);
+        $options = $product->options;
+        $combination = [];
+
+        foreach ($values as $name => $value) {
+            $index = collect($options)->search(fn ($option) => Str::slug($option['name']) === Str::slug($name));
+            if ($index === false) {
+                $options[] = ['name' => $name, 'values' => [$value]];
+                $combination[$name] = $value;
+                continue;
+            }
+
+            $combination[$options[$index]['name']] = $value;
+            if (!in_array(mb_strtolower($value), array_map('mb_strtolower', $options[$index]['values']), true)) {
+                $options[$index]['values'][] = $value;
+            }
+        }
+
+        if ($options !== $product->options) {
+            $product->update(['options' => $options]);
+        }
+
+        return $combination;
     }
 
     /**

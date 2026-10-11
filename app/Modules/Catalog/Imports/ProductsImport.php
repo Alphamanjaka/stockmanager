@@ -2,24 +2,41 @@
 
 namespace App\Modules\Catalog\Imports;
 
-use App\Modules\Catalog\Events\VariantStockDeclared;
-use App\Modules\Catalog\Models\Color;
 use App\Core\Services\SettingService;
-use App\Modules\Catalog\Services\ProductService;
+use App\Modules\Catalog\Events\VariantStockDeclared;
+use App\Modules\Catalog\Models\Brand;
+use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Catalog\Services\CategoryService;
 use App\Modules\Catalog\Services\ProductColorService;
+use App\Modules\Catalog\Services\ProductService;
+use App\Modules\Catalog\Support\VariantOptions;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Row;
 
+/**
+ * Import des produits et de leurs variantes. Une ligne = une variante.
+ *
+ * Colonnes : name (obligatoire), category, description, brand, price (obligatoire), price_purchase,
+ * stock, alert_stock, sku, et autant de colonnes option_<nom> que nécessaire (ex. option_contenance,
+ * option_couleur, option_taille). L'ancienne colonne « color » est lue comme l'option « Couleur ».
+ *
+ * Une ligne met à jour la variante existante (même SKU, sinon même produit + même combinaison + même marque)
+ * ou la crée ; réimporter un fichier ne crée donc pas de doublon. Une cellule de stock vide ne change pas le stock.
+ */
 class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
 {
+    private const COLOR_COLUMN = 'color';
+    private const OPTION_PREFIX = 'option_';
+
     private int $created = 0;
     private int $updated = 0;
-    private array $categoriesCache = [];
-    private array $colorsCache = [];
-    private array $productsCache = [];
+    private array $products = [];
+    private array $categories = [];
+    private array $brands = [];
 
     public function __construct(
         protected ProductService $productService,
@@ -28,40 +45,146 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
         protected ProductColorService $productColorService
     ) {}
 
-    /**
-     * @param Row $row
-     */
     public function onRow(Row $row)
     {
-        $rowData = $row->toArray();
-        $rowIndex = $row->getIndex();
-
-        // Nettoyage des données d'entrée
-        $name = mb_strtolower(trim($rowData['name']));
-        //  Le prix est traité dans getPriceValue pour gérer les formats comme "8,400"
-        $categoryName = isset($rowData['category']) ? mb_strtolower(trim($rowData['category'])) : null;
-        // La couleur est traitée dans getColorIdByNameOrCreate pour gérer les variantes et les couleurs par défaut
-        $colorName = isset($rowData['color']) ? mb_strtolower(trim($rowData['color'])) : null;
-
         try {
-            $categoryId = $this->getCategoryIdByNameOrCreate($categoryName);
-
-            $productId = $this->getProductIdByNameOrCreate(
-                $name,
-                (float)$rowData['price'],
-                $categoryId
-            );
-
-            $colorId = $this->getColorIdByNameOrCreate($colorName);
-
-            $this->processProductColor(
-                $productId,
-                $colorId,
-                $rowData
-            );
+            $this->importRow($row->toArray());
         } catch (\Throwable $e) {
-            throw new \Exception("Erreur ligne {$rowIndex} : " . $e->getMessage());
+            throw new \Exception("Erreur ligne {$row->getIndex()} : " . $e->getMessage());
         }
+    }
+
+    private function importRow(array $row): void
+    {
+        $brandId = $this->brandId($row['brand'] ?? null);
+        $sku = trim((string) ($row['sku'] ?? ''));
+        $variant = $sku !== '' ? ProductColor::where('sku', $sku)->first() : null;
+
+        if (!$variant) {
+            $product = $this->product($row);
+            $combination = $this->productColorService->extendOptions($product, $this->optionValues($row));
+            $combination = VariantOptions::combination($product->fresh()->options, $combination);
+
+            $variant = ProductColor::where('product_id', $product->id)
+                ->where('signature', VariantOptions::signature($combination, $brandId))
+                ->first();
+
+            if (!$variant) {
+                $this->productColorService->createVariant($product, [
+                    'values' => $combination,
+                    'brand_id' => $brandId,
+                    'price' => $this->number($row['price']),
+                    'price_purchase' => $this->number($row['price_purchase'] ?? null) ?? 0,
+                    'alert_stock' => $this->integer($row['alert_stock'] ?? null) ?? $this->defaultAlertStock(),
+                    'stock' => $this->integer($row['stock'] ?? null) ?? 0,
+                ]);
+                $this->created++;
+
+                return;
+            }
+        }
+
+        // Variante existante : seules les colonnes renseignées sont mises à jour
+        $variant->update(array_filter([
+            'price' => $this->number($row['price'] ?? null),
+            'price_purchase' => $this->number($row['price_purchase'] ?? null),
+            'alert_stock' => $this->integer($row['alert_stock'] ?? null),
+            'brand_id' => $brandId,
+        ], fn ($value) => $value !== null));
+        $this->updated++;
+
+        $stock = $this->integer($row['stock'] ?? null);
+        if ($stock !== null) {
+            // Enregistré comme mouvement par le module Stock
+            VariantStockDeclared::dispatch($variant, max(0, $stock), 'Import Excel');
+        }
+    }
+
+    /** Produit retrouvé par son nom (sans tenir compte de la casse), sinon créé. */
+    private function product(array $row): Product
+    {
+        $name = trim((string) $row['name']);
+        $key = mb_strtolower($name);
+
+        // Seul l'identifiant est mémorisé : le produit est relu à chaque ligne (ses options évoluent pendant l'import)
+        $this->products[$key] ??= (Product::whereRaw('LOWER(name) = ?', [$key])->first()
+            ?? Product::create([
+                'name' => $name,
+                'category_id' => $this->categoryId($row['category'] ?? null),
+                'description' => trim((string) ($row['description'] ?? '')) ?: null,
+                'price' => $this->number($row['price'] ?? null) ?? 0,
+                'options' => [],
+            ]))->id;
+
+        return Product::findOrFail($this->products[$key]);
+    }
+
+    /**
+     * Combinaison lue dans les colonnes option_<nom> (et l'ancienne colonne « color ») : ["Contenance" => "25 ml"].
+     */
+    private function optionValues(array $row): array
+    {
+        $values = [];
+        foreach ($row as $column => $value) {
+            $value = trim((string) $value);
+            if ($value === '') {
+                continue;
+            }
+            if ($column === self::COLOR_COLUMN) {
+                $values[VariantOptions::COLOR_OPTION] = $value;
+            } elseif (str_starts_with((string) $column, self::OPTION_PREFIX)) {
+                $values[Str::ucfirst(str_replace('_', ' ', Str::after($column, self::OPTION_PREFIX)))] = $value;
+            }
+        }
+
+        // L'ancienne couleur technique « No Variant » signifie : pas d'option
+        if (isset($values[VariantOptions::COLOR_OPTION]) && VariantOptions::isNoVariantColor($values[VariantOptions::COLOR_OPTION])) {
+            unset($values[VariantOptions::COLOR_OPTION]);
+        }
+
+        return $values;
+    }
+
+    private function categoryId(?string $name): ?int
+    {
+        $name = mb_strtolower(trim((string) $name));
+        if ($name === '') {
+            return null;
+        }
+
+        return $this->categories[$name] ??= ($this->categoryService->findOneBy(['name' => $name])
+            ?? $this->categoryService->create(['name' => $name]))->id;
+    }
+
+    private function brandId(?string $name): ?int
+    {
+        $name = trim((string) $name);
+        if ($name === '') {
+            return null;
+        }
+
+        return $this->brands[mb_strtolower($name)] ??= (Brand::whereRaw('LOWER(name) = ?', [mb_strtolower($name)])->first()
+            ?? Brand::create(['name' => $name]))->id;
+    }
+
+    /** Nombre saisi « 8,400 » ou « 8 400 » → 8400 (même règle que la validation) ; null si vide. */
+    private function number($value): ?float
+    {
+        $value = str_replace([' ', ','], '', trim((string) $value));
+
+        return $value === '' ? null : max(0, (float) $value);
+    }
+
+    private function integer($value): ?int
+    {
+        $number = $this->number($value);
+
+        return $number === null ? null : (int) $number;
+    }
+
+    private function defaultAlertStock(): int
+    {
+        return (int) ($this->settingService->get('global_alert_threshold') ?? 5);
     }
 
     /**
@@ -70,32 +193,30 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
      */
     public function prepareForValidation($data, $index)
     {
-        if (isset($data['price'])) {
-            $data['price'] = str_replace([' ', ','], '', (string)$data['price']);
+        foreach (['price', 'price_purchase', 'stock', 'alert_stock'] as $column) {
+            if (isset($data[$column])) {
+                $data[$column] = str_replace([' ', ','], '', (string) $data[$column]);
+            }
         }
-        if (isset($data['stock'])) {
-            $data['stock'] = str_replace([' ', ','], '', (string)$data['stock']);
-        }
-        if (isset($data['color'])) {
-            $data['color'] = (string)$data['color'];
-        }
+
         return $data;
     }
 
-    // Validation rules for each row of the import, ensuring data integrity and providing clear error messages for any issues encountered during the import process
     public function rules(): array
     {
         return [
             'name' => 'required|max:255',
             'price' => 'required|numeric|min:0',
-            'color' => 'nullable|string',
-            'alert_stock' => 'nullable|integer|min:0',
+            'price_purchase' => 'nullable|numeric|min:0',
             'stock' => 'nullable|integer|min:0',
-            'description' => 'nullable|string',
+            'alert_stock' => 'nullable|integer|min:0',
+            'sku' => 'nullable|string|max:64',
+            'brand' => 'nullable|string|max:255',
             'category' => 'nullable|string',
+            'description' => 'nullable|string',
         ];
     }
-    // Function to generate a report of the import process, providing insights into the number of products created and updated, as well as any failures encountered during the import
+
     public function getReport(): array
     {
         return [
@@ -104,144 +225,5 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
             'failures' => 0,
             'failure_details' => [],
         ];
-    }
-
-    // function pour gerer le category, creer la catégorie si elle n'existe pas et retourner son id, cacher les catégories déjà vérifiées pour éviter les requêtes répétées
-    private function getCategoryIdByNameOrCreate(?string $name): ?int
-    {
-        if (!$name) {
-            return null;
-        }
-
-        $catName = $name; // Déjà nettoyé dans onRow
-
-        if (array_key_exists($catName, $this->categoriesCache)) {
-            return $this->categoriesCache[$catName];
-        }
-
-        $category = $this->categoryService->findOneBy(['name' => $catName]);
-
-        if (!$category) {
-            $category = $this->categoryService->create(['name' => $catName]);
-        }
-
-        $this->categoriesCache[$catName] = $category->id;
-
-        return $category->id;
-    }
-
-    private function getProductIdByNameOrCreate(string $productName, float $price, ?int $categoryId): int
-    {
-        if (array_key_exists($productName, $this->productsCache)) {
-            return $this->productsCache[$productName];
-        }
-
-        $existingProduct = $this->productService->findOneBy(['name' => $productName]);
-
-        if ($existingProduct) {
-            $this->productsCache[$productName] = $existingProduct->id;
-            return $existingProduct->id;
-        }
-
-        $newProduct = $this->productService->create([
-            'name' => $productName,
-            'price' => $price,
-            'category_id' => $categoryId,
-        ]);
-
-        $this->productsCache[$productName] = $newProduct->id;
-        return $newProduct->id;
-    }
-
-    private function getColorIdByNameOrCreate(?string $colorName): ?int
-    {
-        if (!$colorName) {
-            // Si vide, on vérifie si on a une couleur par défaut "No Variant" en cache
-            if (array_key_exists('__default_no_variant__', $this->colorsCache)) {
-                return $this->colorsCache['__default_no_variant__'];
-            }
-
-            // Sinon on la cherche en base (insensible à la casse)
-            $noVariant = Color::whereRaw('LOWER(name) IN (?, ?)', ['no variant', 'sans variante'])->first();
-
-            if ($noVariant) {
-                $this->colorsCache['__default_no_variant__'] = $noVariant->id;
-                return $noVariant->id;
-            }
-
-            return null;
-        }
-
-        // Cas où une couleur est spécifiée dans le fichier
-        if (array_key_exists($colorName, $this->colorsCache)) {
-            return $this->colorsCache[$colorName];
-        }
-
-        // Note: Utilisation de Color directement car ProductColorService gère les variantes, pas les noms de couleurs
-        $color = Color::whereRaw('LOWER(name) = ?', [$colorName])->first();
-
-        if (!$color) {
-            $color = Color::create(['name' => $colorName, 'code' => $colorName]);
-        }
-
-        $this->colorsCache[$colorName] = $color->id;
-        return $color->id;
-    }
-
-    private function processProductColor(int $productId, ?int $colorId, array $rowData)
-    {
-        // Chercher si cette variante (Produit + Couleur) existe déjà
-        $variant = $this->productColorService->findOneBy([
-            'product_id' => $productId,
-            'color_id' => $colorId
-        ]);
-
-        $data = [
-            'product_id' => $productId,
-            'color_id' => $colorId,
-            'price' => $this->getPriceValue($rowData['price']),
-            'alert_stock' => $this->getAlertStockValue(isset($rowData['alert_stock']) ? (int)$rowData['alert_stock'] : null),
-            'description' => $this->getDescriptionValue($rowData['description'] ?? null),
-        ];
-
-        if ($variant) {
-            $variant = $this->productColorService->update($variant->id, $data);
-            $this->updated++;
-        } else {
-            $variant = $this->productColorService->create($data);
-            $this->created++;
-        }
-
-        // Le stock n'est appliqué que s'il est renseigné dans le fichier (une cellule vide ne remet plus le stock à 0).
-        // Il est enregistré comme mouvement par le module Stock.
-        if (isset($rowData['stock']) && $rowData['stock'] !== '') {
-            VariantStockDeclared::dispatch($variant, $this->getStockValue((int) $rowData['stock']), 'Import Excel');
-        }
-    }
-
-    private function getStockValue(int $stock): int
-    {
-        return max(0, (int)$stock);
-    }
-
-    private function getAlertStockValue(?int $alertStock): int
-    {
-        if (is_null($alertStock) || $alertStock < 0) {
-            return $this->settingService->get('global_alert_threshold') ?? 10;
-        }
-        return (int)$alertStock;
-    }
-
-    private function getPriceValue($price): float
-    {
-        return max(0, (float)$price);
-    }
-
-    private function getDescriptionValue(?string $description): ?string
-    {
-        if (is_null($description) || trim($description) === '') {
-            return null;
-        }
-        return $description;
     }
 }

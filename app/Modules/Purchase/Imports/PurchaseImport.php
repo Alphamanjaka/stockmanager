@@ -56,6 +56,10 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
                 return [($item->p_name . '|' . $item->c_name) => $item->id];
             });
 
+        // Identification par SKU (prioritaire) : indispensable pour les variantes sans couleur (ex. gel 25 ml / 30 ml)
+        $variantsBySku = ProductColor::whereIn('sku', $rows->pluck('sku')->filter()->map(fn ($sku) => trim((string) $sku)))
+            ->pluck('id', 'sku');
+
         // On groupe les lignes par 'reference_groupe' pour créer un achat avec plusieurs items
         $groupedPurchases = $rows->groupBy('reference_groupe');
 
@@ -73,13 +77,13 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
             $purchaseItems = [];
 
             foreach ($items as $item) {
-                $productName = (string) $item['nom_produit'];
-                $colorName = (string) $item['couleur_produit'];
-                $variantKey = $productName . '|' . $colorName;
+                $sku = trim((string) ($item['sku'] ?? ''));
+                $variantKey = ((string) ($item['nom_produit'] ?? '')) . '|' . ((string) ($item['couleur_produit'] ?? ''));
+                $variantId = $sku !== '' ? ($variantsBySku[$sku] ?? null) : ($variants[$variantKey] ?? null);
 
-                if (isset($variants[$variantKey])) {
+                if ($variantId) {
                     $purchaseItems[] = [
-                        'product_color_id' => $variants[$variantKey],
+                        'product_color_id' => $variantId,
                         'quantity'   => $item['quantite'],
                         'unit_price' => $item['cout_unitaire'],
                     ];
@@ -99,8 +103,9 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
         return [
             'reference_groupe'  => 'required|string',
             'email_fournisseur' => 'required|email|exists:suppliers,email',
-            'nom_produit'       => 'required|string',
-            'couleur_produit'   => 'required|string',
+            'sku'               => 'nullable|string|max:64',
+            'nom_produit'       => 'required_without:sku|nullable|string',
+            'couleur_produit'   => 'required_without:sku|nullable|string',
             'quantite'          => 'required|integer|min:1',
             'cout_unitaire'     => 'required|numeric|min:0',
         ];
