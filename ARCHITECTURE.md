@@ -10,7 +10,7 @@ app/
 ├── Core/                     Socle : authentification, utilisateurs, paramètres, sauvegardes,
 │                             tableaux de bord, recherche globale, import centralisé
 ├── Modules/
-│   ├── Catalog/              Produits, variantes (produit + couleur), catégories, couleurs
+│   ├── Catalog/              Produits, variantes (options libres, marque, SKU), catégories, couleurs, marques
 │   ├── Stock/                Mouvements de stock, alertes, valorisation
 │   ├── Inventory/            Inventaires physiques (comptage, écarts, ajustement du stock)
 │   ├── Purchase/             Achats fournisseurs, panier, réapprovisionnement depuis les ruptures
@@ -119,6 +119,11 @@ class Purchase extends Model { use HasFactory; }
 
 class PurchaseFactory extends Factory { protected $model = Purchase::class; }
 ```
+
+## Variantes flexibles
+
+Les variantes ne dépendent plus d'une couleur obligatoire : options libres en JSONB, marque et SKU généré.
+Conception, procédure de migration en production et tests sur PostgreSQL : voir [docs/migration-variantes.md](docs/migration-variantes.md).
 
 ## Tests
 
