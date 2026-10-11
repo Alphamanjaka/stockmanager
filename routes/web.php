@@ -8,12 +8,10 @@ use App\Core\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
-// Routes d'authentification (publiques)
+// Connexion (publique). Pas d'inscription publique : les comptes sont créés par un administrateur.
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginPage'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
-    Route::get('/register', [AuthController::class, 'showRegisterPage'])->name('register');
-    Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
 });
 
 // language settings

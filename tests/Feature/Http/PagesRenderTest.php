@@ -170,7 +170,7 @@ class PagesRenderTest extends TestCase
     /** @test */
     public function guest_pages_render()
     {
-        $this->assertPagesRender(['/login', '/register']);
+        $this->assertPagesRender(['/login']);
     }
 
     private function assertPagesRender(array $urls): void

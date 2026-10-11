@@ -169,22 +169,6 @@
             transform: translateY(0);
         }
 
-        .register-link {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
-        }
-
-        .register-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .register-link a:hover {
-            text-decoration: underline;
-        }
-
         .alert {
             border-radius: 8px;
             margin-bottom: 20px;
@@ -310,9 +294,6 @@
                 </button>
             </form>
 
-            {{-- <div class="register-link">
-                Not registered yet? <a href="{{ route('register') }}">Create an account</a>
-            </div> --}}
         </div>
     </div>
 
