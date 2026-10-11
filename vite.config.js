@@ -24,8 +24,16 @@ export default defineConfig({
         tailwindcss(),
     ],
     server: {
+        // Docker : écouter sur toutes les interfaces du conteneur, le navigateur passe par localhost:5173
+        host: "0.0.0.0",
+        port: 5173,
+        strictPort: true,
+        hmr: { host: "localhost" },
         watch: {
             ignored: ["**/storage/framework/views/**"],
+            // Les fichiers modifiés sous Windows ne génèrent pas d'événement dans un conteneur : scrutation (Docker uniquement)
+            usePolling: process.env.VITE_POLLING === "true",
+            interval: 300,
         },
     },
 });

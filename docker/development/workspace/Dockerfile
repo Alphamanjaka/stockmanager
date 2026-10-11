@@ -79,6 +79,9 @@ RUN export NVM_DIR="$HOME/.nvm" && \
     nvm alias default ${NODE_VERSION} && \
     nvm use default
 
+# node, npm et npx dans le PATH, y compris pour « docker compose exec workspace npm ... » (shell non interactif)
+ENV PATH=/home/www/.nvm/versions/node/v${NODE_VERSION}/bin:$PATH
+
 # Ensure NVM is available for all future shells
 RUN echo 'export NVM_DIR="$HOME/.nvm"' >> /home/www/.bashrc && \
     echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> /home/www/.bashrc && \
