@@ -7,6 +7,7 @@ return [
     'inventory' => 'Inventory',
     'products' => 'Products',
     'categories' => 'Categories',
+    'brands' => 'Brands',
     'colors' => 'Colors',
     'stock_counts' => 'Stock counts',
     'movements' => 'Movements',

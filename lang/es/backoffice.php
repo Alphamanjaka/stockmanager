@@ -7,6 +7,7 @@ return [
     'inventory' => 'Inventario',
     'products' => 'Productos',
     'categories' => 'Categorías',
+    'brands' => 'Marcas',
     'colors' => 'Colores',
     'stock_counts' => 'Recuentos de inventario',
     'movements' => 'Movimientos',

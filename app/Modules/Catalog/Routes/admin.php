@@ -2,6 +2,7 @@
 
 // Back office (préfixe /admin, noms admin.*, protégé par ModuleServiceProvider)
 
+use App\Modules\Catalog\Http\Controllers\BrandController;
 use App\Modules\Catalog\Http\Controllers\CategoryController;
 use App\Modules\Catalog\Http\Controllers\ColorController;
 use App\Modules\Catalog\Http\Controllers\ProductColorController;
@@ -21,3 +22,4 @@ Route::get('/products/export/pdf', [ProductColorController::class, 'exportPdf'])
 
 Route::resource('categories', CategoryController::class);
 Route::resource('colors', ColorController::class)->except(['show']);
+Route::resource('brands', BrandController::class)->except(['show']);

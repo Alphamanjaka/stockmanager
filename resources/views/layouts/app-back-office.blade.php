@@ -63,6 +63,11 @@
                             <span class="sidebar-text">{{ __('backoffice.colors') }}</span>
                             <span class="shortcut-badge">Alt+C</span>
                         </a>
+                        <a href="{{ route('admin.brands.index') }}"
+                            class="{{ request()->is('admin/brands*') ? 'text-primary fw-bold' : '' }}">
+                            <span><i class="fas fa-tags fa-fw me-2"></i></span>
+                            <span class="sidebar-text">{{ __('backoffice.brands') }}</span>
+                        </a>
                         <a href="{{ route('admin.movements.index') }}"
                             class="{{ request()->is('admin/movements*') ? 'text-primary fw-bold' : '' }}"
                             data-shortcut="m" title="{{ __('backoffice.movements') }} (Alt + M)">
