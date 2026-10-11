@@ -140,5 +140,44 @@
                 <div class="d-flex justify-content-center mt-3">{{ $purchases->links() }}</div>
             </div>
         </div>
+
+        {{-- Suppression volontairement difficile : il faut retaper le nom exact du fournisseur --}}
+        <div class="card border-danger shadow-sm mt-5">
+            <div class="card-header bg-danger text-white fw-bold">Danger zone</div>
+            <div class="card-body">
+                <p class="mb-2">
+                    Deleting this supplier is permanent.
+                    @if ($purchases->total() > 0)
+                        Its <strong>{{ $purchases->total() }} purchase(s)</strong> will be kept, but without supplier.
+                    @endif
+                </p>
+                <form action="{{ route('admin.suppliers.destroy', $supplier->id) }}" method="POST" class="row g-2 align-items-end"
+                    id="delete-supplier-form">
+                    @csrf
+                    @method('DELETE')
+                    <div class="col-md-8">
+                        <label for="confirm_name" class="form-label small">
+                            Type <strong>{{ $supplier->name }}</strong> to confirm
+                        </label>
+                        <input type="text" id="confirm_name" name="confirm_name" class="form-control" autocomplete="off"
+                            data-expected="{{ $supplier->name }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" id="delete-supplier-button" class="btn btn-outline-danger w-100" disabled>
+                            <i class="bi bi-trash"></i> Delete this supplier
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
+
+    @push('scripts')
+        <script>
+            // Le bouton ne s'active que si le nom tapé correspond exactement (vérifié aussi côté serveur)
+            document.getElementById('confirm_name').addEventListener('input', function () {
+                document.getElementById('delete-supplier-button').disabled = this.value.trim() !== this.dataset.expected;
+            });
+        </script>
+    @endpush
 @endsection

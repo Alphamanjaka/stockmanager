@@ -96,13 +96,20 @@ class SupplierController extends Controller
     /**
      * Suppression (si aucun achat lié).
      */
-    public function destroy(Supplier $supplier)
+    public function destroy(Request $request, Supplier $supplier)
     {
+        // Suppression volontairement difficile : le nom exact du fournisseur doit être retapé
+        if (trim((string) $request->input('confirm_name')) !== $supplier->name) {
+            return back()->with('error', 'Suppression annulée : le nom saisi ne correspond pas au fournisseur.');
+        }
+
         try {
-            $this->supplierService->deleteSupplier($supplier);
+            $orphaned = $this->supplierService->deleteSupplier($supplier);
 
             return redirect()->route('admin.suppliers.index')
-                ->with('success', 'Fournisseur supprimé.');
+                ->with('success', $orphaned > 0
+                    ? "Fournisseur supprimé. Ses {$orphaned} achat(s) sont conservés, sans fournisseur."
+                    : 'Fournisseur supprimé.');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }

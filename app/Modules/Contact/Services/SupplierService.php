@@ -4,6 +4,7 @@ namespace App\Modules\Contact\Services;
 
 use App\Modules\Contact\Models\Supplier;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SupplierService
 {
@@ -111,12 +112,27 @@ class SupplierService
      * @return bool
      * @throws \Exception
      */
-    public function deleteSupplier(Supplier $supplier): bool
+    /**
+     * Supprime un fournisseur sans jamais effacer ses achats : ils sont conservés, détachés du fournisseur.
+     * (La clé étrangère purchases.supplier_id est aussi en SET NULL ; le détachement explicite garantit
+     * le même résultat quelle que soit la contrainte en base.)
+     *
+     * @return int le nombre d'achats conservés sans fournisseur
+     */
+    public function deleteSupplier(Supplier $supplier): int
     {
-        if ($supplier->purchases()->exists()) {
-            throw new \Exception('Impossible de supprimer ce fournisseur : des achats y sont liés.');
-        }
+        return DB::transaction(function () use ($supplier) {
+            $orphaned = $supplier->purchases()->update(['supplier_id' => null]);
+            $supplier->delete();
 
-        return $supplier->delete();
+            Log::warning('Fournisseur supprimé', [
+                'supplier_id' => $supplier->id,
+                'name' => $supplier->name,
+                'purchases_kept_without_supplier' => $orphaned,
+                'by_user_id' => auth()->id(),
+            ]);
+
+            return $orphaned;
+        });
     }
 }
