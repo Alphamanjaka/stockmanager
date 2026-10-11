@@ -8,6 +8,7 @@ use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Catalog\Models\Color;
 use App\Modules\Catalog\Support\VariantOptions;
 use App\Core\Services\BaseService;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -124,56 +125,163 @@ class ProductColorService extends BaseService
     }
 
     /**
-     * Create a new ProductColor variant.
+     * Ajoute une variante à un produit existant (fiche produit).
+     *
+     * $data['values'] : une valeur par option du produit ; une valeur nouvelle (ex. « 35 ml »)
+     * est ajoutée aux options du produit.
+     *
+     * @throws Exception si le produit n'a pas d'option (une seule variante possible) ou si la variante existe déjà
      */
-    public function createProductColor(array $data): ProductColor
+    public function createVariant(Product $product, array $data): ProductColor
     {
-        // Ensure uniqueness of color for a given product
-        if (ProductColor::where('product_id', $data['product_id'])->where('color_id', $data['color_id'])->exists()) {
-            throw new Exception("Cette couleur est déjà associée à ce produit.");
-        }
+        return DB::transaction(function () use ($product, $data) {
+            $product = $this->ensureOptions(Product::lockForUpdate()->findOrFail($product->id));
+            $options = $product->options;
 
-        return DB::transaction(function () use ($data) {
-            $stock = (int) ($data['stock'] ?? 0);
-            unset($data['stock']);
-            $data['alert_stock'] ??= $this->defaultAlertStock();
+            if ($options === [] && $product->productColors()->exists()) {
+                throw new Exception("Ce produit n'a pas d'option : définissez d'abord une option (ex. Contenance) pour créer d'autres variantes.");
+            }
 
-            $productColor = ProductColor::create($data);
+            $combination = $this->requireCombination($options, $data['values'] ?? []);
+            $brandId = !empty($data['brand_id']) ? (int) $data['brand_id'] : null;
+            $this->ensureUnique($product->id, $combination, $brandId);
+            $this->appendNewValues($product, $combination);
+
+            $variant = ProductColor::create([
+                'product_id' => $product->id,
+                'option_values' => $combination,
+                // Transition : color_id rempli pour que l'ancienne version du code reste utilisable
+                'color_id' => VariantOptions::legacyColorId($combination),
+                'brand_id' => $brandId,
+                'price' => $data['price'] ?? $product->price ?? 0,
+                'price_purchase' => $data['price_purchase'] ?? 0,
+                'alert_stock' => $data['alert_stock'] ?? $this->defaultAlertStock(),
+            ]);
+
             // Stock initial : enregistré comme mouvement par le module Stock
-            VariantStockDeclared::dispatch($productColor, $stock, 'Stock initial (nouvelle variante)');
+            VariantStockDeclared::dispatch($variant, (int) ($data['stock'] ?? 0), 'Stock initial (nouvelle variante)');
 
-            return $productColor;
+            return $variant;
         });
     }
 
     /**
-     * Update an existing ProductColor variant.
-     * Un changement de stock saisi ici est enregistré comme mouvement de correction.
+     * Modifie une variante : combinaison, marque, prix, seuil et stock (corrigé par un mouvement).
+     * Le SKU ne change pas : c'est une référence stable.
+     *
+     * @throws Exception si la nouvelle combinaison existe déjà sur une autre variante du produit
      */
-    public function updateProductColor(int $variantId, array $data): ProductColor
+    public function updateVariant(int $variantId, array $data): ProductColor
     {
-        $productColor = ProductColor::findOrFail($variantId);
+        return DB::transaction(function () use ($variantId, $data) {
+            $variant = ProductColor::with('product')->findOrFail($variantId);
+            $product = $this->ensureOptions(Product::lockForUpdate()->findOrFail($variant->product_id));
 
-        // Une couleur ne peut apparaître qu'une fois par produit
-        if (isset($data['color_id']) && (int) $data['color_id'] !== $productColor->color_id
-            && ProductColor::where('product_id', $productColor->product_id)->where('color_id', $data['color_id'])->exists()) {
-            throw new Exception("Cette couleur est déjà associée à ce produit.");
+            $combination = $this->requireCombination($product->options, $data['values'] ?? []);
+            $brandId = !empty($data['brand_id']) ? (int) $data['brand_id'] : null;
+            $this->ensureUnique($product->id, $combination, $brandId, $variant->id);
+            $this->appendNewValues($product, $combination);
+
+            $variant->update([
+                'option_values' => $combination,
+                'color_id' => VariantOptions::legacyColorId($combination),
+                'brand_id' => $brandId,
+                'price' => $data['price'],
+                'price_purchase' => $data['price_purchase'] ?? 0,
+                'alert_stock' => $data['alert_stock'] ?? $this->defaultAlertStock(),
+            ]);
+
+            if (array_key_exists('stock', $data) && $data['stock'] !== null) {
+                VariantStockDeclared::dispatch($variant, (int) $data['stock'], 'Correction manuelle (fiche produit)');
+            }
+
+            return $variant;
+        });
+    }
+
+    /**
+     * Met à jour les options et spécifications d'un produit.
+     * Une option ou une valeur utilisée par une variante ne peut pas être retirée.
+     *
+     * @throws Exception si une valeur utilisée disparaît
+     */
+    public function updateOptions(Product $product, array $optionRows, array $specRows): Product
+    {
+        return DB::transaction(function () use ($product, $optionRows, $specRows) {
+            // Une option sans valeur n'a pas de sens sur un produit : elle est ignorée
+            $options = array_values(array_filter(VariantOptions::normalizeOptions($optionRows), fn ($option) => $option['values'] !== []));
+
+            foreach ($product->productColors as $variant) {
+                foreach ($variant->option_values ?? [] as $name => $value) {
+                    $option = collect($options)->first(fn ($candidate) => mb_strtolower($candidate['name']) === mb_strtolower($name));
+                    $kept = $option && in_array(mb_strtolower($value), array_map('mb_strtolower', $option['values']), true);
+                    if (!$kept) {
+                        throw new Exception("« {$name} : {$value} » est utilisé par la variante {$variant->sku} : modifiez ou supprimez d'abord cette variante.");
+                    }
+                }
+            }
+
+            $product->update(['options' => $options, 'specs' => $this->normalizeSpecs($specRows)]);
+
+            return $product;
+        });
+    }
+
+    /**
+     * Produit ancien dont les options n'ont pas encore été remplies (catalog:migrate-variants) :
+     * elles sont reconstituées à partir des combinaisons de ses variantes, pour ne jamais les écraser.
+     */
+    private function ensureOptions(Product $product): Product
+    {
+        if ($product->options === null) {
+            $product->update(['options' => VariantOptions::optionsFromVariants($product->productColors()->pluck('option_values')->filter())]);
         }
 
-        return DB::transaction(function () use ($productColor, $data) {
-            $stock = array_key_exists('stock', $data) ? (int) $data['stock'] : null;
-            unset($data['stock']);
-            if (array_key_exists('alert_stock', $data)) {
-                $data['alert_stock'] ??= $this->defaultAlertStock();
-            }
+        return $product;
+    }
 
-            $productColor->update($data);
-            if ($stock !== null) {
-                VariantStockDeclared::dispatch($productColor, $stock, 'Correction manuelle (fiche produit)');
+    /** Combinaison complète (une valeur non vide par option du produit), sinon exception. */
+    private function requireCombination(array $options, array $values): array
+    {
+        $combination = VariantOptions::combination($options, $values);
+        foreach ($combination as $name => $value) {
+            if ($value === '') {
+                throw new Exception("Indiquez une valeur pour « {$name} ».");
             }
+        }
 
-            return $productColor;
-        });
+        return $combination;
+    }
+
+    /** Une même combinaison (même marque) ne peut exister qu'une fois par produit. */
+    private function ensureUnique(int $productId, array $combination, ?int $brandId, ?int $ignoreVariantId = null): void
+    {
+        $exists = ProductColor::where('product_id', $productId)
+            ->where('signature', VariantOptions::signature($combination, $brandId))
+            ->when($ignoreVariantId, fn ($query) => $query->whereKeyNot($ignoreVariantId))
+            ->exists();
+
+        if ($exists) {
+            throw new Exception('Cette variante existe déjà pour ce produit.');
+        }
+    }
+
+    /** Ajoute aux options du produit les valeurs nouvelles d'une combinaison (ex. « 35 ml »). */
+    private function appendNewValues(Product $product, array $combination): void
+    {
+        $options = $product->options ?? [];
+        foreach ($options as &$option) {
+            $value = $combination[$option['name']] ?? null;
+            $known = array_map('mb_strtolower', $option['values']);
+            if ($value !== null && !in_array(mb_strtolower($value), $known, true)) {
+                $option['values'][] = $value;
+            }
+        }
+        unset($option);
+
+        if ($options !== ($product->options ?? [])) {
+            $product->update(['options' => $options]);
+        }
     }
 
     /**
@@ -181,10 +289,16 @@ class ProductColorService extends BaseService
      */
     public function deleteProductColor(int $variantId): bool
     {
-        $query = ProductColor::with(['product.category', 'color', 'brand']);
-
-
-        return $query->findOrFail($variantId)->delete();
+        try {
+            // Transaction dédiée : un refus de la base (variante déjà vendue) est annulé proprement
+            return DB::transaction(fn () => ProductColor::findOrFail($variantId)->delete());
+        } catch (QueryException $e) {
+            // SQLSTATE 23xxx : la variante est référencée par des ventes
+            if (str_starts_with((string) $e->getCode(), '23')) {
+                throw new Exception('Cette variante a déjà été vendue : elle ne peut pas être supprimée.');
+            }
+            throw $e;
+        }
     }
 
 

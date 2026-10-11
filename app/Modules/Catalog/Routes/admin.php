@@ -14,6 +14,7 @@ Route::patch('/products/main/{id}/update-details', [ProductColorController::clas
 // Gestion des variantes depuis la fiche produit
 Route::post('/products/{productId}/variants', [ProductColorController::class, 'storeVariant'])->name('products.variants.store');
 Route::put('/products/variants/{variantId}', [ProductColorController::class, 'updateVariant'])->name('products.variants.update');
+Route::put('/products/{product}/options', [ProductColorController::class, 'updateOptions'])->whereNumber('product')->name('products.options.update');
 Route::delete('/products/variants/{variantId}', [ProductColorController::class, 'destroyVariant'])->name('products.variants.destroy');
 
 // Pas de edit/update : la fiche produit (show) édite les informations et les variantes en AJAX

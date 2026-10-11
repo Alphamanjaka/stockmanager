@@ -113,10 +113,9 @@ class ProductColorController extends Controller
         $product = $this->productService->getById($id); // Ceci est le modèle Product principal
         $variants = $this->productColorService->listByProduct($id); // Ce sont les modèles ProductColor
         $categories = $this->categoryService->getAll([], false); // Toutes les catégories pour l'édition du produit
-        $colors = $this->colorService->getAll([], false); // Toutes les couleurs pour la création/édition de variantes
+        $brands = Brand::orderBy('name')->get(['id', 'name']);
 
-        // Passe toutes les données nécessaires à la vue pour le rendu initial
-        return view('catalog::products.show', compact('product', 'variants', 'categories', 'colors'));
+        return view('catalog::products.show', compact('product', 'variants', 'categories', 'brands'));
     }
 
     /**
@@ -148,16 +147,10 @@ class ProductColorController extends Controller
      */
     public function storeVariant(Request $request, int $productId)
     {
-        $validated = $request->validate([
-            'color_id' => 'required|exists:colors,id',
-            'stock' => 'required|integer|min:0',
-            'price_purchase' => 'required|numeric|min:0',
-            'price' => 'required|numeric|min:0',
-            'alert_stock' => 'nullable|integer|min:0',
-        ]);
+        $validated = $request->validate($this->variantRules() + ['stock' => 'nullable|integer|min:0']);
 
         try {
-            $this->productColorService->createProductColor(array_merge($validated, ['product_id' => $productId]));
+            $this->productColorService->createVariant($this->productService->getById($productId), $validated);
             return back()->with('success', 'Variante ajoutée avec succès.');
         } catch (\Exception $e) {
             return back()->with('error', 'Erreur lors de l\'ajout de la variante : ' . $e->getMessage());
@@ -169,20 +162,53 @@ class ProductColorController extends Controller
      */
     public function updateVariant(Request $request, int $variantId)
     {
-        $validated = $request->validate([
-            'color_id' => 'required|exists:colors,id', // Allow changing color, but ensure it's unique for the product
-            'stock' => 'required|integer|min:0',
-            'price_purchase' => 'required|numeric|min:0',
-            'price' => 'required|numeric|min:0',
-            'alert_stock' => 'nullable|integer|min:0',
-        ]);
+        $validated = $request->validate($this->variantRules() + ['stock' => 'required|integer|min:0']);
 
         try {
-            $this->productColorService->updateProductColor($variantId, $validated);
+            $this->productColorService->updateVariant($variantId, $validated);
             return back()->with('success', 'Variante mise à jour avec succès.');
         } catch (\Exception $e) {
             return back()->with('error', 'Erreur lors de la mise à jour de la variante : ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Options et spécifications du produit (fiche produit).
+     */
+    public function updateOptions(Request $request, int $product)
+    {
+        $request->validate([
+            'options' => 'nullable|array|max:5',
+            'options.*.name' => ['nullable', 'string', 'max:50', 'regex:/^[^\[\]]*$/'],
+            'options.*.values' => 'nullable|string|max:1000',
+            'specs' => 'nullable|array|max:30',
+            'specs.*.key' => 'nullable|string|max:100',
+            'specs.*.value' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            $this->productColorService->updateOptions(
+                $this->productService->getById($product),
+                $request->input('options', []),
+                $request->input('specs', [])
+            );
+            return back()->with('success', 'Options et spécifications mises à jour.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /** Champs communs à l'ajout et à la modification d'une variante. */
+    private function variantRules(): array
+    {
+        return [
+            'values' => 'nullable|array',
+            'values.*' => 'nullable|string|max:100',
+            'brand_id' => 'nullable|exists:brands,id',
+            'price' => 'required|numeric|min:0',
+            'price_purchase' => 'nullable|numeric|min:0',
+            'alert_stock' => 'nullable|integer|min:0',
+        ];
     }
 
     /**

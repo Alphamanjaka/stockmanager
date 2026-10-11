@@ -28,10 +28,29 @@
                             class="badge bg-info text-dark">{{ $product->category->name ?? 'N/A' }}</span> |
                         variant number : <span id="variant-count" class="fw-bold">{{ $variants->count() }}</span>
                     </p>
+                    <div class="mt-2 small">
+                        @forelse ($product->options ?? [] as $option)
+                            <span class="badge bg-light text-dark border me-1">{{ $option['name'] }} : {{ implode(', ', $option['values']) }}</span>
+                        @empty
+                            <span class="text-muted">No options (single variant)</span>
+                        @endforelse
+                    </div>
+                    @if (!empty($product->specs))
+                        <div class="mt-1 small text-muted">
+                            @foreach ($product->specs as $key => $value)
+                                <span class="me-3"><strong>{{ $key }}</strong> : {{ $value }}</span>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
-                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProductModal">
-                    <i class="fas fa-edit me-1"></i> edit general information
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#optionsModal">
+                        <i class="fas fa-sliders-h me-1"></i> options &amp; specifications
+                    </button>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProductModal">
+                        <i class="fas fa-edit me-1"></i> edit general information
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -49,8 +68,10 @@
                 {{-- Table des Variantes --}}
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Color Variants & Stocks</h5>
-                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addVariantModal">
+                        <h5 class="mb-0">Variants & Stocks</h5>
+                        @php $canAddVariant = !empty($product->options) || $variants->isEmpty(); @endphp
+                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addVariantModal"
+                            @disabled(!$canAddVariant) title="{{ $canAddVariant ? '' : 'Add an option first (options & specifications)' }}">
                             <i class="fas fa-plus me-1"></i> Add a variant
                         </button>
                     </div>
@@ -84,7 +105,9 @@
                                         <td class="text-end">
                                             <button class="btn btn-sm btn-outline-primary edit-variant-btn"
                                                 data-bs-toggle="modal" data-bs-target="#editVariantModal"
-                                                data-id="{{ $variant->id }}" data-color-id="{{ $variant->color_id }}"
+                                                data-id="{{ $variant->id }}"
+                                                data-values="{{ json_encode($variant->option_values ?? new stdClass()) }}"
+                                                data-brand-id="{{ $variant->brand_id }}"
                                                 data-stock="{{ $variant->stock }}"
                                                 data-alert-stock="{{ $variant->alert_stock }}"
                                                 data-price="{{ $variant->price }}"
@@ -192,20 +215,7 @@
                     </div>
                     <div class="modal-body p-4">
                         <div class="row">
-                            <div class="col-md-12 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Color &
-                                    Identity</label>
-                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
-                                    <span class="input-group-text bg-white border-0"><i
-                                            class="fas fa-palette text-muted"></i></span>
-                                    <select name="color_id" class="form-select border-0 shadow-none" required>
-                                        <option value="">Select a color...</option>
-                                        @foreach ($colors as $color)
-                                            <option value="{{ $color->id }}">{{ $color->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
+                            @include('catalog::products._variant-identity', ['prefix' => 'add'])
 
                             <div class="col-md-6 mb-4">
                                 <label class="form-label fw-bold text-muted small text-uppercase mb-2">Purchase
@@ -277,19 +287,7 @@
                     </div>
                     <div class="modal-body p-4">
                         <div class="row">
-                            <div class="col-md-12 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Color</label>
-                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
-                                    <span class="input-group-text bg-white border-0"><i
-                                            class="fas fa-palette text-muted"></i></span>
-                                    <select name="color_id" id="edit-variant-color"
-                                        class="form-select border-0 shadow-none" required>
-                                        @foreach ($colors as $color)
-                                            <option value="{{ $color->id }}">{{ $color->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
+                            @include('catalog::products._variant-identity', ['prefix' => 'edit'])
 
                             <div class="col-md-6 mb-4">
                                 <label class="form-label fw-bold text-muted small text-uppercase mb-2">Purchase
@@ -347,6 +345,103 @@
             </form>
         </div>
     </div>
+
+    {{-- Modal Options & spécifications --}}
+    <div class="modal fade" id="optionsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <form action="{{ route('admin.products.options.update', $product->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Options & specifications</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6 class="fw-bold">Options</h6>
+                        <p class="small text-muted">
+                            Values used by a variant cannot be removed. New values can be added here or directly when adding a variant.
+                        </p>
+                        <div id="product-option-rows">
+                            @foreach ($product->options ?? [] as $i => $option)
+                                <div class="row g-2 mb-2 editable-row">
+                                    <div class="col-md-4"><input type="text" name="options[{{ $i }}][name]" class="form-control" value="{{ $option['name'] }}" maxlength="50" placeholder="Option (e.g. Volume)"></div>
+                                    <div class="col-md-7"><input type="text" name="options[{{ $i }}][values]" class="form-control" value="{{ implode(', ', $option['values']) }}" placeholder="Values, comma separated"></div>
+                                    <div class="col-md-1"><button type="button" class="btn btn-outline-danger w-100 remove-editable-row" title="Remove"><i class="fas fa-trash"></i></button></div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mb-4 add-editable-row"
+                            data-target="product-option-rows" data-prefix="options" data-first="name" data-second="values"
+                            data-first-placeholder="Option (e.g. Volume)" data-second-placeholder="Values, comma separated">
+                            <i class="fas fa-plus"></i> Add an option
+                        </button>
+
+                        <h6 class="fw-bold">Specifications</h6>
+                        <div id="product-spec-rows">
+                            @foreach ($product->specs ?? [] as $key => $value)
+                                <div class="row g-2 mb-2 editable-row">
+                                    <div class="col-md-4"><input type="text" name="specs[{{ $loop->index }}][key]" class="form-control" value="{{ $key }}" maxlength="100"></div>
+                                    <div class="col-md-7"><input type="text" name="specs[{{ $loop->index }}][value]" class="form-control" value="{{ $value }}"></div>
+                                    <div class="col-md-1"><button type="button" class="btn btn-outline-danger w-100 remove-editable-row" title="Remove"><i class="fas fa-trash"></i></button></div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary add-editable-row"
+                            data-target="product-spec-rows" data-prefix="specs" data-first="key" data-second="value"
+                            data-first-placeholder="e.g. Origin" data-second-placeholder="e.g. China">
+                            <i class="fas fa-plus"></i> Add a specification
+                        </button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Lignes ajoutables / supprimables (options et spécifications) : construites avec le DOM, sans HTML injecté
+        (function () {
+            let counter = 1000;
+            document.addEventListener('click', function (event) {
+                const add = event.target.closest('.add-editable-row');
+                if (add) {
+                    const i = counter++;
+                    const input = (field, placeholder) => {
+                        const node = document.createElement('input');
+                        node.type = 'text';
+                        node.className = 'form-control';
+                        node.name = `${add.dataset.prefix}[${i}][${field}]`;
+                        node.placeholder = placeholder;
+                        return node;
+                    };
+                    const col = (className, child) => { const div = document.createElement('div'); div.className = className; div.appendChild(child); return div; };
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'btn btn-outline-danger w-100 remove-editable-row';
+                    remove.title = 'Remove';
+                    remove.textContent = '×';
+                    const row = document.createElement('div');
+                    row.className = 'row g-2 mb-2 editable-row';
+                    row.append(
+                        col('col-md-4', input(add.dataset.first, add.dataset.firstPlaceholder)),
+                        col('col-md-7', input(add.dataset.second, add.dataset.secondPlaceholder)),
+                        col('col-md-1', remove)
+                    );
+                    document.getElementById(add.dataset.target).appendChild(row);
+                    row.querySelector('input').focus();
+                    return;
+                }
+                const remove = event.target.closest('.remove-editable-row');
+                if (remove) {
+                    remove.closest('.editable-row').remove();
+                }
+            });
+        })();
+    </script>
 @endsection
 
 
@@ -400,14 +495,17 @@
                 // Gestion de l'ouverture du modal de modification de variante
                 $('.edit-variant-btn').on('click', function() {
                     const id = $(this).data('id');
-                    const colorId = $(this).data('color-id');
+                    const values = JSON.parse(this.dataset.values || '{}');
                     const stock = $(this).data('stock');
                     const alert = $(this).data('alert-stock');
                     const price = $(this).data('price');
                     const pricePurchase = $(this).data('price-purchase');
 
                     // Remplissage des champs du formulaire
-                    $('#edit-variant-color').val(colorId);
+                    document.querySelectorAll('#editVariantForm .variant-option-input').forEach(input => {
+                        input.value = values[input.dataset.optionName] ?? '';
+                    });
+                    document.querySelector('#editVariantForm .variant-brand-select').value = this.dataset.brandId || '';
                     $('#edit-variant-stock').val(stock);
                     $('#edit-variant-alert').val(alert);
                     $('#edit-variant-price').val(price);

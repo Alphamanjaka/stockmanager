@@ -90,10 +90,10 @@ class StockHistoryTest extends TestCase
     public function adding_a_variant_records_its_initial_stock()
     {
         $product = Product::factory()->create(['category_id' => Category::factory()->create()->id]);
-        $color = Color::factory()->create();
 
+        // Produit sans option : sa variante par défaut
         $this->post(route('admin.products.variants.store', $product->id), [
-            'color_id' => $color->id, 'stock' => 8, 'price_purchase' => 500, 'price' => 1000,
+            'stock' => 8, 'price_purchase' => 500, 'price' => 1000,
         ])->assertSessionHas('success');
 
         $variant = ProductColor::where('product_id', $product->id)->firstOrFail();
@@ -105,7 +105,7 @@ class StockHistoryTest extends TestCase
     public function editing_the_stock_on_the_product_page_records_a_correction()
     {
         $variant = $this->variant(10);
-        $payload = ['color_id' => $variant->color_id, 'price_purchase' => 500, 'price' => 1000];
+        $payload = ['values' => $variant->option_values, 'price_purchase' => 500, 'price' => 1000];
 
         $this->put(route('admin.products.variants.update', $variant->id), $payload + ['stock' => 6])
             ->assertSessionHas('success');

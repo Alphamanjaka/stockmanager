@@ -30,15 +30,17 @@ class VariantTransitionTest extends TestCase
     }
 
     /** @test */
-    public function a_variant_added_from_the_current_product_page_is_complete()
+    public function a_variant_added_from_the_product_page_is_complete()
     {
         $noir = Color::factory()->create(['name' => 'Noir']);
+        $this->product->update(['options' => [['name' => 'Couleur', 'values' => ['Noir']]]]);
 
         $this->post(route('admin.products.variants.store', $this->product->id), [
-            'color_id' => $noir->id, 'stock' => 3, 'price_purchase' => 500, 'price' => 1000,
+            'values' => ['Couleur' => 'Noir'], 'stock' => 3, 'price_purchase' => 500, 'price' => 1000,
         ])->assertSessionHas('success');
 
         $variant = ProductColor::firstOrFail();
+        $this->assertSame($noir->id, $variant->color_id, 'Double écriture : la couleur existante est réutilisée');
         $this->assertSame(['Couleur' => 'Noir'], $variant->option_values);
         $this->assertSame('couleur=noir', $variant->signature);
         $this->assertSame('POSTICHE-LISSE-NOIR', $variant->sku);
@@ -59,20 +61,20 @@ class VariantTransitionTest extends TestCase
     }
 
     /** @test */
-    public function changing_the_color_updates_the_options_but_keeps_the_sku()
+    public function changing_the_values_updates_the_options_but_keeps_the_sku()
     {
         $variant = ProductColor::create([
             'product_id' => $this->product->id, 'color_id' => Color::factory()->create(['name' => 'Noir'])->id, 'price' => 1000, 'stock' => 0,
         ]);
-        $brun = Color::factory()->create(['name' => 'Brun']);
-
         $this->put(route('admin.products.variants.update', $variant->id), [
-            'color_id' => $brun->id, 'stock' => 0, 'price_purchase' => 500, 'price' => 1000,
+            'values' => ['Couleur' => 'Brun'], 'stock' => 0, 'price_purchase' => 500, 'price' => 1000,
         ])->assertSessionHas('success');
 
         $variant->refresh();
         $this->assertSame(['Couleur' => 'Brun'], $variant->option_values);
         $this->assertSame('couleur=brun', $variant->signature);
+        $this->assertSame('Brun', $variant->color->name, 'Double écriture de la couleur');
+        $this->assertSame([['name' => 'Couleur', 'values' => ['Noir', 'Brun']]], $this->product->fresh()->options, 'Options reconstituées puis complétées');
         $this->assertSame('POSTICHE-LISSE-NOIR', $variant->sku, 'Le SKU est une référence stable : il ne change pas');
     }
 
