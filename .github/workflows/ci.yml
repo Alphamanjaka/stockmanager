@@ -35,9 +35,37 @@ jobs:
 
   # Job 2: Tests fonctionnels et unitaires
   test:
-    name: "Run Feature & Unit Tests"
+    name: "Tests (${{ matrix.database }})"
     runs-on: ubuntu-latest
     needs: lint # Ce job ne se lancera que si le 'lint' a réussi
+    strategy:
+      fail-fast: false
+      matrix:
+        # SQLite (rapide) et PostgreSQL 16, le moteur de production (jsonb, index GIN, transactions)
+        database: [sqlite, pgsql]
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: stock_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d stock_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_CONNECTION: ${{ matrix.database }}
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: ${{ matrix.database == 'pgsql' && 'stock_test' || 'database/database.sqlite' }}
+      DB_USERNAME: test
+      DB_PASSWORD: test
 
     steps:
       - name: "Checkout Code"
@@ -48,6 +76,7 @@ jobs:
         with:
           php-version: '8.4'
           tools: composer:v2
+          extensions: pdo_pgsql, pdo_sqlite
           coverage: none
 
       - name: "Cache Composer dependencies"
@@ -69,13 +98,7 @@ jobs:
           touch database/database.sqlite
 
       - name: "Run Migrations"
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
         run: php artisan migrate --force
 
-      - name: "Execute Tests (Pest/PHPUnit)"
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
+      - name: "Execute Tests (PHPUnit)"
         run: php artisan test
