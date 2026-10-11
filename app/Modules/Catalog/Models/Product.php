@@ -20,7 +20,21 @@ class Product extends Model
         'description',
         'category_id',
         'price',
+        'options',
+        'specs',
     ];
+
+    /**
+     * options : axes de variation ([{"name":"Contenance","values":["25 ml","30 ml"]}])
+     * specs   : informations libres du produit ({"Composition":"...","Origine":"Chine"})
+     */
+    protected function casts(): array
+    {
+        return [
+            'options' => 'array',
+            'specs' => 'array',
+        ];
+    }
 
     public function category()
     {

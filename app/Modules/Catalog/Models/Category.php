@@ -16,7 +16,19 @@ class Category extends Model
         'name',
         'description',
         'parent_id',
+        'option_template',
     ];
+
+    /**
+     * option_template : options proposées à la création d'un produit de cette catégorie
+     * (ex. Postiches → [{"name":"Couleur","values":[]},{"name":"Taille","values":[]}]).
+     */
+    protected function casts(): array
+    {
+        return [
+            'option_template' => 'array',
+        ];
+    }
     // obtain the parent category: $cat->parent
     public function parent()
     {
