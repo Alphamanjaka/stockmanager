@@ -40,19 +40,22 @@ class DashboardService
     /**
      * Get sales sum for a specific range
      */
-    private function getSalesSumBetween($start, $end)
+    /** $userId : limite aux ventes d'un vendeur (tableau de bord du front office). */
+    private function getSalesSumBetween($start, $end, ?int $userId = null)
     {
-        return Sale::whereBetween('created_at', [$start, $end])->sum('total_net');
+        return Sale::whereBetween('created_at', [$start, $end])
+            ->when($userId, fn ($q) => $q->where('user_id', $userId))
+            ->sum('total_net');
     }
 
-    private function getSalesToday()
+    private function getSalesToday(?int $userId = null)
     {
-        return $this->getSalesSumBetween(now()->startOfDay(), now()->endOfDay());
+        return $this->getSalesSumBetween(now()->startOfDay(), now()->endOfDay(), $userId);
     }
 
-    private function getSalesThisMonth()
+    private function getSalesThisMonth(?int $userId = null)
     {
-        return $this->getSalesSumBetween(now()->startOfMonth(), now()->endOfMonth());
+        return $this->getSalesSumBetween(now()->startOfMonth(), now()->endOfMonth(), $userId);
     }
 
 
@@ -196,12 +199,13 @@ class DashboardService
     /**
      * Get front office data
      */
-    public function getFrontOfficeData()
+    /** Chiffres du vendeur connecté uniquement : un vendeur ne voit que ses propres ventes. */
+    public function getFrontOfficeData(int $userId)
     {
         return [
-            'salesToday' => $this->getSalesToday(),
-            'salesThisMonth' => $this->getSalesThisMonth(),
-            'totalSales' => $this->getTotalSales(),
+            'salesToday' => $this->getSalesToday($userId),
+            'salesThisMonth' => $this->getSalesThisMonth($userId),
+            'totalSales' => Sale::where('user_id', $userId)->count(),
         ];
     }
 

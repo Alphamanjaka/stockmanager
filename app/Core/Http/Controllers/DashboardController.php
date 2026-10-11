@@ -72,7 +72,7 @@ class DashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Accès non autorisé');
         }
 
-        $data = $this->dashboardService->getFrontOfficeData();
+        $data = $this->dashboardService->getFrontOfficeData(auth()->id());
 
         return view('core::front-office.dashboard', [
             'user' => auth()->user(),

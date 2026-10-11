@@ -61,12 +61,13 @@ class SaleController extends Controller
     }
 
     /**
-     * Display all sales with statistics.
+     * Display the seller's own sales with statistics.
      */
     public function index()
     {
-        $sales = $this->saleService->getAllSales(15);
-        $stats = $this->saleService->getSalesStatistics();
+        // Un vendeur ne voit que ses propres ventes et ses propres statistiques
+        $sales = $this->saleService->getAllSales(15, ['user' => auth()->id()]);
+        $stats = $this->saleService->getSalesStatistics(auth()->id());
 
         return view('sale::sales.index', array_merge(
             compact('sales'),
@@ -79,7 +80,7 @@ class SaleController extends Controller
      */
     public function show(int $id)
     {
-        $sale = $this->saleService->getSaleById($id);
+        $sale = $this->saleService->getSaleForSeller($id, auth()->id());
 
         return view('sale::sales.show', compact('sale'));
     }
@@ -90,7 +91,7 @@ class SaleController extends Controller
      */
     public function exportPdf(int $id)
     {
-        $sale = $this->saleService->getSaleById($id);
+        $sale = $this->saleService->getSaleForSeller($id, auth()->id());
         $pdf = Pdf::loadView('sale::sales.pdf', compact('sale'));
 
         return $pdf->download("facture_{$sale->reference}.pdf");

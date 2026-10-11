@@ -116,6 +116,9 @@ class SaleService
             ->when($filters['customer'] ?? null, function ($query, $customerId) {
                 $query->where('customer_id', $customerId);
             })
+            ->when($filters['user'] ?? null, function ($query, $userId) {
+                $query->where('user_id', $userId);
+            })
             ->paginate($perPage);
     }
 
@@ -124,14 +127,29 @@ class SaleService
         return Sale::with(['items.productColor.product', 'items.productColor.color', 'customer', 'user'])->findOrFail($id);
     }
 
-
-    public function getSalesStatistics(): array
+    /**
+     * Vente d'un vendeur : 404 si elle appartient à un autre vendeur (même réponse qu'une vente inexistante).
+     */
+    public function getSaleForSeller(int $id, int $userId): Sale
     {
+        return Sale::with(['items.productColor.product', 'items.productColor.color', 'customer', 'user'])
+            ->where('user_id', $userId)
+            ->findOrFail($id);
+    }
+
+
+    /**
+     * Statistiques de ventes ; $userId les limite aux ventes d'un vendeur (front office).
+     */
+    public function getSalesStatistics(?int $userId = null): array
+    {
+        $sales = fn () => Sale::query()->when($userId, fn ($q) => $q->where('user_id', $userId));
+
         return [
-            'today_sales_count' => Sale::whereDate('created_at', today())->count(),
-            'total_revenue'     => Sale::sum('total_net'),
-            'average_sale'      => Sale::avg('total_net') ?? 0,
-            'total_discount' => Sale::sum('discount') ?? 0,
+            'today_sales_count' => $sales()->whereDate('created_at', today())->count(),
+            'total_revenue'     => $sales()->sum('total_net'),
+            'average_sale'      => $sales()->avg('total_net') ?? 0,
+            'total_discount' => $sales()->sum('discount') ?? 0,
         ];
     }
     /**
