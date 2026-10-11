@@ -49,15 +49,17 @@ Pendant la transition, le modèle `ProductColor` complète automatiquement `opti
    ```bash
    docker compose -f compose.prod.yaml exec php-fpm php artisan app:run-backup --now
    ```
-2. La restaurer dans une base PostgreSQL 16 jetable, en local :
+2. La restaurer dans une base dédiée du PostgreSQL de Laragon (jamais dans `app`) :
    ```bash
-   docker run -d --rm --name stockmanager-rehearsal -e POSTGRES_USER=test -e POSTGRES_PASSWORD=test \
-     -e POSTGRES_DB=rehearsal -p 55433:5432 postgres:16
    # le zip de sauvegarde contient db-dumps/postgresql-<base>.sql
-   docker exec -i stockmanager-rehearsal psql -U test -d rehearsal < postgresql-app.sql
+   psql -h 127.0.0.1 -U alpha -d postgres -c "CREATE DATABASE rehearsal"
+   psql -h 127.0.0.1 -U alpha -d rehearsal -f postgresql-app.sql
    ```
-3. Pointer l'application dessus (`DB_HOST=127.0.0.1`, `DB_PORT=55433`, `DB_DATABASE=rehearsal`,
-   `DB_USERNAME=test`, `DB_PASSWORD=test`) puis jouer les étapes 1 et 2 ci-dessous et vérifier le rapport.
+3. Mettre temporairement `DB_DATABASE=rehearsal` dans le `.env`, jouer les étapes 1 et 2 ci-dessous, vérifier le
+   rapport, puis remettre `DB_DATABASE=app`.
+
+   (Laragon fournit PostgreSQL 18, la production PostgreSQL 16 : une sauvegarde de la production se restaure sans
+   problème dans la version plus récente.)
 
 ### 1. Déployer (étape 1)
 
@@ -156,16 +158,18 @@ Seule étape **irréversible**. Prérequis : aucun doublon (requête ci-dessus) 
    depuis la couleur dans `ProductColor::booted()`.
 3. Décider du sort de l'écran **Couleurs** (aujourd'hui simple dictionnaire utilisé par la double écriture).
 
-## Tester sur PostgreSQL en local
+## Tests
 
-Les tests tournent par défaut sur SQLite. Pour les lancer sur PostgreSQL 16 (comme la production) :
+Les tests tournent sur PostgreSQL (celui de Laragon en local, PostgreSQL 16 dans la CI GitHub), dans une base dédiée
+`stockmanager_test` (voir `phpunit.xml` ; serveur, utilisateur et mot de passe viennent du `.env`).
 
 ```bash
-docker run -d --rm --name stockmanager-test-db -e POSTGRES_USER=test -e POSTGRES_PASSWORD=test \
-  -e POSTGRES_DB=stock_test -p 55432:5432 --tmpfs /var/lib/postgresql/data postgres:16
+# Une seule fois
+psql -h 127.0.0.1 -U alpha -d postgres -c "CREATE DATABASE stockmanager_test"
 
-DB_CONNECTION=pgsql DB_HOST=127.0.0.1 DB_PORT=55432 DB_DATABASE=stock_test \
-  DB_USERNAME=test DB_PASSWORD=test php vendor/bin/phpunit
+# Lancer les tests
+php artisan test
 ```
 
-(Sous Git Bash, préfixer la commande `docker run` par `MSYS_NO_PATHCONV=1`.)
+Les tests vident leur base : ils refusent de tourner sur une base dont le nom ne contient pas « test »
+(garde-fou dans `tests/TestCase.php`), la base de développement `app` ne peut donc pas être effacée par erreur.
