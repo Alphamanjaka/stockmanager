@@ -116,6 +116,10 @@ class DatabaseSeeder extends Seeder
             ['product_color_id' => $allVariants[3]->id, 'quantity' => 1]
         ], 0, $admin->id);
 
+        // WithoutModelEvents désactive le remplissage automatique des variantes (options, SKU, signature) :
+        // la commande de l'étape 2 les complète.
+        $this->command->call('catalog:migrate-variants');
+
         $this->command->info('Seeding terminé avec succès !');
         $this->command->info('Utilisateur Admin : admin@stock.com / password');
         $this->command->info('Utilisateur Vendeur : vendeur@stock.com / password');
