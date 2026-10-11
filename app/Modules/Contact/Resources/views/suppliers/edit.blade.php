@@ -55,6 +55,13 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        <div class="col-12 mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea id="notes" name="notes" rows="3" class="form-control @error('notes') is-invalid @enderror">{{ old('notes', $supplier->notes) }}</textarea>
+                            @error('notes')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
                     <div class="d-flex justify-content-between mt-3">
                         <a href="{{ route('admin.suppliers.index') }}" class="btn btn-secondary">Cancel</a>

@@ -43,6 +43,10 @@
                     <input type="text" class="form-control @error('address') is-invalid @enderror" name="address"
                         value="{{ old('address') }}">
                 </div>
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Notes</label>
+                    <textarea id="notes" name="notes" rows="3" class="form-control @error('notes') is-invalid @enderror">{{ old('notes') }}</textarea>
+                </div>
                 <button type="submit" class="btn btn-primary">Save</button>
             </form>
         </div>

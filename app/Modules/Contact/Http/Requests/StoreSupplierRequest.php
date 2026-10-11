@@ -25,7 +25,8 @@ class StoreSupplierRequest extends FormRequest
             "name" => "required|string|max:255",
             "address" => "nullable|string|max:255",
             "phone" => "required|string|max:255",
-            "email" => "nullable|email|unique:suppliers,email"
+            "email" => "nullable|email|unique:suppliers,email",
+            "notes" => "nullable|string|max:2000",
         ];
     }
 }

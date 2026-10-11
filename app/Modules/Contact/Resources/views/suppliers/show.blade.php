@@ -36,6 +36,12 @@
                                 <strong><i class="bi bi-geo-alt"></i> Address:</strong>
                                 <span>{{ $supplier->address ?? 'Not provided' }}</span>
                             </li>
+                            @if ($supplier->notes)
+                                <li class="list-group-item">
+                                    <strong><i class="bi bi-sticky"></i> Notes:</strong>
+                                    <div class="mt-1" style="white-space: pre-line">{{ $supplier->notes }}</div>
+                                </li>
+                            @endif
                             <li class="list-group-item d-flex justify-content-between">
                                 <strong>Created At:</strong>
                                 <span>{{ $supplier->created_at->format('d/m/Y') }}</span>

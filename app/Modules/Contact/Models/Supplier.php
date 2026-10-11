@@ -2,27 +2,20 @@
 
 namespace App\Modules\Contact\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use \Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Modules\Contact\Database\Factories\SupplierFactory;
 use App\Modules\Purchase\Models\Purchase;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
-use App\Modules\Contact\Database\Factories\SupplierFactory;
 
+/**
+ * Fournisseur. Coordonnées et recherche : voir Contact.
+ */
 #[UseFactory(SupplierFactory::class)]
-class Supplier extends Model
+class Supplier extends Contact
 {
-    use HasFactory;  // Uncomment if you want to use factories for Supplier model
-    //
-    protected $table = "suppliers";
-    protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'address',
-    ];
+    protected $table = 'suppliers';
+
     public function purchases()
     {
         return $this->hasMany(Purchase::class);
     }
-
 }
