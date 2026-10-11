@@ -113,10 +113,9 @@ Le projet utilise une stratégie de conteneurisation avancée en **3 étapes** p
 
 ### Commandes Rapides
 
-- **Installation Automatisée (Windows)** :
-  Lancez simplement `install.bat` pour configurer l'environnement de production.
-- **Développement** :
-  Lancez `setup-dev.bat` pour un environnement avec Xdebug et montage de volumes en temps réel.
+- **Production** : `docker compose -f compose.prod.yaml up -d --build`.
+- **Développement** : `docker compose -f compose.dev.yaml up -d --build` — code monté en direct, PostgreSQL 16,
+  Vite, Xdebug à la demande ; cohabite avec Laragon. Mode d'emploi complet : [docs/docker-dev.md](docs/docker-dev.md).
 
 ---
 
