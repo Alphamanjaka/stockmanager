@@ -35,7 +35,7 @@ tout l'historique reste valide.
 |---|---|---|---|
 | 1. Étendre | Migrations `2026_10_11_200000` et `200100` : uniquement des ajouts (colonnes facultatives, table `brands`, index) | Non | Oui (`migrate:rollback --step=2`) |
 | 2. Remplir | Commande `catalog:migrate-variants` | Non | Oui (rien n'est supprimé, `color_id` intact) |
-| 3. Basculer | Nouveaux écrans produit (options → grille de variantes), libellé partout, import avec options | Oui | Revenir à la version précédente |
+| 3. Basculer | Écrans produit par options (grille de variantes), marques, modèles d'options par catégorie, libellé partout, import avec options | Oui | Revenir à la version précédente |
 | 4. Nettoyer | `color_id` facultatif, `sku` et `signature` obligatoires, unicité `(product_id, signature)`, suppression de l'ancienne colonne `attributes` | Non | **Non** : à faire quand tout est validé |
 
 Pendant la transition, le modèle `ProductColor` complète automatiquement `option_values`, `signature` et `sku`
@@ -105,6 +105,56 @@ si elle n'a jamais été vendue, ou la désactiver.
 - Étape 2 : rien à annuler pour l'ancien code, qui ignore les nouvelles colonnes.
 - Étape 1 : `php artisan migrate:rollback --step=2` supprime les nouvelles colonnes et la table `brands`
   (à n'utiliser qu'avec la version précédente du code).
+
+## Étape 3 : ce qui change pour les utilisateurs
+
+- **Catalogue › Marques** : liste, création, renommage ; une marque utilisée par des variantes ne peut pas être supprimée.
+- **Catégories** : section « Product options for this category » (ex. Postiches → Couleur, Taille), proposée à la
+  création des produits de la catégorie.
+- **Nouveau produit** : options (axes et valeurs) pré-remplies depuis la catégorie, grille des combinaisons générée
+  automatiquement (décocher celles qui n'existent pas ; marque, prix, coût, stock initial, seuil par variante ;
+  « Apply to checked » pour remplir en masse), spécifications libres. Sans option : une seule variante.
+- **Fiche produit** : options et spécifications modifiables (une valeur utilisée par une variante ne peut pas être
+  retirée) ; ajout/modification de variante par ses valeurs d'options et sa marque ; une valeur nouvelle
+  (ex. « 35 ml ») est ajoutée aux options ; le SKU ne change jamais.
+- **Partout** (ventes, factures, achats, mouvements, inventaires, recherche) : libellé complet
+  « Gel déshydratant — 30 ml », « Postiche lisse — Noir / 30 cm — Bella ».
+
+### Format d'import des produits (une ligne = une variante)
+
+| Colonne | Rôle |
+|---|---|
+| `name` | Produit (obligatoire) ; rapproché sans tenir compte de la casse |
+| `category` | Catégorie (créée si besoin) |
+| `brand` | Marque de la variante (créée si besoin) |
+| `option_<nom>` | Une colonne par option : `option_contenance`, `option_couleur`, `option_taille`… |
+| `color` | Ancien format, lu comme l'option « Couleur » (« No Variant » = pas d'option) |
+| `price` | Prix de vente (obligatoire) |
+| `price_purchase`, `alert_stock` | Facultatifs |
+| `stock` | Stock à atteindre ; cellule vide = stock inchangé ; l'écart est historisé |
+| `sku` | Facultatif : désigne une variante existante à mettre à jour |
+
+Une ligne met à jour la variante existante (même SKU, sinon même produit + même combinaison + même marque), sinon la
+crée : réimporter un fichier ne crée pas de doublon. Une combinaison incomplète arrête l'import (numéro de ligne
+indiqué) et annule tout. L'import des achats accepte aussi une colonne `sku`, à privilégier.
+
+### Déployer l'étape 3
+
+Aucune migration. Après le déploiement, relancer une fois `catalog:migrate-variants` (sans risque) pour compléter les
+produits créés entre-temps — la fiche produit reconstitue de toute façon les options manquantes à la première
+modification. Retour arrière possible vers la version précédente : `color_id` reste rempli (option « Couleur », sinon
+la couleur technique « Sans variante »).
+
+## Étape 4 (à faire quand l'étape 3 est validée en production)
+
+Seule étape **irréversible**. Prérequis : aucun doublon (requête ci-dessus) et `catalog:migrate-variants` sans variante
+à migrer.
+
+1. Migration : `sku` et `signature` obligatoires, index unique `(product_id, signature)`, `color_id` facultatif,
+   suppression de l'ancienne colonne `attributes`.
+2. Code : retirer la double écriture de `color_id` (`VariantOptions::legacyColorId`) et la déduction des options
+   depuis la couleur dans `ProductColor::booted()`.
+3. Décider du sort de l'écran **Couleurs** (aujourd'hui simple dictionnaire utilisé par la double écriture).
 
 ## Tester sur PostgreSQL en local
 
