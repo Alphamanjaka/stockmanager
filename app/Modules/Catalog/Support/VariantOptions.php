@@ -33,6 +33,29 @@ class VariantOptions
         return [self::COLOR_OPTION => trim($color->name)];
     }
 
+    /**
+     * Transition (double écriture) : color_id reste rempli pour que l'ancienne version du code fonctionne encore.
+     * Option « Couleur » (ou « Color ») → cette couleur (créée au besoin) ; sinon la couleur technique « Sans variante ».
+     */
+    public static function legacyColorId(array $optionValues): int
+    {
+        $colorName = null;
+        foreach ($optionValues as $name => $value) {
+            if (in_array(mb_strtolower(trim((string) $name)), ['couleur', 'color'], true) && trim((string) $value) !== '') {
+                $colorName = trim((string) $value);
+            }
+        }
+
+        if ($colorName === null) {
+            $technical = Color::whereRaw('LOWER(name) IN (?, ?)', self::NO_VARIANT_COLORS)->value('id');
+
+            return $technical ?? Color::create(['name' => 'Sans variante', 'code' => '#ffffff'])->id;
+        }
+
+        return Color::whereRaw('LOWER(name) = ?', [mb_strtolower($colorName)])->value('id')
+            ?? Color::create(['name' => $colorName, 'code' => $colorName])->id;
+    }
+
     public static function isNoVariantColor(?string $name): bool
     {
         return in_array(mb_strtolower(trim((string) $name)), self::NO_VARIANT_COLORS, true);
@@ -120,6 +143,17 @@ class VariantOptions
         }
 
         return $options;
+    }
+
+    /** Combinaison d'une variante limitée aux options déclarées, dans leur ordre : ["Contenance" => "25 ml"]. */
+    public static function combination(array $options, array $values): array
+    {
+        $combination = [];
+        foreach ($options as $option) {
+            $combination[$option['name']] = trim((string) ($values[$option['name']] ?? ''));
+        }
+
+        return $combination;
     }
 
     /**

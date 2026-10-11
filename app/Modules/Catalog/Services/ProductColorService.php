@@ -3,8 +3,10 @@
 namespace App\Modules\Catalog\Services;
 
 use App\Modules\Catalog\Events\VariantStockDeclared;
+use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Catalog\Models\Color;
+use App\Modules\Catalog\Support\VariantOptions;
 use App\Core\Services\BaseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -30,7 +32,7 @@ class ProductColorService extends BaseService
     }
 
     /**
-     * Orchestre la création d'un produit et de ses variantes de couleurs/stocks.
+     * Crée un produit, ses options et les variantes retenues dans la grille.
      *
      * @param array $data Données validées issues du StoreProductRequest
      * @return \App\Modules\Catalog\Models\Product
@@ -40,30 +42,37 @@ class ProductColorService extends BaseService
     {
         return DB::transaction(function () use ($data) {
             try {
-                // 1. Sauvegarde produit via productService
-                $product = $this->productService->create($data);
+                $options = VariantOptions::normalizeOptions($data['options'] ?? []);
 
-                // Gestion des variantes (Couleurs et Stocks)
-                if (!empty($data['colors']) && is_array($data['colors'])) {
-                    foreach ($data['colors'] as $index => $colorName) {
-                        if (empty($colorName)) continue;
+                $product = Product::create([
+                    'name' => trim($data['name']),
+                    'category_id' => $data['category_id'],
+                    'description' => $data['description'] ?? null,
+                    'price' => $data['price'] ?? 0,
+                    'options' => $options,
+                    'specs' => $this->normalizeSpecs($data['specs'] ?? []),
+                ]);
 
-                        // 2. Sauvegarde color si nouvelle via Color (firstOrCreate)
-                        $color = Color::firstOrCreate(['name' => $colorName, 'code' => $colorName]);
-    
-                        // 3. Sauvegarde dans la table productcolor
-                        $variant = ProductColor::updateOrCreate(
-                            ['product_id' => $product->id, 'color_id' => $color->id],
-                            [
-                                'price' => $data['prices'][$index] ?? 0,
-                                'price_purchase' => $data['price_purchases'][$index] ?? 0,
-                                'alert_stock' => $data['alert_stocks'][$index] ?? $this->defaultAlertStock(),
-                            ]
-                        );
-
-                        // 4. Stock initial : enregistré comme mouvement par le module Stock
-                        VariantStockDeclared::dispatch($variant, (int) ($data['stocks'][$index] ?? 0), 'Stock initial (création du produit)');
+                foreach ($data['variants'] as $variantData) {
+                    if (empty($variantData['enabled'])) {
+                        continue;
                     }
+
+                    $optionValues = VariantOptions::combination($options, $variantData['values'] ?? []);
+
+                    $variant = ProductColor::create([
+                        'product_id' => $product->id,
+                        'option_values' => $optionValues,
+                        // Transition : color_id rempli pour que l'ancienne version du code reste utilisable
+                        'color_id' => VariantOptions::legacyColorId($optionValues),
+                        'brand_id' => $variantData['brand_id'] ?? null,
+                        'price' => $variantData['price'] ?? $data['price'] ?? 0,
+                        'price_purchase' => $variantData['price_purchase'] ?? 0,
+                        'alert_stock' => $variantData['alert_stock'] ?? $this->defaultAlertStock(),
+                    ]);
+
+                    // Stock initial : enregistré comme mouvement par le module Stock
+                    VariantStockDeclared::dispatch($variant, (int) ($variantData['stock'] ?? 0), 'Stock initial (création du produit)');
                 }
 
                 return $product;
@@ -75,6 +84,21 @@ class ProductColorService extends BaseService
                 throw new Exception("Impossible de créer le produit. Vérifiez les données des variantes." . $e->getMessage());
             }
         });
+    }
+
+    /** Spécifications libres : [["key" => "Origine", "value" => "Chine"]] → ["Origine" => "Chine"] (lignes vides ignorées). */
+    private function normalizeSpecs(array $rows): array
+    {
+        $specs = [];
+        foreach ($rows as $row) {
+            $key = trim((string) ($row['key'] ?? ''));
+            $value = trim((string) ($row['value'] ?? ''));
+            if ($key !== '' && $value !== '') {
+                $specs[$key] = $value;
+            }
+        }
+
+        return $specs;
     }
 
     /** Seuil d'alerte appliqué quand il n'est pas saisi (la colonne n'accepte pas NULL). */

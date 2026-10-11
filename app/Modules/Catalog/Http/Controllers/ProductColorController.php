@@ -3,6 +3,7 @@
 namespace App\Modules\Catalog\Http\Controllers;
 
 use App\Modules\Catalog\Http\Requests\StoreProductRequest;
+use App\Modules\Catalog\Models\Brand;
 use App\Modules\Catalog\Services\CategoryService;
 use App\Modules\Catalog\Services\ColorService;
 use App\Modules\Catalog\Services\ProductColorService;
@@ -55,9 +56,20 @@ class ProductColorController extends Controller
      */
     public function create()
     {
-        $categories = $this->categoryService->getAll([], false);
-        $colors = $this->colorService->getAll([], false);
-        return view('catalog::products.create', compact('categories', 'colors'));
+        $categories = $this->categoryService->getAll(['sort' => 'name'], false);
+        $brands = Brand::orderBy('name')->get(['id', 'name']);
+
+        // Modèles d'options par catégorie : pré-remplissent les options du produit
+        $templates = $categories->mapWithKeys(fn ($category) => [$category->id => $category->option_template ?? []]);
+
+        // Noms d'options suggérés : ceux des modèles de catégorie et quelques classiques
+        $optionNames = $categories
+            ->flatMap(fn ($category) => collect($category->option_template ?? [])->pluck('name'))
+            ->merge(['Couleur', 'Taille', 'Contenance', 'Longueur'])
+            ->unique()
+            ->values();
+
+        return view('catalog::products.create', compact('categories', 'brands', 'templates', 'optionNames'));
     }
 
     /**

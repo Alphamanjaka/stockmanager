@@ -70,12 +70,14 @@ class StockHistoryTest extends TestCase
         $this->post(route('admin.products.store'), [
             'name' => 'Wax',
             'category_id' => $category->id,
-            'colors' => ['Rouge', 'Bleu'],
-            'stocks' => [5, 0],
-            'prices' => [1000, 1200],
+            'options' => [['name' => 'Couleur', 'values' => 'Rouge, Bleu']],
+            'variants' => [
+                ['enabled' => 1, 'values' => ['Couleur' => 'Rouge'], 'stock' => 5, 'price' => 1000],
+                ['enabled' => 1, 'values' => ['Couleur' => 'Bleu'], 'stock' => 0, 'price' => 1200],
+            ],
         ])->assertRedirect(route('admin.products.index'));
 
-        $rouge = ProductColor::whereHas('color', fn ($q) => $q->where('name', 'Rouge'))->firstOrFail();
+        $rouge = ProductColor::where('option_values->Couleur', 'Rouge')->firstOrFail();
         $this->assertSame(5, $rouge->stock);
         $this->assertDatabaseHas('stock_movements', [
             'product_color_id' => $rouge->id, 'type' => 'in', 'quantity' => 5, 'stock_before' => 0, 'stock_after' => 5,
