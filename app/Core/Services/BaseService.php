@@ -3,6 +3,7 @@
 namespace App\Core\Services;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 abstract class BaseService
 {
@@ -60,7 +61,9 @@ abstract class BaseService
 
     public function delete(int $id): bool
     {
-        return $this->getById($id)->delete();
+        // Transaction dédiée : si la base refuse la suppression (clé étrangère), l'échec est annulé
+        // proprement au lieu de bloquer une transaction englobante (comportement de PostgreSQL).
+        return DB::transaction(fn () => $this->getById($id)->delete());
     }
 
     public function findOneBy(array $criteria)

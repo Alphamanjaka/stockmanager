@@ -108,8 +108,8 @@ class ProductServiceTest extends TestCase
             $this->service->delete($product->id);
         } catch (\Illuminate\Database\QueryException $e) {
             $exceptionThrown = true;
-            // On peut vérifier une partie du message pour s'assurer que c'est bien une erreur de contrainte de clé étrangère
-            $this->assertStringContainsString('FOREIGN KEY constraint failed', $e->getMessage());
+            // SQLSTATE de classe 23 = violation de contrainte d'intégrité (SQLite : 23000, PostgreSQL : 23503)
+            $this->assertStringStartsWith('23', (string) $e->getCode());
         }
 
         // Assert: Vérifier qu'une exception a été levée et que le produit n'a pas été supprimé
