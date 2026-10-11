@@ -88,6 +88,41 @@ class VariantOptions
     }
 
     /**
+     * Nettoie des options saisies dans un formulaire :
+     * [["name" => " Couleur ", "values" => "Noir, Brun, noir"]] → [["name" => "Couleur", "values" => ["Noir", "Brun"]]].
+     * Les valeurs peuvent arriver en texte (séparées par des virgules) ou en tableau ; noms et valeurs vides
+     * sont ignorés, les doublons (sans tenir compte de la casse) aussi.
+     */
+    public static function normalizeOptions(array $rows): array
+    {
+        $options = [];
+        $seenNames = [];
+
+        foreach ($rows as $row) {
+            $name = trim((string) ($row['name'] ?? ''));
+            if ($name === '' || in_array(mb_strtolower($name), $seenNames, true)) {
+                continue;
+            }
+            $seenNames[] = mb_strtolower($name);
+
+            $rawValues = $row['values'] ?? [];
+            $rawValues = is_array($rawValues) ? $rawValues : explode(',', (string) $rawValues);
+
+            $values = [];
+            foreach ($rawValues as $value) {
+                $value = trim((string) $value);
+                if ($value !== '' && !in_array(mb_strtolower($value), array_map('mb_strtolower', $values), true)) {
+                    $values[] = $value;
+                }
+            }
+
+            $options[] = ['name' => $name, 'values' => $values];
+        }
+
+        return $options;
+    }
+
+    /**
      * Valeurs dans l'ordre d'affichage. PostgreSQL (jsonb) ne conserve pas l'ordre des clés :
      * l'ordre vient donc des options du produit (choisi par l'utilisateur), puis, à défaut,
      * de l'ordre alphabétique des noms d'options — identique sur toutes les bases.

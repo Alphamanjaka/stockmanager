@@ -24,6 +24,9 @@ class StoreCategoryRequest extends FormRequest
             "name"=> "required|string|max:255|unique:categories,name",
             "description"=> "nullable|string|min:10",
             "parent_id"=> "nullable|exists:categories,id",
+            'option_template' => 'nullable|array|max:5',
+            'option_template.*.name' => 'nullable|string|max:50',
+            'option_template.*.values' => 'nullable|string|max:1000',
         ];
     }
 }

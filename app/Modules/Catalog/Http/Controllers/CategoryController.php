@@ -2,6 +2,7 @@
 
 namespace App\Modules\Catalog\Http\Controllers;
 
+use App\Modules\Catalog\Support\VariantOptions;
 use App\Modules\Catalog\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -53,6 +54,8 @@ class CategoryController extends Controller
             // We only pass validated data to the service for security.
             $data = $request->validated();
             $data['children'] = $request->input('children', []); // On ajoute les enfants manuellement
+            // Modèle d'options : nettoyé (valeurs « a, b » → liste), null si aucune option
+            $data['option_template'] = VariantOptions::normalizeOptions($request->input('option_template', [])) ?: null;
             $this->categoryService->create($data);
 
             return redirect()->route("admin.categories.index")->with("success", "Category created successfully.");
@@ -101,6 +104,8 @@ class CategoryController extends Controller
             // We only pass validated data to the service for security.
             $data = $request->validated();
             $data['children'] = $request->input('children', []);
+            // Modèle d'options : nettoyé (valeurs « a, b » → liste), null si aucune option
+            $data['option_template'] = VariantOptions::normalizeOptions($request->input('option_template', [])) ?: null;
             $this->categoryService->update($id, $data);
             return redirect()->route("admin.categories.edit", $id)->with("success", "Catégorie mise à jour avec succès.");
         } catch (\Exception $e) {

@@ -115,6 +115,8 @@
             </div>
         </div>
 
+        @include('catalog::categories._option-template', ['template' => $category->option_template])
+
         <div class="card shadow-sm mt-4">
             <div class="card-body d-flex justify-content-between">
                 <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">Annuler</a>

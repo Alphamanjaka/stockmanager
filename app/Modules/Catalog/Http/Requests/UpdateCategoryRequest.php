@@ -24,6 +24,9 @@ class UpdateCategoryRequest extends FormRequest
             'name' => ['required', 'string', 'max:255', Rule::unique('categories')->ignore($categoryId)],
             'description' => ['nullable', 'string'],
             'parent_id' => ['nullable', 'exists:categories,id'],
+            'option_template' => 'nullable|array|max:5',
+            'option_template.*.name' => 'nullable|string|max:50',
+            'option_template.*.values' => 'nullable|string|max:1000',
         ];
     }
 }

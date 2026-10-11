@@ -85,6 +85,8 @@
                         </div>
                         {{-- Conteneur pour les inputs cachés qui seront envoyés --}}
                         <div id="hidden-inputs-container"></div>
+
+                        @include('catalog::categories._option-template', ['template' => null])
                         <hr>
 
                         <div class="d-flex justify-content-between">
