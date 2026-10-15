@@ -28,9 +28,15 @@
             <a href="{{ route('admin.sales.index') }}" class="btn btn-secondary shadow-sm">
                 <i class="bi bi-arrow-left"></i> Back to History
             </a>
-            <a href="{{ route('admin.sales.pdf', $sale->id) }}" class="btn btn-danger shadow-sm">
-                <i class="bi bi-file-earmark-pdf"></i> Download as PDF
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('admin.sales.receipt', ['id' => $sale->id, 'print' => 1]) }}" target="_blank"
+                    class="btn btn-outline-primary shadow-sm">
+                    <i class="bi bi-printer"></i> {{ __('pos.print_receipt') }}
+                </a>
+                <a href="{{ route('admin.sales.pdf', $sale->id) }}" class="btn btn-danger shadow-sm">
+                    <i class="bi bi-file-earmark-pdf"></i> Download as PDF
+                </a>
+            </div>
         </div>
 
         <div class="card shadow border-0">

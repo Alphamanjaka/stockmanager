@@ -12,3 +12,4 @@ Route::resource('', SaleController::class)
     ->only(['index', 'create', 'store', 'show'])
     ->where(['sale' => '[0-9]+']);
 Route::get('/{sale}/pdf', [SaleController::class, 'exportPdf'])->whereNumber('sale')->name('pdf');
+Route::get('/{sale}/receipt', [SaleController::class, 'receipt'])->whereNumber('sale')->name('receipt');

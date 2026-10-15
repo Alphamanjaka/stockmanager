@@ -115,6 +115,7 @@ class PagesRenderTest extends TestCase
             '/admin/sales/create',
             "/admin/sales/{$i['sale']}",
             "/admin/sales/{$i['sale']}/pdf",
+            "/admin/sales/{$i['sale']}/receipt",
             // Contacts
             '/admin/suppliers',
             '/admin/suppliers/create',
@@ -166,6 +167,7 @@ class PagesRenderTest extends TestCase
             '/saler/create',
             "/saler/{$i['sale']}",
             "/saler/{$i['sale']}/pdf",
+            "/saler/{$i['sale']}/receipt",
         ]);
     }
 

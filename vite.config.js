@@ -18,6 +18,9 @@ export default defineConfig({
                 // Points d'entrée du Front-Office
                 "resources/css/front.css",
                 "resources/js/front.js",
+
+                // Écran de caisse (front et back office)
+                "resources/js/pos.js",
             ],
             refresh: true,
         }),
