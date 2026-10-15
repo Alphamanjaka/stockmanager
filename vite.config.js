@@ -11,7 +11,7 @@ export default defineConfig({
                 "resources/js/app.js",
 
                 // Points d'entrée du Back-Office
-                "resources/css/sidebar.css",
+                "resources/css/back-office.css",
                 "resources/js/back.js",
                 "resources/js/purchases-index.js",
 

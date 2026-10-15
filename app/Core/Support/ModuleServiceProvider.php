@@ -2,6 +2,7 @@
 
 namespace App\Core\Support;
 
+use App\Core\Navigation\BackOfficeMenu;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -15,6 +16,7 @@ use Illuminate\Support\ServiceProvider;
  * - Routes/admin.php     → back office : préfixe /admin, noms "admin.*", auth + ensure.back.office
  * - Routes/saler.php     → front office : préfixe /saler, noms "saler.*", auth + ensure.front.office
  * - Routes/api.php       → appels AJAX du back office : préfixe /api, auth + ensure.back.office
+ * - $menuSpaces, $menu   → espaces du lanceur et pages du module dans le menu du back office
  *
  * La protection est appliquée ici : une route placée dans le bon fichier ne peut pas être exposée par oubli.
  */
@@ -32,10 +34,34 @@ abstract class ModuleServiceProvider extends ServiceProvider
      */
     protected array $listen = [];
 
+    /**
+     * Espaces du lanceur du back office : ['clé' => ['label' => 'clé de traduction', 'icon' => 'fa-…']].
+     * Le Core déclare les espaces existants ; un nouveau module peut ajouter le sien.
+     */
+    protected array $menuSpaces = [];
+
+    /**
+     * Pages du module dans le menu du back office, rangées par espace : ['clé d'espace' => [entrée, ...]].
+     * Format d'une entrée : voir App\Core\Navigation\BackOfficeMenu.
+     */
+    protected array $menu = [];
+
+    public function register(): void
+    {
+        $this->app->singletonIf(BackOfficeMenu::class);
+    }
+
     public function boot(): void
     {
         $this->loadViewsFrom($this->path('Resources/views'), $this->name);
         $this->loadMigrationsFrom($this->path('Database/Migrations'));
+
+        $menu = $this->app->make(BackOfficeMenu::class);
+        $menu->addSpaces($this->menuSpaces);
+
+        foreach ($this->menu as $space => $entries) {
+            $menu->addEntries($space, $entries);
+        }
 
         foreach ($this->listen as $event => $listeners) {
             foreach ((array) $listeners as $listener) {

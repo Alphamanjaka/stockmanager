@@ -11,4 +11,13 @@ use App\Core\Support\ModuleServiceProvider;
 class InventoryServiceProvider extends ModuleServiceProvider
 {
     protected string $name = 'inventory';
+
+    protected array $menu = [
+        'stock' => [
+            ['label' => 'backoffice.stock_counts', 'icon' => 'fa-clipboard-check', 'route' => 'admin.inventories.index', 'children' => [
+                ['label' => 'backoffice.menu.all_stock_counts', 'route' => 'admin.inventories.index'],
+                ['label' => 'backoffice.menu.new_stock_count', 'route' => 'admin.inventories.create'],
+            ]],
+        ],
+    ];
 }

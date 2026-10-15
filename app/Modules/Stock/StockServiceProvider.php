@@ -23,4 +23,13 @@ class StockServiceProvider extends ModuleServiceProvider
         // Stock saisi dans le catalogue (création, fiche produit, import) → mouvement de stock
         VariantStockDeclared::class => [RecordDeclaredStock::class],
     ];
+
+    protected array $menu = [
+        'stock' => [
+            ['label' => 'backoffice.movements', 'icon' => 'fa-truck-fast', 'route' => 'admin.movements.index', 'shortcut' => 'm', 'children' => [
+                ['label' => 'backoffice.menu.movement_history', 'route' => 'admin.movements.index'],
+                ['label' => 'backoffice.menu.new_movement', 'route' => 'admin.movements.create'],
+            ]],
+        ],
+    ];
 }

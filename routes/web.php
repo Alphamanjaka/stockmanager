@@ -5,7 +5,6 @@
 
 use App\Core\Http\Controllers\AuthController;
 use App\Core\Http\Controllers\DashboardController;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
 // Connexion (publique). Pas d'inscription publique : les comptes sont créés par un administrateur.
@@ -13,17 +12,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginPage'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 });
-
-// language settings
-Route::get('lang/{locale}', function (string $locale) {
-    if (! in_array($locale, ['en', 'fr', 'es'])) {
-        abort(400);
-    }
-
-    session(['locale' => $locale]);
-
-    return Redirect::back();
-})->name('lang.switch');
 
 // Redirection de la page d'accueil vers le login ou dashboard
 Route::get('/', function () {

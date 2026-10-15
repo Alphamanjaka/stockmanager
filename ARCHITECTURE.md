@@ -106,6 +106,34 @@ sans être rejouées.
 1. Le contrôleur dans `Http/Controllers/`, la vue dans `Resources/views/`.
 2. La route dans `Routes/admin.php` (sans préfixe ni middleware : ils sont ajoutés automatiquement).
 3. Dans le contrôleur : `return view('<module>::dossier.vue', [...])`. Les vues étendent `layouts.app-back-office`.
+4. Pour qu'elle apparaisse dans le menu : une entrée dans la propriété `$menu` du provider du module (voir ci-dessous).
+
+**Menu du back office (lanceur de modules)**
+
+Le layout n'écrit aucun lien en dur : il affiche le menu déclaré par les modules, résolu par
+`App\Core\Navigation\BackOfficeMenu` pour la page courante.
+
+- **Espaces** : les tuiles du lanceur (bouton en haut à gauche, ou Alt + L). Le Core les déclare dans
+  `CoreServiceProvider::$menuSpaces` (Tableau de bord, Catalogue, Stock, Achats, Ventes, Administration).
+- **Entrées** : chaque module range ses pages dans un espace via `$menu`. Une entrée peut avoir des `children`
+  (menu secondaire, affiché en liste déroulante). Un module peut remplir l'espace d'un autre : Contact place
+  les fournisseurs dans Achats et les clients dans Ventes.
+
+```php
+protected array $menu = [
+    'catalog' => [
+        ['label' => 'backoffice.products', 'icon' => 'fa-box', 'route' => 'admin.products.index', 'shortcut' => 'p',
+         'children' => [
+             ['label' => 'backoffice.menu.all_products', 'route' => 'admin.products.index'],
+             ['label' => 'backoffice.menu.new_product', 'route' => 'admin.products.create'],
+         ]],
+    ],
+];
+```
+
+Une entrée dont la route n'existe pas est masquée (le layout ne plante pas), un espace vide disparaît.
+L'entrée active, le fil d'Ariane et les raccourcis Alt + touche en sont déduits. `BackOfficeMenuTest` vérifie que
+chaque raccourci est unique et que chaque libellé est traduit en en/fr/es (`lang/*/backoffice.php`).
 
 **Créer un nouveau module**
 

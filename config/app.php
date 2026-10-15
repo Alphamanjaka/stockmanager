@@ -80,6 +80,13 @@ return [
 
     'locale' => env('APP_LOCALE', 'en'),
 
+    // Langues proposées dans Administration › Paramètres › Interface & System (réglage "app_locale")
+    'supported_locales' => [
+        'en' => 'English',
+        'fr' => 'Français',
+        'es' => 'Español',
+    ],
+
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),

@@ -5,7 +5,7 @@
     <div class="row">
         <!-- Colonne de Gauche : Recherche et Saisie -->
         <div class="col-md-5">
-            <div class="card shadow-sm border-0 mb-4 sticky-top" style="top: 20px;">
+            <div class="card shadow-sm border-0 mb-4 sticky-top" style="top: calc(var(--bo-sticky-offset, 0px) + 1rem);">
                 <div class="card-header bg-dark text-white fw-bold">
                     <i class="bi bi-search"></i> Add / Edit a Product
                 </div>

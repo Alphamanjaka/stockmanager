@@ -36,5 +36,4 @@ select2();
 
 // --- 5. Custom Scripts ---
 import "./themes.js";
-import "./sidebar.js";
 import "./global-search.js"; // Nouvelle importation
