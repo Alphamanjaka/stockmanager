@@ -2,18 +2,18 @@
 
 namespace Tests\Feature\Http;
 
+use App\Models\User;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Color;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Contact\Models\Customer;
+use App\Modules\Contact\Models\Supplier;
 use App\Modules\Purchase\Models\Purchase;
 use App\Modules\Purchase\Models\PurchaseItem;
 use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleItem;
 use App\Modules\Stock\Models\StockMovement;
-use App\Models\User;
-use App\Modules\Contact\Models\Customer;
-use App\Modules\Contact\Models\Supplier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -26,7 +26,9 @@ class PagesRenderTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $seller;
+
     private array $ids;
 
     protected function setUp(): void
@@ -182,12 +184,12 @@ class PagesRenderTest extends TestCase
 
             if ($response->getStatusCode() !== 200) {
                 $error = $response->exception
-                    ? class_basename($response->exception) . ': ' . $response->exception->getMessage()
+                    ? class_basename($response->exception).': '.$response->exception->getMessage()
                     : '';
                 $failures[] = "{$url} → {$response->getStatusCode()} {$error}";
             }
         }
 
-        $this->assertSame([], $failures, "Pages en erreur :\n" . implode("\n", $failures));
+        $this->assertSame([], $failures, "Pages en erreur :\n".implode("\n", $failures));
     }
 }

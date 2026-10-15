@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Core\Console\Commands;
+namespace App\Modules\Backup\Console\Commands;
 
+use App\Modules\Backup\Services\ArchiveBackupService;
 use Illuminate\Console\Command;
-use App\Core\Services\BackupService;
 use Illuminate\Support\Facades\Artisan;
 
 class RunBackupCommand extends Command
@@ -16,7 +16,7 @@ class RunBackupCommand extends Command
 
     protected $backupService;
 
-    public function __construct(BackupService $backupService)
+    public function __construct(ArchiveBackupService $backupService)
     {
         parent::__construct();
         $this->backupService = $backupService;
@@ -41,7 +41,8 @@ class RunBackupCommand extends Command
                 $this->info('✅ La demande de sauvegarde a été ajoutée à la file d\'attente.');
             }
         } catch (\Exception $e) {
-            $this->error('❌ Erreur lors de la sauvegarde : ' . $e->getMessage());
+            $this->error('❌ Erreur lors de la sauvegarde : '.$e->getMessage());
+
             return Command::FAILURE;
         }
 

@@ -35,11 +35,6 @@
                         aria-selected="false">
                         <i class="fas fa-sliders-h me-2"></i> Interface & System
                     </button>
-                    <button class="nav-link text-start" id="v-pills-backup-tab" data-bs-toggle="pill"
-                        data-bs-target="#v-pills-backup" type="button" role="tab" aria-controls="v-pills-backup"
-                        aria-selected="false">
-                        <i class="fas fa-database me-2"></i> Backups
-                    </button>
                 </div>
 
                 <div class="mt-4 d-grid">
@@ -74,79 +69,9 @@
                             aria-labelledby="v-pills-interface-tab">
                             @include('core::settings.partials.interface')
                         </div>
-
-                        <div class="tab-pane fade" id="v-pills-backup" role="tabpanel" aria-labelledby="v-pills-backup-tab">
-                            @include('core::settings.partials.backup')
-                        </div>
                     </div>
                 </form>
             </div>
         </div>
     @endsection
 
-    @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Utilise la délégation d'événements pour gérer les clics sur les boutons d'action
-                document.body.addEventListener('click', function(e) {
-                    const button = e.target.closest('.backup-action-btn');
-                    if (!button) return;
-
-                    e.preventDefault();
-
-                    const action = button.dataset.action;
-                    const method = button.dataset.method || 'POST';
-                    const path = button.dataset.path;
-                    const confirmMessage = button.dataset.confirm;
-
-                    const proceed = () => {
-                        const form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = action;
-                        form.style.display = 'none';
-
-                        // Récupère le jeton CSRF depuis la balise meta (pratique standard dans Laravel)
-                        const csrfTokenEl = document.querySelector('meta[name="csrf-token"]');
-                        if (!csrfTokenEl) {
-                            console.error('CSRF token meta tag not found!');
-                            alert('Erreur de sécurité : Jeton CSRF manquant.');
-                            return;
-                        }
-
-                        const csrfInput = document.createElement('input');
-                        csrfInput.name = '_token';
-                        csrfInput.value = csrfTokenEl.content;
-                        form.appendChild(csrfInput);
-
-                        // Ajoute le champ _method pour les requêtes autres que POST (DELETE, PUT, PATCH)
-                        if (method.toUpperCase() !== 'POST') {
-                            const methodInput = document.createElement('input');
-                            methodInput.name = '_method';
-                            methodInput.value = method;
-                            form.appendChild(methodInput);
-                        }
-
-                        // Ajoute le chemin du fichier si nécessaire
-                        if (path) {
-                            const pathInput = document.createElement('input');
-                            pathInput.name = 'path';
-                            pathInput.value = path;
-                            form.appendChild(pathInput);
-                        }
-
-                        document.body.appendChild(form);
-                        form.submit();
-                    };
-
-                    // Affiche une confirmation si demandée
-                    if (confirmMessage) {
-                        if (confirm(confirmMessage)) {
-                            proceed();
-                        }
-                    } else {
-                        proceed();
-                    }
-                });
-            });
-        </script>
-    @endpush

@@ -7,7 +7,7 @@ Chaque module regroupe tout ce qui le concerne : modèles, services, contrôleur
 
 ```
 app/
-├── Core/                     Socle : authentification, utilisateurs, paramètres, sauvegardes,
+├── Core/                     Socle : authentification, utilisateurs, paramètres,
 │                             tableaux de bord, recherche globale, import centralisé
 ├── Modules/
 │   ├── Catalog/              Produits, variantes (options libres, marque, SKU), catégories, couleurs, marques
@@ -15,7 +15,8 @@ app/
 │   ├── Inventory/            Inventaires physiques (comptage, écarts, ajustement du stock)
 │   ├── Purchase/             Achats fournisseurs, panier, réapprovisionnement depuis les ruptures
 │   ├── Sale/                 Ventes (back office et vendeurs), client de la vente, factures PDF
-│   └── Contact/              Fournisseurs et clients
+│   ├── Contact/              Fournisseurs et clients
+│   └── Backup/               Sauvegarde en arrière-plan : archive ZIP (Spatie), historique `backup_runs`, sans UI
 │
 ├── Http/Controllers/Controller.php   Contrôleur de base Laravel
 ├── Http/Middleware/          Contrôle d'accès (back office / front office), langue
@@ -72,6 +73,7 @@ pour que l'ordre de chargement des modules n'ait pas d'importance.
 | Sale | Stock, Catalog, Contact (client de la vente) |
 | Inventory | Stock, Catalog |
 | Purchase | Stock, Catalog, Contact |
+| Backup | — (module système : sauvegardes) |
 
 - Un module n'utilise jamais un module situé plus bas que lui dans ce tableau (pas de dépendance circulaire).
 - **Toute variation de stock passe par `StockService`** (`addStock`, `removeStock`, `adjustTo`), qui crée le mouvement historisé.
