@@ -9,7 +9,7 @@
 
     <div class="dropdown-menu bo-launcher-panel">
         <div class="bo-launcher-head">
-            <span><i class="fas fa-cube text-primary me-1" aria-hidden="true"></i> StockMaster ·
+            <span><i class="bi bi-box-seam-fill me-1" aria-hidden="true"></i> StockMaster ·
                 {{ __('backoffice.launcher') }}</span>
             <kbd class="bo-kbd">Alt+{{ strtoupper(\App\Core\Navigation\BackOfficeMenu::LAUNCHER_SHORTCUT) }}</kbd>
         </div>
@@ -20,7 +20,7 @@
                 <section class="bo-launcher-space {{ $space->active ? 'is-active' : '' }}">
                     <a class="dropdown-item bo-launcher-space-link" href="{{ $space->url }}"
                         @if ($space->active) aria-current="true" @endif>
-                        <span class="bo-space-icon"><i class="fas {{ $space->icon }} fa-fw" aria-hidden="true"></i></span>
+                        <span class="bo-space-icon"><i class="bi {{ $space->icon }}" aria-hidden="true"></i></span>
                         <span class="flex-grow-1">{{ $space->label }}</span>
                         @if ($single && $space->items[0]->shortcut)
                             <kbd class="bo-kbd">Alt+{{ strtoupper($space->items[0]->shortcut) }}</kbd>

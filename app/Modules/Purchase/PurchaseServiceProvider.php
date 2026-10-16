@@ -14,7 +14,7 @@ class PurchaseServiceProvider extends ModuleServiceProvider
 
     protected array $menu = [
         'purchase' => [
-            ['label' => 'backoffice.purchases', 'icon' => 'fa-receipt', 'route' => 'admin.purchases.index', 'shortcut' => 'a', 'children' => [
+            ['label' => 'backoffice.purchases', 'icon' => 'bi-receipt', 'route' => 'admin.purchases.index', 'shortcut' => 'a', 'children' => [
                 ['label' => 'backoffice.menu.all_purchases', 'route' => 'admin.purchases.index'],
                 ['label' => 'backoffice.menu.new_purchase', 'route' => 'admin.purchases.create'],
                 ['label' => 'backoffice.menu.restock', 'route' => 'admin.purchases.createFromShortage'],

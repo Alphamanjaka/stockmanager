@@ -15,10 +15,10 @@ class ContactServiceProvider extends ModuleServiceProvider
     /** Les contacts sont rangés là où on s'en sert : fournisseurs dans Achats, clients dans Ventes (après leurs pages). */
     protected array $menu = [
         'purchase' => [
-            ['label' => 'backoffice.suppliers', 'icon' => 'fa-truck', 'route' => 'admin.suppliers.index', 'shortcut' => 'f', 'order' => 10],
+            ['label' => 'backoffice.suppliers', 'icon' => 'bi-truck', 'route' => 'admin.suppliers.index', 'shortcut' => 'f', 'order' => 10],
         ],
         'sale' => [
-            ['label' => 'backoffice.customers', 'icon' => 'fa-user-group', 'route' => 'admin.customers.index', 'order' => 10],
+            ['label' => 'backoffice.customers', 'icon' => 'bi-person-vcard', 'route' => 'admin.customers.index', 'order' => 10],
         ],
     ];
 }

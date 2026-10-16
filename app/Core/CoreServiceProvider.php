@@ -17,22 +17,22 @@ class CoreServiceProvider extends ModuleServiceProvider
 
     /** Tuiles du lanceur, dans l'ordre d'affichage. Les modules y rangent leurs pages (propriété $menu). */
     protected array $menuSpaces = [
-        'dashboard' => ['label' => 'backoffice.dashboard', 'icon' => 'fa-gauge-high'],
-        'catalog' => ['label' => 'backoffice.spaces.catalog', 'icon' => 'fa-boxes-stacked'],
-        'stock' => ['label' => 'backoffice.spaces.stock', 'icon' => 'fa-warehouse'],
-        'purchase' => ['label' => 'backoffice.purchases', 'icon' => 'fa-cart-flatbed'],
-        'sale' => ['label' => 'backoffice.sales', 'icon' => 'fa-cash-register'],
-        'admin' => ['label' => 'backoffice.administration', 'icon' => 'fa-gears'],
+        'dashboard' => ['label' => 'backoffice.dashboard', 'icon' => 'bi-speedometer2'],
+        'catalog' => ['label' => 'backoffice.spaces.catalog', 'icon' => 'bi-collection'],
+        'stock' => ['label' => 'backoffice.spaces.stock', 'icon' => 'bi-box-seam'],
+        'purchase' => ['label' => 'backoffice.purchases', 'icon' => 'bi-cart3'],
+        'sale' => ['label' => 'backoffice.sales', 'icon' => 'bi-shop'],
+        'admin' => ['label' => 'backoffice.administration', 'icon' => 'bi-gear'],
     ];
 
     protected array $menu = [
         'dashboard' => [
-            ['label' => 'backoffice.dashboard', 'icon' => 'fa-gauge-high', 'route' => 'admin.dashboard', 'shortcut' => 'd'],
+            ['label' => 'backoffice.dashboard', 'icon' => 'bi-speedometer2', 'route' => 'admin.dashboard', 'shortcut' => 'd'],
         ],
         'admin' => [
-            ['label' => 'backoffice.users', 'icon' => 'fa-users', 'route' => 'admin.users.index', 'shortcut' => 'u'],
-            ['label' => 'backoffice.settings', 'icon' => 'fa-gear', 'route' => 'admin.settings.index', 'shortcut' => 'g'],
-            ['label' => 'backoffice.import', 'icon' => 'fa-file-import', 'route' => 'admin.imports.index', 'shortcut' => 'i'],
+            ['label' => 'backoffice.users', 'icon' => 'bi-people', 'route' => 'admin.users.index', 'shortcut' => 'u'],
+            ['label' => 'backoffice.settings', 'icon' => 'bi-sliders', 'route' => 'admin.settings.index', 'shortcut' => 'g'],
+            ['label' => 'backoffice.import', 'icon' => 'bi-box-arrow-in-down', 'route' => 'admin.imports.index', 'shortcut' => 'i'],
         ],
     ];
 

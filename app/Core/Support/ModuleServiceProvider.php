@@ -35,7 +35,7 @@ abstract class ModuleServiceProvider extends ServiceProvider
     protected array $listen = [];
 
     /**
-     * Espaces du lanceur du back office : ['clé' => ['label' => 'clé de traduction', 'icon' => 'fa-…']].
+     * Espaces du lanceur du back office : ['clé' => ['label' => 'clé de traduction', 'icon' => 'bi-…']].
      * Le Core déclare les espaces existants ; un nouveau module peut ajouter le sien.
      */
     protected array $menuSpaces = [];

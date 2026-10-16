@@ -1,101 +1,104 @@
 @extends('layouts.app-back-office')
-@section('title', 'Edit Purchase #' . $purchase->reference)
+
+@section('title', 'Edit purchase')
+@section('subtitle', $purchase->reference)
 
 @section('content')
-    <div class="row">
-        <!-- Colonne de Gauche : Recherche et Saisie -->
-        <div class="col-md-5">
-            <div class="card shadow-sm border-0 mb-4 sticky-top" style="top: calc(var(--bo-sticky-offset, 0px) + 1rem);">
-                <div class="card-header bg-dark text-white fw-bold">
-                    <i class="bi bi-search"></i> Add / Edit a Product
-                </div>
-                <div class="card-body">
-                    <div class="mb-3 position-relative">
-                        <label class="form-label fw-bold">Product</label>
-                        <input type="text" id="product-search-input" class="form-control"
-                            placeholder="Search by name or color..." autocomplete="off">
+    <div class="row g-3">
+        {{-- Saisie d'une ligne (ajout ou modification) --}}
+        <div class="col-lg-5">
+            <div class="sticky-top" style="top: calc(var(--bo-sticky-offset, 0px) + 1rem); z-index: 1;">
+                <x-ui.card title="Add or update a line">
+                    <div class="ui-field position-relative">
+                        <label class="form-label" for="product-search-input">Product</label>
+                        <div class="ui-search">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            <input type="text" id="product-search-input" class="form-control"
+                                placeholder="Search by name or variant..." autocomplete="off">
+                        </div>
                         <input type="hidden" id="selected-product-id">
-                        <div id="product-suggestions" class="list-group position-absolute w-100"
-                            style="z-index: 1000; display: none;"></div>
+                        <div id="product-suggestions" class="list-group position-absolute w-100 shadow-lg"
+                            style="z-index: 1000; display: none; max-height: 320px; overflow-y: auto;"></div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Quantity</label>
+                        <div class="col-md-5 ui-field mb-0">
+                            <label class="form-label" for="input-quantity">Quantity</label>
                             <input type="number" id="input-quantity" class="form-control" min="1" value="1">
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Purchase Price (U)</label>
+                        <div class="col-md-7 ui-field mb-0">
+                            <label class="form-label" for="input-price">Unit purchase price</label>
                             <div class="input-group">
-                                <input type="number" id="input-price" class="form-control" step="0.01">
-                                <span class="input-group-text">Mga</span>
+                                <input type="number" id="input-price" class="form-control" step="0.01" min="0">
+                                <span class="input-group-text">{{ settings('currency_symbol', 'MGA') }}</span>
                             </div>
                         </div>
                     </div>
-                    <button type="button" id="btn-add-item" class="btn btn-primary w-100">
-                        <i class="bi bi-plus-circle"></i> Update list
-                    </button>
-                </div>
+
+                    <x-slot:footer>
+                        <div class="ui-form-actions">
+                            <button type="button" id="btn-add-item" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-down-circle" aria-hidden="true"></i> Update the list
+                            </button>
+                        </div>
+                    </x-slot:footer>
+                </x-ui.card>
             </div>
         </div>
 
-        <!-- Colonne de Droite : Récapitulatif et Fournisseur -->
-        <div class="col-md-7">
+        {{-- Contenu de l'achat et fournisseur --}}
+        <div class="col-lg-7">
             <form action="{{ route('admin.purchases.update', $purchase->id) }}" method="POST" id="main-purchase-form">
                 @csrf
                 @method('PUT')
 
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <span class="fw-bold"><i class="bi bi-cart3"></i> Order Contents</span>
-                        <span class="badge bg-light text-primary">Ref: {{ $purchase->reference }}</span>
-                    </div>
-                    <div class="card-body p-0">
-                        <table class="table table-hover align-middle mb-0" id="items-table">
-                            <thead class="table-light">
+                <x-ui.card title="Purchase lines" flush>
+                    <x-slot:actions>
+                        <x-ui.status :value="$purchase->state" />
+                    </x-slot:actions>
+
+                    <div class="table-responsive">
+                        <table class="table" id="items-table">
+                            <thead>
                                 <tr>
                                     <th>Product</th>
-                                    <th class="text-center">Qty</th>
-                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Qty</th>
+                                    <th class="text-end">Unit price</th>
                                     <th class="text-end">Total</th>
-                                    <th style="width: 80px;"></th>
+                                    <th class="text-end"><span class="visually-hidden">Actions</span></th>
                                 </tr>
                             </thead>
                             <tbody id="items-container">
-                                {{-- Les lignes seront générées par JS au chargement --}}
+                                {{-- Lignes générées en JavaScript au chargement --}}
                             </tbody>
                         </table>
                     </div>
-                    <div class="card-footer bg-light p-4">
-                        <div class="row mb-4">
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold">Supplier</label>
+
+                    <x-slot:footer>
+                        <div class="row g-3 align-items-end py-2">
+                            <x-ui.field class="col-md-6 mb-0" name="supplier_id" id="supplier-select" label="Supplier" required>
                                 <select name="supplier_id" id="supplier-select" class="form-select" required>
-                                    <option value="">-- Choose a supplier --</option>
+                                    <option value="">Choose a supplier...</option>
                                     @foreach ($suppliers as $supplier)
-                                        <option value="{{ $supplier->id }}" @selected($purchase->supplier_id == $supplier->id)>
-                                            {{ $supplier->name }}
-                                        </option>
+                                        <option value="{{ $supplier->id }}" @selected($purchase->supplier_id == $supplier->id)>{{ $supplier->name }}</option>
                                     @endforeach
                                 </select>
+                            </x-ui.field>
+                            <div class="col-md-6">
+                                <div class="ui-totals">
+                                    <div class="ui-totals-grand mt-0 pt-0 border-0">
+                                        <span>Net total</span><span id="total-display">—</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <span class="h4 mb-0">TOTAL NET</span>
-                            <span class="h4 mb-0 text-primary fw-bold" id="total-display">0.00 Mga</span>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('admin.purchases.show', $purchase->id) }}"
-                                class="btn btn-outline-secondary flex-grow-1">
-                                Cancel
-                            </a>
-                            <button type="submit" class="btn btn-success flex-grow-2 px-5">
-                                <i class="bi bi-check-all"></i> Save changes
+                        <div class="ui-form-actions pb-1">
+                            <a href="{{ route('admin.purchases.show', $purchase->id) }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg" aria-hidden="true"></i> Save changes
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </x-slot:footer>
+                </x-ui.card>
             </form>
         </div>
     </div>
@@ -127,6 +130,14 @@
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             }[c]));
 
+            // Même format que money() côté serveur (devise et position des paramètres)
+            const currency = {{ Js::from(settings('currency_symbol', 'MGA')) }};
+            const currencyBefore = {{ Js::from(settings('currency_position', 'after') === 'before') }};
+            const formatMoney = (amount) => {
+                const value = Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return currencyBefore ? `${currency} ${value}` : `${value} ${currency}`;
+            };
+
             function renderTable() {
                 itemsContainer.empty();
                 let total = 0;
@@ -138,25 +149,29 @@
                     itemsContainer.append(`
                         <tr>
                             <td>
-                                <div class="fw-bold">${escapeHtml(item.name)}</div>
+                                <div class="ui-cell-title">${escapeHtml(item.name)}</div>
                                 <input type="hidden" name="products[${index}][product_color_id]" value="${item.product_color_id}">
                                 <input type="hidden" name="products[${index}][quantity]" value="${item.quantity}">
                                 <input type="hidden" name="products[${index}][unit_price]" value="${item.unit_price}">
                             </td>
-                            <td class="text-center">${item.quantity}</td>
-                            <td class="text-end">${parseFloat(item.unit_price).toLocaleString('fr-FR', {minimumFractionDigits: 2})}</td>
-                            <td class="text-end fw-bold">${subtotal.toLocaleString('fr-FR', {minimumFractionDigits: 2})} Mga</td>
+                            <td class="text-end">${item.quantity}</td>
+                            <td class="text-end">${formatMoney(item.unit_price)}</td>
+                            <td class="text-end fw-semibold">${formatMoney(subtotal)}</td>
                             <td class="text-end">
-                                <button type="button" class="btn btn-sm btn-outline-primary btn-edit-item" data-index="${index}"><i class="bi bi-pencil"></i></button>
-                                <button type="button" class="btn btn-sm btn-outline-danger btn-remove-item" data-index="${index}"><i class="bi bi-trash"></i></button>
+                                <div class="ui-row-actions">
+                                    <button type="button" class="btn btn-icon btn-edit-item" data-index="${index}" title="Edit" aria-label="Edit"><i class="bi bi-pencil"></i></button>
+                                    <button type="button" class="btn btn-icon btn-icon-danger btn-remove-item" data-index="${index}" title="Remove" aria-label="Remove"><i class="bi bi-trash3"></i></button>
+                                </div>
                             </td>
                         </tr>
                     `);
                 });
 
-                totalDisplay.text(total.toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2
-                }) + ' Mga');
+                if (currentItems.length === 0) {
+                    itemsContainer.append('<tr class="ui-empty-row"><td colspan="5"><div class="ui-empty"><i class="bi bi-cart3"></i><div>No line yet. Add a product on the left.</div></div></td></tr>');
+                }
+
+                totalDisplay.text(formatMoney(total));
             }
 
             // Gestion de la recherche (Autocomplete)
@@ -169,9 +184,9 @@
                 if (filtered.length > 0) {
                     filtered.forEach(p => {
                         productSuggestions.append(`
-                            <button type="button" class="list-group-item list-group-item-action"
+                            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-2"
                                 data-id="${p.id}" data-name="${escapeHtml(p.name)}" data-price="${p.price}">
-                                ${escapeHtml(p.name)} (Stock: ${p.stock})
+                                <span>${escapeHtml(p.name)}</span><span class="ui-tag">Stock: ${p.stock}</span>
                             </button>
                         `);
                     });
@@ -197,7 +212,7 @@
                 const price = parseFloat(inputPrice.val());
 
                 if (!id || qty <= 0 || isNaN(price)) {
-                    alert('Please fill product, quantity and price fields correctly.');
+                    Swal.fire({ icon: 'warning', text: 'Please fill product, quantity and price fields correctly.' });
                     return;
                 }
 

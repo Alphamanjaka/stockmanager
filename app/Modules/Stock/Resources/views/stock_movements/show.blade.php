@@ -1,25 +1,35 @@
 @extends('layouts.app-back-office')
-@section('title', 'Détails du mouvement de stock')
+
+@section('title', 'Stock movement #' . $stockMovement->id)
+@section('subtitle', $stockMovement->created_at->format('d/m/Y H:i'))
+
+@php $incoming = $stockMovement->type === 'in'; @endphp
 
 @section('content')
-    <h1>Détails du Mouvement de Stock #{{ $stockMovement->id }}</h1>
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <p><strong>Product:</strong>
-                {{-- link to product detail--}}
-                <a href="{{ route('admin.products.show', $stockMovement->productColor->product->id) }}" class="text-decoration-none">
-                    {{ $stockMovement->productColor->toString() }}
-                </a>
-            </p>
-            <p><strong>Type de mouvement :</strong> {{ $stockMovement->type }}</p>
-            <p><strong>Quantity:</strong> {{ $stockMovement->quantity }}</p>
-            <p><strong>Stock avant :</strong> {{ $stockMovement->stock_before }}</p>
-            <p><strong>Stock après :</strong> {{ $stockMovement->stock_after }}</p>
-            <p><strong>Raison :</strong> {{ $stockMovement->reason ?? 'N/A' }}</p>
-            <p><strong>Date :</strong> {{ $stockMovement->created_at }}</p>
-        </div>
-        <div class="card-footer">
-            <a href="{{ route('admin.movements.index') }}" class="btn btn-secondary">Retour à la liste</a>
-        </div>
+    <div class="ui-form-page">
+        <x-ui.card title="Movement details">
+            <dl class="ui-dl">
+                <dt>Product</dt>
+                <dd>
+                    <a href="{{ route('admin.products.show', $stockMovement->productColor->product->id) }}">
+                        {{ $stockMovement->productColor->toString() }}
+                    </a>
+                </dd>
+                <dt>Type</dt>
+                <dd><x-ui.badge :tone="$incoming ? 'success' : 'danger'" dot>{{ $incoming ? 'Stock in' : 'Stock out' }}</x-ui.badge></dd>
+                <dt>Quantity</dt>
+                <dd @class(['fw-semibold', 'text-success' => $incoming, 'text-danger' => !$incoming])>
+                    {{ $incoming ? '+' : '-' }}{{ abs($stockMovement->quantity) }}
+                </dd>
+                <dt>Stock before</dt>
+                <dd>{{ $stockMovement->stock_before }}</dd>
+                <dt>Stock after</dt>
+                <dd class="fw-semibold">{{ $stockMovement->stock_after }}</dd>
+                <dt>Reason</dt>
+                <dd>{{ $stockMovement->reason ?? '—' }}</dd>
+                <dt>Date</dt>
+                <dd>{{ $stockMovement->created_at->format('d/m/Y H:i') }}</dd>
+            </dl>
+        </x-ui.card>
     </div>
 @endsection

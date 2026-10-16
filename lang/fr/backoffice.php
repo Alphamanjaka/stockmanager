@@ -29,6 +29,9 @@ return [
     'logout' => 'Déconnexion',
     'admin' => 'Admin',
     'footer_rights' => 'Tous droits réservés.',
+    // Boîtes de confirmation (resources/js/ui.js)
+    'cancel' => 'Annuler',
+    'confirm' => 'Confirmer',
 
     // Lanceur de modules et menu du back office
     'launcher' => 'Modules',

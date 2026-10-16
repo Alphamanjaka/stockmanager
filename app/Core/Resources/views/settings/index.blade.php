@@ -1,77 +1,51 @@
 @extends('layouts.app-back-office')
 
-@section('title', '- Settings')
+@section('title', 'Settings')
+
+@php
+    $sections = [
+        'general' => ['label' => 'Company', 'icon' => 'bi-building'],
+        'regional' => ['label' => 'Regional & currency', 'icon' => 'bi-globe2'],
+        'stock' => ['label' => 'Stock & products', 'icon' => 'bi-box-seam'],
+        'interface' => ['label' => 'Interface & system', 'icon' => 'bi-sliders'],
+    ];
+@endphp
 
 @section('content')
-    <div class="container">
-        @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
+    <form id="settings-form" action="{{ route('admin.settings.update', ['setting' => 1]) }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        @method('PUT')
 
-        <div class="row">
-            <!-- Sidebar Navigation (Vertical Tabs) -->
-            <div class="col-md-3 mb-4">
-                <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                    <button class="nav-link active text-start" id="v-pills-general-tab" data-bs-toggle="pill"
-                        data-bs-target="#v-pills-general" type="button" role="tab" aria-controls="v-pills-general"
-                        aria-selected="true">
-                        <i class="fas fa-building me-2"></i> Company
-                    </button>
-                    <button class="nav-link text-start" id="v-pills-regional-tab" data-bs-toggle="pill"
-                        data-bs-target="#v-pills-regional" type="button" role="tab" aria-controls="v-pills-regional"
-                        aria-selected="false">
-                        <i class="fas fa-globe me-2"></i> Regional & Currency
-                    </button>
-                    <button class="nav-link text-start" id="v-pills-stock-tab" data-bs-toggle="pill"
-                        data-bs-target="#v-pills-stock" type="button" role="tab" aria-controls="v-pills-stock"
-                        aria-selected="false">
-                        <i class="fas fa-boxes me-2"></i> Stock & Products
-                    </button>
-                    <button class="nav-link text-start" id="v-pills-interface-tab" data-bs-toggle="pill"
-                        data-bs-target="#v-pills-interface" type="button" role="tab" aria-controls="v-pills-interface"
-                        aria-selected="false">
-                        <i class="fas fa-sliders-h me-2"></i> Interface & System
-                    </button>
-                </div>
-
-                <div class="mt-4 d-grid">
-                    <button type="submit" class="btn btn-primary" form="settings-form">
-                        <i class="fas fa-save me-2"></i> Save all
-                    </button>
-                </div>
+        <div class="row g-3">
+            <div class="col-md-4 col-lg-3">
+                <x-ui.card flush>
+                    <nav class="nav flex-column nav-pills p-2" role="tablist" aria-orientation="vertical">
+                        @foreach ($sections as $key => $section)
+                            <button @class(['nav-link text-start', 'active' => $loop->first]) id="settings-{{ $key }}-tab" data-bs-toggle="pill"
+                                data-bs-target="#settings-{{ $key }}" type="button" role="tab" aria-controls="settings-{{ $key }}"
+                                aria-selected="{{ $loop->first ? 'true' : 'false' }}">
+                                <i class="bi {{ $section['icon'] }}" aria-hidden="true"></i> {{ $section['label'] }}
+                            </button>
+                        @endforeach
+                    </nav>
+                </x-ui.card>
             </div>
 
-            <!-- Content -->
-            <div class="col-md-9">
-                <form id="settings-form" action="{{ route('admin.settings.update', ['setting' => 1]) }}" method="POST"
-                    enctype="multipart/form-data">
-                    @csrf
-                    @method('PUT')
-                    <div class="tab-content" id="v-pills-tabContent">
-                        <div class="tab-pane fade show active" id="v-pills-general" role="tabpanel"
-                            aria-labelledby="v-pills-general-tab">
-                            @include('core::settings.partials.general')
+            <div class="col-md-8 col-lg-9">
+                <div class="tab-content">
+                    @foreach (['general' => 'general', 'regional' => 'regional', 'stock' => 'stock_products', 'interface' => 'interface'] as $key => $partial)
+                        <div @class(['tab-pane fade', 'show active' => $loop->first]) id="settings-{{ $key }}" role="tabpanel"
+                            aria-labelledby="settings-{{ $key }}-tab">
+                            @include('core::settings.partials.' . $partial)
                         </div>
-
-                        <div class="tab-pane fade" id="v-pills-regional" role="tabpanel"
-                            aria-labelledby="v-pills-regional-tab">
-                            @include('core::settings.partials.regional')
-                        </div>
-
-                        <div class="tab-pane fade" id="v-pills-stock" role="tabpanel" aria-labelledby="v-pills-stock-tab">
-                            @include('core::settings.partials.stock_products')
-                        </div>
-
-                        <div class="tab-pane fade" id="v-pills-interface" role="tabpanel"
-                            aria-labelledby="v-pills-interface-tab">
-                            @include('core::settings.partials.interface')
-                        </div>
-                    </div>
-                </form>
+                    @endforeach
+                </div>
             </div>
         </div>
-    @endsection
 
+        <div class="ui-form-bar ui-form-actions">
+            <span class="small text-muted ui-form-actions-start">Settings apply to the whole application, for every user.</span>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save settings</button>
+        </div>
+    </form>
+@endsection

@@ -1,63 +1,55 @@
 @extends('layouts.app-back-office')
 
 @section('title', 'Customers')
+
 @section('actions')
     <a href="{{ route('admin.customers.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Add Customer
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> New customer
     </a>
 @endsection
-@section('content')
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-            <form action="{{ route('admin.customers.index') }}" method="GET" class="row g-2">
-                <div class="col-md-8">
-                    <input type="text" name="search" class="form-control" placeholder="Search by name, phone or email..."
-                        value="{{ request('search') }}">
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filter</button>
-                    <a href="{{ route('admin.customers.index') }}" class="btn btn-outline-secondary">Reset</a>
-                </div>
-            </form>
-        </div>
-    </div>
 
-    <div class="card shadow-sm">
+@section('content')
+    <x-ui.card flush :pagination="$customers">
+        <x-slot:toolbar>
+            <x-ui.filters :action="route('admin.customers.index')">
+                <x-ui.search placeholder="Search by name, phone or email..." />
+            </x-ui.filters>
+        </x-slot:toolbar>
+
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-hover">
+                <thead>
                     <tr>
                         <th>Name</th>
                         <th>Phone</th>
                         <th>Email</th>
                         <th>Address</th>
-                        <th class="text-end">Actions</th>
+                        <th class="text-end"><span class="visually-hidden">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($customers as $customer)
                         <tr>
-                            <td class="fw-bold">{{ $customer->name }}</td>
-                            <td>{{ $customer->phone }}</td>
-                            <td>{{ $customer->email }}</td>
-                            <td>{{ $customer->address }}</td>
+                            <td><a href="{{ route('admin.customers.show', $customer->id) }}" class="link-plain">{{ $customer->name }}</a></td>
+                            <td class="text-nowrap">{{ $customer->phone ?: '—' }}</td>
+                            <td>{{ $customer->email ?: '—' }}</td>
+                            <td class="text-muted">{{ $customer->address ?: '—' }}</td>
                             <td class="text-end">
-                                <a href="{{ route('admin.customers.show', $customer->id) }}"
-                                    class="btn btn-sm btn-outline-secondary" title="View"><i class="fas fa-eye"></i></a>
-                                <a href="{{ route('admin.customers.edit', $customer->id) }}"
-                                    class="btn btn-sm btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
+                                <div class="ui-row-actions">
+                                    <a href="{{ route('admin.customers.show', $customer->id) }}" class="btn btn-icon" title="View" aria-label="View">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
+                                    </a>
+                                    <a href="{{ route('admin.customers.edit', $customer->id) }}" class="btn btn-icon" title="Edit" aria-label="Edit">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">No customer found.</td>
-                        </tr>
+                        <x-ui.empty-row :colspan="5" icon="bi-person-vcard">No customer found.</x-ui.empty-row>
                     @endforelse
                 </tbody>
             </table>
         </div>
-    </div>
-    <div class="mt-4 d-flex justify-content-center">
-        {{ $customers->links() }}
-    </div>
+    </x-ui.card>
 @endsection

@@ -1,116 +1,73 @@
 @extends('layouts.app-back-office')
-@section('title', 'Color Management')
+
+@section('title', 'Colors')
+
 @section('actions')
     <a href="{{ route('admin.colors.create') }}" class="btn btn-primary">
-        <i class="fas fa-plus mr-2"></i> Add Color
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> New color
     </a>
 @endsection
+
 @section('content')
-
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
-    {{-- card for search and filter section handled by javascript --}}
-    {{-- add clear button handeled by controller --}}
-    {{-- component for search and button clear must be horizontally centered --}}
-    <div class="row mb-4">
-
-        <div class="card shadow w-50 mb-2">
-            <div class="card-body">
-                {{-- make 2 columns --}}
-                <div class="row">
-                    <div class="col-md-10">
-                        <form>
-                            <div class="form-group">
-                                <input type="text" class="form-control" id="search" name="search"
-                                    placeholder="Search colors...">
-                            </div>
-                        </form>
-                    </div>
-                    <div class="col-md-2">
-                        <a href="{{ route('admin.colors.index') }}" class="btn btn-secondary">Clear</a>
-                    </div>
-                </div>
+    <x-ui.card flush :pagination="$items">
+        <x-slot:toolbar>
+            {{-- Filtre local de la page affichée --}}
+            <div class="ui-filters">
+                <x-ui.search name="" id="color-filter" placeholder="Filter by name or code..." />
             </div>
-        </div>
-        <div class="card shadow">
-            <!-- card body -->
-            <div class="card-body">
-                    <table class="table table-bordered table-hover" cellspacing="0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Code</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($items as $item)
-                                <tr data-name="{{ strtolower($item->name) }}"
-                                    data-code="{{ strtolower($item->code ?? '') }}">
-                                    <td>{{ $item->id }}</td>
-                                    <td><strong>{{ $item->name }}</strong></td>
-                                    <td><code>{{ $item->code ?? 'N/A' }}</code></td>
-                                
-                                    <td class="text-center">
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ route('admin.colors.edit', $item->id) }}"
-                                                class="btn btn-sm btn-info" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form action="{{ route('admin.colors.destroy', $item->id) }}" method="POST"
-                                                onsubmit="return confirm('Are you sure you want to delete this color?');"
-                                                style="display: inline-block;">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Delete">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">No color found.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+        </x-slot:toolbar>
 
-                <div class="mt-4">
-                    {{ $items->links() }}
-                </div>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-hover" id="colors-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th class="text-end"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($items as $item)
+                        <tr data-search="{{ strtolower($item->name . ' ' . ($item->code ?? '')) }}">
+                            <td>
+                                <span class="d-inline-flex align-items-center gap-2 fw-semibold">
+                                    {{-- Seules les couleurs CSS simples (#hex ou nom) sont reprises dans le style --}}
+                                    <span class="ui-swatch" @if (preg_match('/^(#[0-9a-f]{3,8}|[a-z]+)$/i', (string) $item->code))
+                                        style="background: {{ $item->code }}" @endif></span>
+                                    {{ $item->name }}
+                                </span>
+                            </td>
+                            <td>
+                                @if ($item->code)
+                                    <code>{{ $item->code }}</code>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+                            <td class="text-end">
+                                <div class="ui-row-actions">
+                                    <a href="{{ route('admin.colors.edit', $item->id) }}" class="btn btn-icon" title="Edit" aria-label="Edit">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                                    </a>
+                                    <x-ui.delete-button :action="route('admin.colors.destroy', $item->id)" confirm="Delete this color?" />
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <x-ui.empty-row :colspan="3" icon="bi-palette">No color found.</x-ui.empty-row>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-    </div>
+    </x-ui.card>
 @endsection
 
-{{-- scripts for search colors  --}}
 @push('scripts')
     <script>
-        document.getElementById('search').addEventListener('input', function() {
+        document.getElementById('color-filter').addEventListener('input', function () {
             const query = this.value.toLowerCase();
-            const rows = document.querySelectorAll('table tbody tr');
-
-            rows.forEach(row => {
-                const name = row.getAttribute('data-name');
-                const code = row.getAttribute('data-code');
-
-                // Ignore rows that don't have search attributes (e.g., "No results" row)
-                if (!name && !code) return;
-
-                if (name.includes(query) || (code && code.includes(query))) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+            document.querySelectorAll('#colors-table tbody tr[data-search]').forEach(function (row) {
+                row.hidden = !row.dataset.search.includes(query);
             });
         });
     </script>

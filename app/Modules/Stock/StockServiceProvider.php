@@ -26,7 +26,7 @@ class StockServiceProvider extends ModuleServiceProvider
 
     protected array $menu = [
         'stock' => [
-            ['label' => 'backoffice.movements', 'icon' => 'fa-truck-fast', 'route' => 'admin.movements.index', 'shortcut' => 'm', 'children' => [
+            ['label' => 'backoffice.movements', 'icon' => 'bi-arrow-left-right', 'route' => 'admin.movements.index', 'shortcut' => 'm', 'children' => [
                 ['label' => 'backoffice.menu.movement_history', 'route' => 'admin.movements.index'],
                 ['label' => 'backoffice.menu.new_movement', 'route' => 'admin.movements.create'],
             ]],

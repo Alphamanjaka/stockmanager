@@ -29,6 +29,9 @@ return [
     'logout' => 'Logout',
     'admin' => 'Admin',
     'footer_rights' => 'All rights reserved.',
+    // Boîtes de confirmation (resources/js/ui.js)
+    'cancel' => 'Cancel',
+    'confirm' => 'Confirm',
 
     // Module launcher and back-office menu
     'launcher' => 'Modules',

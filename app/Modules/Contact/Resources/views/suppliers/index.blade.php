@@ -1,58 +1,55 @@
 @extends('layouts.app-back-office')
 
 @section('title', 'Suppliers')
+
 @section('actions')
     <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Add Supplier
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> New supplier
     </a>
 @endsection
+
 @section('content')
+    <x-ui.card flush :pagination="$suppliers">
+        <x-slot:toolbar>
+            <x-ui.filters :action="route('admin.suppliers.index')">
+                <x-ui.search placeholder="Search by name, phone, email or notes..." />
+            </x-ui.filters>
+        </x-slot:toolbar>
 
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body ">
-            <form action="{{ url('admin/suppliers') }}" method="GET" class="row">
-                <div class="col-md-8">
-                    <input type="text" name="search" class="form-control" placeholder="Search supplier..."
-                        value="{{ request('search') }}">
-                </div>
-
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filter</button>
-                    <a href="{{ url('admin/suppliers') }}" class="btn btn-outline-secondary" rel="noopener">Reset</a>
-                </div>
-            </form>
-        </div>
-    </div>
-    <div class="container">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Address</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($suppliers as $supplier)
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
                     <tr>
-                        <td>{{ $supplier->id }}</td>
-                        <td>{{ $supplier->name }}</td>
-                        <td>{{ $supplier->email }}</td>
-                        <td>{{ $supplier->phone }}</td>
-                        <td>{{ $supplier->address }}</td>
-                        <td>
-                            <a href="{{ route('admin.suppliers.show', $supplier->id) }}"
-                                class="btn btn-info btn-sm">View</a>
-                        </td>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Address</th>
+                        <th class="text-end"><span class="visually-hidden">Actions</span></th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
-        <div class="mt-4 d-flex justify-content-center">
-            {{ $suppliers->links() }}
+                </thead>
+                <tbody>
+                    @forelse ($suppliers as $supplier)
+                        <tr>
+                            <td><a href="{{ route('admin.suppliers.show', $supplier->id) }}" class="link-plain">{{ $supplier->name }}</a></td>
+                            <td class="text-nowrap">{{ $supplier->phone ?: '—' }}</td>
+                            <td>{{ $supplier->email ?: '—' }}</td>
+                            <td class="text-muted">{{ $supplier->address ?: '—' }}</td>
+                            <td class="text-end">
+                                <div class="ui-row-actions">
+                                    <a href="{{ route('admin.suppliers.show', $supplier->id) }}" class="btn btn-icon" title="View" aria-label="View">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
+                                    </a>
+                                    <a href="{{ route('admin.suppliers.edit', $supplier->id) }}" class="btn btn-icon" title="Edit" aria-label="Edit">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <x-ui.empty-row :colspan="5" icon="bi-truck">No supplier found.</x-ui.empty-row>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-    </div>
+    </x-ui.card>
 @endsection

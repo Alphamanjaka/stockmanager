@@ -1,41 +1,133 @@
-body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/*
+ * Layout du front office (layouts/app-front-office.blade.php) : barre d'application avec la navigation du vendeur,
+ * en-tête de page, contenu pleine largeur. Couleurs : jetons de resources/css/theme/tokens.css.
+ */
+
+body.fo {
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
 }
 
-.navbar-custom {
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.navbar-custom .nav-link {
-    color: white !important;
-    margin: 0 10px;
-    transition: all 0.3s ease;
-}
-
-.navbar-custom .nav-link:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
-}
-
-.navbar-custom h3 {
-    color: white;
-    font-weight: bold;
+.fo-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.5rem;
+    height: 48px;
+    padding: 0 0.75rem 0 0.5rem;
+    background: var(--app-shell-bg);
+    color: var(--app-shell-text);
 }
 
-main {
-    background-color: white;
-    border-radius: 10px;
-    margin: 20px;
-    padding: 30px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+.fo-nav {
+    display: flex;
+    gap: 0.125rem;
+    min-width: 0;
+    margin: 0 0 0 0.75rem;
+    padding: 0;
+    overflow-x: auto;
+    list-style: none;
+    scrollbar-width: none;
 }
 
-.active-link {
-    background: rgba(255, 255, 255, 0.3) !important;
-    border-bottom: 3px solid white;
+.fo-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.fo-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 34px;
+    padding: 0 0.75rem;
+    border-radius: var(--app-radius);
+    color: var(--app-shell-muted);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.fo-nav-link:hover {
+    background: var(--app-shell-hover);
+    color: var(--app-shell-text);
+}
+
+.fo-nav-link.is-active {
+    background: var(--app-shell-active);
+    color: #fff;
+}
+
+.fo-nav-link:focus-visible,
+.fo-user:focus-visible {
+    outline: 2px solid var(--app-shell-accent);
+    outline-offset: -2px;
+}
+
+.fo-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.fo-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 36px;
+    padding: 0 0.5rem;
+    border: 0;
+    border-radius: var(--app-radius);
+    background: none;
+    color: var(--app-shell-text);
+}
+
+.fo-user:hover,
+.fo-user[aria-expanded="true"] {
+    background: var(--app-shell-hover);
+}
+
+.fo-pagebar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    padding: 1rem 1.25rem 0.875rem;
+}
+
+.fo-page-title {
+    margin: 0;
+    font-size: var(--app-fs-title);
+    font-weight: 600;
+}
+
+.fo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.fo-main {
+    flex: 1 0 auto;
+    width: 100%;
+    padding: 0 1.25rem 1.5rem;
+}
+
+/* Petits écrans : navigation en icônes seules */
+@media (max-width: 767.98px) {
+    .fo-nav-link span,
+    .fo-topbar .ui-brand-name {
+        display: none;
+    }
+
+    .fo-pagebar {
+        padding: 0.75rem 0.75rem 0.625rem;
+    }
+
+    .fo-main {
+        padding: 0 0.75rem 1rem;
+    }
 }

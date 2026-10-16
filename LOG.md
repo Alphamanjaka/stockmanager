@@ -1,5 +1,34 @@
 # Journal de Bord - Vitrine (StockManager)
 
+## [16-10-2026] - Thème « entreprise » : charte, composants et vues uniformes
+
+### 🎨 Charte graphique et design system
+
+- **Problématique** : Couleurs, cartes, boutons, tableaux et formulaires différents d'une page à l'autre ;
+  deux bibliothèques d'icônes (Font Awesome et Bootstrap Icons) ; mode sombre partiel ; montants affichés en
+  « MGA », « Mga » ou « € » selon la page.
+- **Solution** :
+    - Jetons CSS (`resources/css/theme/tokens.css`) : bleu marine de marque, gris neutres, couleurs d'état ;
+      thème sombre complet (Bootstrap suit via `data-bs-theme`).
+    - Habillage Bootstrap, Select2, Tabulator et SweetAlert2 aligné sur ces jetons (`theme/components.css`, `theme/vendors.css`).
+    - Bootstrap Icons seul (Font Awesome n'est plus chargé), menu des modules compris.
+    - Composants Blade `x-ui.*` (cartes, filtres, champs, indicateurs, badges, états vides, suppression).
+    - Helper `money()` pour tous les montants ; `SettingService` partagé par requête (paramètres lus une fois).
+
+### 🧭 Layouts
+
+- Barre d'application marine (lanceur, module, recherche, notifications, profil), menu du module en deuxième ligne,
+  en-tête de page (fil d'Ariane, titre, actions).
+- Front office et page de connexion sur la même charte (plus de dégradé violet ni de CDN).
+- Confirmations (`data-confirm`) et messages de session en boîtes de dialogue de la charte.
+
+### 🐛 Corrections au passage
+
+- Création de catégorie : le parent choisi était ignoré (`parents_id` au lieu de `parent_id`).
+- Liste des achats : le bouton « Reçu » n'avait pas d'URL (`urls.update_state` absent de l'API).
+- Liste des utilisateurs : la recherche et le filtre par rôle sont maintenant appliqués.
+- Front office : l'onglet actif de la navigation est de nouveau mis en évidence.
+
 ## [11-06-2026] - Optimisation de l'Espace UI et Amélioration de la Gestion des Variantes
 
 ### 📊 Refonte des KPI (Barre d'État Compacte)

@@ -1,225 +1,114 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Products Management')
+@section('title', 'Products')
 
 @section('actions')
-    <div>
-        <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> New Product
-        </a>
-        <a href="{{ route('admin.products.exportPdf') }}" class="btn btn-success">
-            <i class="fas fa-file-pdf"></i> Export PDF
-        </a>
-    </div>
+    <a href="{{ route('admin.products.exportPdf') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Export PDF
+    </a>
+    <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> New product
+    </a>
 @endsection
 
+@php
+    $sortLink = fn (string $column) => request()->fullUrlWithQuery([
+        'sort' => $column,
+        'order' => request('sort') === $column && request('order') === 'asc' ? 'desc' : 'asc',
+    ]);
+    $sortIcon = fn (string $column) => request('sort') === $column
+        ? (request('order') === 'asc' ? 'bi-sort-up' : 'bi-sort-down')
+        : 'bi-arrow-down-up text-subtle';
+@endphp
+
 @section('content')
-    {{-- KPI Section --}}
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card border-start border-success border-4 shadow h-100 py-2">
-                <div class="card-body">
-                    {{-- Most Sold Product --}}
-                    {{-- add link to product detail page --}}
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Top Selling</div>
-                            @if ($mostSoldProduct && $mostSoldProduct->productColor)
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    <a href="{{ route('admin.products.show', $mostSoldProduct->productColor->product->id) }}"
-                                        class="text-decoration-none">
-                                        {{ $mostSoldProduct->productColor->toString() }}
-                                    </a>
-                                </div>
-                                <div class="small text-muted">Sold {{ $mostSoldProduct->total_quantity }} times</div>
-                            @else
-                                <div class="text-muted small">No sales recorded</div>
-                            @endif
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-trophy fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 mb-4">
-            <div class="card border-start border-warning border-4 shadow h-100 py-2">
-                <div class="card-body">
-                    {{-- Least Sold Product --}}
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Least Sold</div>
-                            @if ($leastSoldProduct && $leastSoldProduct->productColor)
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    <a href="{{ route('admin.products.show', $leastSoldProduct->productColor->product->id) }}"
-                                        class="text-decoration-none">
-                                        {{ $leastSoldProduct->productColor->toString() }}
-                                    </a>
-                                </div>
-                                <div class="small text-muted">Sold {{ $leastSoldProduct->total_quantity }} times</div>
-                            @else
-                                <div class="text-muted small">No sales recorded</div>
-                            @endif
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-thermometer-empty fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="ui-stack">
+        <div class="ui-stats">
+            @if ($mostSoldProduct && $mostSoldProduct->productColor)
+                <x-ui.stat label="Top selling" :value="$mostSoldProduct->productColor->toString()" icon="bi-graph-up-arrow"
+                    tone="success" :href="route('admin.products.show', $mostSoldProduct->productColor->product->id)"
+                    :hint="'Sold ' . $mostSoldProduct->total_quantity . ' times'" />
+            @else
+                <x-ui.stat label="Top selling" value="—" icon="bi-graph-up-arrow" tone="success" hint="No sales recorded" />
+            @endif
 
-    {{-- Filters --}}
-    <div class="card shadow mb-2">
-        <div class="card-header py-2">
-            <h6 class="m-0 font-weight-bold text-primary">Filters & Search</h6>
+            @if ($leastSoldProduct && $leastSoldProduct->productColor)
+                <x-ui.stat label="Least sold" :value="$leastSoldProduct->productColor->toString()" icon="bi-graph-down-arrow"
+                    tone="warning" :href="route('admin.products.show', $leastSoldProduct->productColor->product->id)"
+                    :hint="'Sold ' . $leastSoldProduct->total_quantity . ' times'" />
+            @else
+                <x-ui.stat label="Least sold" value="—" icon="bi-graph-down-arrow" tone="warning" hint="No sales recorded" />
+            @endif
         </div>
-        <div class="card-body bg-light">
-            <form action="{{ url('admin/products') }}" method="GET" class="row g-3 align-items-end">
-                <div class="col-md-5">
-                    <label class="form-label small text-muted">Search</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                        <input type="text" name="search" class="form-control" placeholder="Name, reference..."
-                            value="{{ request('search') }}">
-                    </div>
-                </div>
 
-                <div class="col-md-4">
-                    <label class="form-label small text-muted">Category</label>
-                    <select name="category" class="form-select">
-                        <option value="">All Categories</option>
+        <x-ui.card flush :pagination="$productVariants">
+            <x-slot:toolbar>
+                <x-ui.filters :action="route('admin.products.index')">
+                    <x-ui.search placeholder="Name, reference..." />
+                    <select name="category" class="form-select ui-filter" aria-label="Category">
+                        <option value="">All categories</option>
                         @foreach ($categories as $cat)
-                            <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
-                                {{ $cat->name }}
-                            </option>
+                            <option value="{{ $cat->id }}" @selected(request('category') == $cat->id)>{{ $cat->name }}</option>
                         @endforeach
                     </select>
-                </div>
+                </x-ui.filters>
+            </x-slot:toolbar>
 
-                <div class="col-md-3">
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary w-100">Filter</button>
-                        <a href="{{ url('admin/products') }}" class="btn btn-outline-secondary w-100">Reset</a>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    {{-- Table --}}
-    <div class="card shadow">
-        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0 align-middle">
-                    <thead class="table-light">
+                <table class="table table-hover">
+                    <thead>
                         <tr>
-                            <th class="ps-4">
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
-                                    class="text-dark text-decoration-none">
-                                    ID <i
-                                        class="fas fa-sort{{ request('sort') == 'id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
-                                </a>
-                            </th>
                             <th>
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'product_id', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
-                                    class="text-dark text-decoration-none">
-                                    Product <i
-                                        class="fas fa-sort{{ request('sort') == 'product_id' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
-                                </a>
+                                <a href="{{ $sortLink('product_id') }}">Product <i class="bi {{ $sortIcon('product_id') }}" aria-hidden="true"></i></a>
                             </th>
-                            <th>
-                                Category
+                            <th>Category</th>
+                            <th class="text-end">
+                                <a href="{{ $sortLink('stock') }}">Stock <i class="bi {{ $sortIcon('stock') }}" aria-hidden="true"></i></a>
                             </th>
-
-                            {{-- stats for available, out-of-stock, or on-order products --}}
-                            <th>
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'stock', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
-                                    class="text-dark text-decoration-none">
-                                    Stock <i
-                                        class="fas fa-sort{{ request('sort') == 'stock' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
-                                </a>
+                            <th class="text-end">
+                                <a href="{{ $sortLink('price_purchase') }}">Cost price <i class="bi {{ $sortIcon('price_purchase') }}" aria-hidden="true"></i></a>
                             </th>
-                            {{-- cost price --}}
-                            <th>
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'price_purchase', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
-                                    class="text-dark text-decoration-none">
-                                    Cost Price <i
-                                        class="fas fa-sort{{ request('sort') == 'price_purchase' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
-                                </a>
+                            <th class="text-end">
+                                <a href="{{ $sortLink('price') }}">Price <i class="bi {{ $sortIcon('price') }}" aria-hidden="true"></i></a>
                             </th>
-                            {{-- prix de vente --}}
-                            <th>
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'price', 'order' => request('order') === 'asc' ? 'desc' : 'asc']) }}"
-                                    class="text-dark text-decoration-none">
-                                    Price <i
-                                        class="fas fa-sort{{ request('sort') == 'price' ? (request('order') == 'asc' ? '-up' : '-down') : '' }} small text-muted"></i>
-                                </a>
-                            </th>
-
-                            <th class="text-end pe-4">Actions</th>
+                            <th class="text-end"><span class="visually-hidden">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($productVariants as $item)
                             <tr>
-                                <td class="ps-4 text-muted small">#{{ $item->id }}</td>
                                 <td>
-                                    <div class="fw-bold text-dark"> <a
-                                            href="{{ route('admin.products.show', $item->product->id) }}">{{ $item->toString() ?? 'N/A' }}</a>
-                                    </div>
+                                    <a href="{{ route('admin.products.show', $item->product->id) }}" class="link-plain">{{ $item->toString() ?? 'N/A' }}</a>
+                                    @if ($item->sku)
+                                        <div class="ui-cell-meta">{{ $item->sku }}</div>
+                                    @endif
                                 </td>
-                                <td>
-                                    <span
-                                        class="badge bg-light text-dark border">{{ $item->getCategoryNameAttribute() ?? 'N/A' }}</span>
-
+                                <td><span class="ui-tag">{{ $item->getCategoryNameAttribute() ?? 'N/A' }}</span></td>
+                                <td class="text-end">
+                                    @if ($item->stock <= $item->alert_stock)
+                                        <x-ui.badge tone="danger" dot title="Low stock">{{ $item->stock }}</x-ui.badge>
+                                    @else
+                                        {{ $item->stock }}
+                                    @endif
                                 </td>
-                                <td class="text pe-4">
-                                    {{ $item->stock }} {{ $item->stock <= 5 ? ' (Low Stock)' : '' }}
-                                </td>
-                                <td class="text pe-4">
-                                    {{ number_format($item->price_purchase, 2) }} MGA
-                                </td>
-                                <td class="text pe-4">
-                                    {{ number_format($item->price, 2) }} MGA
-                                </td>
-
-                                <td class="text-end pe-4">
-                                    <div class="btn-group">
-                                        <a href="{{ route('admin.products.show', $item->product_id) }}"
-                                            class="btn btn-sm btn-outline-secondary" title="Voir">
-                                            <i class="fas fa-eye"></i>
+                                <td class="text-end">{{ money($item->price_purchase) }}</td>
+                                <td class="text-end fw-semibold">{{ money($item->price) }}</td>
+                                <td class="text-end">
+                                    <div class="ui-row-actions">
+                                        <a href="{{ route('admin.products.show', $item->product->id) }}" class="btn btn-icon" title="View" aria-label="View">
+                                            <i class="bi bi-eye" aria-hidden="true"></i>
                                         </a>
-                                        <form action="{{ route('admin.products.destroy', $item->product->id) }}"
-                                            method="POST" class="d-inline"
-                                            onsubmit="return confirm('Delete this product ?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        <x-ui.delete-button :action="route('admin.products.destroy', $item->product->id)"
+                                            confirm="Delete this product and all its variants?" />
                                     </div>
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
-                                    <i class="fas fa-box-open fa-3x mb-3"></i><br>
-                                    No product found.
-                                </td>
-                            </tr>
+                            <x-ui.empty-row :colspan="6" icon="bi-box">No product found.</x-ui.empty-row>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-        </div>
-        <div class="card-footer py-3">
-            <div class="d-flex justify-content-center">
-                {{ $productVariants->links() }}
-            </div>
-        </div>
+        </x-ui.card>
     </div>
 @endsection

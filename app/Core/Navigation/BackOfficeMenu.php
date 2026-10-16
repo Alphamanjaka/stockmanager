@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
  * Un espace est une tuile du lanceur (Catalogue, Stock, Achats...). Chaque module y range ses pages :
  *
  *     'catalog' => [
- *         ['label' => 'backoffice.products', 'icon' => 'fa-box', 'route' => 'admin.products.index', 'shortcut' => 'p',
+ *         ['label' => 'backoffice.products', 'icon' => 'bi-box', 'route' => 'admin.products.index', 'shortcut' => 'p',
  *          'children' => [ // menu secondaire (liste déroulante)
  *              ['label' => 'backoffice.menu.all_products', 'route' => 'admin.products.index'],
  *              ['label' => 'backoffice.menu.new_product', 'route' => 'admin.products.create'],
@@ -23,7 +23,7 @@ use Illuminate\Support\Str;
  * Clés d'une entrée :
  * - label    clé de traduction (obligatoire)
  * - route    nom de route sans paramètre ; sans route, l'entrée mène à son premier enfant
- * - icon     classe Font Awesome (ex. 'fa-box')
+ * - icon     classe Bootstrap Icons (ex. 'bi-box') : https://icons.getbootstrap.com
  * - shortcut touche du raccourci Alt + touche, unique dans tout le menu
  * - children menu secondaire
  * - order    rang dans la liste (0 par défaut) : permet à un module de se placer après les pages d'un autre

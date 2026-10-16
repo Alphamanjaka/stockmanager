@@ -4,17 +4,19 @@
 .pos,
 .pos-modal,
 .pos-toast {
-    --pos-surface: var(--card-bg, #fff);
-    --pos-border: var(--border-color, #dee2e6);
-    --pos-text: var(--text-main, #212529);
-    --pos-muted: #6c757d;
-    --pos-soft: #f1f3f5;
-    --pos-accent: var(--bs-primary, #0d6efd);
-    --pos-accent-soft: rgba(13, 110, 253, 0.1);
-    --pos-success: #198754;
-    --pos-danger: #dc3545;
-    --pos-warning: #b35c00;
-    --pos-radius: 12px;
+    /* Couleurs de la charte (resources/css/theme/tokens.css) : suivent le thème clair/sombre */
+    --pos-surface: var(--app-surface);
+    --pos-border: var(--app-border);
+    --pos-text: var(--app-text);
+    --pos-muted: var(--app-text-muted);
+    --pos-soft: var(--app-surface-muted);
+    --pos-accent: var(--app-primary);
+    --pos-accent-soft: var(--app-primary-soft);
+    --pos-accent-bg: var(--app-primary-bg);
+    --pos-success: var(--app-success);
+    --pos-danger: var(--app-danger);
+    --pos-warning: var(--app-warning);
+    --pos-radius: var(--app-radius-lg);
 }
 
 .pos {
@@ -26,21 +28,12 @@
     font-size: 1rem;
 }
 
-[data-theme="dark"] .pos,
-[data-theme="dark"] .pos-modal,
-[data-theme="dark"] .pos-toast {
-    --pos-muted: #adb5bd;
-    --pos-soft: #2a2a2a;
-    --pos-accent-soft: rgba(110, 168, 254, 0.18);
-    --pos-success: #4cc38a;
-    --pos-danger: #ff6b6b;
-    --pos-warning: #ffb44d;
-}
-
 .pos kbd {
     font-size: 0.7em;
     padding: 0.1em 0.4em;
+    border-color: transparent;
     background: rgba(0, 0, 0, 0.55);
+    color: #fff;
     border-radius: 4px;
     vertical-align: middle;
 }
@@ -104,7 +97,7 @@
     right: 3.5rem;
     padding: 0.2rem 0.6rem;
     border-radius: 999px;
-    background: var(--pos-accent);
+    background: var(--pos-accent-bg);
     color: #fff;
     font-weight: 700;
     pointer-events: none;
@@ -151,8 +144,8 @@
 }
 
 .pos-chip.is-active {
-    border-color: var(--pos-accent);
-    background: var(--pos-accent);
+    border-color: var(--pos-accent-bg);
+    background: var(--pos-accent-bg);
     color: #fff;
 }
 
@@ -270,7 +263,7 @@
     height: 1.8rem;
     padding: 0 0.4rem;
     border-radius: 999px;
-    background: var(--pos-accent);
+    background: var(--pos-accent-bg);
     color: #fff;
     font-weight: 700;
     line-height: 1.8rem;
@@ -507,7 +500,7 @@
     max-width: min(90vw, 560px);
     padding: 0.75rem 1.25rem;
     border-radius: var(--pos-radius);
-    background: #212529;
+    background: var(--app-shell-bg);
     color: #fff;
     font-size: 1rem;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
@@ -523,20 +516,22 @@
 }
 
 .pos-toast.is-error {
-    background: #b02a37;
+    background: var(--app-danger-bg);
 }
 
 /* --- Encaissement --------------------------------------------------------------------------- */
 
 .pos-modal .modal-content {
-    background: var(--card-bg, #fff);
-    color: var(--text-main, #212529);
+    background: var(--app-surface);
+    color: var(--app-text);
     font-size: 1rem;
 }
 
 .pos-modal kbd {
     font-size: 0.7em;
+    border-color: transparent;
     background: rgba(0, 0, 0, 0.55);
+    color: #fff;
 }
 
 .pos-modal .form-text {
@@ -550,7 +545,7 @@
     margin-bottom: 1rem;
     padding: 1rem 1.25rem;
     border-radius: var(--pos-radius);
-    background: #212529;
+    background: var(--app-shell-bg);
     color: #fff;
 }
 

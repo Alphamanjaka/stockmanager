@@ -1,133 +1,130 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Purchase Cart Management')
-@section('content')
-    <div class="row">
-        <!-- Colonne de Gauche : Recherche et Ajout -->
-        <div class="col-md-5">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-dark text-white fw-bold">
-                    <i class="bi bi-search"></i> Search Product
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('admin.purchases.cart.add') }}" method="POST" id="add-to-cart-form">
-                        @csrf
-                        <div class="mb-3 position-relative"> {{-- Ajout de position-relative pour le positionnement des suggestions --}}
-                            <label class="form-label fw-bold">Product</label>
-                            <input type="text" id="product-search-input" class="form-control"
-                                placeholder="Search a product by name or color..." autocomplete="off">
-                            <input type="hidden" name="product_color_id" id="selected-product-id" required>
-                            <div id="product-suggestions" class="list-group position-absolute w-100"
-                                style="z-index: 1000; display: none;"></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Quantity</label>
-                                <input type="number" name="quantity" class="form-control" min="1" value="1"
-                                    required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Prix d'Achat Unitaire</label>
-                                <div class="input-group">
-                                    <input type="number" name="unit_price" id="unit-price-input" class="form-control"
-                                        step="0.01" required>
-                                    <span class="input-group-text">Mga</span>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-cart-plus"></i> Add to cart
-                        </button>
-                    </form>
-                </div>
-            </div>
+@section('title', 'New purchase')
 
-            <div class="card shadow-sm border-0">
-                <div class="card-body text-center">
-                    <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary w-100">
-                        <i class="bi bi-arrow-left"></i> Retour à la liste
-                    </a>
-                </div>
-            </div>
+@section('content')
+    <div class="row g-3">
+        {{-- Ajout d'un produit au panier --}}
+        <div class="col-lg-5">
+            <form action="{{ route('admin.purchases.cart.add') }}" method="POST" id="add-to-cart-form">
+                @csrf
+                <x-ui.card title="Add a product">
+                    <div class="ui-field position-relative">
+                        <label class="form-label required" for="product-search-input">Product</label>
+                        <div class="ui-search">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            <input type="text" id="product-search-input" class="form-control"
+                                placeholder="Search a product by name or variant... (F2)" autocomplete="off">
+                        </div>
+                        <input type="hidden" name="product_color_id" id="selected-product-id" required>
+                        <div id="product-suggestions" class="list-group position-absolute w-100 shadow-lg"
+                            style="z-index: 1000; display: none; max-height: 320px; overflow-y: auto;"></div>
+                    </div>
+                    <div class="row">
+                        <x-ui.field class="col-md-5 mb-0" name="quantity" label="Quantity" type="number" min="1" value="1" required />
+                        <x-ui.field class="col-md-7 mb-0" name="unit_price" id="unit-price-input" label="Unit purchase price" required>
+                            <div class="input-group">
+                                <input type="number" name="unit_price" id="unit-price-input" class="form-control" step="0.01" min="0" required>
+                                <span class="input-group-text">{{ settings('currency_symbol', 'MGA') }}</span>
+                            </div>
+                        </x-ui.field>
+                    </div>
+
+                    <x-slot:footer>
+                        <div class="ui-form-actions">
+                            <button type="submit" class="btn btn-outline-secondary">
+                                <i class="bi bi-cart-plus" aria-hidden="true"></i> Add to cart
+                            </button>
+                        </div>
+                    </x-slot:footer>
+                </x-ui.card>
+            </form>
         </div>
 
-        <!-- Right column: The Cart -->
-        <div class="col-md-7">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <span class="fw-bold"><i class="bi bi-cart3"></i> Current Cart</span>
-                    @if ($cartItems->isNotEmpty())
+        {{-- Panier --}}
+        <div class="col-lg-7">
+            <x-ui.card title="Cart" flush :count="$cartItems->count()">
+                @if ($cartItems->isNotEmpty())
+                    <x-slot:actions>
                         <form action="{{ route('admin.purchases.cart.clear') }}" method="POST"
-                            onsubmit="return confirm('Clear the cart?')">
+                            data-confirm="Clear the cart?" data-confirm-tone="danger" data-confirm-ok="Clear">
                             @csrf
-                            <button type="submit" class="btn btn-sm btn-light text-danger">Vider</button>
+                            <button type="submit" class="btn btn-sm btn-link text-danger">
+                                <i class="bi bi-x-circle" aria-hidden="true"></i> Clear
+                            </button>
                         </form>
-                    @endif
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                    </x-slot:actions>
+                @endif
+
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
                             <tr>
                                 <th>Product</th>
-                                <th class="text-center">Qté</th>
-                                <th class="text-end">P.U</th>
+                                <th class="text-end">Qty</th>
+                                <th class="text-end">Unit price</th>
                                 <th class="text-end">Total</th>
-                                <th></th>
+                                <th class="text-end"><span class="visually-hidden">Actions</span></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($cartItems as $item)
+                            @forelse ($cartItems as $item)
                                 <tr>
                                     <td>
-                                        <div class="fw-bold">{{ $item->product->label }}</div>
-                                        <small class="text-muted">{{ $item->product->sku }}</small>
+                                        <div class="ui-cell-title">{{ $item->product->label }}</div>
+                                        <div class="ui-cell-meta">{{ $item->product->sku }}</div>
                                     </td>
-                                    <td class="text-center">{{ $item->quantity }}</td>
-                                    <td class="text-end">{{ number_format($item->unit_price, 2, ',', ' ') }}</td>
-                                    <td class="text-end fw-bold">{{ number_format($item->subtotal, 2, ',', ' ') }} Mga</td>
+                                    <td class="text-end">{{ $item->quantity }}</td>
+                                    <td class="text-end">{{ money($item->unit_price) }}</td>
+                                    <td class="text-end fw-semibold">{{ money($item->subtotal) }}</td>
                                     <td class="text-end">
-                                        <form action="{{ route('admin.purchases.cart.remove', $item->product->id) }}"
-                                            method="POST">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-link text-danger p-0"><i
-                                                    class="bi bi-x-circle-fill"></i></button>
+                                        <form action="{{ route('admin.purchases.cart.remove', $item->product->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-icon btn-icon-danger" title="Remove" aria-label="Remove">
+                                                <i class="bi bi-x-lg" aria-hidden="true"></i>
+                                            </button>
                                         </form>
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">Your cart is empty</td>
-                                </tr>
+                                <x-ui.empty-row :colspan="5" icon="bi-cart3">Your cart is empty. Search a product to add it.</x-ui.empty-row>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+
                 @if ($cartItems->isNotEmpty())
-                    <div class="card-footer bg-light">
+                    <x-slot:footer>
                         <form action="{{ route('admin.purchases.store') }}" method="POST">
                             @csrf
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Fournisseur</label>
-                                <select name="supplier_id" id="supplier-select" class="form-select" required>
-                                    <option value="">-- Choisir un fournisseur --</option>
-                                    @foreach ($suppliers as $supplier)
-                                        <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                                    @endforeach
-                                </select>
+                            <div class="row g-3 align-items-end py-2">
+                                <x-ui.field class="col-md-6 mb-0" name="supplier_id" id="supplier-select" label="Supplier" required>
+                                    <select name="supplier_id" id="supplier-select" class="form-select" required>
+                                        <option value="">Choose a supplier...</option>
+                                        @foreach ($suppliers as $supplier)
+                                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </x-ui.field>
+                                <div class="col-md-6">
+                                    <div class="ui-totals">
+                                        <div class="ui-totals-grand mt-0 pt-0 border-0">
+                                            <span>Net total</span><span>{{ money($cartItems->sum('subtotal')) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="h4 mb-0">TOTAL NET</span>
-                                <span
-                                    class="h4 mb-0 text-primary fw-bold">{{ number_format($cartItems->sum('subtotal'), 2, ',', ' ') }}
-                                    Mga</span>
+                            <div class="ui-form-actions pb-1">
+                                <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-lg" aria-hidden="true"></i> Create the purchase
+                                </button>
                             </div>
-                            <button type="submit" class="btn btn-success btn-lg w-100">
-                                <i class="bi bi-check-all"></i> Valider la Commande
-                            </button>
                         </form>
-                    </div>
+                    </x-slot:footer>
                 @endif
-            </div>
+            </x-ui.card>
         </div>
     </div>
 @endsection
@@ -172,11 +169,11 @@
                 if (filteredProducts.length > 0) {
                     filteredProducts.forEach(product => {
                         const suggestionItem = $(`
-                            <button type="button" class="list-group-item list-group-item-action"
+                            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-2"
                                 data-id="${product.id}"
                                 data-price="${product.price}"
                                 data-name="${escapeHtml(product.name)}">
-                                ${escapeHtml(product.name)} (Stock: ${product.stock})
+                                <span>${escapeHtml(product.name)}</span><span class="ui-tag">Stock: ${product.stock}</span>
                             </button>
                         `);
                         productSuggestions.append(suggestionItem);

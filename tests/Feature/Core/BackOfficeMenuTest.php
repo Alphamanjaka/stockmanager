@@ -48,8 +48,8 @@ class BackOfficeMenuTest extends TestCase
 
         $menu = new BackOfficeMenu;
         $menu->addSpaces([
-            'shop' => ['label' => 'backoffice.sales', 'icon' => 'fa-shop'],
-            'ghost' => ['label' => 'backoffice.purchases', 'icon' => 'fa-ghost'],
+            'shop' => ['label' => 'backoffice.sales', 'icon' => 'bi-shop'],
+            'ghost' => ['label' => 'backoffice.purchases', 'icon' => 'bi-question-circle'],
         ]);
         $menu->addEntries('shop', [
             ['label' => 'backoffice.sales', 'route' => 'admin.sales.index'],

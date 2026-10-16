@@ -122,7 +122,7 @@ Le layout n'écrit aucun lien en dur : il affiche le menu déclaré par les modu
 ```php
 protected array $menu = [
     'catalog' => [
-        ['label' => 'backoffice.products', 'icon' => 'fa-box', 'route' => 'admin.products.index', 'shortcut' => 'p',
+        ['label' => 'backoffice.products', 'icon' => 'bi-box', 'route' => 'admin.products.index', 'shortcut' => 'p',
          'children' => [
              ['label' => 'backoffice.menu.all_products', 'route' => 'admin.products.index'],
              ['label' => 'backoffice.menu.new_product', 'route' => 'admin.products.create'],
@@ -134,6 +134,23 @@ protected array $menu = [
 Une entrée dont la route n'existe pas est masquée (le layout ne plante pas), un espace vide disparaît.
 L'entrée active, le fil d'Ariane et les raccourcis Alt + touche en sont déduits. `BackOfficeMenuTest` vérifie que
 chaque raccourci est unique et que chaque libellé est traduit en en/fr/es (`lang/*/backoffice.php`).
+
+**Interface : thème et composants**
+
+- **Charte** : toutes les couleurs, tailles et formes sont des jetons CSS dans `resources/css/theme/tokens.css`
+  (thème clair et sombre). Bootstrap y est branché par ses variables ; on ne code pas de couleur en dur dans une vue.
+- **Icônes** : Bootstrap Icons uniquement (`<i class="bi bi-box">`, menu : `'icon' => 'bi-box'`).
+- **Composants Blade** (`resources/views/components/ui/`) : `<x-ui.card>` (titre, actions, barre d'outils, pied,
+  pagination), `<x-ui.filters>` + `<x-ui.search>` (recherche d'une liste), `<x-ui.field>` (libellé, contrôle, aide,
+  erreur), `<x-ui.stat>` (indicateur), `<x-ui.badge>` / `<x-ui.status>`, `<x-ui.empty-row>`, `<x-ui.delete-button>`,
+  `<x-ui.alert>`, `<x-ui.errors>`.
+- **Mise en page d'une page** : titre dans `@section('title')` (affiché en en-tête avec le fil d'Ariane), sous-titre
+  facultatif dans `@section('subtitle')`, boutons dans `@section('actions')` : un seul `btn-primary`, les autres en
+  `btn-outline-secondary`. Listes : une carte (filtres en barre d'outils, tableau, pagination en pied) ;
+  actions de ligne en `btn btn-icon` alignées à droite. Formulaires : Annuler puis Enregistrer, à droite.
+- **Montants** : `money($montant)` (devise et position des Paramètres).
+- **Confirmation** : `data-confirm="Question ?"` sur un bouton d'envoi ou un formulaire (`resources/js/ui.js`) ;
+  `data-confirm-tone="danger"` pour une suppression.
 
 **Créer un nouveau module**
 

@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window
         .matchMedia("(prefers-color-scheme: dark)")
         .addEventListener("change", (e) => {
-            root.dataset.theme = e.matches ? "dark" : "light";
+            // data-bs-theme : les composants Bootstrap suivent le même thème
+            root.dataset.theme = root.dataset.bsTheme = e.matches ? "dark" : "light";
         });
 });

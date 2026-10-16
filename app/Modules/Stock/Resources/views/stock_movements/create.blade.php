@@ -1,120 +1,91 @@
 @extends('layouts.app-back-office')
-@section('title', 'Create Stock Movement')
+
+@section('title', 'New stock movement')
+
 @section('content')
-    <div class="container mt-4">
-        <h1 class="mb-4">Create Stock Movement</h1>
+    <x-ui.errors />
 
-        <div class="row">
-            <!-- Left Column: Product Selection -->
-            <div class="col-md-5">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">Select Product Variant</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                <input type="text" id="search-product" class="form-control"
-                                    placeholder="Search product or color...">
-                            </div>
-                        </div>
+    <div class="row g-3">
+        {{-- Choix de la variante --}}
+        <div class="col-lg-5">
+            <x-ui.card title="1. Select a product variant" flush>
+                <x-slot:toolbar>
+                    <x-ui.search name="" id="search-product" placeholder="Search product, variant or SKU..." />
+                </x-slot:toolbar>
 
-                        <div id="product-list-container" style="max-height: 400px; overflow-y: auto;">
-                            <div class="list-group" id="product-results">
-                                @foreach ($productColors as $item)
-                                    <button type="button" class="list-group-item list-group-item-action product-item"
-                                        data-id="{{ $item->id }}"
-                                        data-name="{{ $item->label }}">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span>{{ $item->label }}</span>
-                                            <span class="badge bg-secondary rounded-pill">{{ $item->sku }}</span>
-                                        </div>
-                                    </button>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
+                <div class="list-group list-group-flush" id="product-results" style="max-height: 460px; overflow-y: auto;">
+                    @foreach ($productColors as $item)
+                        <button type="button" class="list-group-item list-group-item-action product-item d-flex justify-content-between align-items-center gap-2"
+                            data-id="{{ $item->id }}" data-name="{{ $item->label }}">
+                            <span>{{ $item->label }}</span>
+                            <span class="ui-tag">{{ $item->sku }}</span>
+                        </button>
+                    @endforeach
                 </div>
-            </div>
+            </x-ui.card>
+        </div>
 
-            <!-- Right Column: Movement Details -->
-            <div class="col-md-7">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Movement Details</h5>
+        {{-- Saisie du mouvement --}}
+        <div class="col-lg-7">
+            <form action="{{ route('admin.movements.store') }}" method="POST" id="movement-form">
+                @csrf
+                <input type="hidden" name="product_color_id" id="selected-product-id" required>
+
+                <x-ui.card title="2. Movement details">
+                    <div class="ui-field">
+                        <div class="form-label">Selected variant</div>
+                        <div id="selected-product-display" class="alert alert-secondary mb-0 py-2">
+                            Select a variant in the list.
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <form action="{{ route('admin.movements.store') }}" method="POST" id="movement-form">
-                            @csrf
-                            <input type="hidden" name="product_color_id" id="selected-product-id" required>
 
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Selected Product</label>
-                                <div id="selected-product-display" class="alert alert-info py-2">
-                                    Please select a product from the list on the left.
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Quantity</label>
-                                <input type="number" name="quantity" class="form-control form-control-lg" min="1"
-                                    placeholder="Enter amount" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Movement Type</label>
-                                <select name="type" class="form-select" required>
-                                    <option value="" selected disabled>Choose type...</option>
-                                    <option value="in">In (Stock Increase)</option>
-                                    <option value="out">Out (Stock Decrease)</option>
-                                </select>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Reason</label>
-                                <textarea name="reason" class="form-control" rows="3" placeholder="Optional: damage, return, adjustment..."
-                                    maxlength="255"></textarea>
-                            </div>
-
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg" id="submit-btn" disabled>
-                                    <i class="fas fa-check-circle me-2"></i>Validate Movement
-                                </button>
-                            </div>
-                        </form>
+                    <div class="row">
+                        <x-ui.field class="col-md-6" name="type" label="Movement type" required>
+                            <select name="type" id="type" class="form-select" required>
+                                <option value="" selected disabled>Choose...</option>
+                                <option value="in">Stock in (increase)</option>
+                                <option value="out">Stock out (decrease)</option>
+                            </select>
+                        </x-ui.field>
+                        <x-ui.field class="col-md-6" name="quantity" label="Quantity" type="number" min="1" required
+                            placeholder="Enter amount" />
                     </div>
-                </div>
-            </div>
+
+                    <x-ui.field class="mb-0" name="reason" label="Reason" type="textarea" rows="3" maxlength="255"
+                        placeholder="Optional: damage, return, adjustment..." />
+
+                    <x-slot:footer>
+                        <div class="ui-form-actions">
+                            <a href="{{ route('admin.movements.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+                                <i class="bi bi-check-lg" aria-hidden="true"></i> Record movement
+                            </button>
+                        </div>
+                    </x-slot:footer>
+                </x-ui.card>
+            </form>
         </div>
     </div>
 @endsection
 
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // Search logic
-            $('#search-product').on('keyup', function() {
-                let value = $(this).val().toLowerCase();
-                $("#product-results .product-item").filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-                });
+    <script type="module">
+        // Recherche locale dans la liste des variantes
+        $('#search-product').on('input', function () {
+            const value = $(this).val().toLowerCase();
+            $('#product-results .product-item').each(function () {
+                $(this).toggleClass('d-none', !$(this).text().toLowerCase().includes(value));
             });
+        });
 
-            // Selection logic
-            $('.product-item').on('click', function() {
-                $('.product-item').removeClass('active');
-                $(this).addClass('active');
+        // Choix d'une variante
+        $('.product-item').on('click', function () {
+            $('.product-item').removeClass('active');
+            $(this).addClass('active');
 
-                let id = $(this).data('id');
-                let name = $(this).data('name');
-
-                $('#selected-product-id').val(id);
-                $('#selected-product-display').removeClass('alert-info').addClass('alert-success').text(
-                    name);
-                $('#submit-btn').prop('disabled', false);
-            });
+            $('#selected-product-id').val($(this).data('id'));
+            $('#selected-product-display').removeClass('alert-secondary').addClass('alert-info').text($(this).data('name'));
+            $('#submit-btn').prop('disabled', false);
         });
     </script>
 @endpush

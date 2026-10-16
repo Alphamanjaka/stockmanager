@@ -1,140 +1,129 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Add New Product')
+@section('title', 'New product')
 
 @section('content')
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    <x-ui.errors />
 
     <form action="{{ route('admin.products.store') }}" method="POST" id="product-form">
         @csrf
-        <div class="row">
-            <div class="col-lg-9">
-                {{-- 1. Informations du produit --}}
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-dark text-white"><i class="bi bi-box-seam me-2"></i> Product</div>
-                    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-xl-9">
+                <div class="ui-stack">
+                    {{-- 1. Informations du produit --}}
+                    <x-ui.card title="Product">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="name" class="form-label">Product name <span class="text-danger">*</span></label>
-                                <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror"
-                                    value="{{ old('name') }}" required maxlength="255" placeholder="e.g. Desiccant gel, Straight wig">
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label for="category_id" class="form-label">Category <span class="text-danger">*</span></label>
-                                <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
+                            <x-ui.field class="col-md-6" name="name" label="Product name" required maxlength="255"
+                                placeholder="e.g. Desiccant gel, Straight wig" :value="old('name')" />
+                            <x-ui.field class="col-md-3" name="category_id" label="Category" required>
+                                <select name="category_id" id="category_id" @class(['form-select', 'is-invalid' => $errors->has('category_id')]) required>
                                     <option value="">Select…</option>
                                     @foreach ($categories as $category)
                                         <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>{{ $category->name }}</option>
                                     @endforeach
                                 </select>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label for="price" class="form-label">Default price (MGA)</label>
-                                <input type="number" step="0.01" min="0" name="price" id="price" class="form-control" value="{{ old('price') }}"
-                                    placeholder="Used when a variant has no price">
-                            </div>
+                            </x-ui.field>
+                            <x-ui.field class="col-md-3" name="price" label="Default price" type="number" step="0.01" min="0"
+                                hint="Used when a variant has no price." :value="old('price')" />
+                            <x-ui.field class="col-12 mb-0" name="description" label="Description" type="textarea" rows="2"
+                                :value="old('description')" />
                         </div>
-                        <label for="description" class="form-label">Description</label>
-                        <textarea name="description" id="description" rows="2" class="form-control">{{ old('description') }}</textarea>
-                    </div>
-                </div>
+                    </x-ui.card>
 
-                {{-- 2. Options : axes de variation --}}
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-dark text-white"><i class="bi bi-sliders me-2"></i> Options</div>
-                    <div class="card-body">
-                        <p class="small text-muted mb-3">
-                            What makes the variants differ: e.g. <em>Volume</em> = 25 ml, 30 ml, or <em>Color</em> + <em>Length</em>.
-                            Leave empty for a product without variants. Choosing a category fills in its suggested options.
-                        </p>
+                    {{-- 2. Options : axes de variation --}}
+                    <x-ui.card title="Options"
+                        subtitle="What makes the variants differ: e.g. Volume = 25 ml, 30 ml, or Color + Length. Leave empty for a product without variants.">
+                        <p class="small text-muted mb-3">Choosing a category fills in its suggested options.</p>
                         <div id="option-rows"></div>
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="add-option">
-                            <i class="bi bi-plus"></i> Add an option
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="add-option">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Add an option
                         </button>
                         <datalist id="option-names">
                             @foreach ($optionNames as $optionName)
                                 <option value="{{ $optionName }}">
                             @endforeach
                         </datalist>
-                    </div>
-                </div>
+                    </x-ui.card>
 
-                {{-- 3. Grille des variantes générée à partir des options --}}
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-grid-3x3-gap me-2"></i> Variants <span class="badge bg-light text-dark" id="variant-count">0</span></span>
-                        <span class="small">Uncheck the combinations you do not sell. SKUs are generated automatically.</span>
-                    </div>
-                    <div class="card-body border-bottom bg-light py-2">
-                        <div class="row g-2 align-items-end small">
-                            <div class="col-md-2"><label class="form-label mb-0">Price</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-price"></div>
-                            <div class="col-md-2"><label class="form-label mb-0">Cost</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-cost"></div>
-                            <div class="col-md-2"><label class="form-label mb-0">Stock</label><input type="number" min="0" class="form-control form-control-sm" id="bulk-stock"></div>
-                            <div class="col-md-2"><label class="form-label mb-0">Alert</label><input type="number" min="0" class="form-control form-control-sm" id="bulk-alert"></div>
-                            <div class="col-md-2">
-                                <label class="form-label mb-0">Brand</label>
-                                <select class="form-select form-select-sm" id="bulk-brand">
-                                    <option value="">—</option>
-                                    @foreach ($brands as $brand)
-                                        <option value="{{ $brand->id }}">{{ $brand->name }}</option>
-                                    @endforeach
-                                </select>
+                    {{-- 3. Grille des variantes générée à partir des options --}}
+                    <x-ui.card title="Variants" flush
+                        subtitle="Uncheck the combinations you do not sell. SKUs are generated automatically.">
+                        <x-slot:actions>
+                            <span class="ui-tag"><span id="variant-count">0</span>&nbsp;variant(s)</span>
+                        </x-slot:actions>
+
+                        <x-slot:toolbar>
+                            {{-- Saisie groupée : appliquée aux lignes cochées --}}
+                            <div class="row g-2 align-items-end">
+                                <div class="col-6 col-md-2"><label class="form-label small mb-1" for="bulk-price">Price</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-price"></div>
+                                <div class="col-6 col-md-2"><label class="form-label small mb-1" for="bulk-cost">Cost</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-cost"></div>
+                                <div class="col-6 col-md-2"><label class="form-label small mb-1" for="bulk-stock">Stock</label><input type="number" min="0" class="form-control form-control-sm" id="bulk-stock"></div>
+                                <div class="col-6 col-md-2"><label class="form-label small mb-1" for="bulk-alert">Alert</label><input type="number" min="0" class="form-control form-control-sm" id="bulk-alert"></div>
+                                <div class="col-6 col-md-2">
+                                    <label class="form-label small mb-1" for="bulk-brand">Brand</label>
+                                    <select class="form-select form-select-sm" id="bulk-brand">
+                                        <option value="">—</option>
+                                        @foreach ($brands as $brand)
+                                            <option value="{{ $brand->id }}">{{ $brand->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary w-100" id="bulk-apply">
+                                        <i class="bi bi-check2-all" aria-hidden="true"></i> Apply to checked
+                                    </button>
+                                </div>
                             </div>
-                            <div class="col-md-2"><button type="button" class="btn btn-sm btn-secondary w-100" id="bulk-apply">Apply to checked</button></div>
+                        </x-slot:toolbar>
+
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px"><span class="visually-hidden">Sold</span></th>
+                                        <th>Variant</th>
+                                        <th style="width: 160px">Brand</th>
+                                        <th style="width: 120px">Price</th>
+                                        <th style="width: 120px">Cost</th>
+                                        <th style="width: 110px">Initial stock</th>
+                                        <th style="width: 90px">Alert</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="variant-rows"></tbody>
+                            </table>
                         </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 40px"></th>
-                                    <th>Variant</th>
-                                    <th style="width: 150px">Brand</th>
-                                    <th style="width: 120px">Price</th>
-                                    <th style="width: 120px">Cost</th>
-                                    <th style="width: 100px">Initial stock</th>
-                                    <th style="width: 90px">Alert</th>
-                                </tr>
-                            </thead>
-                            <tbody id="variant-rows"></tbody>
-                        </table>
-                    </div>
-                    <div class="card-body py-2 d-none" id="variant-warning"><div class="alert alert-warning mb-0 small"></div></div>
-                </div>
+                        <div class="px-3 pb-3 d-none" id="variant-warning">
+                            <div class="alert alert-warning mb-0 mt-3"></div>
+                        </div>
+                    </x-ui.card>
 
-                {{-- 4. Spécifications libres --}}
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-white fw-bold">Specifications <span class="text-muted fw-normal small">(optional)</span></div>
-                    <div class="card-body">
+                    {{-- 4. Spécifications libres --}}
+                    <x-ui.card title="Specifications" subtitle="Optional: origin, material, dimensions...">
                         <div id="spec-rows"></div>
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="add-spec"><i class="bi bi-plus"></i> Add a specification</button>
-                    </div>
-                </div>
-
-                <div class="d-flex gap-2 mb-4">
-                    <button type="submit" class="btn btn-primary px-5"><i class="bi bi-save me-2"></i> Save Product</button>
-                    <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="add-spec">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Add a specification
+                        </button>
+                    </x-ui.card>
                 </div>
             </div>
 
-            <div class="col-lg-3">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-info text-white"><i class="bi bi-lightbulb me-2"></i> Examples</div>
-                    <div class="card-body small">
-                        <p class="mb-2"><strong>Desiccant gel</strong><br>Option <em>Volume</em>: 25 ml, 30 ml<br>→ 2 variants</p>
-                        <p class="mb-2"><strong>Wig</strong><br><em>Color</em>: Black, Brown<br><em>Length</em>: 30 cm, 40 cm<br>→ 4 variants, brand per variant</p>
-                        <p class="mb-0"><strong>Simple product</strong><br>No option → 1 variant</p>
-                    </div>
-                </div>
+            <div class="col-xl-3">
+                <x-ui.card title="Examples">
+                    <dl class="mb-0 small">
+                        <dt>Desiccant gel</dt>
+                        <dd class="text-muted">Option <em>Volume</em>: 25 ml, 30 ml → 2 variants</dd>
+                        <dt>Wig</dt>
+                        <dd class="text-muted"><em>Color</em>: Black, Brown · <em>Length</em>: 30 cm, 40 cm → 4 variants, brand per variant</dd>
+                        <dt>Simple product</dt>
+                        <dd class="text-muted mb-0">No option → 1 variant</dd>
+                    </dl>
+                </x-ui.card>
             </div>
+        </div>
+
+        <div class="ui-form-bar ui-form-actions">
+            <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save product</button>
         </div>
     </form>
 @endsection
@@ -166,15 +155,15 @@
                 return node;
             }
             const cell = (child, className = '') => el('td', { class: className }, [child]);
-            const removeButton = () => el('button', { type: 'button', class: 'btn btn-outline-danger w-100 remove-row', title: 'Remove' }, [el('i', { class: 'bi bi-trash' })]);
+            const removeButton = () => el('button', { type: 'button', class: 'btn btn-icon btn-icon-danger remove-row', title: 'Remove', 'aria-label': 'Remove' }, [el('i', { class: 'bi bi-trash3', 'aria-hidden': 'true' })]);
 
             // ---------- Options ----------
             function addOptionRow(name = '', values = '') {
                 const i = optionIndex++;
                 const row = el('div', { class: 'row g-2 mb-2 option-row' }, [
                     el('div', { class: 'col-md-4' }, [el('input', { type: 'text', name: `options[${i}][name]`, class: 'form-control option-name', placeholder: 'Option (e.g. Volume)', list: 'option-names', maxlength: 50, value: name })]),
-                    el('div', { class: 'col-md-7' }, [el('input', { type: 'text', name: `options[${i}][values]`, class: 'form-control option-values', placeholder: 'Values, comma separated (e.g. 25 ml, 30 ml)', value: values })]),
-                    el('div', { class: 'col-md-1' }, [removeButton()]),
+                    el('div', { class: 'col' }, [el('input', { type: 'text', name: `options[${i}][values]`, class: 'form-control option-values', placeholder: 'Values, comma separated (e.g. 25 ml, 30 ml)', value: values })]),
+                    el('div', { class: 'col-auto' }, [removeButton()]),
                 ]);
                 optionRows.appendChild(row);
                 return row;
@@ -275,8 +264,8 @@
                 const i = specIndex++;
                 specRows.appendChild(el('div', { class: 'row g-2 mb-2 spec-row' }, [
                     el('div', { class: 'col-md-4' }, [el('input', { type: 'text', name: `specs[${i}][key]`, class: 'form-control', placeholder: 'e.g. Origin', maxlength: 100, value: key })]),
-                    el('div', { class: 'col-md-7' }, [el('input', { type: 'text', name: `specs[${i}][value]`, class: 'form-control', placeholder: 'e.g. China', value })]),
-                    el('div', { class: 'col-md-1' }, [removeButton()]),
+                    el('div', { class: 'col' }, [el('input', { type: 'text', name: `specs[${i}][value]`, class: 'form-control', placeholder: 'e.g. China', value })]),
+                    el('div', { class: 'col-auto' }, [removeButton()]),
                 ]));
             }
 

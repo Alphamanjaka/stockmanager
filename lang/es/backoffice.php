@@ -29,6 +29,9 @@ return [
     'logout' => 'Cerrar Sesión',
     'admin' => 'Admin',
     'footer_rights' => 'Todos los derechos reservados.',
+    // Boîtes de confirmation (resources/js/ui.js)
+    'cancel' => 'Cancelar',
+    'confirm' => 'Confirmar',
 
     // Lanzador de módulos y menú del back office
     'launcher' => 'Módulos',

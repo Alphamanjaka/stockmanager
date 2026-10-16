@@ -13,7 +13,7 @@
                         <button type="button" @class(['bo-module-link dropdown-toggle', 'is-active' => $item->active])
                             data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false"
                             @if ($item->shortcut) title="Alt + {{ strtoupper($item->shortcut) }}" @endif>
-                            @if ($item->icon)<i class="fas {{ $item->icon }} fa-fw" aria-hidden="true"></i>@endif
+                            @if ($item->icon)<i class="bi {{ $item->icon }}" aria-hidden="true"></i>@endif
                             {{ $item->label }}
                         </button>
                         <ul class="dropdown-menu">
@@ -30,7 +30,7 @@
                         <a @class(['bo-module-link', 'is-active' => $item->active]) href="{{ $item->url }}"
                             @if ($item->current) aria-current="page" @endif
                             @if ($item->shortcut) title="Alt + {{ strtoupper($item->shortcut) }}" @endif>
-                            @if ($item->icon)<i class="fas {{ $item->icon }} fa-fw" aria-hidden="true"></i>@endif
+                            @if ($item->icon)<i class="bi {{ $item->icon }}" aria-hidden="true"></i>@endif
                             {{ $item->label }}
                         </a>
                     @endif
