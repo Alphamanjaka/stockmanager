@@ -47,7 +47,7 @@
 
                     {{-- 3. Grille des variantes générée à partir des options --}}
                     <x-ui.card title="Variants" flush
-                        subtitle="Uncheck the combinations you do not sell. SKUs are generated automatically.">
+                        subtitle="Uncheck the combinations you do not sell. SKUs are generated automatically. Stock starts at 0.">
                         <x-slot:actions>
                             <span class="ui-tag"><span id="variant-count">0</span>&nbsp;variant(s)</span>
                         </x-slot:actions>
@@ -55,9 +55,8 @@
                         <x-slot:toolbar>
                             {{-- Saisie groupée : appliquée aux lignes cochées --}}
                             <div class="row g-2 align-items-end">
-                                <div class="col-6 col-md-2"><label class="form-label small mb-1" for="bulk-price">Price</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-price"></div>
-                                <div class="col-6 col-md-2"><label class="form-label small mb-1" for="bulk-cost">Cost</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-cost"></div>
-                                <div class="col-6 col-md-2"><label class="form-label small mb-1" for="bulk-stock">Stock</label><input type="number" min="0" class="form-control form-control-sm" id="bulk-stock"></div>
+                                <div class="col-6 col-md-3"><label class="form-label small mb-1" for="bulk-price">Price</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-price"></div>
+                                <div class="col-6 col-md-3"><label class="form-label small mb-1" for="bulk-cost">Cost</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-cost"></div>
                                 <div class="col-6 col-md-2"><label class="form-label small mb-1" for="bulk-alert">Alert</label><input type="number" min="0" class="form-control form-control-sm" id="bulk-alert"></div>
                                 <div class="col-6 col-md-2">
                                     <label class="form-label small mb-1" for="bulk-brand">Brand</label>
@@ -85,12 +84,15 @@
                                         <th style="width: 160px">Brand</th>
                                         <th style="width: 120px">Price</th>
                                         <th style="width: 120px">Cost</th>
-                                        <th style="width: 110px">Initial stock</th>
                                         <th style="width: 90px">Alert</th>
                                     </tr>
                                 </thead>
                                 <tbody id="variant-rows"></tbody>
                             </table>
+                        </div>
+                        <div class="px-3 py-2 border-top small text-muted">
+                            <i class="bi bi-info-circle" aria-hidden="true"></i>
+                            The catalog does not manage stock: it increases when a purchase is received and decreases with each sale.
                         </div>
                         <div class="px-3 pb-3 d-none" id="variant-warning">
                             <div class="alert alert-warning mb-0 mt-3"></div>
@@ -199,7 +201,6 @@
                         enabled: row.querySelector('.v-enabled').checked,
                         price: row.querySelector('.v-price').value,
                         price_purchase: row.querySelector('.v-cost').value,
-                        stock: row.querySelector('.v-stock').value,
                         alert_stock: row.querySelector('.v-alert').value,
                         brand_id: row.querySelector('.v-brand').value,
                     };
@@ -251,7 +252,6 @@
                         cell(brandSelect),
                         cell(number('price', 'v-price', { step: '0.01', placeholder: document.getElementById('price').value || '0' })),
                         cell(number('price_purchase', 'v-cost', { step: '0.01', placeholder: '0' })),
-                        cell(number('stock', 'v-stock', { placeholder: '0' })),
                         cell(number('alert_stock', 'v-alert', { placeholder: 'auto' })),
                     ]);
                     variantRows.appendChild(row);
@@ -294,7 +294,6 @@
                 const bulk = {
                     '.v-price': document.getElementById('bulk-price').value,
                     '.v-cost': document.getElementById('bulk-cost').value,
-                    '.v-stock': document.getElementById('bulk-stock').value,
                     '.v-alert': document.getElementById('bulk-alert').value,
                     '.v-brand': document.getElementById('bulk-brand').value,
                 };

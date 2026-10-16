@@ -41,7 +41,7 @@ class PagesRenderTest extends TestCase
         $category = Category::factory()->create(['name' => 'tissu']);
         $color = Color::factory()->create(['name' => 'Rouge', 'code' => '#ff0000']);
         $product = Product::factory()->create(['category_id' => $category->id, 'price' => 1000]);
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $product->id,
             'color_id' => $color->id,
             'stock' => 3,

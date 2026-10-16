@@ -41,7 +41,8 @@
                     </dl>
                 </x-ui.card>
 
-                <x-ui.card title="Variants & stock" flush>
+                <x-ui.card title="Variants & stock" flush
+                    subtitle="Stock is read-only here: it changes with received purchases, sales, stock counts and corrections.">
                     <x-slot:actions>
                         <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addVariantModal"
                             @disabled(!$canAddVariant) title="{{ $canAddVariant ? '' : 'Add an option first (options & specifications)' }}">
@@ -87,6 +88,13 @@
                                                     data-price-purchase="{{ $variant->price_purchase }}">
                                                     <i class="bi bi-pencil" aria-hidden="true"></i>
                                                 </button>
+                                                {{-- Secours en cas d'erreur de saisie : correction par un mouvement de stock --}}
+                                                @if (Route::has('admin.movements.create'))
+                                                    <a href="{{ route('admin.movements.create', ['variant' => $variant->id]) }}" class="btn btn-icon"
+                                                        title="Stock correction" aria-label="Stock correction">
+                                                        <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
+                                                    </a>
+                                                @endif
                                                 <x-ui.delete-button :action="route('admin.products.variants.destroy', $variant->id)"
                                                     confirm="Delete this variant?" />
                                             </div>

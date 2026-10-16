@@ -23,11 +23,19 @@ class StoreStockMovementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // validation d'une entrée ou sortie de stock
+            // Correction manuelle : ajout ou retrait, motif obligatoire (il reste dans l'historique)
             'product_color_id' => 'required|exists:product_colors,id',
             'quantity' => 'required|integer|min:1',
             'type' => 'required|in:in,out',
-            'reason' => 'nullable|string|max:255',
+            'reason' => 'required|string|min:5|max:240',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'reason.required' => 'Indiquez le motif de la correction (casse, erreur de comptage, retour...).',
+            'reason.min' => 'Le motif de la correction doit être plus précis.',
         ];
     }
 }

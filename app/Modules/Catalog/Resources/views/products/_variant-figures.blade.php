@@ -1,5 +1,7 @@
 {{--
-    Prix et stock d'une variante (fenêtres « Nouvelle variante » et « Modifier la variante »).
+    Prix et seuil d'alerte d'une variante (fenêtres « Nouvelle variante » et « Modifier la variante »).
+    Le stock n'est pas saisi ici : une variante démarre à 0, puis évolue par les mouvements de stock
+    (achat reçu, vente, inventaire, correction). En modification, il est seulement affiché.
     Variables : $product, $prefix ('add' : valeurs par défaut ; 'edit' : rempli en JavaScript depuis la ligne choisie)
 --}}
 @php
@@ -24,13 +26,18 @@
     </div>
 </div>
 <div class="col-md-6 ui-field mb-md-0">
-    <label class="form-label required" for="{{ $prefix }}-variant-stock">{{ $add ? 'Initial stock' : 'Current stock' }}</label>
-    <input type="number" name="stock" id="{{ $prefix }}-variant-stock" class="form-control" min="0"
-        @if ($add) value="0" @endif required>
-</div>
-<div class="col-md-6 ui-field mb-0">
     <label class="form-label" for="{{ $prefix }}-variant-alert">Alert threshold</label>
     <input type="number" name="alert_stock" id="{{ $prefix }}-variant-alert" class="form-control" min="0"
         @if ($add) value="5" @endif>
     <div class="form-text">An alert is raised when the stock reaches this level.</div>
+</div>
+<div class="col-md-6 ui-field mb-0">
+    {{-- Affiché seulement : pas de name, la valeur n'est jamais envoyée --}}
+    <label class="form-label" for="{{ $prefix }}-variant-stock">Stock</label>
+    <input type="text" id="{{ $prefix }}-variant-stock" class="form-control" readonly tabindex="-1"
+        @if ($add) value="0" @endif>
+    <div class="form-text">
+        {{ $add ? 'A new variant starts at 0.' : 'Read-only.' }}
+        It changes with received purchases and sales.
+    </div>
 </div>

@@ -154,6 +154,9 @@
         <div class="invoice-details">
             <div class="invoice-title">Bon de Commande</div>
             <div>Ref: <strong>{{ $purchase->reference }}</strong></div>
+            @if ($purchase->supplier_reference)
+                <div>Réf. fournisseur: {{ $purchase->supplier_reference }}</div>
+            @endif
             <div>Date: {{ $purchase->created_at->format('d/m/Y') }}</div>
             <div>État: {{ $purchase->state }}</div>
         </div>

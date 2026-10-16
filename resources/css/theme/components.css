@@ -1185,6 +1185,40 @@ a.ui-stat:hover {
     background: var(--app-surface);
 }
 
+/* Liste de suggestions sous un champ de recherche (bon de commande) */
+.ui-combobox {
+    position: relative;
+}
+
+.ui-combobox-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    z-index: 1050;
+    max-height: 340px;
+    overflow-y: auto;
+    box-shadow: var(--app-shadow-lg);
+}
+
+.ui-combobox-list .list-group-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+/* Ligne mise en évidence brièvement (produit déjà présent) */
+@keyframes ui-flash {
+    from { background-color: var(--app-warning-soft); }
+    to { background-color: transparent; }
+}
+
+tr.ui-flash > td {
+    animation: ui-flash 1.4s ease-out;
+}
+
 /* Fil d'activité (historique des mouvements d'un produit) */
 .ui-feed {
     margin: 0;

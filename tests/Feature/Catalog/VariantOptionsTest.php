@@ -44,7 +44,7 @@ class VariantOptionsTest extends TestCase
 
         // Déjà pris en base, puis réservé pendant une même exécution : suffixes -2, -3
         $product = Product::factory()->create(['name' => 'Wax', 'category_id' => Category::factory()->create()->id]);
-        ProductColor::create(['product_id' => $product->id, 'color_id' => Color::factory()->create(['name' => 'Rouge'])->id, 'price' => 1, 'stock' => 0]);
+        ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => Color::factory()->create(['name' => 'Rouge'])->id, 'price' => 1, 'stock' => 0]);
 
         $this->assertSame('WAX-ROUGE-2', VariantOptions::generateSku('Wax', ['Couleur' => 'Rouge']));
         $this->assertSame('WAX-ROUGE-3', VariantOptions::generateSku('Wax', ['Couleur' => 'Rouge'], reserved: ['WAX-ROUGE-2']));

@@ -76,9 +76,19 @@ pour que l'ordre de chargement des modules n'ait pas d'importance.
 | Backup | — (module système : sauvegardes) |
 
 - Un module n'utilise jamais un module situé plus bas que lui dans ce tableau (pas de dépendance circulaire).
-- **Toute variation de stock passe par `StockService`** (`addStock`, `removeStock`, `adjustTo`), qui crée le mouvement historisé.
-  Catalog, qui ne dépend pas de Stock, déclare le stock saisi (création, fiche produit, import) avec l'événement
-  `VariantStockDeclared` ; le module Stock l'écoute (propriété `$listen` de son provider) et enregistre le mouvement.
+- **Toute variation de stock est un mouvement**, créé par `StockService` (seul à écrire la colonne `stock`) :
+
+  | Origine | Effet | Méthode |
+  |---|---|---|
+  | Achat passé au statut « Reçu » | entrée | `addStock` |
+  | Vente | sortie | `removeStock` |
+  | Inventaire physique validé | écart compté | `adjustTo` |
+  | Correction manuelle (secours en cas d'erreur, motif obligatoire) | entrée ou sortie | `correct` |
+
+- **Le catalogue ne gère pas le stock** : il crée les produits et leurs variantes, qui démarrent à 0.
+  Le stock y est en lecture seule (formulaires, fiche produit, import des produits : aucune saisie de stock).
+  Le modèle `ProductColor` le garantit : `stock` n'est pas assignable et toute modification par le modèle lève
+  une `LogicException`. Dans les tests, une variante avec un stock de départ se crée avec `ProductColor::forceCreate()`.
 - Tous les modules peuvent utiliser le socle (`App\Core`) : `BaseService`, `BaseResourceController`, `settings()`, `User`.
 - Les fonctions **transverses du Core** (tableaux de bord, recherche globale, import centralisé) lisent les modules ;
   un module ne doit jamais dépendre de ces fonctions.

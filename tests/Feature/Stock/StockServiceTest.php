@@ -26,7 +26,7 @@ class StockServiceTest extends TestCase
     {
         // Arrange
         $product = Product::factory()->create();
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $product->id,
             'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id,
             'stock' => 10
@@ -54,7 +54,7 @@ class StockServiceTest extends TestCase
     {
         // Arrange
         $product = Product::factory()->create();
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $product->id,
             'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id,
             'stock' => 10
@@ -83,7 +83,7 @@ class StockServiceTest extends TestCase
         // Arrange
         $product = Product::factory()->create(['name' => 'Test Product']);
         $color = \App\Modules\Catalog\Models\Color::factory()->create(['name' => 'Rouge']);
-        $variant = ProductColor::create(['product_id' => $product->id, 'color_id' => $color->id, 'stock' => 5]);
+        $variant = ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => $color->id, 'stock' => 5]);
 
         // Assert
         $this->expectException(\Exception::class);
@@ -104,8 +104,8 @@ class StockServiceTest extends TestCase
     public function it_can_get_all_stock_movements_with_filters()
     {
         // Arrange
-        $variant1 = ProductColor::create(['product_id' => Product::factory()->create(['name' => 'Laptop'])->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 10]);
-        $variant2 = ProductColor::create(['product_id' => Product::factory()->create(['name' => 'Mouse'])->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 10]);
+        $variant1 = ProductColor::forceCreate(['product_id' => Product::factory()->create(['name' => 'Laptop'])->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 10]);
+        $variant2 = ProductColor::forceCreate(['product_id' => Product::factory()->create(['name' => 'Mouse'])->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 10]);
 
         $this->service->createStockMovement(['product_color_id' => $variant1->id, 'quantity' => 5, 'type' => 'in', 'reason' => 'Purchase ABC', 'stock_before' => 5, 'stock_after' => 10]);
         $this->travelTo(now()->subDay());
@@ -139,9 +139,9 @@ class StockServiceTest extends TestCase
     public function it_can_get_rotation_stats()
     {
         // Arrange
-        $v1 = ProductColor::create(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 10]);
-        $v2 = ProductColor::create(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 10]);
-        $v3 = ProductColor::create(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 10]);
+        $v1 = ProductColor::forceCreate(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 10]);
+        $v2 = ProductColor::forceCreate(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 10]);
+        $v3 = ProductColor::forceCreate(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 10]);
 
         $this->service->createStockMovement(['product_color_id' => $v1->id, 'type' => 'out', 'quantity' => -10, 'stock_before' => 20, 'stock_after' => 10, 'reason' => 's1']);
         $this->service->createStockMovement(['product_color_id' => $v1->id, 'type' => 'out', 'quantity' => -5, 'stock_before' => 10, 'stock_after' => 5, 'reason' => 's2']);
@@ -164,7 +164,7 @@ class StockServiceTest extends TestCase
     {
         // Arrange
         $product = Product::factory()->create();
-        $variant = ProductColor::create(['product_id' => $product->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $variant = ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
 
         $date1 = now()->subDays(2)->startOfDay();
         $date2 = now()->subDays(1)->startOfDay();

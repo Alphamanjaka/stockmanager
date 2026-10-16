@@ -32,7 +32,7 @@ class ProductPageVariantsTest extends TestCase
             'category_id' => Category::factory()->create()->id,
             'options' => [['name' => 'Contenance', 'values' => ['25 ml', '30 ml']]],
         ]);
-        $this->ml25 = ProductColor::create([
+        $this->ml25 = ProductColor::forceCreate([
             'product_id' => $this->gel->id, 'color_id' => Color::factory()->create(['name' => 'Sans variante'])->id,
             'option_values' => ['Contenance' => '25 ml'], 'price' => 8000, 'stock' => 10,
         ]);
@@ -40,18 +40,17 @@ class ProductPageVariantsTest extends TestCase
 
     private function addVariant(array $data)
     {
-        return $this->post(route('admin.products.variants.store', $this->gel->id), $data + ['price' => 9000, 'stock' => 0]);
+        return $this->post(route('admin.products.variants.store', $this->gel->id), $data + ['price' => 9000]);
     }
 
     /** @test */
     public function a_variant_with_a_new_value_extends_the_product_options()
     {
-        $this->addVariant(['values' => ['Contenance' => '35 ml'], 'stock' => 6])->assertSessionHas('success');
+        $this->addVariant(['values' => ['Contenance' => '35 ml']])->assertSessionHas('success');
 
         $variant = ProductColor::where('sku', 'GEL-DESHYDRATANT-35ML')->firstOrFail();
         $this->assertSame(['Contenance' => '35 ml'], $variant->option_values);
-        $this->assertSame(6, $variant->stock);
-        $this->assertDatabaseHas('stock_movements', ['product_color_id' => $variant->id, 'type' => 'in', 'quantity' => 6]);
+        $this->assertSame(0, $variant->stock, 'Une nouvelle variante démarre à 0');
         $this->assertSame([['name' => 'Contenance', 'values' => ['25 ml', '30 ml', '35 ml']]], $this->gel->fresh()->options);
     }
 
@@ -85,7 +84,7 @@ class ProductPageVariantsTest extends TestCase
         $bella = Brand::factory()->create(['name' => 'Bella']);
 
         $this->put(route('admin.products.variants.update', $this->ml25->id), [
-            'values' => ['Contenance' => '30 ml'], 'brand_id' => $bella->id, 'price' => 8500, 'stock' => 7,
+            'values' => ['Contenance' => '30 ml'], 'brand_id' => $bella->id, 'price' => 8500,
         ])->assertSessionHas('success');
 
         $variant = $this->ml25->fresh();
@@ -93,14 +92,13 @@ class ProductPageVariantsTest extends TestCase
         $this->assertSame("contenance=30 ml|brand={$bella->id}", $variant->signature);
         $this->assertSame('GEL-DESHYDRATANT-25ML', $variant->sku);
         $this->assertSame('Gel déshydratant — 30 ml — Bella', $variant->label);
-        $this->assertSame(7, $variant->stock);
-        $this->assertDatabaseHas('stock_movements', ['product_color_id' => $variant->id, 'quantity' => -3, 'reason' => 'Correction manuelle (fiche produit)']);
+        $this->assertSame(10, $variant->stock, 'Le stock ne se modifie pas depuis la fiche produit');
     }
 
     /** @test */
     public function editing_cannot_create_a_duplicate()
     {
-        $ml30 = ProductColor::create(['product_id' => $this->gel->id, 'color_id' => $this->ml25->color_id, 'option_values' => ['Contenance' => '30 ml'], 'price' => 1, 'stock' => 0]);
+        $ml30 = ProductColor::forceCreate(['product_id' => $this->gel->id, 'color_id' => $this->ml25->color_id, 'option_values' => ['Contenance' => '30 ml'], 'price' => 1, 'stock' => 0]);
 
         $this->put(route('admin.products.variants.update', $ml30->id), ['values' => ['Contenance' => '25 ml'], 'price' => 1, 'stock' => 0])
             ->assertSessionHas('error');
@@ -130,7 +128,7 @@ class ProductPageVariantsTest extends TestCase
     public function a_sold_variant_cannot_be_deleted_but_an_unsold_one_can()
     {
         app(SaleService::class)->createSale([['product_color_id' => $this->ml25->id, 'quantity' => 1]]);
-        $unsold = ProductColor::create(['product_id' => $this->gel->id, 'color_id' => $this->ml25->color_id, 'option_values' => ['Contenance' => '30 ml'], 'price' => 1, 'stock' => 0]);
+        $unsold = ProductColor::forceCreate(['product_id' => $this->gel->id, 'color_id' => $this->ml25->color_id, 'option_values' => ['Contenance' => '30 ml'], 'price' => 1, 'stock' => 0]);
 
         $this->delete(route('admin.products.variants.destroy', $this->ml25->id))
             ->assertSessionHas('error', 'Erreur lors de la suppression de la variante : Cette variante a déjà été vendue : elle ne peut pas être supprimée.');

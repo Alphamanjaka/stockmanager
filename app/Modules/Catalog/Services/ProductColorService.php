@@ -2,7 +2,6 @@
 
 namespace App\Modules\Catalog\Services;
 
-use App\Modules\Catalog\Events\VariantStockDeclared;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Catalog\Models\Color;
@@ -35,6 +34,7 @@ class ProductColorService extends BaseService
 
     /**
      * Crée un produit, ses options et les variantes retenues dans la grille.
+     * Les variantes démarrent à un stock de 0 : il augmente à la réception d'un achat.
      *
      * @param array $data Données validées issues du StoreProductRequest
      * @return \App\Modules\Catalog\Models\Product
@@ -62,7 +62,7 @@ class ProductColorService extends BaseService
 
                     $optionValues = VariantOptions::combination($options, $variantData['values'] ?? []);
 
-                    $variant = ProductColor::create([
+                    ProductColor::create([
                         'product_id' => $product->id,
                         'option_values' => $optionValues,
                         // Transition : color_id rempli pour que l'ancienne version du code reste utilisable
@@ -72,9 +72,6 @@ class ProductColorService extends BaseService
                         'price_purchase' => $variantData['price_purchase'] ?? 0,
                         'alert_stock' => $variantData['alert_stock'] ?? $this->defaultAlertStock(),
                     ]);
-
-                    // Stock initial : enregistré comme mouvement par le module Stock
-                    VariantStockDeclared::dispatch($variant, (int) ($variantData['stock'] ?? 0), 'Stock initial (création du produit)');
                 }
 
                 return $product;
@@ -129,7 +126,7 @@ class ProductColorService extends BaseService
      * Ajoute une variante à un produit existant (fiche produit).
      *
      * $data['values'] : une valeur par option du produit ; une valeur nouvelle (ex. « 35 ml »)
-     * est ajoutée aux options du produit.
+     * est ajoutée aux options du produit. La variante démarre à un stock de 0.
      *
      * @throws Exception si le produit n'a pas d'option (une seule variante possible) ou si la variante existe déjà
      */
@@ -148,7 +145,7 @@ class ProductColorService extends BaseService
             $this->ensureUnique($product->id, $combination, $brandId);
             $this->appendNewValues($product, $combination);
 
-            $variant = ProductColor::create([
+            return ProductColor::create([
                 'product_id' => $product->id,
                 'option_values' => $combination,
                 // Transition : color_id rempli pour que l'ancienne version du code reste utilisable
@@ -158,17 +155,12 @@ class ProductColorService extends BaseService
                 'price_purchase' => $data['price_purchase'] ?? 0,
                 'alert_stock' => $data['alert_stock'] ?? $this->defaultAlertStock(),
             ]);
-
-            // Stock initial : enregistré comme mouvement par le module Stock
-            VariantStockDeclared::dispatch($variant, (int) ($data['stock'] ?? 0), 'Stock initial (nouvelle variante)');
-
-            return $variant;
         });
     }
 
     /**
-     * Modifie une variante : combinaison, marque, prix, seuil et stock (corrigé par un mouvement).
-     * Le SKU ne change pas : c'est une référence stable.
+     * Modifie une variante : combinaison, marque, prix et seuil d'alerte.
+     * Le SKU ne change pas : c'est une référence stable. Le stock n'est pas modifiable ici (mouvements de stock).
      *
      * @throws Exception si la nouvelle combinaison existe déjà sur une autre variante du produit
      */
@@ -191,10 +183,6 @@ class ProductColorService extends BaseService
                 'price_purchase' => $data['price_purchase'] ?? 0,
                 'alert_stock' => $data['alert_stock'] ?? $this->defaultAlertStock(),
             ]);
-
-            if (array_key_exists('stock', $data) && $data['stock'] !== null) {
-                VariantStockDeclared::dispatch($variant, (int) $data['stock'], 'Correction manuelle (fiche produit)');
-            }
 
             return $variant;
         });

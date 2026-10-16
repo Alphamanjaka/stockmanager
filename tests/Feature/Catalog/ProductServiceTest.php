@@ -90,7 +90,7 @@ class ProductServiceTest extends TestCase
     public function it_throws_exception_when_deleting_product_with_sales()
     {
         $product = Product::factory()->create();
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $product->id,
             'color_id' => Color::factory()->create()->id,
             'stock' => 10

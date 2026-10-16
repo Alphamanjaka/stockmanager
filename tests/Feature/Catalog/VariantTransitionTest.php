@@ -50,7 +50,7 @@ class VariantTransitionTest extends TestCase
     /** @test */
     public function a_no_variant_color_gives_a_default_variant_without_options()
     {
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $this->product->id, 'color_id' => Color::factory()->create(['name' => 'No Variant'])->id, 'price' => 1000, 'stock' => 0,
         ]);
 
@@ -63,7 +63,7 @@ class VariantTransitionTest extends TestCase
     /** @test */
     public function changing_the_values_updates_the_options_but_keeps_the_sku()
     {
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $this->product->id, 'color_id' => Color::factory()->create(['name' => 'Noir'])->id, 'price' => 1000, 'stock' => 0,
         ]);
         $this->put(route('admin.products.variants.update', $variant->id), [
@@ -81,7 +81,7 @@ class VariantTransitionTest extends TestCase
     /** @test */
     public function stock_changes_do_not_touch_the_variant_identity()
     {
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $this->product->id, 'color_id' => Color::factory()->create(['name' => 'Noir'])->id, 'price' => 1000, 'stock' => 5,
         ]);
 
@@ -99,7 +99,7 @@ class VariantTransitionTest extends TestCase
     {
         $bella = Brand::factory()->create(['name' => 'Bella']);
 
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $this->product->id,
             'color_id' => Color::factory()->create(['name' => 'Noir'])->id,
             'option_values' => ['Couleur' => 'Noir', 'Taille' => '30 cm'],
@@ -123,7 +123,7 @@ class VariantTransitionTest extends TestCase
             ['name' => 'Couleur', 'values' => ['Noir']],
         ]]);
 
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $this->product->id,
             'color_id' => Color::factory()->create(['name' => 'Noir'])->id,
             'option_values' => ['Couleur' => 'Noir', 'Taille' => '30 cm'],
@@ -139,7 +139,7 @@ class VariantTransitionTest extends TestCase
     public function variants_can_be_filtered_by_option()
     {
         foreach (['Noir', 'Brun'] as $color) {
-            ProductColor::create(['product_id' => $this->product->id, 'color_id' => Color::factory()->create(['name' => $color])->id, 'price' => 1, 'stock' => 0]);
+            ProductColor::forceCreate(['product_id' => $this->product->id, 'color_id' => Color::factory()->create(['name' => $color])->id, 'price' => 1, 'stock' => 0]);
         }
 
         // Fonctionne sur SQLite comme sur PostgreSQL (index GIN en production)

@@ -46,7 +46,7 @@ return [
         'all_products' => 'All products',
         'new_product' => 'New product',
         'movement_history' => 'Movement history',
-        'new_movement' => 'New movement',
+        'new_movement' => 'Stock correction',
         'all_stock_counts' => 'All stock counts',
         'new_stock_count' => 'New stock count',
         'all_purchases' => 'All purchases',

@@ -60,6 +60,11 @@ function showSessionMessages() {
  */
 function confirmSensitiveSubmits() {
     document.addEventListener("submit", (event) => {
+        // Envoi déjà arrêté par la page (contrôle de saisie) : pas de confirmation
+        if (event.defaultPrevented) {
+            return;
+        }
+
         const form = event.target;
         const source = [event.submitter, form].find((element) => element?.dataset?.confirm);
 

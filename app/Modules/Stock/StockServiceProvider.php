@@ -3,13 +3,12 @@
 namespace App\Modules\Stock;
 
 use App\Core\Support\ModuleServiceProvider;
-use App\Modules\Catalog\Events\VariantStockDeclared;
 use App\Modules\Stock\Console\Commands\MonitorStockDrop;
-use App\Modules\Stock\Listeners\RecordDeclaredStock;
 
 /**
  * Module Stock : mouvements de stock (entrées/sorties), alertes et valorisation.
- * Toute variation de stock doit passer par StockService pour être historisée.
+ * Toute variation de stock passe par StockService, qui l'historise : achat reçu (entrée), vente (sortie),
+ * inventaire physique, et correction manuelle en secours d'une erreur de saisie.
  */
 class StockServiceProvider extends ModuleServiceProvider
 {
@@ -17,11 +16,6 @@ class StockServiceProvider extends ModuleServiceProvider
 
     protected array $commands = [
         MonitorStockDrop::class,
-    ];
-
-    protected array $listen = [
-        // Stock saisi dans le catalogue (création, fiche produit, import) → mouvement de stock
-        VariantStockDeclared::class => [RecordDeclaredStock::class],
     ];
 
     protected array $menu = [

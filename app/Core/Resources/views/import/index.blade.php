@@ -10,9 +10,9 @@
         ['id' => 'suppliers', 'name' => 'Suppliers', 'icon' => 'bi-truck',
             'desc' => 'Import your suppliers to manage your procurement process.'],
         ['id' => 'products', 'name' => 'Products', 'icon' => 'bi-box',
-            'desc' => 'One row per variant: name, category, brand, price, price_purchase, stock, alert_stock, sku, and one option_<name> column per option (e.g. option_volume, option_color). Existing variants are updated (same SKU, or same product + options + brand).'],
+            'desc' => 'One row per variant: name, category, brand, price, price_purchase, alert_stock, sku, and one option_<name> column per option (e.g. option_volume, option_color). Existing variants are updated (same SKU, or same product + options + brand). No stock: it comes from received purchases.'],
         ['id' => 'purchases', 'name' => 'Purchases', 'icon' => 'bi-cart3',
-            'desc' => 'Import your purchase records to keep track of your inventory inflow.'],
+            'desc' => 'Import your purchase records. The stock increases when an imported purchase is marked as received.'],
         ['id' => 'colors', 'name' => 'Colors', 'icon' => 'bi-palette',
             'desc' => 'Manage the different colors of your products.'],
     ];

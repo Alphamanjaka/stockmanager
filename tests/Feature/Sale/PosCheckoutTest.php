@@ -28,7 +28,7 @@ class PosCheckoutTest extends TestCase
         parent::setUp();
 
         $product = Product::factory()->create(['name' => 'Postiche lisse', 'category_id' => Category::factory()->create()->id]);
-        $this->variant = ProductColor::create([
+        $this->variant = ProductColor::forceCreate([
             'product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'stock' => 5, 'price' => 1000,
         ]);
         $this->seller = User::factory()->frontOffice()->create();

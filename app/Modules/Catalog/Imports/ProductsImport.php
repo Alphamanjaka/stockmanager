@@ -3,7 +3,6 @@
 namespace App\Modules\Catalog\Imports;
 
 use App\Core\Services\SettingService;
-use App\Modules\Catalog\Events\VariantStockDeclared;
 use App\Modules\Catalog\Models\Brand;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
@@ -21,11 +20,14 @@ use Maatwebsite\Excel\Row;
  * Import des produits et de leurs variantes. Une ligne = une variante.
  *
  * Colonnes : name (obligatoire), category, description, brand, price (obligatoire), price_purchase,
- * stock, alert_stock, sku, et autant de colonnes option_<nom> que nécessaire (ex. option_contenance,
+ * alert_stock, sku, et autant de colonnes option_<nom> que nécessaire (ex. option_contenance,
  * option_couleur, option_taille). L'ancienne colonne « color » est lue comme l'option « Couleur ».
  *
  * Une ligne met à jour la variante existante (même SKU, sinon même produit + même combinaison + même marque)
- * ou la crée ; réimporter un fichier ne crée donc pas de doublon. Une cellule de stock vide ne change pas le stock.
+ * ou la crée ; réimporter un fichier ne crée donc pas de doublon.
+ *
+ * Le catalogue ne gère pas le stock : une colonne « stock » est ignorée. Une variante créée démarre à 0 ;
+ * le stock vient des achats reçus (import des achats) ou d'un inventaire physique.
  */
 class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
 {
@@ -76,7 +78,6 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
                     'price' => $this->number($row['price']),
                     'price_purchase' => $this->number($row['price_purchase'] ?? null) ?? 0,
                     'alert_stock' => $this->integer($row['alert_stock'] ?? null) ?? $this->defaultAlertStock(),
-                    'stock' => $this->integer($row['stock'] ?? null) ?? 0,
                 ]);
                 $this->created++;
 
@@ -92,12 +93,6 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
             'brand_id' => $brandId,
         ], fn ($value) => $value !== null));
         $this->updated++;
-
-        $stock = $this->integer($row['stock'] ?? null);
-        if ($stock !== null) {
-            // Enregistré comme mouvement par le module Stock
-            VariantStockDeclared::dispatch($variant, max(0, $stock), 'Import Excel');
-        }
     }
 
     /** Produit retrouvé par son nom (sans tenir compte de la casse), sinon créé. */
@@ -193,7 +188,7 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
      */
     public function prepareForValidation($data, $index)
     {
-        foreach (['price', 'price_purchase', 'stock', 'alert_stock'] as $column) {
+        foreach (['price', 'price_purchase', 'alert_stock'] as $column) {
             if (isset($data[$column])) {
                 $data[$column] = str_replace([' ', ','], '', (string) $data[$column]);
             }
@@ -208,7 +203,6 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
             'name' => 'required|max:255',
             'price' => 'required|numeric|min:0',
             'price_purchase' => 'nullable|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
             'alert_stock' => 'nullable|integer|min:0',
             'sku' => 'nullable|string|max:64',
             'brand' => 'nullable|string|max:255',

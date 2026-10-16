@@ -1,10 +1,12 @@
 @extends('layouts.app-back-office')
 
 @section('title', 'Stock movements')
+@section('subtitle', 'Every stock change: received purchases, sales, stock counts and corrections.')
 
 @section('actions')
-    <a href="{{ route('admin.movements.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg" aria-hidden="true"></i> New movement
+    {{-- Secours en cas d'erreur de saisie : volontairement en bouton secondaire --}}
+    <a href="{{ route('admin.movements.create') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left-right" aria-hidden="true"></i> Stock correction
     </a>
 @endsection
 
@@ -60,9 +62,13 @@
                         <tbody>
                             @forelse ($stockMovements as $movement)
                                 @php
-                                    // Nature du mouvement déduite du motif (vente, achat, ajustement)
+                                    // Nature du mouvement déduite du motif (correction, inventaire, vente, achat)
                                     $reason = strtolower((string) $movement->reason);
-                                    if (str_contains($reason, 'ajustement') || str_contains($reason, 'manuel')) {
+                                    if (str_starts_with($reason, 'correction')) {
+                                        [$tone, $label] = ['warning', 'Correction'];
+                                    } elseif (str_starts_with($reason, 'inventaire')) {
+                                        [$tone, $label] = ['info', 'Stock count'];
+                                    } elseif (str_contains($reason, 'ajustement') || str_contains($reason, 'manuel')) {
                                         [$tone, $label] = ['info', 'Adjustment'];
                                     } elseif ($movement->type === 'in') {
                                         [$tone, $label] = ['success', str_contains($reason, 'achat') || str_contains($reason, 'pur') ? 'Purchase' : 'Stock in'];

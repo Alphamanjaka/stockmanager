@@ -62,15 +62,24 @@
                     @if ($purchase->state === 'Received')
                         <p class="text-muted small mb-0">Stock has been updated. The status can no longer be changed.</p>
                     @else
-                        <form action="{{ route('admin.purchases.updateState', $purchase->id) }}" method="POST" class="d-flex gap-2">
+                        {{-- Étape suivante : le stock n'augmente qu'à la réception --}}
+                        <form action="{{ route('admin.purchases.updateState', $purchase->id) }}" method="POST" class="d-grid gap-2">
                             @csrf
                             @method('PATCH')
-                            <select name="state" class="form-select" aria-label="New status">
-                                <option value="Draft" @selected($purchase->state == 'Draft')>Draft</option>
-                                <option value="Ordered" @selected($purchase->state == 'Ordered')>Ordered</option>
-                                <option value="Received">Received</option>
-                            </select>
-                            <button type="submit" class="btn btn-outline-secondary">Update</button>
+                            <button type="submit" name="state" value="Received" class="btn btn-primary"
+                                data-confirm="Receive this purchase now?" data-confirm-ok="Receive"
+                                data-confirm-text="The quantities of every line are added to the stock. This cannot be undone.">
+                                <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Receive now
+                            </button>
+                            @if ($purchase->state === 'Draft')
+                                <button type="submit" name="state" value="Ordered" class="btn btn-outline-secondary">
+                                    <i class="bi bi-send" aria-hidden="true"></i> Mark as ordered
+                                </button>
+                            @else
+                                <button type="submit" name="state" value="Draft" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Back to draft
+                                </button>
+                            @endif
                         </form>
                     @endif
                 </x-ui.card>
@@ -89,8 +98,16 @@
                         <dd>{{ $purchase->supplier->email ?? '—' }}</dd>
                         <dt>Phone</dt>
                         <dd>{{ $purchase->supplier->phone ?? '—' }}</dd>
+                        <dt>Their reference</dt>
+                        <dd>{{ $purchase->supplier_reference ?: '—' }}</dd>
                     </dl>
                 </x-ui.card>
+
+                @if ($purchase->notes)
+                    <x-ui.card title="Notes">
+                        <p class="text-prewrap mb-0">{{ $purchase->notes }}</p>
+                    </x-ui.card>
+                @endif
             </div>
         </div>
     </div>

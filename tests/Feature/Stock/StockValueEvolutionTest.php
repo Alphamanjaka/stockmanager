@@ -19,7 +19,7 @@ class StockValueEvolutionTest extends TestCase
     {
         // Prix du produit parent volontairement différent : il ne doit pas intervenir
         $product = Product::factory()->create(['price' => 999, 'category_id' => Category::factory()->create()->id]);
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'stock' => 10, 'price' => 100,
         ]);
 

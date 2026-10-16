@@ -35,7 +35,7 @@ class PosCatalogTest extends TestCase
         $product = Product::factory()->create(['name' => $attributes['name'] ?? 'Postiche lisse', 'category_id' => $this->wigs->id]);
         unset($attributes['name']);
 
-        return ProductColor::create($attributes + [
+        return ProductColor::forceCreate($attributes + [
             'product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'stock' => 4, 'price' => 1000,
         ]);
     }

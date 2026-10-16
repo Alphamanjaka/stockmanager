@@ -14,6 +14,7 @@ export default defineConfig({
                 "resources/css/back-office.css",
                 "resources/js/back.js",
                 "resources/js/purchases-index.js",
+                "resources/js/purchase-form.js", // Bon de commande (création et modification d'un achat)
 
                 // Points d'entrée du Front-Office
                 "resources/css/front.css",

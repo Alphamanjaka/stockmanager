@@ -1,5 +1,42 @@
 # Journal de Bord - Vitrine (StockManager)
 
+## [16-10-2026] - Achats : le panier devient un bon de commande
+
+### 🧾 Saisie d'un achat
+
+- **Problématique** : la création d'un achat ressemblait à un panier e-commerce (une ligne = un rechargement de page,
+  fournisseur choisi à la fin, lignes non modifiables, pas de remise ni de référence fournisseur), et le coût proposé
+  était le **prix de vente** de la variante. Le message final annonçait à tort que le stock était mis à jour.
+- **Solution** :
+    - Un seul formulaire pour la création et la modification d'un brouillon (`purchases/_form.blade.php`,
+      `resources/js/purchase-form.js`) : fournisseur en premier, référence fournisseur, notes, lignes modifiables,
+      remise, totaux en direct.
+    - Recherche au clavier (F2, flèches, Entrée) ; un produit déjà présent est mis en évidence au lieu d'être doublé.
+    - Coût proposé : dernier prix payé à ce fournisseur (`admin.purchases.supplier-prices`), sinon le prix d'achat
+      de la variante. Bouton « Ajouter les ruptures » de ce fournisseur (quantités suggérées).
+    - Trois actions : brouillon, commandé, ou réception immédiate (entrée en stock, avec confirmation), en une seule
+      transaction (`PurchaseService::savePurchaseOrder`). Fiche achat : boutons d'étape au lieu d'une liste de statuts.
+    - Validation commune (`SavePurchaseRequest`) : fournisseur obligatoire, une variante par ligne, remise ≤ total.
+    - Migration : colonnes `supplier_reference` et `notes` sur `purchases`. Le panier en session est supprimé.
+
+## [16-10-2026] - Stock en lecture seule : tout passe par un mouvement
+
+### 📦 Règle
+
+- **Problématique** : le catalogue pouvait fixer le stock (stock initial à la création d'un produit ou d'une variante,
+  modification du stock depuis la fiche produit, colonne `stock` de l'import des produits). Même historisé,
+  ce stock « déclaré » ne correspondait à aucune opération réelle.
+- **Solution** :
+    - Le stock n'évolue que par des mouvements : achat reçu (entrée), vente (sortie), inventaire physique validé,
+      et correction manuelle en secours d'une erreur de saisie.
+    - Catalogue : création de produits seulement ; variantes à 0 ; stock affiché en lecture seule.
+      L'événement `VariantStockDeclared` et son écouteur sont supprimés.
+    - Modèle `ProductColor` : `stock` non assignable, modification par le modèle refusée (`LogicException`) ;
+      `StockService` est le seul à écrire la colonne, en même temps que le mouvement.
+    - « Nouveau mouvement » devient « Correction de stock » : motif obligatoire, enregistré « Correction : … »,
+      présélection de la variante depuis la fiche produit.
+    - Seeder : le stock de démonstration vient d'achats reçus.
+
 ## [16-10-2026] - Thème « entreprise » : charte, composants et vues uniformes
 
 ### 🎨 Charte graphique et design system
