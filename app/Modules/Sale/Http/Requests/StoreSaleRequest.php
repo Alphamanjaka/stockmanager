@@ -2,7 +2,9 @@
 
 namespace App\Modules\Sale\Http\Requests;
 
+use App\Modules\Sale\Models\Sale;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreSaleRequest extends FormRequest
 {
@@ -28,6 +30,9 @@ class StoreSaleRequest extends FormRequest
             'customer_id' => 'nullable|exists:customers,id',
             'new_customer_name' => 'nullable|string|max:255',
             'new_customer_phone' => 'nullable|string|max:50',
+            // Encaissement : sans montant reçu, le client est réputé avoir payé le montant exact
+            'payment_method' => ['nullable', Rule::in(Sale::PAYMENT_METHODS)],
+            'amount_received' => 'nullable|numeric|min:0',
             'products' => 'required|array|min:1',
             // 'distinct' empêche d'envoyer deux fois le même product_color_id
             'products.*.product_color_id' => 'required|exists:product_colors,id|distinct',

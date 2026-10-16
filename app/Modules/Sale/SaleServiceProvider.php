@@ -11,4 +11,13 @@ use App\Core\Support\ModuleServiceProvider;
 class SaleServiceProvider extends ModuleServiceProvider
 {
     protected string $name = 'sale';
+
+    protected array $menu = [
+        'sale' => [
+            ['label' => 'backoffice.sales', 'icon' => 'bi-cash-coin', 'route' => 'admin.sales.index', 'shortcut' => 's', 'children' => [
+                ['label' => 'backoffice.menu.all_sales', 'route' => 'admin.sales.index'],
+                ['label' => 'backoffice.menu.new_sale', 'route' => 'admin.sales.create'],
+            ]],
+        ],
+    ];
 }

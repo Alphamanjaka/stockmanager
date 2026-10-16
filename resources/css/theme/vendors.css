@@ -1,0 +1,242 @@
+/*
+ * Bibliothèques tierces alignées sur la charte : Select2, Tabulator, SweetAlert2.
+ */
+
+/* === Select2 (thème bootstrap-5) ============================================================= */
+
+.select2-container--bootstrap-5 .select2-selection {
+    min-height: var(--app-control-height);
+    padding-top: 0.3125rem;
+    padding-bottom: 0.3125rem;
+    border-color: var(--app-border-strong);
+    border-radius: var(--app-radius);
+    background-color: var(--app-surface);
+    color: var(--app-text);
+    font-size: var(--app-fs);
+}
+
+.select2-container--bootstrap-5 .select2-selection--single {
+    padding-left: 0.625rem;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+    color: var(--app-text);
+    line-height: 1.375;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered .select2-selection__placeholder {
+    color: var(--app-text-subtle);
+}
+
+.select2-container--bootstrap-5.select2-container--focus .select2-selection,
+.select2-container--bootstrap-5.select2-container--open .select2-selection {
+    border-color: var(--app-primary);
+    box-shadow: var(--app-focus-ring);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown {
+    border-color: var(--app-primary);
+    border-radius: var(--app-radius);
+    background-color: var(--app-surface);
+    color: var(--app-text);
+    box-shadow: var(--app-shadow-lg);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-search .select2-search__field {
+    min-height: var(--app-control-height);
+    padding: 0.3125rem 0.625rem;
+    border-color: var(--app-border-strong);
+    border-radius: var(--app-radius);
+    background-color: var(--app-surface);
+    color: var(--app-text);
+    font-size: var(--app-fs);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-search .select2-search__field:focus {
+    border-color: var(--app-primary);
+    box-shadow: var(--app-focus-ring);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option {
+    padding: 0.375rem 0.625rem;
+    font-size: var(--app-fs);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option.select2-results__option--highlighted {
+    background-color: var(--app-surface-hover);
+    color: var(--app-text);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option.select2-results__option--selected,
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option[aria-selected=true]:not(.select2-results__option--highlighted) {
+    background-color: var(--app-primary-soft);
+    color: var(--app-primary-text);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option.select2-results__message {
+    color: var(--app-text-muted);
+}
+
+/* Flèche de la liste en thème sombre */
+[data-theme="dark"] .select2-container--bootstrap-5 .select2-selection--single {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23dee2e6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* === Tabulator (thème bootstrap5) ============================================================ */
+
+.tabulator {
+    border: 0;
+    background-color: transparent;
+    color: var(--app-text);
+    font-size: var(--app-fs);
+}
+
+.tabulator .tabulator-header {
+    border-bottom: 1px solid var(--app-border);
+    background-color: var(--app-surface-muted);
+    color: var(--app-text-muted);
+}
+
+.tabulator .tabulator-header .tabulator-col {
+    border-right: 0;
+    background-color: var(--app-surface-muted);
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content {
+    padding: 0.5rem 0.75rem;
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-col-title {
+    font-size: var(--app-fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-header-filter input {
+    min-height: var(--app-control-height-sm);
+    padding: 0.1875rem 0.5rem;
+    border: 1px solid var(--app-border-strong);
+    border-radius: var(--app-radius);
+    background: var(--app-surface);
+    color: var(--app-text);
+    font-size: var(--app-fs-sm);
+    text-transform: none;
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-header-filter input:focus {
+    border-color: var(--app-primary);
+    outline: 0;
+    box-shadow: var(--app-focus-ring);
+}
+
+.tabulator .tabulator-tableholder .tabulator-table {
+    background-color: transparent;
+    color: var(--app-text);
+}
+
+.tabulator-row,
+.tabulator-row.tabulator-row-even {
+    border-bottom: 1px solid var(--app-border);
+    background-color: var(--app-surface);
+    color: var(--app-text);
+}
+
+.tabulator-row.tabulator-selectable:hover {
+    background-color: var(--app-surface-hover);
+}
+
+.tabulator-row .tabulator-cell {
+    padding: 0.5rem 0.75rem;
+    border-right: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.tabulator .tabulator-tableholder .tabulator-placeholder .tabulator-placeholder-contents {
+    color: var(--app-text-muted);
+    font-size: var(--app-fs);
+    font-weight: 400;
+}
+
+.tabulator .tabulator-footer {
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--app-border);
+    background-color: var(--app-surface-muted);
+    color: var(--app-text-muted);
+    font-weight: 400;
+}
+
+.tabulator .tabulator-footer .tabulator-page {
+    margin: 0 0.125rem;
+    padding: 0.1875rem 0.625rem;
+    border: 1px solid var(--app-border-strong);
+    border-radius: var(--app-radius);
+    background: var(--app-surface);
+    color: var(--app-text);
+}
+
+.tabulator .tabulator-footer .tabulator-page:not(.disabled):hover {
+    background: var(--app-surface-hover);
+    color: var(--app-text);
+}
+
+.tabulator .tabulator-footer .tabulator-page.active {
+    border-color: var(--app-primary-bg);
+    background: var(--app-primary-bg);
+    color: var(--app-on-primary);
+}
+
+.tabulator .tabulator-footer .tabulator-page-size {
+    padding: 0.1875rem 0.5rem;
+    border: 1px solid var(--app-border-strong);
+    border-radius: var(--app-radius);
+    background: var(--app-surface);
+    color: var(--app-text);
+}
+
+/* === SweetAlert2 ============================================================================= */
+/* Boutons : classes Bootstrap données par resources/js/ui.js (buttonsStyling: false) */
+
+.swal2-popup {
+    border-radius: var(--app-radius-lg);
+    background: var(--app-surface);
+    color: var(--app-text);
+    font-family: var(--app-font);
+    font-size: var(--app-fs);
+}
+
+.swal2-popup:not(.swal2-toast) {
+    width: 26rem;
+    padding: 1.5rem 1.25rem 1.25rem;
+}
+
+.swal2-title {
+    color: var(--app-text);
+    font-size: 1.0625rem;
+    font-weight: 600;
+}
+
+.swal2-html-container {
+    color: var(--app-text-muted);
+    font-size: var(--app-fs);
+}
+
+.swal2-actions {
+    gap: 0.5rem;
+}
+
+.swal2-popup.swal2-toast {
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--app-border);
+    box-shadow: var(--app-shadow-lg);
+}
+
+.swal2-popup.swal2-toast .swal2-title {
+    margin: 0 0.5rem;
+    font-size: var(--app-fs);
+    font-weight: 500;
+}
+
+.swal2-container.swal2-backdrop-show {
+    background: rgba(11, 21, 32, 0.45);
+}

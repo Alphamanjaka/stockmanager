@@ -30,7 +30,7 @@ class PurchaseIntegrityTest extends TestCase
     {
         $product = Product::factory()->create(['name' => $productName, 'category_id' => Category::factory()->create()->id]);
 
-        return ProductColor::create(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'stock' => $stock, 'price' => 1000]);
+        return ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'stock' => $stock, 'price' => 1000]);
     }
 
     private function receivedPurchase(?int $supplierId, array $lines): Purchase

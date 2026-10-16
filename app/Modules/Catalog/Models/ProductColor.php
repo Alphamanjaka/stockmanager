@@ -15,6 +15,10 @@ use App\Modules\Catalog\Support\VariantOptions;
  * Variantes flexibles : la combinaison est dans option_values ({"Contenance":"25 ml"}),
  * la marque dans brand_id. color_id est conservé pendant la transition.
  * (L'ancienne colonne JSON « attributes » n'est pas utilisée : son nom entre en conflit avec Eloquent.)
+ *
+ * Stock en lecture seule : une variante est créée à 0 et son stock ne change que par un mouvement
+ * (achat reçu, vente, inventaire, correction), écrit par StockService en même temps que le mouvement.
+ * La colonne n'est donc pas assignable, et toute modification par le modèle est refusée.
  */
 #[UseFactory(ProductColorFactory::class)]
 class ProductColor extends Model
@@ -24,7 +28,7 @@ class ProductColor extends Model
     protected $table = 'product_colors';
 
     protected $fillable = [
-        'product_id', 'color_id', 'stock', 'alert_stock', 'price', 'price_purchase', 'is_active',
+        'product_id', 'color_id', 'alert_stock', 'price', 'price_purchase', 'is_active',
         'option_values', 'signature', 'sku', 'brand_id',
     ];
 
@@ -37,6 +41,13 @@ class ProductColor extends Model
 
     protected static function booted(): void
     {
+        // Le stock d'une variante existante ne se modifie que par un mouvement (StockService)
+        static::updating(function (ProductColor $variant) {
+            if ($variant->isDirty('stock')) {
+                throw new \LogicException("Le stock de la variante {$variant->id} ne peut pas être modifié directement : passez par un mouvement de stock.");
+            }
+        });
+
         // Transition : tant que les écrans travaillent avec la couleur, la combinaison d'options,
         // la signature et le SKU sont complétés automatiquement à chaque enregistrement.
         static::saving(function (ProductColor $variant) {

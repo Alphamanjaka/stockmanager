@@ -12,8 +12,10 @@ use Illuminate\Validation\Validator;
  * options[i][name|values]           axes de variation (valeurs séparées par des virgules)
  * variants[i][enabled]              variante retenue (case cochée)
  * variants[i][values][<option>]     combinaison de la variante
- * variants[i][price|price_purchase|stock|alert_stock|brand_id]
+ * variants[i][price|price_purchase|alert_stock|brand_id]
  * specs[i][key|value]               informations libres du produit
+ *
+ * Pas de stock : les variantes démarrent à 0, le stock n'évolue que par des mouvements (achat reçu, vente...).
  */
 class StoreProductRequest extends FormRequest
 {
@@ -47,7 +49,6 @@ class StoreProductRequest extends FormRequest
             'variants.*.values.*' => 'nullable|string|max:100',
             'variants.*.price' => 'nullable|numeric|min:0',
             'variants.*.price_purchase' => 'nullable|numeric|min:0',
-            'variants.*.stock' => 'nullable|integer|min:0',
             'variants.*.alert_stock' => 'nullable|integer|min:0',
             'variants.*.brand_id' => 'nullable|exists:brands,id',
         ];

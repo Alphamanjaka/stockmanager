@@ -11,14 +11,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/dashboard', [DashboardController::class, 'backOffice'])->name('dashboard');
 Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartDataApi'])->name('dashboard.chart-data');
 
-// Paramètres et sauvegardes
+// Paramètres
 Route::resource('settings', SettingController::class)->only(['index', 'update']);
-Route::prefix('settings/')->name('settings.')->group(function () {
-    Route::post('backup', [SettingController::class, 'runBackup'])->name('backup');
-    Route::get('backup/download', [SettingController::class, 'downloadBackup'])->name('download-backup');
-    Route::delete('backup/delete', [SettingController::class, 'deleteBackup'])->name('delete-backup');
-    Route::post('backup/verify', [SettingController::class, 'verifyBackup'])->name('verify-backup');
-});
 
 // Import centralisé (les classes d'import appartiennent à chaque module)
 Route::get('/imports', [ImportController::class, 'index'])->name('imports.index');

@@ -52,12 +52,13 @@ class ProductsImportTest extends TestCase
         $gel = Product::where('name', 'Gel déshydratant')->firstOrFail();
         $this->assertSame([['name' => 'Contenance', 'values' => ['25 ml', '30 ml']]], $gel->options);
         $this->assertSame(['GEL-DESHYDRATANT-25ML', 'GEL-DESHYDRATANT-30ML'], $gel->productColors()->orderBy('id')->pluck('sku')->all());
-        $this->assertSame(40, ProductColor::where('sku', 'GEL-DESHYDRATANT-25ML')->value('stock'));
+        // La colonne stock est ignorée : le stock vient des achats reçus
+        $this->assertSame(0, ProductColor::where('sku', 'GEL-DESHYDRATANT-25ML')->value('stock'));
 
         $postiche = ProductColor::where('sku', 'POSTICHE-LISSE-NOIR-40CM-BELLA')->firstOrFail();
         $this->assertSame('Postiche lisse — Noir / 40 cm — Bella', $postiche->label);
         $this->assertSame('Bella', Brand::sole()->name);
-        $this->assertDatabaseHas('stock_movements', ['product_color_id' => $postiche->id, 'type' => 'in', 'quantity' => 2, 'reason' => 'Stock initial (nouvelle variante)']);
+        $this->assertDatabaseCount('stock_movements', 0);
     }
 
     /** @test */
@@ -72,8 +73,8 @@ class ProductsImportTest extends TestCase
         $this->assertSame(1, ProductColor::count(), 'Même produit (casse ignorée) et même combinaison : pas de doublon');
         $variant = ProductColor::sole();
         $this->assertEquals(8500, $variant->price);
-        $this->assertSame(35, $variant->stock);
-        $this->assertDatabaseHas('stock_movements', ['product_color_id' => $variant->id, 'quantity' => -5, 'reason' => 'Import Excel']);
+        $this->assertSame(0, $variant->stock);
+        $this->assertDatabaseCount('stock_movements', 0);
     }
 
     /** @test */
@@ -85,7 +86,7 @@ class ProductsImportTest extends TestCase
 
         $variant = ProductColor::sole();
         $this->assertEquals(9000, $variant->price);
-        $this->assertSame(40, $variant->stock, 'Cellule de stock vide : stock inchangé');
+        $this->assertSame(0, $variant->stock, 'Le catalogue ne touche pas au stock');
     }
 
     /** @test */

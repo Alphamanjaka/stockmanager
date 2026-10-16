@@ -51,7 +51,7 @@ class BrandTest extends TestCase
         $used = Brand::factory()->create(['name' => 'Bella']);
         $unused = Brand::factory()->create(['name' => 'Ancienne']);
         $product = Product::factory()->create(['category_id' => Category::factory()->create()->id]);
-        ProductColor::create(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'brand_id' => $used->id, 'price' => 1, 'stock' => 0]);
+        ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'brand_id' => $used->id, 'price' => 1, 'stock' => 0]);
 
         $this->delete(route('admin.brands.destroy', $used->id))->assertSessionHas('error');
         $this->assertModelExists($used);

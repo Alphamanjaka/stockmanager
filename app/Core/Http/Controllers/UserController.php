@@ -7,6 +7,7 @@ use App\Core\Http\Requests\StoreUserRequest;
 use App\Core\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Core\Services\UserService;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -17,9 +18,9 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = $this->userService->getAllUsers();
+        $users = $this->userService->getAllUsers($request->only(['search', 'role']));
         return view('core::users.index', compact('users'));
     }
 

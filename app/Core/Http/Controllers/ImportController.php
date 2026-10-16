@@ -100,8 +100,9 @@ class ImportController extends Controller
     {
         // Alignement des en-têtes avec les clés attendues par les classes d'import
         $headers = match ($type) {
-            // Une ligne = une variante ; ajouter autant de colonnes option_<nom> que nécessaire
-            'products'   => ['name', 'category', 'brand', 'option_couleur', 'option_taille', 'option_contenance', 'price', 'price_purchase', 'stock', 'alert_stock', 'sku', 'description'],
+            // Une ligne = une variante ; ajouter autant de colonnes option_<nom> que nécessaire.
+            // Pas de stock : il vient des achats reçus ou d'un inventaire physique.
+            'products'   => ['name', 'category', 'brand', 'option_couleur', 'option_taille', 'option_contenance', 'price', 'price_purchase', 'alert_stock', 'sku', 'description'],
             'categories' => ['name', 'description', 'parent', 'parent_id'],
             'suppliers'  => ['name', 'email', 'phone', 'address'],
             'purchases' => ['reference_groupe', 'email_fournisseur', 'sku', 'nom_produit', 'couleur_produit', 'quantite', 'cout_unitaire'],

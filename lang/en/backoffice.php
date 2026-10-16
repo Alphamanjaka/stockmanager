@@ -29,4 +29,35 @@ return [
     'logout' => 'Logout',
     'admin' => 'Admin',
     'footer_rights' => 'All rights reserved.',
+    // Boîtes de confirmation (resources/js/ui.js)
+    'cancel' => 'Cancel',
+    'confirm' => 'Confirm',
+
+    // Module launcher and back-office menu
+    'launcher' => 'Modules',
+    'open_launcher' => 'Show modules',
+    'module_menu' => 'Module menu',
+    'breadcrumb' => 'Breadcrumb',
+    'spaces' => [
+        'catalog' => 'Catalog',
+        'stock' => 'Stock',
+    ],
+    'menu' => [
+        'all_products' => 'All products',
+        'new_product' => 'New product',
+        'movement_history' => 'Movement history',
+        'new_movement' => 'Stock correction',
+        'all_stock_counts' => 'All stock counts',
+        'new_stock_count' => 'New stock count',
+        'all_purchases' => 'All purchases',
+        'new_purchase' => 'New purchase',
+        'restock' => 'Restock shortages',
+        'all_sales' => 'All sales',
+        'new_sale' => 'New sale',
+    ],
+    'crumbs' => [
+        'create' => 'New',
+        'show' => 'Details',
+        'edit' => 'Edit',
+    ],
 ];

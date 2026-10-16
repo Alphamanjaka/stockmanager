@@ -2,37 +2,35 @@
 
 namespace App\Modules\Sale\Http\Controllers;
 
+use App\Modules\Sale\Http\Controllers\Concerns\ChecksOutSales;
 use App\Modules\Sale\Http\Requests\StoreSaleRequest;
 use App\Modules\Sale\Services\SaleService;
-use App\Modules\Catalog\Services\ProductColorService;
+use App\Modules\Sale\Support\PosCatalog;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
 use App\Modules\Contact\Services\CustomerService;
 
 class SaleController extends Controller
 {
+    use ChecksOutSales;
+
     /**
      * Initialize the controller.
      */
     public function __construct(
         private SaleService $saleService,
-        private ProductColorService $productColorService,
         private CustomerService $customerService
-    )
-    {
-        $this->saleService = $saleService;
-        $this->productColorService = $productColorService;
-    }
+    ) {}
 
     /**
-     * Show the form for creating a new sale.
+     * Écran de caisse.
      */
-    public function create()
+    public function create(PosCatalog $catalog)
     {
-        $currency = settings('currency_symbol', 'Mga');
-        $items = $this->productColorService->getAvailableProducts();
+        $pos = $catalog->build();
         $customers = $this->customerService->getAll([], false);
-        return view('sale::sales.create', compact('items', 'currency', 'customers'));
+
+        return view('sale::sales.create', compact('pos', 'customers'));
     }
 
     /**
@@ -40,24 +38,7 @@ class SaleController extends Controller
      */
     public function store(StoreSaleRequest $request)
     {
-        try {
-            $validated = $request->validated();
-
-            $sale = $this->saleService->createSale(
-                $validated['products'],
-                $validated['discount'] ?? 0,
-                auth()->id(), // Associer la vente à l'utilisateur connecté
-                $validated
-            );
-
-            return redirect()
-                ->route('saler.show', $sale->id)
-                ->with('success', "Vente {$sale->reference} validée avec succès !");
-        } catch (\Exception $e) {
-            return back()
-                ->withInput()
-                ->with('error', "Erreur lors de la vente : " . $e->getMessage());
-        }
+        return $this->checkout($request, 'saler.');
     }
 
     /**
@@ -84,7 +65,16 @@ class SaleController extends Controller
 
         return view('sale::sales.show', compact('sale'));
     }
-    
+
+    /**
+     * Reçu de caisse (ticket 80 mm) à imprimer.
+     */
+    public function receipt(int $id)
+    {
+        $sale = $this->saleService->getSaleForSeller($id, auth()->id());
+
+        return view('sale::sales.receipt', compact('sale'));
+    }
 
     /**
      * Export sale as PDF.
@@ -96,12 +86,12 @@ class SaleController extends Controller
 
         return $pdf->download("facture_{$sale->reference}.pdf");
     }
-    
+
     /*
      * Search sales for global search.
     */
     public function searchForGlobalSearch(string $query, int $limit = 5)
     {
         return $this->saleService->searchForGlobalSearch($query, $limit);
-    } 
+    }
 }

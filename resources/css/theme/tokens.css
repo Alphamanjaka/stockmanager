@@ -1,0 +1,243 @@
+/*
+ * Charte graphique : toutes les couleurs, tailles et formes de l'interface viennent d'ici.
+ *
+ * Le thème est porté par <html data-theme="light|dark"> (layouts/partials/theme.blade.php), recopié dans
+ * data-bs-theme pour que Bootstrap suive. Le thème sombre redéfinit les mêmes jetons : un composant qui n'utilise
+ * que des jetons s'adapte donc tout seul. Les variables de Bootstrap (--bs-*) sont branchées sur ces jetons
+ * en bas de fichier.
+ */
+
+:root {
+    color-scheme: light;
+
+    /* Marque : --app-primary pour le texte et les liens, --app-primary-bg pour les aplats (boutons, page active) */
+    --app-primary: #0f5ba7;
+    --app-primary-rgb: 15, 91, 167;
+    --app-primary-hover: #0c4c8c;
+    --app-primary-bg: #0f5ba7;
+    --app-primary-bg-hover: #0c4c8c;
+    --app-primary-bg-active: #0a3f74;
+    --app-primary-soft: #e8f0fa;
+    --app-primary-text: #0c4c8c;
+    --app-on-primary: #ffffff;
+
+    /* Barre d'application (haut de page) */
+    --app-shell-bg: #0f2742;
+    --app-shell-text: #e8eef5;
+    --app-shell-muted: #9fb2c7;
+    --app-shell-hover: rgba(255, 255, 255, 0.08);
+    --app-shell-active: rgba(255, 255, 255, 0.14);
+    --app-shell-border: rgba(255, 255, 255, 0.1);
+    --app-shell-accent: #5ea4f0;
+
+    /* Surfaces, bordures, texte */
+    --app-bg: #f3f5f8;
+    --app-surface: #ffffff;
+    --app-surface-muted: #f7f8fa;
+    --app-surface-hover: #f1f4f8;
+    --app-border: #e0e4ea;
+    --app-border-strong: #c9d0da;
+    --app-text: #1d2733;
+    --app-text-rgb: 29, 39, 51;
+    --app-text-muted: #5d6979;
+    --app-text-subtle: #8b95a3;
+
+    /* États : couleur de texte, aplat (bouton plein), fond doux (badges, alertes) */
+    --app-success: #18794e;
+    --app-success-rgb: 24, 121, 78;
+    --app-success-bg: #18794e;
+    --app-success-bg-hover: #136540;
+    --app-success-soft: #e7f5ee;
+
+    --app-warning: #9a5b06;
+    --app-warning-rgb: 154, 91, 6;
+    --app-warning-bg: #e5a00d;
+    --app-warning-bg-hover: #cf8f08;
+    --app-warning-soft: #fdf4e3;
+
+    --app-danger: #c62828;
+    --app-danger-rgb: 198, 40, 40;
+    --app-danger-bg: #c62828;
+    --app-danger-bg-hover: #a92121;
+    --app-danger-soft: #fdecec;
+
+    --app-info: #0b6e99;
+    --app-info-rgb: 11, 110, 153;
+    --app-info-soft: #e6f3f9;
+
+    --app-neutral: #4b5563;
+    --app-neutral-rgb: 75, 85, 99;
+    --app-neutral-soft: #eef0f3;
+
+    /* Graphiques : séries dans cet ordre (lisibles en clair comme en sombre) */
+    --app-chart-1: #0f5ba7;
+    --app-chart-2: #18794e;
+    --app-chart-3: #d97706;
+    --app-chart-4: #7c3aed;
+    --app-chart-5: #0e7490;
+    --app-chart-6: #be123c;
+    --app-chart-grid: #e8ebf0;
+
+    /* Typographie : 13 px de base, chiffres à chasse fixe dans les tableaux */
+    --app-font: "Segoe UI", "Inter", system-ui, -apple-system, "Helvetica Neue", Roboto, Arial, sans-serif;
+    --app-font-mono: "Cascadia Mono", SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    --app-fs: 0.8125rem;
+    --app-fs-xs: 0.6875rem;
+    --app-fs-sm: 0.75rem;
+    --app-fs-lg: 0.9375rem;
+    --app-fs-title: 1.25rem;
+
+    /* Formes */
+    --app-radius-sm: 4px;
+    --app-radius: 6px;
+    --app-radius-lg: 8px;
+    --app-control-height: 2rem;
+    --app-control-height-sm: 1.75rem;
+    --app-control-height-lg: 2.5rem;
+    --app-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+    --app-shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
+    --app-shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.14);
+    --app-focus-ring: 0 0 0 3px rgba(var(--app-primary-rgb), 0.25);
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --app-primary: #6aa8ec;
+    --app-primary-rgb: 106, 168, 236;
+    --app-primary-hover: #8dbdf1;
+    --app-primary-bg: #2f74c8;
+    --app-primary-bg-hover: #3b82d6;
+    --app-primary-bg-active: #4a8fe0;
+    --app-primary-soft: rgba(106, 168, 236, 0.15);
+    --app-primary-text: #8dbdf1;
+
+    --app-shell-bg: #0b1520;
+    --app-shell-border: rgba(255, 255, 255, 0.08);
+
+    --app-bg: #0f1318;
+    --app-surface: #171c23;
+    --app-surface-muted: #1c222a;
+    --app-surface-hover: #222a34;
+    --app-border: #2a323d;
+    --app-border-strong: #3a4452;
+    --app-text: #e3e7ed;
+    --app-text-rgb: 227, 231, 237;
+    --app-text-muted: #9aa5b3;
+    --app-text-subtle: #6d7887;
+
+    --app-success: #4cc38a;
+    --app-success-rgb: 76, 195, 138;
+    --app-success-bg: #1f7a4c;
+    --app-success-bg-hover: #248a57;
+    --app-success-soft: rgba(76, 195, 138, 0.14);
+
+    --app-warning: #f0b44c;
+    --app-warning-rgb: 240, 180, 76;
+    --app-warning-soft: rgba(240, 180, 76, 0.14);
+
+    --app-danger: #f07070;
+    --app-danger-rgb: 240, 112, 112;
+    --app-danger-bg: #b42b2b;
+    --app-danger-bg-hover: #c53434;
+    --app-danger-soft: rgba(240, 112, 112, 0.14);
+
+    --app-info: #52b4e3;
+    --app-info-rgb: 82, 180, 227;
+    --app-info-soft: rgba(82, 180, 227, 0.14);
+
+    --app-neutral: #aab3bf;
+    --app-neutral-rgb: 170, 179, 191;
+    --app-neutral-soft: rgba(170, 179, 191, 0.12);
+
+    --app-chart-1: #6aa8ec;
+    --app-chart-2: #4cc38a;
+    --app-chart-3: #f0b44c;
+    --app-chart-4: #a78bfa;
+    --app-chart-5: #22b8cf;
+    --app-chart-6: #f472b6;
+    --app-chart-grid: #262e38;
+
+    --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --app-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --app-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Variables de Bootstrap branchées sur les jetons ----------------------------------------- */
+/* Même spécificité que les blocs [data-bs-theme] de Bootstrap, déclarées après : elles l'emportent. */
+
+:root {
+    --bs-font-sans-serif: var(--app-font);
+    --bs-font-monospace: var(--app-font-mono);
+    --bs-body-font-family: var(--app-font);
+    --bs-body-font-size: var(--app-fs);
+    --bs-body-line-height: 1.5;
+    --bs-body-color: var(--app-text);
+    --bs-body-color-rgb: var(--app-text-rgb);
+    /* Fond des composants (cartes, champs, tableaux) ; le fond de page est --app-bg */
+    --bs-body-bg: var(--app-surface);
+    --bs-emphasis-color: var(--app-text);
+    --bs-heading-color: var(--app-text);
+    --bs-secondary-color: var(--app-text-muted);
+    --bs-secondary-bg: var(--app-surface-muted);
+    --bs-tertiary-color: var(--app-text-subtle);
+    --bs-tertiary-bg: var(--app-surface-muted);
+
+    --bs-link-color: var(--app-primary);
+    --bs-link-color-rgb: var(--app-primary-rgb);
+    --bs-link-hover-color: var(--app-primary-hover);
+    --bs-link-hover-color-rgb: var(--app-primary-rgb);
+    --bs-code-color: var(--app-primary-text);
+
+    --bs-border-color: var(--app-border);
+    --bs-border-color-translucent: var(--app-border);
+    --bs-border-radius: var(--app-radius);
+    --bs-border-radius-sm: var(--app-radius-sm);
+    --bs-border-radius-lg: var(--app-radius-lg);
+    --bs-border-radius-xl: var(--app-radius-lg);
+    --bs-box-shadow: var(--app-shadow);
+    --bs-box-shadow-sm: var(--app-shadow-sm);
+    --bs-box-shadow-lg: var(--app-shadow-lg);
+    --bs-focus-ring-color: rgba(var(--app-primary-rgb), 0.25);
+
+    --bs-primary: var(--app-primary);
+    --bs-primary-rgb: var(--app-primary-rgb);
+    --bs-primary-text-emphasis: var(--app-primary-text);
+    --bs-primary-bg-subtle: var(--app-primary-soft);
+    --bs-primary-border-subtle: rgba(var(--app-primary-rgb), 0.3);
+
+    --bs-secondary: var(--app-neutral);
+    --bs-secondary-rgb: var(--app-neutral-rgb);
+    --bs-secondary-text-emphasis: var(--app-neutral);
+    --bs-secondary-bg-subtle: var(--app-neutral-soft);
+    --bs-secondary-border-subtle: var(--app-border-strong);
+
+    --bs-success: var(--app-success);
+    --bs-success-rgb: var(--app-success-rgb);
+    --bs-success-text-emphasis: var(--app-success);
+    --bs-success-bg-subtle: var(--app-success-soft);
+    --bs-success-border-subtle: rgba(var(--app-success-rgb), 0.3);
+
+    --bs-warning: var(--app-warning);
+    --bs-warning-rgb: var(--app-warning-rgb);
+    --bs-warning-text-emphasis: var(--app-warning);
+    --bs-warning-bg-subtle: var(--app-warning-soft);
+    --bs-warning-border-subtle: rgba(var(--app-warning-rgb), 0.3);
+
+    --bs-danger: var(--app-danger);
+    --bs-danger-rgb: var(--app-danger-rgb);
+    --bs-danger-text-emphasis: var(--app-danger);
+    --bs-danger-bg-subtle: var(--app-danger-soft);
+    --bs-danger-border-subtle: rgba(var(--app-danger-rgb), 0.3);
+
+    --bs-info: var(--app-info);
+    --bs-info-rgb: var(--app-info-rgb);
+    --bs-info-text-emphasis: var(--app-info);
+    --bs-info-bg-subtle: var(--app-info-soft);
+    --bs-info-border-subtle: rgba(var(--app-info-rgb), 0.3);
+
+    --bs-form-valid-color: var(--app-success);
+    --bs-form-valid-border-color: var(--app-success);
+    --bs-form-invalid-color: var(--app-danger);
+    --bs-form-invalid-border-color: var(--app-danger);
+}

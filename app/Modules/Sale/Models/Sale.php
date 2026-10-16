@@ -13,7 +13,18 @@ use App\Modules\Sale\Database\Factories\SaleFactory;
 class Sale extends Model
 {
     use HasFactory;
-    protected $fillable = ['reference', 'total_brut', 'discount', 'total_net','user_id', 'customer_id', 'company_name', 'company_email', 'company_phone', 'company_address','currency_symbol'];
+
+    /** Modes de paiement acceptés en caisse (libellés : lang/xx/pos.php, clé methods). */
+    public const PAYMENT_CASH = 'cash';
+    public const PAYMENT_METHODS = [self::PAYMENT_CASH, 'mobile_money', 'card'];
+
+    protected $fillable = ['reference', 'total_brut', 'discount', 'total_net','user_id', 'customer_id', 'company_name', 'company_email', 'company_phone', 'company_address','currency_symbol', 'payment_method', 'amount_received'];
+
+    /** Monnaie rendue au client : somme reçue moins le net à payer (0 si la somme reçue n'est pas connue). */
+    public function getChangeDueAttribute(): float
+    {
+        return $this->amount_received === null ? 0.0 : max(0, round($this->amount_received - $this->total_net, 2));
+    }
 
     public function items()
     {

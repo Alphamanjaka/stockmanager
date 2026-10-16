@@ -9,12 +9,15 @@ use Illuminate\Http\UploadedFile;
 
 class SettingService
 {
+    /** Paramètres déjà lus pendant la requête (service partagé : AppServiceProvider) */
+    private $all = null;
+
     /**
      * Get all settings as a key-value array.
      */
     public function getAllSettings()
     {
-        return Cache::rememberForever('settings.all', function () {
+        return $this->all ??= Cache::rememberForever('settings.all', function () {
             return Setting::all()->pluck('value', 'key');
         });
     }
@@ -51,6 +54,7 @@ class SettingService
 
         // Clear cache so updates are reflected immediately
         Cache::forget('settings.all');
+        $this->all = null;
     }
 
     protected function handleFileUpload($key, UploadedFile $file): void

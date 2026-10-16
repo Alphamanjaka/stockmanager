@@ -12,10 +12,9 @@ Route::prefix('purchases')->name('purchases.')->group(function () {
     Route::get('/get-purchases-api', [PurchaseController::class, 'getPurchasesApi'])->name('get-purchases-api');
     Route::get('/create-from-shortage', [PurchaseController::class, 'createFromShortage'])->name('createFromShortage');
     Route::post('/store-from-shortage', [PurchaseController::class, 'storeFromShortage'])->name('storeFromShortage');
-    // Panier d'achat (session)
-    Route::post('/cart/add', [PurchaseController::class, 'addToCart'])->name('cart.add');
-    Route::delete('/cart/remove/{id}', [PurchaseController::class, 'removeFromCart'])->name('cart.remove');
-    Route::post('/cart/clear', [PurchaseController::class, 'clearCart'])->name('cart.clear');
+    // Bon de commande : derniers prix payés au fournisseur (coût proposé pour chaque ligne)
+    Route::get('/supplier-prices/{supplier}', [PurchaseController::class, 'supplierPrices'])
+        ->whereNumber('supplier')->name('supplier-prices');
     Route::patch('/{id}/state', [PurchaseController::class, 'updateState'])->name('updateState');
     Route::get('/{id}/pdf', [PurchaseController::class, 'exportPdf'])->name('pdf');
 });

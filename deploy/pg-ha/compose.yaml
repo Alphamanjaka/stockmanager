@@ -1,0 +1,84 @@
+# Template de référence pour pg_auto_failover en laboratoire (NE PAS utiliser tel quel en production).
+#
+# Objectif : cluster PostgreSQL primaire + un secours (standby) géré par pg_auto_failover,
+# permettant à l'application (multi-hôtes + target_session_attrs) de basculer automatiquement
+# lors d'un failover.
+#
+# Remarques :
+# - Le dossier utilise l'image "citusdata/pg_auto_failover:demo" utilisée par la documentation officielle.
+# - Dans cet exemple, l'application Laravel atteint la base via la chaîne multi-hôtes exposée sur
+#   le port 5432 du nœud1 (et 5433 du nœud2 pour tests directs). En pratique, lorsque vous avez
+#   des serveurs distincts, exposez chacun sur son propre hôte ; l'app doit utiliser une liste
+#   séparée par des virgules (node1,node2).
+# - Ne pas exposer ces ports publiquement sur un serveur non protégé.
+# - Pour un usage prod, remplacez par le build officiel pg_auto_failover + certificats + auth forte.
+#
+# Utilisation (laboratoire) :
+#   docker compose -f deploy/pg-ha/compose.yaml up -d
+#   docker compose -f deploy/pg-ha/compose.yaml exec monitor pg_autoctl show state
+#   docker compose -f deploy/pg-ha/compose.yaml exec monitor pg_autoctl show uri --formation default
+#
+# Dans .env Laravel (prod/test HA) :
+#   DB_HOST=node1,node2
+#   DB_TARGET_SESSION_ATTRS=read-write
+#   DB_CONNECT_TIMEOUT=5
+name: pg-ha
+
+volumes:
+  monitor-data:
+  node1-data:
+  node2-data:
+
+services:
+  monitor:
+    image: citusdata/pg_auto_failover:demo
+    container_name: pg-ha-monitor
+    environment:
+      PGDATA: /tmp/pgaf
+      PG_AUTOCTL_DEBUG: 1
+    command: pg_autoctl create monitor --ssl-self-signed --auth trust --run
+    volumes:
+      - monitor-data:/tmp/pgaf
+    ports:
+      - "7000:5432" # accès au monitor (pg_autoctl)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  node1:
+    image: citusdata/pg_auto_failover:demo
+    container_name: pg-ha-node1
+    environment:
+      PGDATA: /tmp/pgaf
+      PGUSER: ${POSTGRES_USERNAME:-laravel}
+      PGDATABASE: ${POSTGRES_DATABASE:-app}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-secret}
+      PG_AUTOCTL_MONITOR: "postgresql://autoctl_node@monitor/pg_auto_failover"
+    command: pg_autoctl create postgres --ssl-self-signed --auth trust --pg-hba-lan --run
+    volumes:
+      - node1-data:/tmp/pgaf
+    ports:
+      - "5432:5432"
+    depends_on:
+      monitor:
+        condition: service_healthy
+
+  node2:
+    image: citusdata/pg_auto_failover:demo
+    container_name: pg-ha-node2
+    environment:
+      PGDATA: /tmp/pgaf
+      PGUSER: ${POSTGRES_USERNAME:-laravel}
+      PGDATABASE: ${POSTGRES_DATABASE:-app}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-secret}
+      PG_AUTOCTL_MONITOR: "postgresql://autoctl_node@monitor/pg_auto_failover"
+    command: pg_autoctl create postgres --ssl-self-signed --auth trust --pg-hba-lan --run
+    volumes:
+      - node2-data:/tmp/pgaf
+    ports:
+      - "5433:5432"
+    depends_on:
+      monitor:
+        condition: service_healthy

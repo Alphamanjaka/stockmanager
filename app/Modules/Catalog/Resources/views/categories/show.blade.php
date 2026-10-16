@@ -1,94 +1,57 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Category Details : ' . $category->name)
+@section('title', $category->name)
+@section('subtitle', $category->description ?: 'No description for this category.')
+
+@section('actions')
+    <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-primary">
+        <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+    </a>
+@endsection
 
 @section('content')
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left"></i> Retour à la liste
-            </a>
-            <div>
-                <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-primary">
-                    <i class="bi bi-pencil-square"></i> Modifier
-                </a>
-            </div>
+    <div class="ui-stack">
+        <div class="ui-stats">
+            <x-ui.stat label="Products" :value="$category->products_count" icon="bi-box" tone="primary" />
+            <x-ui.stat label="Estimated stock value" :value="money($stockValue)" icon="bi-cash-stack" tone="success" />
+            <x-ui.stat label="Parent category" :value="$category->parent->name ?? 'Root'" icon="bi-diagram-3" tone="neutral"
+                :href="$category->parent ? route('admin.categories.show', $category->parent->id) : null"
+                :hint="'Created on ' . $category->created_at->format('d/m/Y')" />
         </div>
 
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">Informations Générales</h5>
-                    </div>
-                    <div class="card-body">
-                        <h2 class="mb-3">{{ $category->name }}</h2>
-                        <p class="text-muted">{{ $category->description ?? 'No description for this category.' }}</p>
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Parent Category :</strong>
-                                @if ($category->parent)
-                                    <a href="{{ route('admin.categories.show', $category->parent->id) }}"
-                                        class="badge bg-info text-decoration-none">{{ $category->parent->name }}</a>
-                                @else
-                                    <span class="badge bg-secondary">Racine (Aucun parent)</span>
-                                @endif
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Date de création :</strong> {{ $category->created_at->format('d/m/Y') }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card shadow-sm h-100 bg-light">
-                    <div class="card-body text-center d-flex flex-column justify-content-center">
-                        <h6 class="text-muted">Associated Products</h6>
-                        <h1 class="display-4 fw-bold text-primary">{{ $category->products_count }}</h1>
-                        <p class="mb-0">Estimated stock value :</p>
-                        <h4 class="text-success">{{ number_format($stockValue, 2) }} MGA</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">Products in this category</h5>
-            </div>
-            <div class="card-body">
+        <x-ui.card title="Products in this category" flush :pagination="$products">
+            <div class="table-responsive">
                 <table class="table table-hover">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
                             <th>Product</th>
-                            <th>Prix</th>
-                            <th>Stock</th>
-                            <th>Action</th>
+                            <th class="text-end">Price</th>
+                            <th class="text-end">Stock</th>
+                            <th class="text-end"><span class="visually-hidden">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($products as $product)
+                        @forelse ($products as $product)
                             <tr>
-                                <td><a href="{{ route('admin.products.show', $product->id) }}"
-                                        class="text-decoration-none">{{ $product->name }}</a></td>
-                                <td>{{ number_format($product->price, 2) }} MGA</td>
-                                <td><span
-                                        class="badge {{ $product->quantity_stock <= $product->alert_stock ? 'bg-danger' : 'bg-success' }}">{{ $product->quantity_stock }}</span>
+                                <td><a href="{{ route('admin.products.show', $product->id) }}" class="link-plain">{{ $product->name }}</a></td>
+                                <td class="text-end">{{ money($product->price) }}</td>
+                                <td class="text-end">
+                                    <x-ui.badge :tone="$product->quantity_stock <= $product->alert_stock ? 'danger' : 'success'">
+                                        {{ $product->quantity_stock }}
+                                    </x-ui.badge>
                                 </td>
-                                <td><a href="{{ route('admin.products.show', $product->id) }}"
-                                        class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i></a></td>
+                                <td class="text-end">
+                                    <a href="{{ route('admin.products.show', $product->id) }}" class="btn btn-icon" title="View" aria-label="View">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
+                                    </a>
+                                </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="4" class="text-center text-muted">No products in this category.</td>
-                            </tr>
+                            <x-ui.empty-row :colspan="4" icon="bi-box">No product in this category.</x-ui.empty-row>
                         @endforelse
                     </tbody>
                 </table>
-                <div class="d-flex justify-content-center mt-3">{{ $products->links() }}</div>
             </div>
-        </div>
+        </x-ui.card>
     </div>
 @endsection

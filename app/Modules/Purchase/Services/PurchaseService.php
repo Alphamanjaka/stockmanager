@@ -4,11 +4,14 @@ namespace App\Modules\Purchase\Services;
 
 use App\Modules\Catalog\Support\VariantOptions;
 use App\Modules\Purchase\Models\Purchase;
+use App\Modules\Purchase\Models\PurchaseItem;
 use Illuminate\Support\Facades\DB;
 use App\Modules\Stock\Services\StockService;
 
 class PurchaseService
 {
+    /** Actions du bon de commande et statut obtenu (le brouillon n'en change pas). */
+    public const ACTIONS = ['draft' => null, 'ordered' => 'Ordered', 'received' => 'Received'];
 
     // Injecter StockService pour gérer les mouvements de stock lors des achats
     public function __construct(protected StockService $stockService) {}
@@ -81,21 +84,24 @@ class PurchaseService
      * Le stock n'est pas augmenté ici mais lors du passage au statut "Reçu".
      *
      * @param int|null $supplierId
-     * @param array $items
+     * @param array $items  [['product_color_id', 'quantity', 'unit_price'], ...]
+     * @param array $details  facultatif : discount, supplier_reference, notes
      * @return Purchase
      */
-    public function processPurchase(?int $supplierId, array $items)
+    public function processPurchase(?int $supplierId, array $items, array $details = [])
     {
-        return DB::transaction(function () use ($supplierId, $items) {
+        return DB::transaction(function () use ($supplierId, $items, $details) {
             $totalAmount = 0;
 
             // 1. Créer l'achat
             $purchase = Purchase::create([
                 'reference' => 'PUR-' . now()->format('YmdHis') . '-' . rand(100, 789546),
                 'supplier_id' => $supplierId,
+                'supplier_reference' => $details['supplier_reference'] ?? null,
+                'notes' => $details['notes'] ?? null,
                 'total_amount' => 0, // On mettra à jour après
                 'total_net' => 0, // On mettra à jour après
-                'discount' => 0 // Non géré pour l'instant
+                'discount' => 0,
             ]);
 
             foreach ($items as $item) {
@@ -115,9 +121,11 @@ class PurchaseService
                 // $this->stockService->addStock($item['product_color_id'], $item['quantity'], "Achat {$purchase->reference}");
             }
 
+            $discount = $this->discount($details['discount'] ?? 0, $totalAmount);
             $purchase->update([
                 'total_amount' => $totalAmount,
-                'total_net' => $totalAmount // Pas de remise gérée ici pour l'instant
+                'discount' => $discount,
+                'total_net' => $totalAmount - $discount,
             ]);
             return $purchase;
         });
@@ -157,7 +165,12 @@ class PurchaseService
             'totalDiscounts' => Purchase::where('state', 'Received')->sum('discount'), // Total des remises accordées.
         ];
     }
-    // Update purchase details (like changing supplier or reference)
+    /**
+     * Modifie un brouillon : fournisseur, lignes (remplacées) et, s'ils sont fournis,
+     * remise, référence fournisseur et notes.
+     *
+     * @throws \Exception si l'achat n'est plus en brouillon
+     */
     public function updatePurchase(int $id, array $data): Purchase
     {
         return DB::transaction(function () use ($id, $data) {
@@ -167,10 +180,9 @@ class PurchaseService
                 throw new \Exception("Impossible de modifier une commande qui n'est plus en brouillon (Statut actuel : {$purchase->state}).");
             }
 
-            // Mise à jour du fournisseur
-            $purchase->update([
-                'supplier_id' => $data['supplier_id']
-            ]);
+            // Mise à jour de l'en-tête (les champs absents sont conservés)
+            $purchase->update(['supplier_id' => $data['supplier_id']]
+                + array_intersect_key($data, array_flip(['supplier_reference', 'notes'])));
 
             // Mise à jour des lignes d'achat (On supprime et on recrée pour simplifier)
             $purchase->items()->delete();
@@ -189,9 +201,11 @@ class PurchaseService
             }
 
             // Recalcul des totaux
+            $discount = $this->discount($data['discount'] ?? $purchase->discount, $totalAmount);
             $purchase->update([
                 'total_amount' => $totalAmount,
-                'total_net'    => $totalAmount - $purchase->discount,
+                'discount'     => $discount,
+                'total_net'    => $totalAmount - $discount,
             ]);
 
             return $purchase;
@@ -395,26 +409,51 @@ class PurchaseService
     }
 
     /**
-     * Transforme le panier brut de la session en collection d'objets complets.
+     * Enregistre un bon de commande (création, ou modification d'un brouillon) puis applique l'action :
+     * 'draft' reste en brouillon, 'ordered' passe en commandé, 'received' réceptionne (entrée en stock).
+     * Tout ou rien : si la réception échoue, l'achat n'est pas enregistré non plus.
      *
-     * @param array $cart [product_color_id => ['quantity' => x, 'unit_price' => y]]
-     * @return \Illuminate\Support\Collection
+     * @param array $data supplier_id, products[], discount, supplier_reference, notes
      */
-    public function getCartDetails(array $cart)
+    public function savePurchaseOrder(?int $purchaseId, array $data, string $action = 'draft'): Purchase
     {
-        if (empty($cart)) return collect();
+        return DB::transaction(function () use ($purchaseId, $data, $action) {
+            $purchase = $purchaseId
+                ? $this->updatePurchase($purchaseId, $data)
+                : $this->processPurchase($data['supplier_id'], $data['products'], $data);
 
-        $productIds = array_keys($cart);
-        $products = \App\Modules\Catalog\Models\ProductColor::with(['product', 'color', 'brand'])->find($productIds);
+            $state = self::ACTIONS[$action] ?? null;
 
-        return $products->map(function ($product) use ($cart) {
-            $item = $cart[$product->id];
-            return (object) [
-                'product' => $product,
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
-                'subtotal' => $item['quantity'] * $item['unit_price']
-            ];
+            return $state ? $this->changeState($purchase, $state) : $purchase->fresh();
         });
+    }
+
+    /**
+     * Dernier prix unitaire payé à un fournisseur pour chaque variante : [product_color_id => prix].
+     * Sert à proposer le coût d'une ligne dans le bon de commande.
+     */
+    public function lastUnitPricesForSupplier(int $supplierId): array
+    {
+        // Lignes du plus ancien au plus récent : la dernière écrase les précédentes
+        return PurchaseItem::query()
+            ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+            ->where('purchases.supplier_id', $supplierId)
+            ->orderBy('purchase_items.created_at')
+            ->orderBy('purchase_items.id')
+            ->pluck('purchase_items.unit_price', 'purchase_items.product_color_id')
+            ->map(fn ($price) => (float) $price)
+            ->all();
+    }
+
+    /** Remise d'un achat : positive et jamais supérieure au total brut. */
+    private function discount($discount, float $totalAmount): float
+    {
+        $discount = max(0, (float) $discount);
+
+        if ($discount > $totalAmount) {
+            throw new \Exception("La remise ne peut pas dépasser le total de l'achat.");
+        }
+
+        return $discount;
     }
 }

@@ -19,14 +19,15 @@ class PurchaseApiResource extends JsonResource
             'reference' => $this->reference,
             'date' => $this->created_at->format('d/m/Y H:i'),
             'state' => $this->state,
-            'total_amount' => number_format($this->total_amount, 2) . ' Mga',
+            'total_amount' => money($this->total_amount),
             'discount' => $this->discount,
             'supplier' => $this->supplier ? $this->supplier->name : null,
-            'total_net' => number_format($this->total_net, 2) . ' Mga',
+            'total_net' => money($this->total_net),
             'urls' => [
                 'show' => route('admin.purchases.show', $this->id),
                 'edit' => route('admin.purchases.edit', $this->id),
                 'destroy' => route('admin.purchases.destroy', $this->id),
+                'update_state' => route('admin.purchases.updateState', $this->id),
                 'csrf' => csrf_token(),
             ],
         ];

@@ -143,11 +143,11 @@ class ProductColorController extends Controller
     }
 
     /**
-     * Store a new product variant (ProductColor).
+     * Store a new product variant (ProductColor). Elle démarre à un stock de 0 (mouvements de stock).
      */
     public function storeVariant(Request $request, int $productId)
     {
-        $validated = $request->validate($this->variantRules() + ['stock' => 'nullable|integer|min:0']);
+        $validated = $request->validate($this->variantRules());
 
         try {
             $this->productColorService->createVariant($this->productService->getById($productId), $validated);
@@ -158,11 +158,11 @@ class ProductColorController extends Controller
     }
 
     /**
-     * Update an existing product variant (ProductColor).
+     * Update an existing product variant (ProductColor). Le stock n'en fait pas partie (mouvements de stock).
      */
     public function updateVariant(Request $request, int $variantId)
     {
-        $validated = $request->validate($this->variantRules() + ['stock' => 'required|integer|min:0']);
+        $validated = $request->validate($this->variantRules());
 
         try {
             $this->productColorService->updateVariant($variantId, $validated);

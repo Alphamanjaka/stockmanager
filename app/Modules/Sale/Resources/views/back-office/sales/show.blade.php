@@ -1,107 +1,48 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Sale Details : ' . $sale->reference . ' by ' . ($sale->user->name ?? 'N/A'))
+@section('title', 'Sale ' . $sale->reference)
+@section('subtitle', $sale->created_at->format('d/m/Y H:i') . ' · ' . ($sale->user->name ?? 'N/A'))
+
+@section('actions')
+    <a href="{{ route('admin.sales.receipt', ['id' => $sale->id, 'print' => 1]) }}" target="_blank" class="btn btn-outline-secondary">
+        <i class="bi bi-printer" aria-hidden="true"></i> {{ __('pos.print_receipt') }}
+    </a>
+    <a href="{{ route('admin.sales.pdf', $sale->id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> PDF
+    </a>
+@endsection
 
 @section('content')
-    <div class="container">
-        {{-- add a section with seller information for quick contact --}}
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Seller : {{ $sale->user->name ?? 'N/A' }}</h5>
-                <p class="card-text">Email : {{ $sale->user->email ?? 'N/A' }}</p>
-                <p class="card-text">Phone : {{ $sale->user->phone ?? 'N/A' }}</p>
-            </div>
-        </div>
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                @if ($sale->customer)
-                    <h5 class="card-title">Customer :
-                        <a href="{{ route('admin.customers.show', $sale->customer->id) }}">{{ $sale->customer->name }}</a>
-                    </h5>
-                    <p class="card-text mb-0">Phone : {{ $sale->customer->phone ?: 'N/A' }}</p>
-                @else
-                    <h5 class="card-title mb-0">Customer : <span class="text-muted">Walk-in customer</span></h5>
-                @endif
-            </div>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="{{ route('admin.sales.index') }}" class="btn btn-secondary shadow-sm">
-                <i class="bi bi-arrow-left"></i> Back to History
-            </a>
-            <a href="{{ route('admin.sales.pdf', $sale->id) }}" class="btn btn-danger shadow-sm">
-                <i class="bi bi-file-earmark-pdf"></i> Download as PDF
-            </a>
+    <div class="row g-3">
+        <div class="col-lg-8">
+            @include('sale::partials.invoice')
         </div>
 
-        <div class="card shadow border-0">
-            <div class="card-body p-5">
-                <div class="row mb-4">
-                    <div class="col-sm-6">
-                        <h5 class="mb-3 text-uppercase text-muted">Issuer</h5>
-                        <div><strong>{{ $sale->company_name }}</strong></div>
-                        <div>{{ $sale->company_address ?? ''}}</div>
-                        <div>Tel: {{ $sale->company_phone ?? '+261 34 22 12345' }}</div>
-                        <div>Email: {{ $sale->company_email ?? 'contact@stockmaster.test' }}</div>
-                    </div>
-                    <div class="col-sm-6 text-sm-end">
-                        <h5 class="mb-3 text-uppercase text-muted">Invoice Details</h5>
-                        <div class="h4 text-primary">{{ $sale->reference }}</div>
-                        <div>Date : {{ $sale->created_at->format('d/m/Y H:i') }}</div>
-                    </div>
-                </div>
+        <div class="col-lg-4">
+            <div class="ui-stack">
+                <x-ui.card title="Seller">
+                    <dl class="ui-dl">
+                        <dt>Name</dt>
+                        <dd>{{ $sale->user->name ?? 'N/A' }}</dd>
+                        <dt>Email</dt>
+                        <dd>{{ $sale->user->email ?? '—' }}</dd>
+                        <dt>Phone</dt>
+                        <dd>{{ $sale->user->phone ?? '—' }}</dd>
+                    </dl>
+                </x-ui.card>
 
-                <div class="table-responsive-sm">
-                    <table class="table table-striped">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Product</th>
-                                <th class="text-center">Quantity</th>
-                                <th class="text-end">Unit Price</th>
-                                <th class="text-end">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($sale->items as $item)
-                                <tr>
-                                    <td>{{ $item->productColor->label }}</td>
-                                    <td class="text-center">{{ $item->quantity }}</td>
-                                    <td class="text-end">
-                                        {{ number_format($item->unit_price, 2) }} {{ $sale->currency_symbol }}
-                                    </td>
-                                    <td class="text-end">{{ number_format($item->subtotal, 2) }}
-                                        {{ $sale->currency_symbol }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="row">
-                    <div class="col-lg-4 col-sm-5 ms-auto">
-                        <table class="table table-clear">
-                            <tbody>
-                                <tr>
-                                    <td><strong>Total Gross</strong></td>
-                                    <td class="text-end">{{ number_format($sale->total_brut, 2) }}
-                                        {{ $sale->currency_symbol }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Discount</strong></td>
-                                    <td class="text-end text-danger">-{{ number_format($sale->discount, 2) }}
-                                        {{ $sale->currency_symbol }}</td>
-                                </tr>
-                                <tr class="table-light">
-                                    <td><span class="h5">Total Net</span></td>
-                                    <td class="text-end"><span
-                                            class="h5 text-success">{{ number_format($sale->total_net, 2) }}
-                                            {{ $sale->currency_symbol }}</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <x-ui.card title="Customer">
+                    @if ($sale->customer)
+                        <dl class="ui-dl">
+                            <dt>Name</dt>
+                            <dd><a href="{{ route('admin.customers.show', $sale->customer->id) }}">{{ $sale->customer->name }}</a></dd>
+                            <dt>Phone</dt>
+                            <dd>{{ $sale->customer->phone ?: '—' }}</dd>
+                        </dl>
+                    @else
+                        <span class="text-muted">Walk-in customer</span>
+                    @endif
+                </x-ui.card>
             </div>
         </div>
     </div>

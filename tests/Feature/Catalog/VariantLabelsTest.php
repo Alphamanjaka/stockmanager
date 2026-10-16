@@ -36,7 +36,7 @@ class VariantLabelsTest extends TestCase
         $noVariant = Color::factory()->create(['name' => 'Sans variante']);
 
         foreach (['25 ml' => 'ml25', '30 ml' => 'ml30'] as $value => $property) {
-            $this->{$property} = ProductColor::create([
+            $this->{$property} = ProductColor::forceCreate([
                 'product_id' => $gel->id, 'color_id' => $noVariant->id,
                 'option_values' => ['Contenance' => $value], 'stock' => 5, 'price' => 8000,
             ]);
@@ -85,9 +85,10 @@ class VariantLabelsTest extends TestCase
     /** @test */
     public function the_purchase_product_search_uses_labels_and_skus()
     {
+        // Le bon de commande cherche dans le libellé et le SKU de chaque variante (resources/js/purchase-form.js)
         $this->get(route('admin.purchases.create'))
             ->assertOk()
-            ->assertViewHas('searchProducts', fn ($products) => $products->pluck('name')->contains('Gel déshydratant — 30 ml')
-                && str_contains($products->firstWhere('id', $this->ml30->id)['searchable'], 'gel-deshydratant-30ml'));
+            ->assertViewHas('formData', fn ($data) => $data['catalog']->pluck('name')->contains('Gel déshydratant — 30 ml')
+                && $data['catalog']->firstWhere('id', $this->ml30->id)['sku'] === 'GEL-DESHYDRATANT-30ML');
     }
 }
