@@ -131,7 +131,7 @@ class ProductPageVariantsTest extends TestCase
         $unsold = ProductColor::forceCreate(['product_id' => $this->gel->id, 'color_id' => $this->ml25->color_id, 'option_values' => ['Contenance' => '30 ml'], 'price' => 1, 'stock' => 0]);
 
         $this->delete(route('admin.products.variants.destroy', $this->ml25->id))
-            ->assertSessionHas('error', 'Erreur lors de la suppression de la variante : Cette variante a déjà été vendue : elle ne peut pas être supprimée.');
+            ->assertSessionHas('error', 'Erreur lors de la suppression de la variante : Cette variante a un historique (ventes, achats, mouvements de stock ou inventaires) : elle ne peut pas être supprimée.');
         $this->assertModelExists($this->ml25);
 
         $this->delete(route('admin.products.variants.destroy', $unsold->id))->assertSessionHas('success');

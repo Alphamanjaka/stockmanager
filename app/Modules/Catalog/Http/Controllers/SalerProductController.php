@@ -15,9 +15,10 @@ class SalerProductController extends Controller
      */
     public function index(Request $request)
     {
-        $filters=['sort' => 'id', 'order' => 'asc', 'search' => $request->get('search'), 'per_page' => 15];
-                // Pagination simple, trié par nom
-        $products = $this->productService->getAll($filters);
+        // Même liste que le back office, produits en service uniquement, triée par nom
+        $products = $this->productService->listQuery(['search' => $request->get('search')])
+            ->paginate(15)
+            ->withQueryString();
 
         return view('catalog::front-office.products.index', compact('products'));
     }

@@ -8,7 +8,15 @@
     </a>
 @endsection
 
+@php $archived = request('status') === 'archived'; @endphp
+
 @section('content')
+    @if ($archived)
+        <x-ui.archived-notice>
+            You are viewing <strong>archived</strong> accounts: they can no longer sign in. Their sales and stock counts keep their name.
+        </x-ui.archived-notice>
+    @endif
+
     <x-ui.card flush :pagination="$users">
         <x-slot:toolbar>
             <x-ui.filters :action="route('admin.users.index')">
@@ -18,6 +26,7 @@
                     <option value="back_office" @selected(request('role') === 'back_office')>Administrators</option>
                     <option value="front_office" @selected(request('role') === 'front_office')>Sellers</option>
                 </select>
+                <x-ui.status-filter />
             </x-ui.filters>
         </x-slot:toolbar>
 
@@ -53,18 +62,33 @@
                             <td class="text-end">{{ $user->sales_count }}</td>
                             <td>{{ $user->created_at->format('d/m/Y') }}</td>
                             <td class="text-end">
-                                <div class="ui-row-actions">
-                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-icon" title="Edit" aria-label="Edit">
-                                        <i class="bi bi-pencil" aria-hidden="true"></i>
-                                    </a>
-                                    <x-ui.delete-button :action="route('admin.users.destroy', $user)" confirm="Delete this user?"
-                                        :disabled="auth()->id() === $user->id"
-                                        :title="auth()->id() === $user->id ? 'You cannot delete your own account' : 'Delete'" />
-                                </div>
+                                <x-ui.actions-menu row>
+                                    <x-ui.menu-item :href="route('admin.users.edit', $user)" icon="bi-pencil">Edit</x-ui.menu-item>
+                                    @if ($archived)
+                                        <x-ui.menu-item :action="route('admin.users.restore')" :ids="[$user->id]"
+                                            icon="bi-arrow-counterclockwise">Restore</x-ui.menu-item>
+                                        {{-- Un compte qui a vendu ou compté du stock reste archivé : son nom reste sur l'historique --}}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <x-ui.menu-item :action="route('admin.users.destroy', $user)" method="DELETE" icon="bi-trash3"
+                                            tone="danger" :disabled="$user->sales_count > 0"
+                                            :title="$user->sales_count > 0 ? 'Has sales: the account stays archived' : null"
+                                            confirm="Delete this account permanently?">Delete permanently</x-ui.menu-item>
+                                    @else
+                                        <x-ui.menu-item :action="route('admin.users.archive')" :ids="[$user->id]" icon="bi-archive"
+                                            :disabled="auth()->id() === $user->id"
+                                            :title="auth()->id() === $user->id ? 'You cannot archive your own account' : null"
+                                            confirm="Archive this account?"
+                                            confirm-text="The user will be signed out and will no longer be able to sign in.">
+                                            Archive (disable sign-in)
+                                        </x-ui.menu-item>
+                                    @endif
+                                </x-ui.actions-menu>
                             </td>
                         </tr>
                     @empty
-                        <x-ui.empty-row :colspan="6" icon="bi-people">No user found.</x-ui.empty-row>
+                        <x-ui.empty-row :colspan="6" icon="bi-people">
+                            {{ $archived ? 'No archived account.' : 'No user found.' }}
+                        </x-ui.empty-row>
                     @endforelse
                 </tbody>
             </table>

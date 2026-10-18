@@ -10,11 +10,12 @@ use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Contact\Models\Supplier;
 use App\Modules\Purchase\Models\Purchase;
 use App\Modules\Purchase\Models\PurchaseItem;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Un fournisseur ne se supprime pas facilement, et sa suppression n'efface jamais ses achats.
+ * Un fournisseur ne se supprime pas tant qu'il a des achats : il s'archive, et ses achats le gardent.
  */
 class SupplierDeletionTest extends TestCase
 {
@@ -37,44 +38,52 @@ class SupplierDeletionTest extends TestCase
     }
 
     /** @test */
-    public function deletion_requires_typing_the_exact_supplier_name()
+    public function a_supplier_is_archived_and_its_purchases_keep_it()
     {
-        foreach ([null, '', 'tissus mada', 'Tissus'] as $typed) {
-            $this->delete(route('admin.suppliers.destroy', $this->supplier->id), ['confirm_name' => $typed])
-                ->assertSessionHas('error');
-        }
+        $this->post(route('admin.suppliers.archive'), ['ids' => [$this->supplier->id]])->assertSessionHas('success');
 
-        $this->assertModelExists($this->supplier);
+        $this->assertTrue($this->supplier->fresh()->isArchived());
         $this->assertSame($this->supplier->id, $this->purchase->fresh()->supplier_id);
+        $this->get(route('admin.purchases.show', $this->purchase->id))->assertOk()->assertSee('Tissus Mada');
+        $this->get(route('admin.suppliers.show', $this->supplier->id))->assertOk()->assertSee('archived');
     }
 
     /** @test */
-    public function deleting_a_supplier_keeps_its_purchases_without_supplier()
+    public function a_supplier_with_purchases_cannot_be_deleted_even_archived()
     {
-        $this->delete(route('admin.suppliers.destroy', $this->supplier->id), ['confirm_name' => 'Tissus Mada'])
-            ->assertRedirect(route('admin.suppliers.index'))
-            ->assertSessionHas('success');
+        $this->supplier->archive();
 
-        $this->assertModelMissing($this->supplier);
-        $this->assertModelExists($this->purchase);
-        $this->assertNull($this->purchase->fresh()->supplier_id);
+        $this->delete(route('admin.suppliers.destroy', $this->supplier->id))->assertSessionHas('error');
+
+        $this->assertModelExists($this->supplier);
+        $this->assertSame($this->supplier->id, $this->purchase->fresh()->supplier_id);
         $this->assertSame(1, $this->purchase->items()->count());
     }
 
     /** @test */
-    public function the_database_itself_never_cascades_supplier_deletion_to_purchases()
+    public function an_archived_supplier_without_purchase_can_be_deleted()
     {
-        // Suppression directe, sans passer par le service : la clé étrangère est en SET NULL
-        $this->supplier->delete();
+        $unused = Supplier::factory()->create();
+        $unused->archive();
 
-        $this->assertModelExists($this->purchase);
-        $this->assertNull($this->purchase->fresh()->supplier_id);
+        $this->delete(route('admin.suppliers.destroy', $unused->id))
+            ->assertRedirect(route('admin.suppliers.index', ['status' => 'archived']));
+
+        $this->assertModelMissing($unused);
+    }
+
+    /** @test */
+    public function the_database_itself_refuses_to_delete_a_supplier_with_purchases()
+    {
+        $this->expectException(QueryException::class);
+        $this->supplier->delete();
     }
 
     /** @test */
     public function purchases_without_supplier_still_display()
     {
-        $this->delete(route('admin.suppliers.destroy', $this->supplier->id), ['confirm_name' => 'Tissus Mada']);
+        // Achats importés ou détachés avant l'archivage : sans fournisseur
+        $this->purchase->forceFill(['supplier_id' => null])->save();
 
         $this->get(route('admin.purchases.show', $this->purchase->id))->assertOk()->assertSee('Non renseigné');
         $this->get(route('admin.purchases.pdf', $this->purchase->id))->assertOk();
@@ -82,11 +91,13 @@ class SupplierDeletionTest extends TestCase
     }
 
     /** @test */
-    public function the_supplier_page_shows_the_danger_zone()
+    public function an_archived_supplier_is_kept_on_the_purchase_it_already_has()
     {
-        $this->get(route('admin.suppliers.show', $this->supplier->id))
-            ->assertOk()
-            ->assertSee('Danger zone')
-            ->assertSee('1 purchase(s)');
+        $draft = Purchase::factory()->create(['supplier_id' => $this->supplier->id, 'state' => 'Draft']);
+        $this->supplier->archive();
+
+        // Il n'est plus proposé pour un nouvel achat, mais le brouillon existant le garde
+        $this->get(route('admin.purchases.create'))->assertOk()->assertDontSee('Tissus Mada');
+        $this->get(route('admin.purchases.edit', $draft->id))->assertOk()->assertSee('Tissus Mada');
     }
 }

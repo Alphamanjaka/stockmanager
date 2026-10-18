@@ -8,13 +8,18 @@ use App\Modules\Catalog\Services\CategoryService;
 use App\Modules\Catalog\Services\ColorService;
 use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Catalog\Services\ProductService;
+use App\Modules\Catalog\Models\Product;
 use App\Modules\Sale\Services\SaleService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Core\Http\Controllers\Concerns\ArchivesRecords;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
 class ProductColorController extends Controller
 {
+    use ArchivesRecords;
+
     public function __construct(
         protected ProductService $productService,
         protected CategoryService $categoryService,
@@ -32,19 +37,14 @@ class ProductColorController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Liste des produits, une ligne par variante (même requête que l'export : ProductsExport).
      */
     public function index(Request $request)
     {
-        $filters = [
-            'sort' => $request->get('sort', 'id'),
-            'order' => $request->get('order', 'asc'),
-            'search' => $request->get('search'),
-            'per_page' => 15,
-        ];
+        $filters = $request->only(['search', 'category', 'status', 'sort', 'order']);
 
-        $productVariants = $this->productColorService->getAll($filters);
-        $categories = $this->categoryService->getAll();
+        $productVariants = $this->productColorService->listQuery($filters)->paginate(15)->withQueryString();
+        $categories = $this->categoryService->getCategoriesList();
         $mostSoldProduct = $this->saleService->getMostSoldProduct();
         $leastSoldProduct = $this->saleService->getLeastSoldProduct();
 
@@ -57,7 +57,7 @@ class ProductColorController extends Controller
     public function create()
     {
         $categories = $this->categoryService->getAll(['sort' => 'name'], false);
-        $brands = Brand::orderBy('name')->get(['id', 'name']);
+        $brands = Brand::active()->orderBy('name')->get(['id', 'name']);
 
         // Modèles d'options par catégorie : pré-remplissent les options du produit
         $templates = $categories->mapWithKeys(fn ($category) => [$category->id => $category->option_template ?? []]);
@@ -89,19 +89,18 @@ class ProductColorController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Suppression définitive d'un produit archivé et jamais utilisé : un produit dont une variante a été
+     * vendue, achetée, comptée ou a bougé en stock reste archivé (la base refuse).
      */
     public function destroy(int $id)
     {
-        try {
-            $this->productService->delete($id);
+        return $this->deletePermanently($id, 'admin.products.index');
+    }
 
-            return redirect()->route('admin.products.index')
-                ->with('success', 'Product deleted successfully.');
-        } catch (\Exception $e) {
-            return redirect()->route('admin.products.index')
-                ->with('error', $e->getMessage());
-        }
+    /** Archivage par produit : ses variantes disparaissent avec lui des listes, de la caisse et des achats. */
+    protected function archiveTargets(array $ids): Builder
+    {
+        return Product::whereKey($ids);
     }
 
     /**
@@ -112,8 +111,15 @@ class ProductColorController extends Controller
     {
         $product = $this->productService->getById($id); // Ceci est le modèle Product principal
         $variants = $this->productColorService->listByProduct($id); // Ce sont les modèles ProductColor
-        $categories = $this->categoryService->getAll([], false); // Toutes les catégories pour l'édition du produit
-        $brands = Brand::orderBy('name')->get(['id', 'name']);
+        // Catégories et marques en service, plus celles déjà portées par le produit (même archivées) :
+        // les formulaires d'édition ne doivent pas les perdre
+        $categories = $this->categoryService->getAll([], false);
+        if ($product->category?->isArchived()) {
+            $categories->push($product->category);
+        }
+        $brands = Brand::where(fn ($query) => $query->active()->orWhereIn('id', $variants->pluck('brand_id')->filter()))
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return view('catalog::products.show', compact('product', 'variants', 'categories', 'brands'));
     }

@@ -8,45 +8,64 @@
     </a>
 @endsection
 
-@section('content')
-    <x-ui.card flush :pagination="$brands">
-        <x-slot:toolbar>
-            <x-ui.filters :action="route('admin.brands.index')">
-                <x-ui.search placeholder="Search brand..." />
-            </x-ui.filters>
-        </x-slot:toolbar>
+@php $archived = request('status') === 'archived'; @endphp
 
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th class="text-end">Variants</th>
-                        <th class="text-end"><span class="visually-hidden">Actions</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($brands as $brand)
+@section('content')
+    <div class="ui-stack">
+        @if ($archived)
+            <x-ui.archived-notice />
+        @endif
+
+        <x-ui.card flush :pagination="$brands">
+            <x-slot:toolbar>
+                <x-ui.filters :action="route('admin.brands.index')">
+                    <x-ui.search placeholder="Search brand..." />
+                    <x-ui.status-filter />
+                </x-ui.filters>
+            </x-slot:toolbar>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
                         <tr>
-                            <td class="fw-semibold">{{ $brand->name }}</td>
-                            <td class="text-end">{{ $brand->variants_count }}</td>
-                            <td class="text-end">
-                                <div class="ui-row-actions">
-                                    <a href="{{ route('admin.brands.edit', $brand->id) }}" class="btn btn-icon" title="Edit" aria-label="Edit">
-                                        <i class="bi bi-pencil" aria-hidden="true"></i>
-                                    </a>
-                                    {{-- Une marque utilisée par des variantes ne peut pas être supprimée --}}
-                                    <x-ui.delete-button :action="route('admin.brands.destroy', $brand->id)" confirm="Delete this brand?"
-                                        :disabled="$brand->variants_count > 0"
-                                        :title="$brand->variants_count > 0 ? 'Used by variants: cannot be deleted' : 'Delete'" />
-                                </div>
-                            </td>
+                            <th>Name</th>
+                            <th class="text-end">Variants</th>
+                            <th class="text-end"><span class="visually-hidden">Actions</span></th>
                         </tr>
-                    @empty
-                        <x-ui.empty-row :colspan="3" icon="bi-tag">No brand yet.</x-ui.empty-row>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </x-ui.card>
+                    </thead>
+                    <tbody>
+                        @forelse ($brands as $brand)
+                            <tr>
+                                <td class="fw-semibold">{{ $brand->name }}</td>
+                                <td class="text-end">{{ $brand->variants_count }}</td>
+                                <td class="text-end">
+                                    <x-ui.actions-menu row>
+                                        <x-ui.menu-item :href="route('admin.brands.edit', $brand->id)" icon="bi-pencil">Edit</x-ui.menu-item>
+                                        @if ($archived)
+                                            <x-ui.menu-item :action="route('admin.brands.restore')" :ids="[$brand->id]"
+                                                icon="bi-arrow-counterclockwise">Restore</x-ui.menu-item>
+                                            {{-- Une marque portée par des variantes ne peut pas être supprimée --}}
+                                            <li><hr class="dropdown-divider"></li>
+                                            <x-ui.menu-item :action="route('admin.brands.destroy', $brand->id)" method="DELETE"
+                                                icon="bi-trash3" tone="danger" :disabled="$brand->variants_count > 0"
+                                                :title="$brand->variants_count > 0 ? 'Used by variants: it stays archived' : null"
+                                                confirm="Delete this brand permanently?">Delete permanently</x-ui.menu-item>
+                                        @else
+                                            <x-ui.menu-item :action="route('admin.brands.archive')" :ids="[$brand->id]" icon="bi-archive"
+                                                confirm="Archive this brand?"
+                                                confirm-text="It will no longer be offered for new variants. Existing variants keep it.">Archive</x-ui.menu-item>
+                                        @endif
+                                    </x-ui.actions-menu>
+                                </td>
+                            </tr>
+                        @empty
+                            <x-ui.empty-row :colspan="3" icon="bi-tag">
+                                {{ $archived ? 'No archived brand.' : 'No brand yet.' }}
+                            </x-ui.empty-row>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </x-ui.card>
+    </div>
 @endsection

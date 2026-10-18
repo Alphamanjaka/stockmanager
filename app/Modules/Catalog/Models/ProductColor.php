@@ -124,7 +124,8 @@ class ProductColor extends Model
         $term = '%' . strtolower($term) . '%';
         // Regroupé entre parenthèses : sinon les OR contournent les autres filtres de la requête
         $query->where(function ($query) use ($term) {
-            $query->whereHas('product', function($q) use ($term) {
+            $query->whereRaw('LOWER(' . $query->qualifyColumn('sku') . ') LIKE ?', [$term])
+            ->orWhereHas('product', function($q) use ($term) {
                 $q->whereRaw('LOWER(name) LIKE ?', [$term]);
             })->orWhereHas('color', function($q) use ($term) {
                 $q->whereRaw('LOWER(name) LIKE ?', [$term]);

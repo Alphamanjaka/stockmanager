@@ -2,15 +2,19 @@
 
 namespace App\Core\Http\Controllers;
 
+use App\Core\Http\Controllers\Concerns\ArchivesRecords;
 use App\Http\Controllers\Controller;
 use App\Core\Http\Requests\StoreUserRequest;
 use App\Core\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Core\Services\UserService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    use ArchivesRecords;
+
     protected $userService;
 
     public function __construct(UserService $userService)
@@ -20,7 +24,7 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $users = $this->userService->getAllUsers($request->only(['search', 'role']));
+        $users = $this->userService->getAllUsers($request->only(['search', 'role', 'status']));
         return view('core::users.index', compact('users'));
     }
 
@@ -52,19 +56,19 @@ class UserController extends Controller
             ->with('success', 'Utilisateur mis à jour avec succès.');
     }
 
+    /**
+     * Suppression définitive d'un compte archivé qui n'a jamais vendu ni compté de stock :
+     * sinon la base refuse, le compte reste archivé et ses ventes gardent son nom.
+     * (Son propre compte ne peut pas être archivé, donc pas supprimé non plus.)
+     */
     public function destroy(User $user)
     {
-        // Empêcher la suppression de son propre compte
-        if (auth()->id() === $user->id) {
-            return back()->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');
-        }
+        return $this->deletePermanently($user->id, 'admin.users.index');
+    }
 
-        try {
-            $this->userService->delete($user->id);
-            return redirect()->route('admin.users.index')
-                ->with('success', 'Utilisateur supprimé avec succès.');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Erreur lors de la suppression de l\'utilisateur : ' . $e->getMessage());
-        }
+    /** Archiver un compte le désactive : il ne peut plus se connecter (LogoutArchivedUser, AuthController). */
+    protected function archiveTargets(array $ids): Builder
+    {
+        return User::whereKey($ids);
     }
 }

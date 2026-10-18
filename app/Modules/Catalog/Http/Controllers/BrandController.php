@@ -2,18 +2,20 @@
 
 namespace App\Modules\Catalog\Http\Controllers;
 
+use App\Core\Http\Controllers\Concerns\ArchivesRecords;
 use App\Http\Controllers\Controller;
 use App\Modules\Catalog\Models\Brand;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class BrandController extends Controller
 {
+    use ArchivesRecords;
+
     public function index(Request $request)
     {
-        $brands = Brand::withCount('variants')
-            ->when($request->get('search'), fn ($query, $search) => $query->whereLike('name', "%{$search}%"))
-            ->orderBy('name')
+        $brands = Brand::forList($request->only(['search', 'status']))
             ->paginate(20)
             ->withQueryString();
 
@@ -45,19 +47,17 @@ class BrandController extends Controller
     }
 
     /**
-     * Une marque utilisée n'est pas supprimée : ses variantes perdraient leur marque
-     * (et deux variantes pourraient devenir identiques).
+     * Suppression définitive d'une marque archivée et jamais utilisée : une marque portée par des variantes
+     * reste archivée (la base refuse), sinon ces variantes perdraient leur marque.
      */
     public function destroy(Brand $brand)
     {
-        $used = $brand->variants()->count();
-        if ($used > 0) {
-            return back()->with('error', "Marque utilisée par {$used} variante(s) : retirez-la d'abord de ces variantes.");
-        }
+        return $this->deletePermanently($brand->id, 'admin.brands.index');
+    }
 
-        $brand->delete();
-
-        return redirect()->route('admin.brands.index')->with('success', 'Marque supprimée.');
+    protected function archiveTargets(array $ids): Builder
+    {
+        return Brand::whereKey($ids);
     }
 
     private function validated(Request $request, ?Brand $brand = null): array

@@ -17,7 +17,16 @@ Route::put('/products/variants/{variantId}', [ProductColorController::class, 'up
 Route::put('/products/{product}/options', [ProductColorController::class, 'updateOptions'])->whereNumber('product')->name('products.options.update');
 Route::delete('/products/variants/{variantId}', [ProductColorController::class, 'destroyVariant'])->name('products.variants.destroy');
 
+// Archivage (un élément ou une sélection : ids[]) au lieu de la suppression ; voir ArchivesRecords.
+// Déclarées avant les ressources : /products/archive ne doit pas être lu comme /products/{product}.
+foreach (['products' => ProductColorController::class, 'categories' => CategoryController::class,
+    'colors' => ColorController::class, 'brands' => BrandController::class] as $resource => $controller) {
+    Route::post("/{$resource}/archive", [$controller, 'archive'])->name("{$resource}.archive");
+    Route::post("/{$resource}/restore", [$controller, 'restore'])->name("{$resource}.restore");
+}
+
 // Pas de edit/update : la fiche produit (show) édite les informations et les variantes en AJAX
+// destroy : suppression définitive d'un produit archivé et jamais utilisé
 Route::resource('products', ProductColorController::class)->except(['edit', 'update']);
 Route::get('/products/export/pdf', [ProductColorController::class, 'exportPdf'])->name('products.exportPdf');
 

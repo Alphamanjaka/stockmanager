@@ -18,7 +18,7 @@ class CategoryService extends BaseService
     }
     public function getAvailableChildren($parentId = null)
     {
-        return Category::where('parent_id', $parentId)->pluck('name', 'id');
+        return Category::active()->where('parent_id', $parentId)->pluck('name', 'id');
     }
 
     public function create(array $data)
@@ -35,6 +35,8 @@ class CategoryService extends BaseService
     {
         // On charge le parent et le nombre de produits associés pour éviter les requêtes N+1
         $query = Category::with('parent')->withCount('products')->with('children'); // On charge aussi les enfants pour éviter les N+1 dans la vue de création/édition
+        // Catégories actives, ou les archives (status=archived)
+        $query->withStatus($filters['status'] ?? null);
 
         // 2. On applique les filtres UNIQUEMENT s'ils sont présents
         if (!empty($filters)) {
@@ -55,7 +57,7 @@ class CategoryService extends BaseService
      */
     public function getCategoriesList(): \Illuminate\Support\Collection
     {
-        return Category::orderBy('name')->pluck('name', 'id');
+        return Category::active()->orderBy('name')->pluck('name', 'id');
     }
 
     public function getCategoryById(int $id)
@@ -73,8 +75,8 @@ class CategoryService extends BaseService
     public function getCategoryStats()
     {
         return [
-            'total_categories' => Category::count(),
-            'most_populated' => Category::withCount('products')
+            'total_categories' => Category::active()->count(),
+            'most_populated' => Category::active()->withCount('products')
                 ->orderBy('products_count', 'desc')
                 ->first(),
             'total_products_linked' => Product::whereNotNull('category_id')->count(),
@@ -83,7 +85,7 @@ class CategoryService extends BaseService
 
     public function getParentCategoryDistribution()
     {
-        $categories = Category::whereNull('parent_id')
+        $categories = Category::active()->whereNull('parent_id')
             ->withCount('products')
             ->get();
 

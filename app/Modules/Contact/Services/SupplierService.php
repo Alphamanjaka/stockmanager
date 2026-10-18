@@ -4,20 +4,30 @@ namespace App\Modules\Contact\Services;
 
 use App\Modules\Contact\Models\Supplier;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class SupplierService
 {
     public function getAllSuppliers(array $filters = [])
     {
-        // Initial query
-        $query = Supplier::query();
+        // Initial query : fournisseurs en service, ou les archives (status=archived)
+        $query = Supplier::query()->withStatus($filters['status'] ?? null);
         // Apply filters if any
         if (!empty($filters)) {
             $query = $this->applyFilters($query, $filters);
         }
         // Return paginated results
         return $query->paginate($filters['per_page'] ?? 15)->appends(request()->except('page'));
+    }
+
+    /**
+     * Fournisseurs proposés dans les formulaires : tous les fournisseurs en service (sans pagination),
+     * plus $keepId (fournisseur actuel d'un achat modifié, même archivé).
+     */
+    public function getActiveSuppliers(?int $keepId = null)
+    {
+        return Supplier::where(fn ($query) => $query->active()->when($keepId, fn ($q) => $q->orWhere('id', $keepId)))
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 
     public function createSupplier(array $data): Supplier
@@ -101,34 +111,5 @@ class SupplierService
         }
         $supplier->update($data);
         return $supplier;
-    }
-
-    /**
-     * @param Supplier $supplier
-     * @return bool
-     * @throws \Exception
-     */
-    /**
-     * Supprime un fournisseur sans jamais effacer ses achats : ils sont conservés, détachés du fournisseur.
-     * (La clé étrangère purchases.supplier_id est aussi en SET NULL ; le détachement explicite garantit
-     * le même résultat quelle que soit la contrainte en base.)
-     *
-     * @return int le nombre d'achats conservés sans fournisseur
-     */
-    public function deleteSupplier(Supplier $supplier): int
-    {
-        return DB::transaction(function () use ($supplier) {
-            $orphaned = $supplier->purchases()->update(['supplier_id' => null]);
-            $supplier->delete();
-
-            Log::warning('Fournisseur supprimé', [
-                'supplier_id' => $supplier->id,
-                'name' => $supplier->name,
-                'purchases_kept_without_supplier' => $orphaned,
-                'by_user_id' => auth()->id(),
-            ]);
-
-            return $orphaned;
-        });
     }
 }

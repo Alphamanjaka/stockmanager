@@ -3,9 +3,11 @@
 @section('title', 'Products')
 
 @section('actions')
-    <a href="{{ route('admin.products.exportPdf') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Export PDF
-    </a>
+    <x-ui.actions-menu>
+        <x-ui.menu-item :href="route('admin.products.exportPdf')" icon="bi-file-earmark-pdf">Export PDF</x-ui.menu-item>
+        <li><hr class="dropdown-divider"></li>
+        <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">Import products</x-ui.menu-item>
+    </x-ui.actions-menu>
     <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg" aria-hidden="true"></i> New product
     </a>
@@ -19,10 +21,15 @@
     $sortIcon = fn (string $column) => request('sort') === $column
         ? (request('order') === 'asc' ? 'bi-sort-up' : 'bi-sort-down')
         : 'bi-arrow-down-up text-subtle';
+    $archived = request('status') === 'archived';
 @endphp
 
 @section('content')
     <div class="ui-stack">
+        @if ($archived)
+            <x-ui.archived-notice />
+        @endif
+
         <div class="ui-stats">
             @if ($mostSoldProduct && $mostSoldProduct->productColor)
                 <x-ui.stat label="Top selling" :value="$mostSoldProduct->productColor->toString()" icon="bi-graph-up-arrow"
@@ -44,13 +51,14 @@
         <x-ui.card flush :pagination="$productVariants">
             <x-slot:toolbar>
                 <x-ui.filters :action="route('admin.products.index')">
-                    <x-ui.search placeholder="Name, reference..." />
+                    <x-ui.search placeholder="Name, SKU, category..." />
                     <select name="category" class="form-select ui-filter" aria-label="Category">
                         <option value="">All categories</option>
-                        @foreach ($categories as $cat)
-                            <option value="{{ $cat->id }}" @selected(request('category') == $cat->id)>{{ $cat->name }}</option>
+                        @foreach ($categories as $id => $name)
+                            <option value="{{ $id }}" @selected(request('category') == $id)>{{ $name }}</option>
                         @endforeach
                     </select>
+                    <x-ui.status-filter />
                 </x-ui.filters>
             </x-slot:toolbar>
 
@@ -59,7 +67,7 @@
                     <thead>
                         <tr>
                             <th>
-                                <a href="{{ $sortLink('product_id') }}">Product <i class="bi {{ $sortIcon('product_id') }}" aria-hidden="true"></i></a>
+                                <a href="{{ $sortLink('product') }}">Product <i class="bi {{ $sortIcon('product') }}" aria-hidden="true"></i></a>
                             </th>
                             <th>Category</th>
                             <th class="text-end">
@@ -94,17 +102,31 @@
                                 <td class="text-end">{{ money($item->price_purchase) }}</td>
                                 <td class="text-end fw-semibold">{{ money($item->price) }}</td>
                                 <td class="text-end">
-                                    <div class="ui-row-actions">
-                                        <a href="{{ route('admin.products.show', $item->product->id) }}" class="btn btn-icon" title="View" aria-label="View">
-                                            <i class="bi bi-eye" aria-hidden="true"></i>
-                                        </a>
-                                        <x-ui.delete-button :action="route('admin.products.destroy', $item->product->id)"
-                                            confirm="Delete this product and all its variants?" />
-                                    </div>
+                                    <x-ui.actions-menu row>
+                                        <x-ui.menu-item :href="route('admin.products.show', $item->product_id)" icon="bi-eye">View</x-ui.menu-item>
+                                        @if ($archived)
+                                            <x-ui.menu-item :action="route('admin.products.restore')" :ids="[$item->product_id]"
+                                                icon="bi-arrow-counterclockwise">Restore</x-ui.menu-item>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <x-ui.menu-item :action="route('admin.products.destroy', $item->product_id)" method="DELETE"
+                                                icon="bi-trash3" tone="danger" confirm="Delete this product permanently?"
+                                                confirm-text="Only possible if none of its variants was ever sold, purchased, counted or moved in stock.">
+                                                Delete permanently
+                                            </x-ui.menu-item>
+                                        @else
+                                            <x-ui.menu-item :action="route('admin.products.archive')" :ids="[$item->product_id]" icon="bi-archive"
+                                                confirm="Archive this product and all its variants?"
+                                                confirm-text="It will no longer be offered at the checkout or in purchase orders. Its history is kept.">
+                                                Archive
+                                            </x-ui.menu-item>
+                                        @endif
+                                    </x-ui.actions-menu>
                                 </td>
                             </tr>
                         @empty
-                            <x-ui.empty-row :colspan="6" icon="bi-box">No product found.</x-ui.empty-row>
+                            <x-ui.empty-row :colspan="6" icon="bi-box">
+                                {{ $archived ? 'No archived product.' : 'No product found.' }}
+                            </x-ui.empty-row>
                         @endforelse
                     </tbody>
                 </table>

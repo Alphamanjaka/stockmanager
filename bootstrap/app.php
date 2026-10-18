@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Enregistre le middleware pour toutes les requêtes web
         $middleware->web(append: [
             \App\Http\Middleware\SetLocaleMiddleware::class,
+            // Compte archivé pendant sa session : déconnecté
+            \App\Http\Middleware\LogoutArchivedUser::class,
         ]);
 
         $middleware->alias([

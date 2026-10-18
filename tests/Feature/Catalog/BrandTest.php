@@ -46,17 +46,20 @@ class BrandTest extends TestCase
     }
 
     /** @test */
-    public function a_brand_in_use_cannot_be_deleted_but_an_unused_one_can()
+    public function a_brand_in_use_stays_archived_but_an_unused_archived_one_can_be_deleted()
     {
         $used = Brand::factory()->create(['name' => 'Bella']);
         $unused = Brand::factory()->create(['name' => 'Ancienne']);
         $product = Product::factory()->create(['category_id' => Category::factory()->create()->id]);
-        ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'brand_id' => $used->id, 'price' => 1, 'stock' => 0]);
+        $variant = ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'brand_id' => $used->id, 'price' => 1, 'stock' => 0]);
+        $used->archive();
+        $unused->archive();
 
         $this->delete(route('admin.brands.destroy', $used->id))->assertSessionHas('error');
         $this->assertModelExists($used);
+        $this->assertSame($used->id, $variant->fresh()->brand_id);
 
-        $this->delete(route('admin.brands.destroy', $unused->id))->assertRedirect(route('admin.brands.index'));
+        $this->delete(route('admin.brands.destroy', $unused->id))->assertRedirect(route('admin.brands.index', ['status' => 'archived']));
         $this->assertModelMissing($unused);
     }
 }

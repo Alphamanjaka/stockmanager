@@ -4,6 +4,14 @@
 @section('subtitle', $category->description ?: 'No description for this category.')
 
 @section('actions')
+    @unless ($category->isArchived())
+        <x-ui.actions-menu>
+            <x-ui.menu-item :action="route('admin.categories.archive')" :ids="[$category->id]" icon="bi-archive"
+                confirm="Archive this category?" confirm-text="It must no longer contain active products or sub-categories.">
+                Archive
+            </x-ui.menu-item>
+        </x-ui.actions-menu>
+    @endunless
     <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-primary">
         <i class="bi bi-pencil" aria-hidden="true"></i> Edit
     </a>
@@ -11,6 +19,11 @@
 
 @section('content')
     <div class="ui-stack">
+        @if ($category->isArchived())
+            <x-ui.archived-notice :restore="route('admin.categories.restore')" :id="$category->id" :date="$category->archived_at">
+                This category is <strong>archived</strong>: it is no longer offered when creating a product.
+            </x-ui.archived-notice>
+        @endif
         <div class="ui-stats">
             <x-ui.stat label="Products" :value="$category->products_count" icon="bi-box" tone="primary" />
             <x-ui.stat label="Estimated stock value" :value="money($stockValue)" icon="bi-cash-stack" tone="success" />

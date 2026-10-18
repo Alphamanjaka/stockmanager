@@ -258,7 +258,13 @@ class PurchaseController extends Controller
      */
     private function formData(?Purchase $purchase = null): array
     {
-        $catalog = $this->productColorService->getAll([], false)->map(fn ($variant) => [
+        // Produits en service, plus ceux déjà sur l'achat modifié (même archivés depuis) : ses lignes restent affichées
+        $variants = $this->productColorService->getActiveVariants();
+        if ($purchase) {
+            $variants = $variants->merge($purchase->items->pluck('productColor')->filter())->unique('id');
+        }
+
+        $catalog = $variants->map(fn ($variant) => [
             'id' => $variant->id,
             'name' => $variant->label,
             'sku' => $variant->sku,
@@ -285,7 +291,7 @@ class PurchaseController extends Controller
 
         return [
             'purchase' => $purchase,
-            'suppliers' => $this->supplierService->getAllSuppliers(),
+            'suppliers' => $this->supplierService->getActiveSuppliers($purchase?->supplier_id),
             'formData' => [
                 'catalog' => $catalog,
                 'shortages' => $shortages,

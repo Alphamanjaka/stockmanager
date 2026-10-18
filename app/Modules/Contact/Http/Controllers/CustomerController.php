@@ -2,20 +2,25 @@
 
 namespace App\Modules\Contact\Http\Controllers;
 
+use App\Core\Http\Controllers\Concerns\ArchivesRecords;
 use App\Http\Controllers\Controller;
 use App\Modules\Contact\Http\Requests\StoreCustomerRequest;
 use App\Modules\Contact\Models\Customer;
 use App\Modules\Contact\Services\CustomerService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
+    use ArchivesRecords;
+
     public function __construct(protected CustomerService $customerService) {}
 
     public function index(Request $request)
     {
         $customers = $this->customerService->getAll([
             'search' => $request->get('search'),
+            'status' => $request->get('status'),
             'sort' => $request->get('sort', 'name'),
             'order' => $request->get('order', 'asc'),
             'per_page' => $request->get('per_page', 15),
@@ -56,13 +61,16 @@ class CustomerController extends Controller
     }
 
     /**
-     * Les ventes du client sont conservées (sales.customer_id passe à NULL).
+     * Suppression définitive d'un client archivé sans vente : un client qui a des ventes reste archivé
+     * (la base refuse), ses ventes gardent son nom.
      */
     public function destroy(Customer $customer)
     {
-        $customer->delete();
+        return $this->deletePermanently($customer->id, 'admin.customers.index');
+    }
 
-        return redirect()->route('admin.customers.index')
-            ->with('success', 'Client supprimé. Ses ventes sont conservées.');
+    protected function archiveTargets(array $ids): Builder
+    {
+        return Customer::whereKey($ids);
     }
 }
