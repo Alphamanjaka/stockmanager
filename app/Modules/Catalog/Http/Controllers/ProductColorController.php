@@ -8,6 +8,7 @@ use App\Modules\Catalog\Services\CategoryService;
 use App\Modules\Catalog\Services\ColorService;
 use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Catalog\Services\ProductService;
+use App\Modules\Catalog\Support\Pricing;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Sale\Services\SaleService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -69,7 +70,10 @@ class ProductColorController extends Controller
             ->unique()
             ->values();
 
-        return view('catalog::products.create', compact('categories', 'brands', 'templates', 'optionNames'));
+        // Marge par défaut (Paramètres) : le prix de vente se remplit pendant la saisie du coût
+        $margin = Pricing::defaultMargin();
+
+        return view('catalog::products.create', compact('categories', 'brands', 'templates', 'optionNames', 'margin'));
     }
 
     /**

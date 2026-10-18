@@ -181,7 +181,10 @@
     {{-- Ajouter une variante --}}
     <div class="modal fade" id="addVariantModal" tabindex="-1" aria-labelledby="addVariantModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <form action="{{ route('admin.products.variants.store', $product->id) }}" method="POST" class="modal-content">
+            {{-- data-margin : le prix de vente suit le prix d'achat (resources/js/price-suggestion.js) --}}
+            @php $margin = \App\Modules\Catalog\Support\Pricing::defaultMargin(); @endphp
+            <form action="{{ route('admin.products.variants.store', $product->id) }}" method="POST" class="modal-content" data-pricing
+                @if ($margin !== null) data-margin="{{ $margin }}" @endif>
                 @csrf
                 <div class="modal-header">
                     <h2 class="modal-title" id="addVariantModalTitle">New variant</h2>

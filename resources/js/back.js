@@ -43,3 +43,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+// Prix de vente proposé à partir du prix d'achat et de la marge par défaut (création de produits)
+import "./price-suggestion.js";
