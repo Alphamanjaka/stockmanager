@@ -2,7 +2,6 @@
 
 namespace App\Core\Exports;
 
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -133,7 +132,7 @@ abstract class ListExport
         $rows = $rows->take($this->maxPdfRows);
         $columns = $this->columns();
 
-        $pdf = Pdf::loadView('core::exports.list', [
+        $pdf = PdfDocument::load('core::exports.list', [
             'title' => $this->title(),
             'columns' => $columns,
             'rows' => $rows,
@@ -141,34 +140,9 @@ abstract class ListExport
             'summary' => $this->summary($rows),
             'filters' => $this->describeFilters($filters, $ids),
             'truncated' => $truncated ? $this->maxPdfRows : null,
-        ])
-            ->setPaper('a4', $this->orientation)
-            // Seuls les caractères utilisés de la police sont intégrés (fichier ~10 fois plus léger)
-            ->setOption('isFontSubsettingEnabled', true);
-
-        self::numberPages($pdf);
+        ], $this->orientation);
 
         return $pdf->download($this->filename('pdf'));
-    }
-
-    /**
-     * « Page 2 / 5 » en bas à droite de chaque page, dans le pied du gabarit (layouts.pdf).
-     * Écrit après le rendu : le CSS de dompdf ne connaît pas le nombre total de pages (counter(pages)).
-     */
-    public static function numberPages(\Barryvdh\DomPDF\PDF $pdf): void
-    {
-        // Rendu par l'enveloppe Laravel : download() ne relance pas un rendu qui effacerait les numéros
-        $pdf->render();
-
-        $dompdf = $pdf->getDomPDF();
-        $canvas = $dompdf->getCanvas();
-        $metrics = $dompdf->getFontMetrics();
-        $font = $metrics->getFont('DejaVu Sans');
-        $size = 7;
-        $width = $metrics->getTextWidth('Page 000 / 000', $font, $size);
-
-        // Marges du gabarit : 12 mm à droite, pied à ~10 mm du bas (1 mm = 2,835 pt)
-        $canvas->page_text($canvas->get_width() - 34 - $width, $canvas->get_height() - 30, 'Page {PAGE_NUM} / {PAGE_COUNT}', $font, $size, [0.52, 0.57, 0.64]);
     }
 
     public function toExcel(array $filters, array $ids = []): Response

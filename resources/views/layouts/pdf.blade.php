@@ -1,24 +1,32 @@
 {{--
     Gabarit commun des documents PDF (dompdf) : en-tête de l'entreprise (Paramètres > Général),
-    titre du document, pied de page (numéros de page : ListExport::numberPages($pdf), après le rendu).
-    Utilisé par les exports de liste (core::exports.list).
+    titre du document, pied de page avec les identifiants légaux (numéros de page : PdfDocument, après le rendu).
+    Utilisé par les exports de liste (core::exports.list), la facture et le bon de commande.
 
         @extends('layouts.pdf')
         @section('title', 'Products')
-        @section('meta') …bloc à droite de l'en-tête (référence, date)… @endsection
+        @section('meta') …lignes à droite de l'en-tête (<div><span>Date</span> 18/10/2026</div>)… @endsection
         @section('content') … @endsection
         @push('styles') …styles propres au document… @endpush
+
+    Coordonnées figées d'un document (facture : celles enregistrées avec la vente) :
+        @extends('layouts.pdf', ['company' => ['name' => $sale->company_name, 'phone' => …]])
+    Un champ vide reprend la valeur des Paramètres.
 
     Les couleurs sont écrites ici : dompdf ne lit pas les jetons CSS de l'application (tokens.css).
     Police DejaVu Sans (fournie avec dompdf) : accents, symboles et devises s'affichent correctement.
 --}}
 @php
-    $company = [
+    $company = array_filter($company ?? [], 'filled') + [
         'name' => settings('company_name') ?: config('app.name'),
         'address' => settings('company_address'),
         'phone' => settings('company_phone'),
         'email' => settings('company_email'),
     ];
+    $legal = array_filter([
+        __('documents.registration_number') => settings('company_siret'),
+        __('documents.vat_number') => settings('company_vat'),
+    ], 'filled');
     // Logo : fichier local uniquement (dompdf ne télécharge pas), formats lus par dompdf
     $logo = settings('company_logo');
     $logoPath = $logo && preg_match('/\.(png|jpe?g|gif)$/i', $logo) ? storage_path('app/public/' . $logo) : null;
@@ -81,8 +89,17 @@
         }
 
         .pdf-meta {
+            margin-top: 1.5mm;
             text-align: right;
             color: #5b6878;
+        }
+
+        .pdf-meta span {
+            color: #8592a3;
+        }
+
+        .pdf-meta strong {
+            color: #1d2733;
         }
 
         /* Pied de page répété sur chaque page */
@@ -165,14 +182,102 @@
             background: #fdf6e7;
             font-size: 7.5pt;
         }
+
+        /* Documents (facture, bon de commande) : parties, totaux, notes */
+        .pdf-parties {
+            width: 100%;
+            margin-bottom: 5mm;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .pdf-parties td {
+            width: 50%;
+            vertical-align: top;
+            padding: 0;
+        }
+
+        .pdf-box {
+            padding: 2.5mm 3mm;
+            border: 1px solid #d9dfe7;
+            border-radius: 1.5mm;
+            background: #f6f8fb;
+        }
+
+        .pdf-box-title {
+            margin-bottom: 1mm;
+            font-size: 7pt;
+            font-weight: bold;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #8592a3;
+        }
+
+        .pdf-box-name {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #0f2742;
+        }
+
+        /* Sous le tableau des lignes : informations à gauche (paiement, notes), totaux à droite */
+        .pdf-summary {
+            width: 100%;
+            margin-top: 4mm;
+            border-collapse: collapse;
+        }
+
+        .pdf-summary-cell {
+            vertical-align: top;
+            padding: 0;
+        }
+
+        .pdf-totals {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .pdf-totals td {
+            padding: 1.2mm 1.8mm;
+        }
+
+        .pdf-totals .is-grand td {
+            padding-top: 2mm;
+            border-top: 1.5px solid #0f2742;
+            font-size: 10.5pt;
+            font-weight: bold;
+            color: #0f2742;
+        }
+
+        .pdf-totals .is-discount td {
+            color: #b42318;
+        }
+
+        .pdf-section {
+            margin-top: 6mm;
+        }
+
+        .pdf-section-title {
+            margin-bottom: 1mm;
+            font-weight: bold;
+            color: #0f2742;
+        }
+
+        .text-prewrap {
+            white-space: pre-line;
+        }
     </style>
     @stack('styles')
 </head>
 
 <body>
-    {{-- « Page x / y » est ajouté à droite après le rendu (ListExport::numberPages) --}}
+    {{-- « Page x / y » est ajouté à droite après le rendu (PdfDocument) --}}
     <div class="pdf-footer">
-        {{ $company['name'] }} · Generated on {{ now()->format('d/m/Y H:i') }}@auth by {{ auth()->user()->name }}@endauth
+        {{ $company['name'] }}
+        @foreach ($legal as $label => $value)
+            · {{ $label }} {{ $value }}
+        @endforeach
+        · {{ __('documents.generated_on', ['date' => now()->format('d/m/Y H:i')]) }}
+        @auth {{ __('documents.generated_by', ['name' => auth()->user()->name]) }} @endauth
     </div>
 
     <table class="pdf-header">
