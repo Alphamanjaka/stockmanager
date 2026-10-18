@@ -5,6 +5,7 @@ namespace App\Modules\Catalog\Services;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Catalog\Models\Color;
+use App\Modules\Catalog\Support\Pricing;
 use App\Modules\Catalog\Support\VariantOptions;
 use App\Core\Services\BaseService;
 use Illuminate\Database\Eloquent\Builder;
@@ -69,7 +70,8 @@ class ProductColorService extends BaseService
                         // Transition : color_id rempli pour que l'ancienne version du code reste utilisable
                         'color_id' => VariantOptions::legacyColorId($optionValues),
                         'brand_id' => $variantData['brand_id'] ?? null,
-                        'price' => $variantData['price'] ?? $data['price'] ?? 0,
+                        // Prix saisi, sinon prix d'achat + marge par défaut, sinon prix par défaut du produit
+                        'price' => $variantData['price'] ?? Pricing::suggestedPrice($variantData['price_purchase'] ?? null) ?? $data['price'] ?? 0,
                         'price_purchase' => $variantData['price_purchase'] ?? 0,
                         'alert_stock' => $variantData['alert_stock'] ?? $this->defaultAlertStock(),
                     ]);
@@ -196,7 +198,8 @@ class ProductColorService extends BaseService
                 // Transition : color_id rempli pour que l'ancienne version du code reste utilisable
                 'color_id' => VariantOptions::legacyColorId($combination),
                 'brand_id' => $brandId,
-                'price' => $data['price'] ?? $product->price ?? 0,
+                // Prix saisi, sinon prix d'achat + marge par défaut, sinon prix par défaut du produit
+                'price' => $data['price'] ?? Pricing::suggestedPrice($data['price_purchase'] ?? null) ?? $product->price ?? 0,
                 'price_purchase' => $data['price_purchase'] ?? 0,
                 'alert_stock' => $data['alert_stock'] ?? $this->defaultAlertStock(),
             ]);

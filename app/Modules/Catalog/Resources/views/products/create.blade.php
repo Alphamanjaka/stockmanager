@@ -5,7 +5,9 @@
 @section('content')
     <x-ui.errors />
 
-    <form action="{{ route('admin.products.store') }}" method="POST" id="product-form">
+    {{-- data-margin : le prix de vente de chaque variante suit son coût (resources/js/price-suggestion.js) --}}
+    <form action="{{ route('admin.products.store') }}" method="POST" id="product-form"
+        @if ($margin !== null) data-margin="{{ $margin }}" @endif>
         @csrf
         <div class="row g-3">
             <div class="col-xl-9">
@@ -55,8 +57,8 @@
                         <x-slot:toolbar>
                             {{-- Saisie groupée : appliquée aux lignes cochées --}}
                             <div class="row g-2 align-items-end">
-                                <div class="col-6 col-md-3"><label class="form-label small mb-1" for="bulk-price">Price</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-price"></div>
                                 <div class="col-6 col-md-3"><label class="form-label small mb-1" for="bulk-cost">Cost</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-cost"></div>
+                                <div class="col-6 col-md-3"><label class="form-label small mb-1" for="bulk-price">Price</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-price"></div>
                                 <div class="col-6 col-md-2"><label class="form-label small mb-1" for="bulk-alert">Alert</label><input type="number" min="0" class="form-control form-control-sm" id="bulk-alert"></div>
                                 <div class="col-6 col-md-2">
                                     <label class="form-label small mb-1" for="bulk-brand">Brand</label>
@@ -82,8 +84,8 @@
                                         <th style="width: 40px"><span class="visually-hidden">Sold</span></th>
                                         <th>Variant</th>
                                         <th style="width: 160px">Brand</th>
-                                        <th style="width: 120px">Price</th>
                                         <th style="width: 120px">Cost</th>
+                                        <th style="width: 120px">Price</th>
                                         <th style="width: 90px">Alert</th>
                                     </tr>
                                 </thead>
@@ -91,6 +93,13 @@
                             </table>
                         </div>
                         <div class="px-3 py-2 border-top small text-muted">
+                            @if ($margin !== null)
+                                <div>
+                                    <i class="bi bi-calculator" aria-hidden="true"></i>
+                                    Price = cost + {{ rtrim(rtrim(number_format($margin, 2, '.', ''), '0'), '.') }} % (default margin, Settings › Stock &amp; products).
+                                    It stays editable: a price you type is kept.
+                                </div>
+                            @endif
                             <i class="bi bi-info-circle" aria-hidden="true"></i>
                             The catalog does not manage stock: it increases when a purchase is received and decreases with each sale.
                         </div>
@@ -200,6 +209,7 @@
                     state[row.dataset.key] = {
                         enabled: row.querySelector('.v-enabled').checked,
                         price: row.querySelector('.v-price').value,
+                        price_manual: row.querySelector('.v-price').dataset.priceManual || '',
                         price_purchase: row.querySelector('.v-cost').value,
                         alert_stock: row.querySelector('.v-alert').value,
                         brand_id: row.querySelector('.v-brand').value,
@@ -208,7 +218,8 @@
                 // Premier affichage après une erreur de validation : valeurs renvoyées par le serveur
                 if (oldVariants) {
                     Object.values(oldVariants).forEach(variant => {
-                        state[keyOf(variant.values || {})] = { ...variant, enabled: !!variant.enabled };
+                        // Prix renvoyé par le serveur : gardé tel quel, même si le coût change ensuite
+                        state[keyOf(variant.values || {})] = { ...variant, enabled: !!variant.enabled, price_manual: variant.price ? '1' : '' };
                     });
                     oldVariants = null;
                 }
@@ -246,12 +257,14 @@
                     Object.entries(values).forEach(([name, value]) => labelCell.appendChild(el('input', { type: 'hidden', name: `variants[${i}][values][${name}]`, value })));
 
                     const number = (field, className, extra = {}) => el('input', { type: 'number', min: 0, name: `variants[${i}][${field}]`, class: `form-control form-control-sm ${className}`, value: previous[field] ?? '', ...extra });
-                    const row = el('tr', { 'data-key': keyOf(values) }, [
+                    const price = number('price', 'v-price', { step: '0.01', placeholder: document.getElementById('price').value || '0', 'data-pricing-price': '' });
+                    price.dataset.priceManual = previous.price_manual ?? '';
+                    const row = el('tr', { 'data-key': keyOf(values), 'data-pricing': '' }, [
                         cell(enabled, 'text-center'),
                         labelCell,
                         cell(brandSelect),
-                        cell(number('price', 'v-price', { step: '0.01', placeholder: document.getElementById('price').value || '0' })),
-                        cell(number('price_purchase', 'v-cost', { step: '0.01', placeholder: '0' })),
+                        cell(number('price_purchase', 'v-cost', { step: '0.01', placeholder: '0', 'data-pricing-cost': '' })),
+                        cell(price),
                         cell(number('alert_stock', 'v-alert', { placeholder: 'auto' })),
                     ]);
                     variantRows.appendChild(row);
@@ -292,14 +305,25 @@
 
             document.getElementById('bulk-apply').addEventListener('click', () => {
                 const bulk = {
-                    '.v-price': document.getElementById('bulk-price').value,
-                    '.v-cost': document.getElementById('bulk-cost').value,
                     '.v-alert': document.getElementById('bulk-alert').value,
                     '.v-brand': document.getElementById('bulk-brand').value,
                 };
+                const cost = document.getElementById('bulk-cost').value;
+                const price = document.getElementById('bulk-price').value;
                 variantRows.querySelectorAll('tr').forEach(row => {
                     if (!row.querySelector('.v-enabled').checked) return;
                     Object.entries(bulk).forEach(([selector, value]) => { if (value !== '') row.querySelector(selector).value = value; });
+                    // Le coût d'abord : il remplit le prix proposé (marge par défaut), sauf prix saisi à la main
+                    if (cost !== '') {
+                        const costInput = row.querySelector('.v-cost');
+                        costInput.value = cost;
+                        costInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    if (price !== '') {
+                        const priceInput = row.querySelector('.v-price');
+                        priceInput.value = price;
+                        priceInput.dataset.priceManual = '1';
+                    }
                 });
             });
 

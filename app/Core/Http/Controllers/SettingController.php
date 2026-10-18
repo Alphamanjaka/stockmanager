@@ -41,6 +41,8 @@ class SettingController extends Controller
             'date_format' => 'nullable|in:d/m/Y,Y-m-d,m/d/Y',
             'global_alert_threshold' => 'nullable|integer|min:0',
             'default_tax_rate' => 'nullable|numeric|min:0|max:100',
+            // Marge sur le coût : prix de vente proposé = prix d'achat × (1 + marge / 100)
+            'default_margin_percent' => 'nullable|numeric|min:0|max:1000',
             'stock_valuation_method' => 'nullable|in:FIFO,CUMP',
             'pagination_per_page' => 'nullable|integer|min:1|max:100',
             'app_locale' => ['nullable', Rule::in(array_keys(config('app.supported_locales')))],
