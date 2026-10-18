@@ -139,7 +139,7 @@ class PurchaseService
      */
     public function getPurchaseById(int $id)
     {
-        return Purchase::with('items.productColor.product', 'items.productColor.color', 'supplier')->findOrFail($id);
+        return Purchase::with('items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'supplier')->findOrFail($id);
     }
 
     /**

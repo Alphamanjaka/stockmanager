@@ -194,6 +194,12 @@ version Excel (valeurs brutes, en-tête figé, filtres automatiques). Le PDF est
 complet). Déclaration dans le provider : `protected array $exports = ['products' => ProductsExport::class];` ;
 URL : `admin/exports/{clé}/{pdf|xlsx}` ; menu : `<x-ui.export-items list="products" />`.
 
+**Documents PDF** (facture, bon de commande) : leurs vues étendent le même gabarit `layouts.pdf` (en-tête de
+l'entreprise, identifiants légaux et numéros de page dans le pied) et sont générées par
+`App\Core\Exports\PdfDocument::load($vue, $données)`, comme les exports de liste. Libellés traduits dans
+`lang/xx/documents.php` (langue des Paramètres). La facture reprend les coordonnées et la devise enregistrées avec
+la vente (`@extends('layouts.pdf', ['company' => [...]])`, `money($montant, 2, $sale->currency_symbol)`).
+
 **Créer un nouveau module**
 
 1. `app/Modules/<Nom>/<Nom>ServiceProvider.php` qui étend `ModuleServiceProvider` avec `protected string $name = '<nom>';`.

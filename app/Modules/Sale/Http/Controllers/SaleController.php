@@ -6,7 +6,7 @@ use App\Modules\Sale\Http\Controllers\Concerns\ChecksOutSales;
 use App\Modules\Sale\Http\Requests\StoreSaleRequest;
 use App\Modules\Sale\Services\SaleService;
 use App\Modules\Sale\Support\PosCatalog;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Core\Exports\PdfDocument;
 use App\Http\Controllers\Controller;
 use App\Modules\Contact\Services\CustomerService;
 
@@ -82,7 +82,7 @@ class SaleController extends Controller
     public function exportPdf(int $id)
     {
         $sale = $this->saleService->getSaleForSeller($id, auth()->id());
-        $pdf = Pdf::loadView('sale::sales.pdf', compact('sale'));
+        $pdf = PdfDocument::load('sale::sales.pdf', compact('sale'));
 
         return $pdf->download("facture_{$sale->reference}.pdf");
     }
