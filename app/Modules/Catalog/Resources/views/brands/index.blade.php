@@ -3,6 +3,9 @@
 @section('title', 'Brands')
 
 @section('actions')
+    <x-ui.actions-menu>
+        <x-ui.export-items list="brands" />
+    </x-ui.actions-menu>
     <a href="{{ route('admin.brands.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg" aria-hidden="true"></i> New brand
     </a>
@@ -16,7 +19,7 @@
             <x-ui.archived-notice />
         @endif
 
-        <x-ui.card flush :pagination="$brands">
+        <x-ui.card flush :pagination="$brands" data-bulk>
             <x-slot:toolbar>
                 <x-ui.filters :action="route('admin.brands.index')">
                     <x-ui.search placeholder="Search brand..." />
@@ -24,10 +27,13 @@
                 </x-ui.filters>
             </x-slot:toolbar>
 
+            <x-ui.bulk-bar export="brands" :archive="route('admin.brands.archive')" :restore="route('admin.brands.restore')" />
+
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <x-ui.bulk-check-all />
                             <th>Name</th>
                             <th class="text-end">Variants</th>
                             <th class="text-end"><span class="visually-hidden">Actions</span></th>
@@ -36,6 +42,7 @@
                     <tbody>
                         @forelse ($brands as $brand)
                             <tr>
+                                <x-ui.bulk-check :value="$brand->id" :label="$brand->name" />
                                 <td class="fw-semibold">{{ $brand->name }}</td>
                                 <td class="text-end">{{ $brand->variants_count }}</td>
                                 <td class="text-end">
@@ -59,7 +66,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <x-ui.empty-row :colspan="3" icon="bi-tag">
+                            <x-ui.empty-row :colspan="4" icon="bi-tag">
                                 {{ $archived ? 'No archived brand.' : 'No brand yet.' }}
                             </x-ui.empty-row>
                         @endforelse

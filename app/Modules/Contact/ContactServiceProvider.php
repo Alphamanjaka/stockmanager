@@ -3,6 +3,8 @@
 namespace App\Modules\Contact;
 
 use App\Core\Support\ModuleServiceProvider;
+use App\Modules\Contact\Exports\CustomersExport;
+use App\Modules\Contact\Exports\SuppliersExport;
 
 /**
  * Module Contact : fournisseurs et clients.
@@ -11,6 +13,11 @@ use App\Core\Support\ModuleServiceProvider;
 class ContactServiceProvider extends ModuleServiceProvider
 {
     protected string $name = 'contact';
+
+    protected array $exports = [
+        'suppliers' => SuppliersExport::class,
+        'customers' => CustomersExport::class,
+    ];
 
     /** Les contacts sont rangés là où on s'en sert : fournisseurs dans Achats, clients dans Ventes (après leurs pages). */
     protected array $menu = [

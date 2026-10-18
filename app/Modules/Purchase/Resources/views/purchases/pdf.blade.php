@@ -1,231 +1,94 @@
-<!DOCTYPE html>
-<html lang="fr">
+{{--
+    Bon de commande d'un achat (PurchaseController : aperçu et téléchargement, via App\Core\Exports\PdfDocument).
+    Libellés : lang/xx/documents.php.
+--}}
+@extends('layouts.pdf')
 
-<head>
-    <meta charset="utf-8">
-    <title>Bon de Commande {{ $purchase->reference }}</title>
-    <style>
-        body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 14px;
-            color: #333;
-            line-height: 1.4;
-        }
+@section('title', __('documents.purchase_order'))
 
-        .header {
-            width: 100%;
-            margin-bottom: 40px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 20px;
-        }
-
-        .company-info {
-            float: left;
-            width: 50%;
-        }
-
-        .company-name {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .invoice-details {
-            float: right;
-            width: 40%;
-            text-align: right;
-        }
-
-        .invoice-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .section-title {
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 11px;
-            color: #7f8c8d;
-            margin-bottom: 5px;
-            border-bottom: 1px solid #7f8c8d;
-        }
-
-        .supplier-info {
-            margin-top: 20px;
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 4px;
-            border-left: 4px solid #3498db;
-            page-break-inside: avoid;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-        th {
-            background-color: #2c3e50;
-            color: white;
-            padding: 10px;
-            text-align: left;
-            font-size: 12px;
-        }
-
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            font-size: 13px;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .totals {
-            float: right;
-            width: 40%;
-            margin-top: 10px;
-        }
-
-        .total-row {
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .total-row.final {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2c3e50;
-            border-top: 2px solid #2c3e50;
-            border-bottom: none;
-            margin-top: 5px;
-            padding-top: 10px;
-        }
-
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 10px;
-            color: #95a5a6;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-        }
-
-        .clearfix:after {
-            content: "";
-            display: table;
-            clear: both;
-        }
-    </style>
-</head>
-
-<body>
-    @php
-        // Récupération des réglages depuis la base de données
-        $settings = \Illuminate\Support\Facades\DB::table('settings')->pluck('value', 'key');
-        $currency = $settings['currency_symbol'] ?? 'Mga';
-    @endphp
-
-    <div class="header clearfix">
-        <div class="company-info">
-            <div class="company-name">{{ $settings['company_name'] ?? 'Company Name' }}</div>
-            <div>{{ $settings['company_address'] ?? '' }}</div>
-            @if (!empty($settings['company_phone']))
-                <div>Tel: {{ $settings['company_phone'] }}</div>
-            @endif
-            @if (!empty($settings['company_email']))
-                <div>Email: {{ $settings['company_email'] }}</div>
-            @endif
-        </div>
-        <div class="invoice-details">
-            <div class="invoice-title">Bon de Commande</div>
-            <div>Ref: <strong>{{ $purchase->reference }}</strong></div>
-            @if ($purchase->supplier_reference)
-                <div>Réf. fournisseur: {{ $purchase->supplier_reference }}</div>
-            @endif
-            <div>Date: {{ $purchase->created_at->format('d/m/Y') }}</div>
-            <div>État: {{ $purchase->state }}</div>
-        </div>
-    </div>
-    @if ($purchase->supplier)
-        <div class="supplier-info">
-            {{-- Informations Fournisseur si disponibles --}}
-            <div class="section-title">Informations Fournisseur</div>
-            <strong>{{ $purchase->supplier->name }}</strong><br>
-            {{ $purchase->supplier->address }}<br>
-            {{ $purchase->supplier->phone }}<br>
-            {{ $purchase->supplier->email }}
-        </div>
+@section('meta')
+    <div><span>{{ __('documents.reference') }}</span> <strong>{{ $purchase->reference }}</strong></div>
+    @if ($purchase->supplier_reference)
+        <div><span>{{ __('documents.supplier_reference') }}</span> {{ $purchase->supplier_reference }}</div>
     @endif
+    <div><span>{{ __('documents.date') }}</span> {{ $purchase->created_at->format('d/m/Y') }}</div>
+    <div><span>{{ __('documents.status') }}</span> {{ __('documents.states.' . $purchase->state) }}</div>
+@endsection
 
-    <table>
+@section('content')
+    <table class="pdf-parties">
+        <tr>
+            <td style="padding-right: 3mm;">
+                <div class="pdf-box">
+                    <div class="pdf-box-title">{{ __('documents.ordered_from') }}</div>
+                    @if ($purchase->supplier)
+                        <div class="pdf-box-name">{{ $purchase->supplier->name }}</div>
+                        @foreach (['address', 'phone', 'email'] as $field)
+                            @if ($purchase->supplier->{$field})
+                                <div>{{ $purchase->supplier->{$field} }}</div>
+                            @endif
+                        @endforeach
+                    @else
+                        <div class="text-muted">{{ __('documents.not_specified') }}</div>
+                    @endif
+                </div>
+            </td>
+            <td></td>
+        </tr>
+    </table>
+
+    <table class="pdf-table">
         <thead>
             <tr>
-                <th>Product</th>
-                <th class="text-center" width="15%">Quantity</th>
-                <th class="text-right" width="20%">Prix Unitaire</th>
-                <th class="text-right" width="20%">Total</th>
+                <th>{{ __('documents.item') }}</th>
+                <th class="text-end" style="width: 10%;">{{ __('documents.quantity') }}</th>
+                <th class="text-end" style="width: 19%;">{{ __('documents.unit_price') }}</th>
+                <th class="text-end" style="width: 19%;">{{ __('documents.amount') }}</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($purchase->items as $item)
-                <tr>
-                    <td>{{ $item->productColor->toString() }}</td>
-                    <td class="text-center">{{ $item->quantity }}</td>
-                    <td class="text-right">{{ number_format($item->unit_price, 2, ',', ' ') }}</td>
-                    <td class="text-right">{{ number_format($item->subtotal, 2, ',', ' ') }}</td>
+                <tr @class(['is-even' => $loop->even])>
+                    <td>
+                        {{ $item->productColor->label }}
+                        @if ($item->productColor->sku)
+                            <div class="text-muted">{{ __('documents.sku') }} {{ $item->productColor->sku }}</div>
+                        @endif
+                    </td>
+                    <td class="text-end">{{ $item->quantity }}</td>
+                    <td class="text-end">{{ money($item->unit_price) }}</td>
+                    <td class="text-end">{{ money($item->subtotal) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    <div class="clearfix">
-        <div class="totals">
-            <div class="total-row clearfix">
-                <span style="float:left">Total Brut</span>
-                <span style="float:right">{{ number_format($purchase->total_amount, 2, ',', ' ') }}
-                    {{ $currency }}</span>
-            </div>
-            @if ($purchase->discount > 0)
-                <div class="total-row clearfix" style="color: #e74c3c;">
-                    <span style="float:left">Discount</span>
-                    <span style="float:right">- {{ number_format($purchase->discount, 2, ',', ' ') }}
-                        {{ $currency }}</span>
-                </div>
-            @endif
-            <div class="total-row final clearfix">
-                <span style="float:left">Total Due</span>
-                <span style="float:right">{{ number_format($purchase->total_net, 2, ',', ' ') }}
-                    {{ $currency }}</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="footer">
-        {{ $settings['company_name'] ?? '' }}
-        @if (!empty($settings['company_siret']))
-            - SIRET: {{ $settings['company_siret'] }}
-        @endif
-        @if (!empty($settings['company_vat']))
-            - TVA: {{ $settings['company_vat'] }}
-        @endif
-        <br>
-        Document automatically generated on {{ date('d/m/Y H:i') }}
-    </div>
-</body>
-
-</html>
+    <table class="pdf-summary">
+        <tr>
+            <td class="pdf-summary-cell" style="width: 55%; padding-right: 6mm;">
+                @if ($purchase->notes)
+                    <div class="pdf-section-title">{{ __('documents.notes') }}</div>
+                    <div class="text-prewrap">{{ $purchase->notes }}</div>
+                @endif
+            </td>
+            <td class="pdf-summary-cell">
+                <table class="pdf-totals">
+                    @if ((float) $purchase->discount > 0)
+                        <tr>
+                            <td>{{ __('documents.subtotal') }}</td>
+                            <td class="text-end">{{ money($purchase->total_amount) }}</td>
+                        </tr>
+                        <tr class="is-discount">
+                            <td>{{ __('documents.discount') }}</td>
+                            <td class="text-end">-{{ money($purchase->discount) }}</td>
+                        </tr>
+                    @endif
+                    <tr class="is-grand">
+                        <td>{{ __('documents.order_total') }}</td>
+                        <td class="text-end">{{ money($purchase->total_net) }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+@endsection

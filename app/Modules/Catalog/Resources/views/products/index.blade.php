@@ -4,7 +4,7 @@
 
 @section('actions')
     <x-ui.actions-menu>
-        <x-ui.menu-item :href="route('admin.products.exportPdf')" icon="bi-file-earmark-pdf">Export PDF</x-ui.menu-item>
+        <x-ui.export-items list="products" />
         <li><hr class="dropdown-divider"></li>
         <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">Import products</x-ui.menu-item>
     </x-ui.actions-menu>
@@ -48,7 +48,7 @@
             @endif
         </div>
 
-        <x-ui.card flush :pagination="$productVariants">
+        <x-ui.card flush :pagination="$productVariants" data-bulk>
             <x-slot:toolbar>
                 <x-ui.filters :action="route('admin.products.index')">
                     <x-ui.search placeholder="Name, SKU, category..." />
@@ -62,10 +62,14 @@
                 </x-ui.filters>
             </x-slot:toolbar>
 
+            {{-- Les cases portent le produit : cocher une variante coche tout le produit --}}
+            <x-ui.bulk-bar export="products" :archive="route('admin.products.archive')" :restore="route('admin.products.restore')" />
+
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <x-ui.bulk-check-all />
                             <th>
                                 <a href="{{ $sortLink('product') }}">Product <i class="bi {{ $sortIcon('product') }}" aria-hidden="true"></i></a>
                             </th>
@@ -85,6 +89,7 @@
                     <tbody>
                         @forelse ($productVariants as $item)
                             <tr>
+                                <x-ui.bulk-check :value="$item->product_id" :label="$item->toString()" />
                                 <td>
                                     <a href="{{ route('admin.products.show', $item->product->id) }}" class="link-plain">{{ $item->toString() ?? 'N/A' }}</a>
                                     @if ($item->sku)
@@ -124,7 +129,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <x-ui.empty-row :colspan="6" icon="bi-box">
+                            <x-ui.empty-row :colspan="7" icon="bi-box">
                                 {{ $archived ? 'No archived product.' : 'No product found.' }}
                             </x-ui.empty-row>
                         @endforelse

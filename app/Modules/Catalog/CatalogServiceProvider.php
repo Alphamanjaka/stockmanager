@@ -4,6 +4,10 @@ namespace App\Modules\Catalog;
 
 use App\Core\Support\ModuleServiceProvider;
 use App\Modules\Catalog\Console\Commands\MigrateVariants;
+use App\Modules\Catalog\Exports\BrandsExport;
+use App\Modules\Catalog\Exports\CategoriesExport;
+use App\Modules\Catalog\Exports\ColorsExport;
+use App\Modules\Catalog\Exports\ProductsExport;
 
 /**
  * Module Catalog : produits, variantes, catégories, couleurs et marques.
@@ -15,6 +19,13 @@ class CatalogServiceProvider extends ModuleServiceProvider
 
     protected array $commands = [
         MigrateVariants::class,
+    ];
+
+    protected array $exports = [
+        'products' => ProductsExport::class,
+        'categories' => CategoriesExport::class,
+        'brands' => BrandsExport::class,
+        'colors' => ColorsExport::class,
     ];
 
     protected array $menu = [

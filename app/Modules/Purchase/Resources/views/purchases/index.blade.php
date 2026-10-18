@@ -3,9 +3,14 @@
 @section('title', 'Purchases')
 
 @section('actions')
-    <a href="{{ route('admin.purchases.createFromShortage') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Restock shortages
-    </a>
+    {{-- Les liens d'export suivent les filtres du tableau (data-export-link, mis à jour par purchases-index.js) --}}
+    <x-ui.actions-menu>
+        <x-ui.menu-item :href="route('admin.purchases.createFromShortage')" icon="bi-exclamation-triangle">Restock shortages</x-ui.menu-item>
+        <li><hr class="dropdown-divider"></li>
+        <x-ui.export-items list="purchases" />
+        <li><hr class="dropdown-divider"></li>
+        <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">Import purchases</x-ui.menu-item>
+    </x-ui.actions-menu>
     <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg" aria-hidden="true"></i> New purchase
     </a>
@@ -29,7 +34,8 @@
             <x-ui.stat label="Average purchase" :value="money($averagePurchaseValue)" icon="bi-calculator" tone="info" />
         </div>
 
-        <x-ui.card flush>
+        {{-- Sélection pilotée par Tabulator (purchases-index.js) : data-bulk-manual --}}
+        <x-ui.card flush data-bulk data-bulk-manual>
             <x-slot:toolbar>
                 {{-- Filtre par statut : appliqué au tableau par purchases-index.js --}}
                 <ul class="nav nav-pills" id="state-tabs" role="tablist">
@@ -45,6 +51,8 @@
                     @endforeach
                 </ul>
             </x-slot:toolbar>
+
+            <x-ui.bulk-bar export="purchases" />
 
             <div id="purchases-table" data-url="{{ route('admin.purchases.get-purchases-api') }}"></div>
         </x-ui.card>

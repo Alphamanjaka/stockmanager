@@ -3,6 +3,7 @@
 namespace App\Modules\Sale;
 
 use App\Core\Support\ModuleServiceProvider;
+use App\Modules\Sale\Exports\SalesExport;
 
 /**
  * Module Sale : ventes (back office et vendeurs) et factures PDF.
@@ -11,6 +12,10 @@ use App\Core\Support\ModuleServiceProvider;
 class SaleServiceProvider extends ModuleServiceProvider
 {
     protected string $name = 'sale';
+
+    protected array $exports = [
+        'sales' => SalesExport::class,
+    ];
 
     protected array $menu = [
         'sale' => [

@@ -2,6 +2,7 @@
 
 namespace App\Core;
 
+use App\Core\Exports\UsersExport;
 use App\Core\Navigation\BackOfficeMenu;
 use App\Core\Support\ModuleServiceProvider;
 use Illuminate\Support\Facades\View;
@@ -34,6 +35,10 @@ class CoreServiceProvider extends ModuleServiceProvider
             ['label' => 'backoffice.settings', 'icon' => 'bi-sliders', 'route' => 'admin.settings.index', 'shortcut' => 'g'],
             ['label' => 'backoffice.import', 'icon' => 'bi-box-arrow-in-down', 'route' => 'admin.imports.index', 'shortcut' => 'i'],
         ],
+    ];
+
+    protected array $exports = [
+        'users' => UsersExport::class,
     ];
 
     public function boot(): void

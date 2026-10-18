@@ -8,7 +8,7 @@ use App\Modules\Purchase\Models\Purchase;
 use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Contact\Services\SupplierService;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Core\Exports\PdfDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -33,9 +33,8 @@ class PurchaseController extends Controller
         // Récupération de l'achat avec les relations nécessaires pour la vue PDF
         $purchase = $this->purchaseService->getPurchaseById($id);
 
-        // Génération du PDF en utilisant la vue 'purchases.pdf'
-        // Note : Cela nécessite le package barryvdh/laravel-dompdf
-        $pdf = Pdf::loadView('purchase::purchases.pdf', compact('purchase'));
+        // Bon de commande sur le gabarit PDF commun (layouts.pdf)
+        $pdf = PdfDocument::load('purchase::purchases.pdf', compact('purchase'));
 
         // stream() permet d'afficher le PDF dans le navigateur
         // download() l'aurait forcé en téléchargement
@@ -213,7 +212,7 @@ class PurchaseController extends Controller
     {
         $purchase = $this->purchaseService->getPurchaseById($id);
 
-        $pdf = Pdf::loadView('purchase::purchases.pdf', compact('purchase'));
+        $pdf = PdfDocument::load('purchase::purchases.pdf', compact('purchase'));
 
         return $pdf->download('achat_' . $purchase->reference . '.pdf');
     }

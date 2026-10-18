@@ -4,10 +4,12 @@
 @section('subtitle', 'Every stock change: received purchases, sales, stock counts and corrections.')
 
 @section('actions')
-    {{-- Secours en cas d'erreur de saisie : volontairement en bouton secondaire --}}
-    <a href="{{ route('admin.movements.create') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left-right" aria-hidden="true"></i> Stock correction
-    </a>
+    <x-ui.actions-menu>
+        <x-ui.export-items list="movements" />
+        <li><hr class="dropdown-divider"></li>
+        {{-- Secours en cas d'erreur de saisie : volontairement rangé dans le menu --}}
+        <x-ui.menu-item :href="route('admin.movements.create')" icon="bi-arrow-left-right">Stock correction</x-ui.menu-item>
+    </x-ui.actions-menu>
 @endsection
 
 @section('content')
@@ -29,7 +31,7 @@
     <div class="tab-content">
         {{-- Historique --}}
         <div class="tab-pane fade show active" id="list-pane" role="tabpanel" aria-labelledby="list-tab" tabindex="0">
-            <x-ui.card flush :pagination="$stockMovements">
+            <x-ui.card flush :pagination="$stockMovements" data-bulk>
                 <x-slot:toolbar>
                     <x-ui.filters :action="route('admin.movements.index')">
                         <x-ui.search placeholder="Product, reason..." />
@@ -47,10 +49,13 @@
                     </x-ui.filters>
                 </x-slot:toolbar>
 
+                <x-ui.bulk-bar export="movements" />
+
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
+                                <x-ui.bulk-check-all />
                                 <th>Date</th>
                                 <th>Product</th>
                                 <th>Type</th>
@@ -63,23 +68,11 @@
                             @forelse ($stockMovements as $movement)
                                 @php
                                     // Nature du mouvement déduite du motif (correction, inventaire, vente, achat)
-                                    $reason = strtolower((string) $movement->reason);
-                                    if (str_starts_with($reason, 'correction')) {
-                                        [$tone, $label] = ['warning', 'Correction'];
-                                    } elseif (str_starts_with($reason, 'inventaire')) {
-                                        [$tone, $label] = ['info', 'Stock count'];
-                                    } elseif (str_contains($reason, 'ajustement') || str_contains($reason, 'manuel')) {
-                                        [$tone, $label] = ['info', 'Adjustment'];
-                                    } elseif ($movement->type === 'in') {
-                                        [$tone, $label] = ['success', str_contains($reason, 'achat') || str_contains($reason, 'pur') ? 'Purchase' : 'Stock in'];
-                                    } elseif ($movement->type === 'out') {
-                                        [$tone, $label] = ['danger', str_contains($reason, 'vente') || str_contains($reason, 'sale') ? 'Sale' : 'Stock out'];
-                                    } else {
-                                        [$tone, $label] = ['neutral', 'Other'];
-                                    }
+                                    [$tone, $label] = $movement->kind();
                                     $isLowStock = $movement->stock_after <= ($movement->productColor->alert_stock ?? 0);
                                 @endphp
                                 <tr>
+                                    <x-ui.bulk-check :value="$movement->id" />
                                     <td class="text-nowrap">
                                         {{ $movement->created_at->format('d/m/Y') }}
                                         <div class="ui-cell-meta">{{ $movement->created_at->format('H:i') }}</div>
@@ -106,7 +99,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <x-ui.empty-row :colspan="6" icon="bi-arrow-left-right">No movement found.</x-ui.empty-row>
+                                <x-ui.empty-row :colspan="7" icon="bi-arrow-left-right">No movement found.</x-ui.empty-row>
                             @endforelse
                         </tbody>
                     </table>

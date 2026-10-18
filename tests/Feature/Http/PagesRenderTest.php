@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http;
 
+use App\Core\Exports\ExportRegistry;
 use App\Models\User;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Color;
@@ -89,7 +90,6 @@ class PagesRenderTest extends TestCase
             '/admin/products',
             '/admin/products/create',
             "/admin/products/{$i['product']}",
-            '/admin/products/export/pdf',
             "/admin/products?category={$i['category']}&search=ti&sort=price&order=desc",
             '/admin/products?status=archived',
             '/admin/categories',
@@ -107,6 +107,7 @@ class PagesRenderTest extends TestCase
             // Stock
             '/admin/movements',
             '/admin/movements/create',
+            '/admin/movements?type=in&date_from=2020-01-01&date_to=2099-12-31',
             "/admin/movements/{$i['movement']}",
             // Achats
             '/admin/purchases',
@@ -123,6 +124,7 @@ class PagesRenderTest extends TestCase
             "/admin/sales/{$i['sale']}",
             "/admin/sales/{$i['sale']}/pdf",
             "/admin/sales/{$i['sale']}/receipt",
+            '/admin/sales?search=a&date_from=2020-01-01&date_to=2099-12-31',
             // Contacts
             '/admin/suppliers',
             '/admin/suppliers/create',
@@ -147,6 +149,22 @@ class PagesRenderTest extends TestCase
             '/admin/inventories',
             '/admin/inventories/create',
         ]);
+    }
+
+    /** @test */
+    public function every_list_exports_to_pdf_and_excel()
+    {
+        $this->actingAs($this->admin);
+
+        $urls = [];
+        foreach (array_keys(app(ExportRegistry::class)->all()) as $list) {
+            foreach (['pdf', 'xlsx'] as $format) {
+                $urls[] = "/admin/exports/{$list}/{$format}";
+                $urls[] = "/admin/exports/{$list}/{$format}?status=archived&search=zz";
+            }
+        }
+
+        $this->assertPagesRender($urls);
     }
 
     /** @test */
