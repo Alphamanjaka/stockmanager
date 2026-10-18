@@ -336,7 +336,7 @@ class PurchaseService
         // --- NOUVELLE LOGIQUE SQL BRUT ---
         $sql = "
             SELECT
-                pc.id, pc.stock, pc.alert_stock, pc.price,
+                pc.id, pc.stock, pc.alert_stock, pc.price, pc.price_purchase,
                 p.name as product_name,
                 p.options as product_options,
                 pc.option_values, pc.sku,
@@ -382,10 +382,14 @@ class PurchaseService
                 json_decode($product->product_options ?? 'null', true)
             );
 
-            // Données de repli si aucun historique fournisseur
+            // Coût proposé : dernier prix payé au fournisseur ; sans historique, prix d'achat de la fiche produit
+            // (jamais le prix de vente, qui comprend la marge) ; inconnu, il est à saisir sur le bon de commande.
+            $product->cost_source = 'last_purchase';
             if (!$product->last_supplier_id) {
                 $product->last_supplier_name = 'No Supplier Assigned';
-                $product->last_unit_price = $product->price * 0.75;
+                $cost = (float) ($product->price_purchase ?? 0);
+                $product->last_unit_price = $cost > 0 ? $cost : null;
+                $product->cost_source = $cost > 0 ? 'catalog' : 'unknown';
             }
 
             // Calcul de la suggestion de quantité (Indépendant du fournisseur)
