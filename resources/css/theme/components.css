@@ -263,6 +263,25 @@
     margin: 0;
 }
 
+/* Menu d'actions (<x-ui.actions-menu>) : engrenage de l'en-tête de page, « ⋮ » d'une ligne */
+.ui-actions-menu {
+    display: inline-flex;
+}
+
+.ui-actions-toggle {
+    --bs-btn-padding-x: 0.625rem;
+}
+
+.ui-actions-menu .dropdown-menu {
+    min-width: 13rem;
+}
+
+.ui-actions-menu .dropdown-item.text-danger:hover,
+.ui-actions-menu .dropdown-item.text-danger:focus {
+    background: var(--app-danger-soft);
+    color: var(--app-danger) !important;
+}
+
 /* === Champs ================================================================================== */
 
 .form-label {
