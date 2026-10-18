@@ -25,11 +25,13 @@ class PosCatalog
 
     public function build(): array
     {
-        $categories = Category::orderBy('name')->get(['id', 'name', 'parent_id']);
+        // Éléments en service uniquement : un produit, une catégorie ou une marque archivé n'est plus proposé
+        $categories = Category::active()->orderBy('name')->get(['id', 'name', 'parent_id']);
         $parents = $categories->pluck('parent_id', 'id');
 
         $items = ProductColor::with(['product.category', 'color', 'brand'])
             ->where('is_active', true)
+            ->whereHas('product', fn ($query) => $query->active())
             ->get()
             ->map(fn (ProductColor $variant) => [
                 'id' => $variant->id,
@@ -48,7 +50,7 @@ class PosCatalog
         return [
             'items' => $items,
             'categories' => $categories->map->only(['id', 'name', 'parent_id'])->values(),
-            'brands' => Brand::orderBy('name')->get(['id', 'name']),
+            'brands' => Brand::active()->orderBy('name')->get(['id', 'name']),
             'top' => $this->topSellers(),
         ];
     }

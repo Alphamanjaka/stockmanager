@@ -151,16 +151,37 @@ chaque raccourci est unique et que chaque libellé est traduit en en/fr/es (`lan
   (thème clair et sombre). Bootstrap y est branché par ses variables ; on ne code pas de couleur en dur dans une vue.
 - **Icônes** : Bootstrap Icons uniquement (`<i class="bi bi-box">`, menu : `'icon' => 'bi-box'`).
 - **Composants Blade** (`resources/views/components/ui/`) : `<x-ui.card>` (titre, actions, barre d'outils, pied,
-  pagination), `<x-ui.filters>` + `<x-ui.search>` (recherche d'une liste), `<x-ui.field>` (libellé, contrôle, aide,
-  erreur), `<x-ui.stat>` (indicateur), `<x-ui.badge>` / `<x-ui.status>`, `<x-ui.empty-row>`, `<x-ui.delete-button>`,
-  `<x-ui.alert>`, `<x-ui.errors>`.
+  pagination), `<x-ui.filters>` + `<x-ui.search>` + `<x-ui.status-filter>` (recherche d'une liste, actifs / archives),
+  `<x-ui.field>` (libellé, contrôle, aide, erreur), `<x-ui.stat>` (indicateur), `<x-ui.badge>` / `<x-ui.status>`,
+  `<x-ui.empty-row>`, `<x-ui.delete-button>`, `<x-ui.alert>`, `<x-ui.errors>`, `<x-ui.archived-notice>` ;
+  menus : `<x-ui.actions-menu>` + `<x-ui.menu-item>`.
 - **Mise en page d'une page** : titre dans `@section('title')` (affiché en en-tête avec le fil d'Ariane), sous-titre
-  facultatif dans `@section('subtitle')`, boutons dans `@section('actions')` : un seul `btn-primary`, les autres en
-  `btn-outline-secondary`. Listes : une carte (filtres en barre d'outils, tableau, pagination en pied) ;
-  actions de ligne en `btn btn-icon` alignées à droite. Formulaires : Annuler puis Enregistrer, à droite.
+  facultatif dans `@section('subtitle')`, dans `@section('actions')` : l'action principale en `btn-primary` (une seule),
+  les autres dans le menu engrenage `<x-ui.actions-menu>` (import, actions secondaires) plutôt qu'en boutons.
+  Listes : une carte (filtres en barre d'outils, tableau, pagination en pied) ; actions de ligne
+  dans `<x-ui.actions-menu row>` (« ⋮ »), le nom de l'élément menant à sa fiche. Formulaires : Annuler puis Enregistrer,
+  à droite.
 - **Montants** : `money($montant)` (devise et position des Paramètres).
 - **Confirmation** : `data-confirm="Question ?"` sur un bouton d'envoi ou un formulaire (`resources/js/ui.js`) ;
   `data-confirm-tone="danger"` pour une suppression.
+
+**Archiver plutôt que supprimer**
+
+Les données de référence (produits, catégories, marques, couleurs, fournisseurs, clients, utilisateurs) s'archivent :
+trait `App\Core\Models\Concerns\Archivable` (colonne `archived_at`, scopes `active()`, `archived()`, `withStatus()`).
+
+- Un élément archivé disparaît des listes (filtre « Archived » pour le retrouver) et des listes de choix (caisse,
+  bon de commande, formulaires) ; ses ventes, achats, mouvements et inventaires restent complets. Un compte archivé
+  ne peut plus se connecter (`LogoutArchivedUser`).
+- Pas de scope global : une relation vers un élément archivé (ligne de facture → produit) le renvoie toujours.
+  **Une liste de choix filtre donc explicitement avec `->active()`** (`BaseService::getAll()` le fait pour un modèle
+  archivable) ; garder l'élément déjà choisi sur un document modifié (`SupplierService::getActiveSuppliers($keepId)`).
+- `archiveBlocker()` refuse un archivage (catégorie qui contient des produits actifs, son propre compte).
+- Contrôleur : trait `ArchivesRecords` (actions `archive` / `restore`, un élément ou une sélection `ids[]`,
+  `deletePermanently()`), routes `<ressource>.archive` / `<ressource>.restore` déclarées avant la ressource.
+- **Suppression définitive** : seulement depuis les archives, et la base la refuse pour un élément utilisé : les clés
+  étrangères d'historique sont en `ON DELETE RESTRICT` (migrations `2026_10_18_*`). Plus aucune cascade n'efface
+  de mouvement, de ligne d'achat ou d'inventaire.
 
 **Créer un nouveau module**
 

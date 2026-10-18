@@ -3,6 +3,9 @@
 @section('title', 'Categories')
 
 @section('actions')
+    <x-ui.actions-menu>
+        <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">Import categories</x-ui.menu-item>
+    </x-ui.actions-menu>
     <a href="{{ route('admin.categories.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg" aria-hidden="true"></i> New category
     </a>
@@ -16,10 +19,15 @@
     $sortIcon = fn (string $column) => request('sort') === $column
         ? (request('order') === 'asc' ? 'bi-sort-up' : 'bi-sort-down')
         : 'bi-arrow-down-up text-subtle';
+    $archived = request('status') === 'archived';
 @endphp
 
 @section('content')
     <div class="ui-stack">
+        @if ($archived)
+            <x-ui.archived-notice />
+        @endif
+
         <div class="ui-stats">
             <x-ui.stat label="Categories" :value="$stats['total_categories']" icon="bi-diagram-3" tone="primary" />
             <x-ui.stat label="Categorized products" :value="$stats['total_products_linked']" icon="bi-box" tone="success" />
@@ -49,12 +57,7 @@
                         <x-slot:toolbar>
                             <x-ui.filters :action="route('admin.categories.index')">
                                 <x-ui.search placeholder="Category name..." />
-                                <select name="category" class="form-select ui-filter" aria-label="Category">
-                                    <option value="">All categories</option>
-                                    @foreach ($categories as $cat)
-                                        <option value="{{ $cat->id }}" @selected(request('category') == $cat->id)>{{ $cat->name }}</option>
-                                    @endforeach
-                                </select>
+                                <x-ui.status-filter />
                             </x-ui.filters>
                         </x-slot:toolbar>
 
@@ -87,17 +90,30 @@
                                             </td>
                                             <td class="text-end">{{ $category->products_count }}</td>
                                             <td class="text-end">
-                                                <div class="ui-row-actions">
-                                                    <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-icon" title="Edit" aria-label="Edit">
-                                                        <i class="bi bi-pencil" aria-hidden="true"></i>
-                                                    </a>
-                                                    <x-ui.delete-button :action="route('admin.categories.destroy', $category->id)"
-                                                        confirm="Delete this category?" />
-                                                </div>
+                                                <x-ui.actions-menu row>
+                                                    <x-ui.menu-item :href="route('admin.categories.show', $category->id)" icon="bi-eye">View</x-ui.menu-item>
+                                                    <x-ui.menu-item :href="route('admin.categories.edit', $category->id)" icon="bi-pencil">Edit</x-ui.menu-item>
+                                                    @if ($archived)
+                                                        <x-ui.menu-item :action="route('admin.categories.restore')" :ids="[$category->id]"
+                                                            icon="bi-arrow-counterclockwise">Restore</x-ui.menu-item>
+                                                        {{-- Une catégorie qui contient des produits (même archivés) ne peut pas être supprimée --}}
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <x-ui.menu-item :action="route('admin.categories.destroy', $category->id)" method="DELETE"
+                                                            icon="bi-trash3" tone="danger" :disabled="$category->products_count > 0"
+                                                            :title="$category->products_count > 0 ? 'Contains products: it stays archived' : null"
+                                                            confirm="Delete this category permanently?">Delete permanently</x-ui.menu-item>
+                                                    @else
+                                                        <x-ui.menu-item :action="route('admin.categories.archive')" :ids="[$category->id]"
+                                                            icon="bi-archive" confirm="Archive this category?"
+                                                            confirm-text="It must no longer contain active products or sub-categories.">Archive</x-ui.menu-item>
+                                                    @endif
+                                                </x-ui.actions-menu>
                                             </td>
                                         </tr>
                                     @empty
-                                        <x-ui.empty-row :colspan="4" icon="bi-diagram-3">No category found.</x-ui.empty-row>
+                                        <x-ui.empty-row :colspan="4" icon="bi-diagram-3">
+                                            {{ $archived ? 'No archived category.' : 'No category found.' }}
+                                        </x-ui.empty-row>
                                     @endforelse
                                 </tbody>
                             </table>

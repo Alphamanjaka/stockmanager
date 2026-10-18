@@ -8,9 +8,19 @@
 @endsection
 
 @section('actions')
-    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#optionsModal">
-        <i class="bi bi-sliders" aria-hidden="true"></i> Options &amp; specifications
-    </button>
+    <x-ui.actions-menu>
+        <x-ui.menu-item href="#" data-bs-toggle="modal" data-bs-target="#optionsModal" icon="bi-sliders">
+            Options &amp; specifications
+        </x-ui.menu-item>
+        @unless ($product->isArchived())
+            <li><hr class="dropdown-divider"></li>
+            <x-ui.menu-item :action="route('admin.products.archive')" :ids="[$product->id]" icon="bi-archive"
+                confirm="Archive this product and all its variants?"
+                confirm-text="It will no longer be offered at the checkout or in purchase orders. Its history is kept.">
+                Archive
+            </x-ui.menu-item>
+        @endunless
+    </x-ui.actions-menu>
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProductModal">
         <i class="bi bi-pencil" aria-hidden="true"></i> Edit
     </button>
@@ -19,6 +29,12 @@
 @php $canAddVariant = !empty($product->options) || $variants->isEmpty(); @endphp
 
 @section('content')
+    @if ($product->isArchived())
+        <x-ui.archived-notice :restore="route('admin.products.restore')" :id="$product->id" :date="$product->archived_at">
+            This product is <strong>archived</strong>: it is no longer offered at the checkout or in purchase orders.
+        </x-ui.archived-notice>
+    @endif
+
     <div class="row g-3">
         <div class="col-xl-8">
             <div class="ui-stack">

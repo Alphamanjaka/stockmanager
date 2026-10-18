@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use App\Modules\Catalog\Database\Factories\ProductFactory;
+use App\Core\Models\Concerns\Archivable;
 
 #[UseFactory(ProductFactory::class)]
 class Product extends Model
 {
-    // has factory
-    use HasFactory;
+    // has factory ; archivé plutôt que supprimé (ses ventes, achats et mouvements restent complets)
+    use HasFactory, Archivable;
 
 
     // Define fillable attributes for mass assignment

@@ -19,5 +19,8 @@ Route::get('/imports', [ImportController::class, 'index'])->name('imports.index'
 Route::post('/imports', [ImportController::class, 'store'])->name('imports.store');
 Route::get('/imports/template/{type}', [ImportController::class, 'downloadTemplate'])->name('imports.template');
 
-// Utilisateurs
+// Utilisateurs : archiver un compte le désactive (ids[] : un compte ou une sélection) ;
+// destroy : suppression définitive d'un compte archivé sans historique
+Route::post('/users/archive', [UserController::class, 'archive'])->name('users.archive');
+Route::post('/users/restore', [UserController::class, 'restore'])->name('users.restore');
 Route::resource('users', UserController::class)->except(['show']);

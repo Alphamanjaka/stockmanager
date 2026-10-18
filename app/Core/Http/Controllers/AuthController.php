@@ -28,7 +28,8 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        // Un compte archivé ne se connecte plus (il garde son historique de ventes et d'inventaires)
+        if (Auth::attemptWhen($credentials, fn ($user) => !$user->isArchived(), $request->boolean('remember'))) {
             $request->session()->regenerate(); // Prévient la fixation de session
 
             $user = Auth::user();
@@ -42,9 +43,12 @@ class AuthController extends Controller
                 ->with('success', 'Connecté avec succès !');
         }
 
-        return back()->withErrors([
-            'email' => 'Les identifiants fournis sont incorrects ou vous n\'avez pas accès à ce profil.',
-        ])->onlyInput('email', 'role');
+        // Identifiants justes mais compte archivé : message explicite (le mot de passe a été vérifié)
+        $message = Auth::validate($credentials)
+            ? 'Votre compte a été désactivé : contactez un administrateur.'
+            : 'Les identifiants fournis sont incorrects ou vous n\'avez pas accès à ce profil.';
+
+        return back()->withErrors(['email' => $message])->onlyInput('email', 'role');
     }
 
     /**

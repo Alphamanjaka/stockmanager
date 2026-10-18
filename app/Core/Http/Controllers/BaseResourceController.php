@@ -26,6 +26,7 @@ abstract class BaseResourceController extends Controller
     {
         $filters = [
             'search'   => $request->get('search'),
+            'status'   => $request->get('status'),
             'sort'     => $request->get('sort', 'name'),
             'order'    => $request->get('order', 'asc'),
             'per_page' => $request->get('per_page', 15),

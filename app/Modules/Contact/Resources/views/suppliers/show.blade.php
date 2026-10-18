@@ -4,6 +4,18 @@
 @section('subtitle', 'Supplier since ' . $supplier->created_at->format('d/m/Y'))
 
 @section('actions')
+    <x-ui.actions-menu>
+        @if ($supplier->isArchived())
+            {{-- Possible seulement sans achat : sinon la base refuse et le fournisseur reste archivé --}}
+            <x-ui.menu-item :action="route('admin.suppliers.destroy', $supplier->id)" method="DELETE" icon="bi-trash3" tone="danger"
+                :disabled="$purchases->total() > 0" :title="$purchases->total() > 0 ? 'It has purchases: it stays archived' : null"
+                confirm="Delete this supplier permanently?">Delete permanently</x-ui.menu-item>
+        @else
+            <x-ui.menu-item :action="route('admin.suppliers.archive')" :ids="[$supplier->id]" icon="bi-archive"
+                confirm="Archive this supplier?"
+                confirm-text="It will no longer be offered in purchase orders. Its purchases keep it.">Archive</x-ui.menu-item>
+        @endif
+    </x-ui.actions-menu>
     <a href="{{ route('admin.suppliers.edit', $supplier->id) }}" class="btn btn-primary">
         <i class="bi bi-pencil" aria-hidden="true"></i> Edit
     </a>
@@ -11,6 +23,11 @@
 
 @section('content')
     <div class="ui-stack">
+        @if ($supplier->isArchived())
+            <x-ui.archived-notice :restore="route('admin.suppliers.restore')" :id="$supplier->id" :date="$supplier->archived_at">
+                This supplier is <strong>archived</strong>: it is no longer offered in purchase orders.
+            </x-ui.archived-notice>
+        @endif
         <div class="ui-stats">
             <x-ui.stat label="Business volume" :value="money($totalSpent)" icon="bi-cash-stack" tone="primary"
                 :hint="'On ' . $purchases->total() . ' purchase(s)'" />
@@ -100,41 +117,5 @@
                 </table>
             </div>
         </x-ui.card>
-
-        {{-- Suppression volontairement difficile : il faut retaper le nom exact du fournisseur --}}
-        <x-ui.card title="Danger zone" tone="danger">
-            <p class="mb-3">
-                Deleting this supplier is permanent.
-                @if ($purchases->total() > 0)
-                    Its <strong>{{ $purchases->total() }} purchase(s)</strong> will be kept, but without supplier.
-                @endif
-            </p>
-            <form action="{{ route('admin.suppliers.destroy', $supplier->id) }}" method="POST" class="row g-2 align-items-end"
-                id="delete-supplier-form">
-                @csrf
-                @method('DELETE')
-                <div class="col-md-6">
-                    <label for="confirm_name" class="form-label">
-                        Type <strong>{{ $supplier->name }}</strong> to confirm
-                    </label>
-                    <input type="text" id="confirm_name" name="confirm_name" class="form-control" autocomplete="off"
-                        data-expected="{{ $supplier->name }}">
-                </div>
-                <div class="col-md-auto">
-                    <button type="submit" id="delete-supplier-button" class="btn btn-danger" disabled>
-                        <i class="bi bi-trash3" aria-hidden="true"></i> Delete this supplier
-                    </button>
-                </div>
-            </form>
-        </x-ui.card>
     </div>
-
-    @push('scripts')
-        <script>
-            // Le bouton ne s'active que si le nom tapé correspond exactement (vérifié aussi côté serveur)
-            document.getElementById('confirm_name').addEventListener('input', function () {
-                document.getElementById('delete-supplier-button').disabled = this.value.trim() !== this.dataset.expected;
-            });
-        </script>
-    @endpush
 @endsection

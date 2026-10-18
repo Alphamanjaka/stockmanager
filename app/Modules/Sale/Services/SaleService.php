@@ -55,6 +55,11 @@ class SaleService
                 // VERROUILLAGE : On verrouille la variante spécifique (Produit + Couleur)
                 $variant = ProductColor::with('product', 'color', 'brand')->lockForUpdate()->findOrFail($item['product_color_id']);
 
+                // Un produit archivé n'est plus en vente (la caisse ne le propose plus ; refusé aussi ici)
+                if ($variant->product?->isArchived()) {
+                    throw new \Exception("Produit archivé, il n'est plus en vente : {$variant->label}");
+                }
+
                 if ($variant->stock < $item['quantity']) {
                     throw new \Exception("Stock insuffisant pour : {$variant->label} (Disponible: {$variant->stock})");
                 }

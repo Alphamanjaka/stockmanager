@@ -2,7 +2,9 @@
 
 namespace App\Modules\Catalog\Http\Controllers\Api;
 
+use App\Core\Services\ArchiveService;
 use App\Http\Controllers\Controller;
+use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Http\Requests\StoreCategoryRequest;
 use App\Modules\Catalog\Http\Requests\UpdateCategoryRequest;
 use App\Modules\Catalog\Http\Resources\CategoryResource;
@@ -63,12 +65,17 @@ class CategoryControllerAPI extends Controller
      */
     public function destroy(string $id)
     {
-        // Delete category by ID
-        $deleted = $this->categoryService->delete($id);
-        if (!$deleted) {
-            return response()->json(['message' => 'Category not found or cannot be deleted'], 404);
-        }
-        return response()->json(['message' => 'Category deleted successfully']);
+        // Mêmes règles que le back office : seule une catégorie archivée et vide se supprime définitivement
+        $result = app(ArchiveService::class)->forceDelete(Category::whereKey((int) $id));
 
+        if ($result['done'] > 0) {
+            return response()->json(['message' => 'Category deleted successfully']);
+        }
+
+        return response()->json([
+            'message' => $result['skipped']
+                ? 'Category cannot be deleted: ' . implode(' ; ', $result['skipped'])
+                : 'Only an archived category can be deleted: archive it first.',
+        ], 422);
     }
 }

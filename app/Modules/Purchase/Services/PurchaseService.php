@@ -359,6 +359,7 @@ class PurchaseService
                 )
             ) lp ON pc.id = lp.product_color_id
             WHERE pc.stock <= pc.alert_stock AND pc.alert_stock > 0
+              AND p.archived_at IS NULL
         ";
 
         $results = DB::select($sql);

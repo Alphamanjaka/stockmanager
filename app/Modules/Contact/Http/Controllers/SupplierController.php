@@ -2,8 +2,10 @@
 
 namespace App\Modules\Contact\Http\Controllers;
 
+use App\Core\Http\Controllers\Concerns\ArchivesRecords;
 use App\Modules\Contact\Http\Requests\StoreSupplierRequest;
 use App\Modules\Contact\Models\Supplier;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Modules\Contact\Services\SupplierService;
 use App\Modules\Purchase\Services\PurchaseService;
@@ -11,6 +13,7 @@ use App\Http\Controllers\Controller;
 
 class SupplierController extends Controller
 {
+    use ArchivesRecords;
 
     public function __construct(protected SupplierService $supplierService,protected PurchaseService $purchaseService)
     {
@@ -23,6 +26,7 @@ class SupplierController extends Controller
         // Récupération des filtres depuis la requête
         $filters = [
             'search' => $request->get('search'),
+            'status' => $request->get('status'),
             'sort' => $request->get('sort'),
             'order' => $request->get('order'),
             'per_page' => min(max((int) $request->get('per_page', 10), 1), 100),
@@ -95,24 +99,16 @@ class SupplierController extends Controller
     }
 
     /**
-     * Suppression (si aucun achat lié).
+     * Suppression définitive d'un fournisseur archivé sans achat : un fournisseur qui a des achats
+     * reste archivé (la base refuse), ses achats gardent leur fournisseur.
      */
-    public function destroy(Request $request, Supplier $supplier)
+    public function destroy(Supplier $supplier)
     {
-        // Suppression volontairement difficile : le nom exact du fournisseur doit être retapé
-        if (trim((string) $request->input('confirm_name')) !== $supplier->name) {
-            return back()->with('error', 'Suppression annulée : le nom saisi ne correspond pas au fournisseur.');
-        }
+        return $this->deletePermanently($supplier->id, 'admin.suppliers.index');
+    }
 
-        try {
-            $orphaned = $this->supplierService->deleteSupplier($supplier);
-
-            return redirect()->route('admin.suppliers.index')
-                ->with('success', $orphaned > 0
-                    ? "Fournisseur supprimé. Ses {$orphaned} achat(s) sont conservés, sans fournisseur."
-                    : 'Fournisseur supprimé.');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
+    protected function archiveTargets(array $ids): Builder
+    {
+        return Supplier::whereKey($ids);
     }
 }

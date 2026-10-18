@@ -7,6 +7,7 @@ use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Catalog\Models\Color;
 use App\Modules\Catalog\Support\VariantOptions;
 use App\Core\Services\BaseService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -106,13 +107,57 @@ class ProductColorService extends BaseService
         return (int) settings('global_alert_threshold', 5);
     }
 
+    /** Colonnes de tri de la liste des produits (paramètre sort) => colonne SQL. */
+    private const LIST_SORTS = [
+        'product' => 'products.name',
+        'stock' => 'product_colors.stock',
+        'price' => 'product_colors.price',
+        'price_purchase' => 'product_colors.price_purchase',
+        'created_at' => 'product_colors.created_at',
+    ];
+
     /**
-     * Récupère les produits dont le stock est inférieur ou égal au seuil d'alerte.
+     * Liste des produits (une ligne par variante), pour la page et pour l'export :
+     * recherche (nom, SKU, couleur, catégorie), catégorie, statut du produit (actifs ou archives), tri.
+     *
+     * @param array{search?: ?string, category?: ?string, status?: ?string, sort?: ?string, order?: ?string} $filters
+     */
+    public function listQuery(array $filters): Builder
+    {
+        $sort = self::LIST_SORTS[$filters['sort'] ?? ''] ?? self::LIST_SORTS['product'];
+        $order = strtolower((string) ($filters['order'] ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        return ProductColor::query()
+            ->select('product_colors.*')
+            ->join('products', 'products.id', '=', 'product_colors.product_id')
+            ->with(['product.category', 'color', 'brand'])
+            ->when(
+                ($filters['status'] ?? null) === 'archived',
+                fn ($q) => $q->whereNotNull('products.archived_at'),
+                fn ($q) => $q->whereNull('products.archived_at')
+            )
+            ->when($filters['search'] ?? null, fn ($q, $search) => $q->search($search))
+            ->when($filters['category'] ?? null, fn ($q, $category) => $q->where('products.category_id', (int) $category))
+            ->orderBy($sort, $order)
+            ->orderBy('product_colors.id');
+    }
+
+    /**
+     * Récupère les produits dont le stock est inférieur ou égal au seuil d'alerte (produits archivés exclus).
      */
     public function getShortageProducts()
     {
         return ProductColor::where('stock', '<=', DB::raw('alert_stock'))
             ->where('alert_stock', '>', 0) // On ne veut pas les produits où l'alerte n'est pas configurée
+            ->whereHas('product', fn ($q) => $q->active())
+            ->get();
+    }
+
+    /** Variantes des produits en service : catalogue des formulaires (bon de commande...). */
+    public function getActiveVariants()
+    {
+        return ProductColor::with(['product', 'color', 'brand'])
+            ->whereHas('product', fn ($q) => $q->active())
             ->get();
     }
     public function getAllWithRelations($filters = [])
@@ -312,12 +357,12 @@ class ProductColorService extends BaseService
     public function deleteProductColor(int $variantId): bool
     {
         try {
-            // Transaction dédiée : un refus de la base (variante déjà vendue) est annulé proprement
+            // Transaction dédiée : un refus de la base (variante qui a un historique) est annulé proprement
             return DB::transaction(fn () => ProductColor::findOrFail($variantId)->delete());
         } catch (QueryException $e) {
-            // SQLSTATE 23xxx : la variante est référencée par des ventes
+            // SQLSTATE 23xxx : la variante est citée par des ventes, achats, mouvements de stock ou inventaires
             if (str_starts_with((string) $e->getCode(), '23')) {
-                throw new Exception('Cette variante a déjà été vendue : elle ne peut pas être supprimée.');
+                throw new Exception('Cette variante a un historique (ventes, achats, mouvements de stock ou inventaires) : elle ne peut pas être supprimée.');
             }
             throw $e;
         }

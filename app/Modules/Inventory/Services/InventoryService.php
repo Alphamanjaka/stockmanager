@@ -38,8 +38,10 @@ class InventoryService
                 'user_id' => $userId,
             ]);
 
+            // Produits archivés : comptés seulement s'il en reste en stock (ils sont encore en rayon)
             $variants = ProductColor::query()
                 ->when($categoryId, fn ($q) => $q->whereHas('product', fn ($p) => $p->where('category_id', $categoryId)))
+                ->where(fn ($q) => $q->whereHas('product', fn ($p) => $p->active())->orWhere('stock', '!=', 0))
                 ->get(['id', 'stock']);
 
             // Insertion par lots : PostgreSQL limite le nombre de paramètres par requête

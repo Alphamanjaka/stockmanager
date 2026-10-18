@@ -210,23 +210,25 @@ class DashboardService
     }
 
     /**
-     * Get total count of products
+     * Get total count of products (variantes des produits en service)
      */
     private function getTotalProducts()
     {
-        return ProductColor::count();
+        return ProductColor::whereHas('product', fn ($query) => $query->active())->count();
     }
 
     /**
-     * Get count of low stock variants (from product_colors table)
+     * Get count of low stock variants (from product_colors table) ; un produit archivé n'est plus réapprovisionné
      */
     private function getLowStockProducts()
     {
-        return ProductColor::whereColumn('stock', '<=', 'alert_stock')->count();
+        return ProductColor::whereColumn('stock', '<=', 'alert_stock')
+            ->whereHas('product', fn ($query) => $query->active())
+            ->count();
     }
 
-    private function getTotalCategories() { return Category::count(); }
-    private function getTotalSuppliers() { return Supplier::count(); }
+    private function getTotalCategories() { return Category::active()->count(); }
+    private function getTotalSuppliers() { return Supplier::active()->count(); }
     private function getTotalSales() { return Sale::count(); }
 
 }

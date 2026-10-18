@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use App\Modules\Catalog\Database\Factories\ColorFactory;
+use App\Core\Models\Concerns\Archivable;
 
 #[UseFactory(ColorFactory::class)]
 class Color extends Model
 {
-    use HasFactory;
+    use HasFactory, Archivable;
 
     protected $fillable = ['name', 'code'];
 

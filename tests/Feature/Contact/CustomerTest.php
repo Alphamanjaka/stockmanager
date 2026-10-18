@@ -45,16 +45,18 @@ class CustomerTest extends TestCase
     }
 
     /** @test */
-    public function deleting_a_customer_keeps_their_sales()
+    public function a_customer_with_sales_is_archived_and_keeps_their_sales()
     {
         $customer = Customer::factory()->create();
         $sale = Sale::factory()->create(['customer_id' => $customer->id]);
 
-        $this->delete(route('admin.customers.destroy', $customer->id))
-            ->assertRedirect(route('admin.customers.index'));
+        $this->post(route('admin.customers.archive'), ['ids' => [$customer->id]])->assertSessionHas('success');
+        $this->get(route('admin.customers.show', $customer->id))->assertOk()->assertSee('archived');
 
-        $this->assertModelMissing($customer);
-        $this->assertNull($sale->fresh()->customer_id);
+        // Suppression définitive refusée : la vente garde son client
+        $this->delete(route('admin.customers.destroy', $customer->id))->assertSessionHas('error');
+        $this->assertModelExists($customer);
+        $this->assertSame($customer->id, $sale->fresh()->customer_id);
     }
 
     /** @test */

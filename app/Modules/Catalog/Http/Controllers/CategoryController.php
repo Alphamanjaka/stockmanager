@@ -2,8 +2,10 @@
 
 namespace App\Modules\Catalog\Http\Controllers;
 
+use App\Core\Http\Controllers\Concerns\ArchivesRecords;
 use App\Modules\Catalog\Support\VariantOptions;
 use App\Modules\Catalog\Models\Category;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Modules\Catalog\Http\Requests\StoreCategoryRequest;
@@ -13,6 +15,8 @@ use App\Http\Controllers\Controller;
 
 class CategoryController extends Controller
 {
+    use ArchivesRecords;
+
     public function __construct(protected CategoryService $categoryService){}
     /**
      * Display a listing of the resource.
@@ -23,6 +27,7 @@ class CategoryController extends Controller
             'sort' => $request->get('sort', 'name'),
             'order' => $request->get('order', 'asc'),
             'search' => $request->get('search'),
+            'status' => $request->get('status'),
             'per_page' => 15,
         ];
         //
@@ -116,22 +121,16 @@ class CategoryController extends Controller
         }
     }
     /**
-     * Remove the specified resource from storage.
+     * Suppression définitive d'une catégorie archivée et vide : une catégorie qui contient des produits
+     * (même archivés) reste archivée, la base refuse (avant, ses produits étaient supprimés avec elle).
      */
     public function destroy(string $id)
     {
-        try {
-            $category = Category::withCount('products')->findOrFail($id);
+        return $this->deletePermanently((int) $id, 'admin.categories.index');
+    }
 
-            if ($category->products_count > 0) {
-                return redirect()->route('admin.categories.index')
-                    ->with('error', "Impossible de supprimer la catégorie « {$category->name} » car elle est associée à {$category->products_count} produit(s).");
-            }
-            $this->categoryService->delete($id);
-            return redirect()->route("admin.categories.index")->with("success", "Category deleted successfully.");
-        } catch (\Exception $e) {
-            Log::error("Erreur suppression catégorie : " . $e->getMessage());
-            return redirect()->back()->with("error", "Une erreur est survenue lors de la suppression de la catégorie.");
-        }
+    protected function archiveTargets(array $ids): Builder
+    {
+        return Category::whereKey($ids);
     }
 }

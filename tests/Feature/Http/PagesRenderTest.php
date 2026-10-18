@@ -90,13 +90,20 @@ class PagesRenderTest extends TestCase
             '/admin/products/create',
             "/admin/products/{$i['product']}",
             '/admin/products/export/pdf',
+            "/admin/products?category={$i['category']}&search=ti&sort=price&order=desc",
+            '/admin/products?status=archived',
             '/admin/categories',
+            '/admin/categories?status=archived',
             '/admin/categories/create',
             "/admin/categories/{$i['category']}",
             "/admin/categories/{$i['category']}/edit",
             '/admin/colors',
             '/admin/colors/create',
             "/admin/colors/{$i['color']}/edit",
+            '/admin/colors?status=archived',
+            '/admin/brands',
+            '/admin/brands?status=archived',
+            '/admin/brands/create',
             // Stock
             '/admin/movements',
             '/admin/movements/create',
@@ -121,10 +128,12 @@ class PagesRenderTest extends TestCase
             '/admin/suppliers/create',
             "/admin/suppliers/{$i['supplier']}",
             "/admin/suppliers/{$i['supplier']}/edit",
+            '/admin/suppliers?status=archived',
             '/admin/customers',
             '/admin/customers/create',
             "/admin/customers/{$i['customer']}",
             "/admin/customers/{$i['customer']}/edit",
+            '/admin/customers?status=archived',
             "/admin/sales?customer={$i['customer']}",
             // Administration
             '/admin/settings',
@@ -133,6 +142,10 @@ class PagesRenderTest extends TestCase
             '/admin/users',
             '/admin/users/create',
             "/admin/users/{$this->seller->id}/edit",
+            '/admin/users?status=archived',
+            // Inventaires
+            '/admin/inventories',
+            '/admin/inventories/create',
         ]);
     }
 
