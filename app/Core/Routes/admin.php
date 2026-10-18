@@ -3,6 +3,7 @@
 // Back office (préfixe /admin, noms admin.*, protégé par ModuleServiceProvider)
 
 use App\Core\Http\Controllers\DashboardController;
+use App\Core\Http\Controllers\ExportController;
 use App\Core\Http\Controllers\ImportController;
 use App\Core\Http\Controllers\SettingController;
 use App\Core\Http\Controllers\UserController;
@@ -13,6 +14,10 @@ Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartDataAp
 
 // Paramètres
 Route::resource('settings', SettingController::class)->only(['index', 'update']);
+
+// Export des listes en PDF ou Excel (les classes d'export appartiennent à chaque module : ExportRegistry)
+Route::get('/exports/{list}/{format}', ExportController::class)
+    ->where(['list' => '[a-z][a-z-]*', 'format' => 'pdf|xlsx'])->name('exports.download');
 
 // Import centralisé (les classes d'import appartiennent à chaque module)
 Route::get('/imports', [ImportController::class, 'index'])->name('imports.index');
