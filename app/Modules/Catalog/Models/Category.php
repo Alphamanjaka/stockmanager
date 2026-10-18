@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use App\Modules\Catalog\Database\Factories\CategoryFactory;
+use App\Core\Models\Concerns\Archivable;
 
 #[UseFactory(CategoryFactory::class)]
 class Category extends Model
 {
-    use HasFactory;  // Uncomment if you want to use factories for Category model
+    use HasFactory, Archivable;
     //
     protected $fillable = [
         'name',
@@ -42,5 +43,21 @@ class Category extends Model
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Une catégorie archivée disparaît des listes de choix : elle ne doit plus contenir de produit
+     * ni de sous-catégorie en service (ils deviendraient introuvables par catégorie).
+     */
+    public function archiveBlocker(): ?string
+    {
+        if ($count = $this->products()->active()->count()) {
+            return "elle contient {$count} produit(s) actif(s) : archivez-les ou déplacez-les d'abord";
+        }
+        if ($count = $this->children()->active()->count()) {
+            return "elle a {$count} sous-catégorie(s) active(s)";
+        }
+
+        return null;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Core\Models\Concerns\Archivable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,7 +11,8 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    // Un compte archivé ne peut plus se connecter ; ses ventes et inventaires gardent son nom
+    use HasFactory, Notifiable, Archivable;
 
     /**
      * The attributes that are mass assignable.
@@ -69,5 +71,10 @@ class User extends Authenticatable
     public function isFrontOffice(): bool
     {
         return $this->role === 'front_office';
+    }
+
+    public function archiveBlocker(): ?string
+    {
+        return $this->is(auth()->user()) ? 'vous ne pouvez pas archiver votre propre compte' : null;
     }
 }

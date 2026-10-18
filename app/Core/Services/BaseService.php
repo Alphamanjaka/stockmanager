@@ -2,6 +2,7 @@
 
 namespace App\Core\Services;
 
+use App\Core\Models\Concerns\Archivable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +26,10 @@ abstract class BaseService
         if (!empty($filters['search']) && method_exists($this->model, 'scopeSearch')) {
             // Appel de la méthode de recherche personnalisée du modèle
             $query->search($filters['search']);
+        }
+        // Modèle archivable : éléments actifs par défaut (listes de choix comprises), archives si status=archived
+        if (in_array(Archivable::class, class_uses_recursive($this->model), true)) {
+            $query->withStatus($filters['status'] ?? null);
         }
         // filtrage par catégorie si le filtre est présent
         if (!empty($filters['category'])) {

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Catalog\Models;
 
+use App\Core\Models\Concerns\Archivable;
 use App\Modules\Catalog\Database\Factories\BrandFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 #[UseFactory(BrandFactory::class)]
 class Brand extends Model
 {
-    use HasFactory;
+    use HasFactory, Archivable;
 
     protected $fillable = ['name'];
 
