@@ -20,7 +20,7 @@
         </x-ui.archived-notice>
     @endif
 
-    <x-ui.card flush :pagination="$users">
+    <x-ui.card flush :pagination="$users" data-bulk>
         <x-slot:toolbar>
             <x-ui.filters :action="route('admin.users.index')">
                 <x-ui.search placeholder="Search by name or email..." />
@@ -33,10 +33,13 @@
             </x-ui.filters>
         </x-slot:toolbar>
 
+        <x-ui.bulk-bar export="users" :archive="route('admin.users.archive')" :restore="route('admin.users.restore')" />
+
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <x-ui.bulk-check-all />
                         <th>Name</th>
                         <th>Email</th>
                         <th>Role</th>
@@ -48,6 +51,7 @@
                 <tbody>
                     @forelse ($users as $user)
                         <tr>
+                            <x-ui.bulk-check :value="$user->id" :label="$user->name" />
                             <td>
                                 <span class="d-inline-flex align-items-center gap-2">
                                     <span class="ui-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
@@ -89,7 +93,7 @@
                             </td>
                         </tr>
                     @empty
-                        <x-ui.empty-row :colspan="6" icon="bi-people">
+                        <x-ui.empty-row :colspan="7" icon="bi-people">
                             {{ $archived ? 'No archived account.' : 'No user found.' }}
                         </x-ui.empty-row>
                     @endforelse

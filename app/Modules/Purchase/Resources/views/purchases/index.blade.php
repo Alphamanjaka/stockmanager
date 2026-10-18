@@ -34,7 +34,8 @@
             <x-ui.stat label="Average purchase" :value="money($averagePurchaseValue)" icon="bi-calculator" tone="info" />
         </div>
 
-        <x-ui.card flush>
+        {{-- Sélection pilotée par Tabulator (purchases-index.js) : data-bulk-manual --}}
+        <x-ui.card flush data-bulk data-bulk-manual>
             <x-slot:toolbar>
                 {{-- Filtre par statut : appliqué au tableau par purchases-index.js --}}
                 <ul class="nav nav-pills" id="state-tabs" role="tablist">
@@ -50,6 +51,8 @@
                     @endforeach
                 </ul>
             </x-slot:toolbar>
+
+            <x-ui.bulk-bar export="purchases" />
 
             <div id="purchases-table" data-url="{{ route('admin.purchases.get-purchases-api') }}"></div>
         </x-ui.card>

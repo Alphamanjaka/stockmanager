@@ -12,11 +12,14 @@
 @endsection
 
 @section('content')
-    <x-ui.card flush :pagination="$inventories">
+    <x-ui.card flush :pagination="$inventories" data-bulk>
+        <x-ui.bulk-bar export="inventories" />
+
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <x-ui.bulk-check-all />
                         <th>Reference</th>
                         <th>Scope</th>
                         <th>Status</th>
@@ -29,6 +32,7 @@
                 <tbody>
                     @forelse ($inventories as $inventory)
                         <tr>
+                            <x-ui.bulk-check :value="$inventory->id" :label="$inventory->reference" />
                             <td><a href="{{ route('admin.inventories.show', $inventory->id) }}" class="link-plain">{{ $inventory->reference }}</a></td>
                             <td>{{ $inventory->category->name ?? 'All products' }}</td>
                             <td>
@@ -55,7 +59,7 @@
                             </td>
                         </tr>
                     @empty
-                        <x-ui.empty-row :colspan="7" icon="bi-clipboard-check" title="No stock count yet">
+                        <x-ui.empty-row :colspan="8" icon="bi-clipboard-check" title="No stock count yet">
                             A stock count compares the physical stock with the system stock and adjusts it.
                         </x-ui.empty-row>
                     @endforelse

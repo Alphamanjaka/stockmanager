@@ -55,7 +55,7 @@
 
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="list" role="tabpanel" aria-labelledby="list-tab">
-                    <x-ui.card flush :pagination="$categories">
+                    <x-ui.card flush :pagination="$categories" data-bulk>
                         <x-slot:toolbar>
                             <x-ui.filters :action="route('admin.categories.index')">
                                 <x-ui.search placeholder="Category name..." />
@@ -63,10 +63,14 @@
                             </x-ui.filters>
                         </x-slot:toolbar>
 
+                        <x-ui.bulk-bar export="categories" :archive="route('admin.categories.archive')"
+                            :restore="route('admin.categories.restore')" />
+
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
+                                        <x-ui.bulk-check-all />
                                         <th>
                                             <a href="{{ $sortLink('name') }}">Name <i class="bi {{ $sortIcon('name') }}" aria-hidden="true"></i></a>
                                         </th>
@@ -80,6 +84,7 @@
                                 <tbody>
                                     @forelse ($categories as $category)
                                         <tr>
+                                            <x-ui.bulk-check :value="$category->id" :label="$category->name" />
                                             <td>
                                                 <a href="{{ route('admin.categories.show', $category->id) }}" class="link-plain">{{ $category->name }}</a>
                                             </td>
@@ -113,7 +118,7 @@
                                             </td>
                                         </tr>
                                     @empty
-                                        <x-ui.empty-row :colspan="4" icon="bi-diagram-3">
+                                        <x-ui.empty-row :colspan="5" icon="bi-diagram-3">
                                             {{ $archived ? 'No archived category.' : 'No category found.' }}
                                         </x-ui.empty-row>
                                     @endforelse

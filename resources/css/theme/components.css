@@ -282,6 +282,81 @@
     color: var(--app-danger) !important;
 }
 
+/* Sélection multiple (<x-ui.bulk-bar>) : colonne de cases, lignes cochées, barre d'actions groupées */
+.ui-col-check {
+    width: 2.75rem;
+}
+
+.table > :not(caption) > tr > .ui-col-check {
+    padding-right: 0;
+}
+
+.ui-check-hit {
+    display: flex;
+    align-items: center;
+    margin: -0.5625rem 0;
+    padding: 0.5625rem 0;
+    cursor: pointer;
+}
+
+.ui-col-check .form-check-input {
+    margin: 0;
+    cursor: pointer;
+}
+
+.table > tbody > tr.is-selected > * {
+    --bs-table-bg-state: var(--bs-table-active-bg);
+}
+
+.ui-bulk-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--app-border);
+    background: var(--app-primary-soft);
+}
+
+.ui-bulk-bar[hidden] {
+    display: none;
+}
+
+/* Liste sans barre d'outils : la barre (ou, masquée, le tableau qui suit) reprend les coins de la carte */
+.card > .ui-bulk-bar:first-child {
+    border-top-left-radius: var(--bs-card-inner-border-radius);
+    border-top-right-radius: var(--bs-card-inner-border-radius);
+}
+
+.card > .ui-bulk-bar[hidden]:first-child + .table-responsive > .table > thead > tr:first-child > :first-child {
+    border-top-left-radius: var(--bs-card-inner-border-radius);
+}
+
+.card > .ui-bulk-bar[hidden]:first-child + .table-responsive > .table > thead > tr:first-child > :last-child {
+    border-top-right-radius: var(--bs-card-inner-border-radius);
+}
+
+.ui-bulk-count {
+    font-size: var(--app-fs-sm);
+    white-space: nowrap;
+}
+
+.ui-bulk-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.ui-bulk-actions form {
+    display: inline-flex;
+}
+
+.ui-bulk-bar kbd {
+    margin-left: 0.25rem;
+    font-size: var(--app-fs-xs);
+}
+
 /* === Champs ================================================================================== */
 
 .form-label {

@@ -31,7 +31,7 @@
     <div class="tab-content">
         {{-- Historique --}}
         <div class="tab-pane fade show active" id="list-pane" role="tabpanel" aria-labelledby="list-tab" tabindex="0">
-            <x-ui.card flush :pagination="$stockMovements">
+            <x-ui.card flush :pagination="$stockMovements" data-bulk>
                 <x-slot:toolbar>
                     <x-ui.filters :action="route('admin.movements.index')">
                         <x-ui.search placeholder="Product, reason..." />
@@ -49,10 +49,13 @@
                     </x-ui.filters>
                 </x-slot:toolbar>
 
+                <x-ui.bulk-bar export="movements" />
+
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
+                                <x-ui.bulk-check-all />
                                 <th>Date</th>
                                 <th>Product</th>
                                 <th>Type</th>
@@ -69,6 +72,7 @@
                                     $isLowStock = $movement->stock_after <= ($movement->productColor->alert_stock ?? 0);
                                 @endphp
                                 <tr>
+                                    <x-ui.bulk-check :value="$movement->id" />
                                     <td class="text-nowrap">
                                         {{ $movement->created_at->format('d/m/Y') }}
                                         <div class="ui-cell-meta">{{ $movement->created_at->format('H:i') }}</div>
@@ -95,7 +99,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <x-ui.empty-row :colspan="6" icon="bi-arrow-left-right">No movement found.</x-ui.empty-row>
+                                <x-ui.empty-row :colspan="7" icon="bi-arrow-left-right">No movement found.</x-ui.empty-row>
                             @endforelse
                         </tbody>
                     </table>

@@ -21,7 +21,7 @@
             <x-ui.archived-notice />
         @endif
 
-        <x-ui.card flush :pagination="$items">
+        <x-ui.card flush :pagination="$items" data-bulk>
             <x-slot:toolbar>
                 <x-ui.filters :action="route('admin.colors.index')">
                     <x-ui.search placeholder="Search by name..." />
@@ -29,10 +29,13 @@
                 </x-ui.filters>
             </x-slot:toolbar>
 
+            <x-ui.bulk-bar export="colors" :archive="route('admin.colors.archive')" :restore="route('admin.colors.restore')" />
+
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <x-ui.bulk-check-all />
                             <th>Name</th>
                             <th>Code</th>
                             <th class="text-end"><span class="visually-hidden">Actions</span></th>
@@ -41,6 +44,7 @@
                     <tbody>
                         @forelse ($items as $item)
                             <tr>
+                                <x-ui.bulk-check :value="$item->id" :label="$item->name" />
                                 <td>
                                     <span class="d-inline-flex align-items-center gap-2 fw-semibold">
                                         {{-- Seules les couleurs CSS simples (#hex ou nom) sont reprises dans le style --}}
@@ -74,7 +78,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <x-ui.empty-row :colspan="3" icon="bi-palette">
+                            <x-ui.empty-row :colspan="4" icon="bi-palette">
                                 {{ $archived ? 'No archived color.' : 'No color found.' }}
                             </x-ui.empty-row>
                         @endforelse

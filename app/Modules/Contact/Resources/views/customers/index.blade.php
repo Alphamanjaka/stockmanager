@@ -18,7 +18,7 @@
         <x-ui.archived-notice />
     @endif
 
-    <x-ui.card flush :pagination="$customers">
+    <x-ui.card flush :pagination="$customers" data-bulk>
         <x-slot:toolbar>
             <x-ui.filters :action="route('admin.customers.index')">
                 <x-ui.search placeholder="Search by name, phone or email..." />
@@ -26,10 +26,13 @@
             </x-ui.filters>
         </x-slot:toolbar>
 
+        <x-ui.bulk-bar export="customers" :archive="route('admin.customers.archive')" :restore="route('admin.customers.restore')" />
+
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <x-ui.bulk-check-all />
                         <th>Name</th>
                         <th>Phone</th>
                         <th>Email</th>
@@ -40,6 +43,7 @@
                 <tbody>
                     @forelse ($customers as $customer)
                         <tr>
+                            <x-ui.bulk-check :value="$customer->id" :label="$customer->name" />
                             <td><a href="{{ route('admin.customers.show', $customer->id) }}" class="link-plain">{{ $customer->name }}</a></td>
                             <td class="text-nowrap">{{ $customer->phone ?: '—' }}</td>
                             <td>{{ $customer->email ?: '—' }}</td>
@@ -63,7 +67,7 @@
                             </td>
                         </tr>
                     @empty
-                        <x-ui.empty-row :colspan="5" icon="bi-person-vcard">
+                        <x-ui.empty-row :colspan="6" icon="bi-person-vcard">
                             {{ $archived ? 'No archived customer.' : 'No customer found.' }}
                         </x-ui.empty-row>
                     @endforelse

@@ -1,6 +1,8 @@
 // Liste des achats (purchases/index.blade.php) : tableau Tabulator alimenté par l'API, filtre par statut,
-// actions rapides (réception, suppression), liens d'export aux filtres du tableau.
+// actions rapides (réception, suppression), sélection pour l'export (barre <x-ui.bulk-bar>).
 // Boîtes de dialogue : window.Swal (charte, resources/js/ui.js).
+
+import { createBulkBar } from "./bulk-select.js";
 
 document.addEventListener("DOMContentLoaded", function () {
     const tableElement = document.getElementById("purchases-table");
@@ -113,6 +115,16 @@ document.addEventListener("DOMContentLoaded", function () {
         layout: "fitColumns",
         responsiveLayout: "collapse",
         placeholder: "No purchase found",
+        // Case de sélection en tête de ligne (la ligne elle-même ne sélectionne pas : ses boutons restent cliquables)
+        rowHeader: {
+            formatter: "rowSelection",
+            titleFormatter: "rowSelection",
+            headerSort: false,
+            resizable: false,
+            hozAlign: "center",
+            headerHozAlign: "center",
+            width: 44,
+        },
         columns: [
             { title: "Reference", field: "reference", headerFilter: "input", formatter: (cell) => `<span class="fw-semibold">${escapeHtml(cell.getValue())}</span>` },
             { title: "Supplier", field: "supplier", headerFilter: "input", minWidth: 180, formatter: (cell) => escapeHtml(cell.getValue() ?? "—") },
@@ -134,6 +146,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Sélection : barre d'export des achats cochés
+    const barElement = document.querySelector("[data-bulk-manual] [data-bulk-bar]");
+    const bar = barElement ? createBulkBar(barElement) : null;
+    bar?.onClear(() => table.deselectRow());
+    table.on("rowSelectionChanged", (data) => bar?.update(data.map((row) => row.id)));
+
     // Exports : mêmes filtres que le tableau (statut, référence, fournisseur), lus à chaque chargement
     const exportLinks = [...document.querySelectorAll("[data-export-link]")];
     exportLinks.forEach((link) => {
@@ -153,6 +171,8 @@ document.addEventListener("DOMContentLoaded", function () {
             url.search = new URLSearchParams(params).toString();
             link.href = url.toString();
         });
+        bar?.setBaseParams(params);
+        bar?.update(table.getSelectedData().map((row) => row.id));
     });
 
     // Actions rapides (délégation d'événement)

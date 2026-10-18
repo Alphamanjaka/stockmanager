@@ -154,11 +154,12 @@ chaque raccourci est unique et que chaque libellé est traduit en en/fr/es (`lan
   pagination), `<x-ui.filters>` + `<x-ui.search>` + `<x-ui.status-filter>` (recherche d'une liste, actifs / archives),
   `<x-ui.field>` (libellé, contrôle, aide, erreur), `<x-ui.stat>` (indicateur), `<x-ui.badge>` / `<x-ui.status>`,
   `<x-ui.empty-row>`, `<x-ui.delete-button>`, `<x-ui.alert>`, `<x-ui.errors>`, `<x-ui.archived-notice>` ;
-  menus : `<x-ui.actions-menu>` + `<x-ui.menu-item>` + `<x-ui.export-items>`.
+  menus : `<x-ui.actions-menu>` + `<x-ui.menu-item>` + `<x-ui.export-items>` ; sélection multiple : `<x-ui.bulk-bar>`,
+  `<x-ui.bulk-action>`, `<x-ui.bulk-check-all>`, `<x-ui.bulk-check>`.
 - **Mise en page d'une page** : titre dans `@section('title')` (affiché en en-tête avec le fil d'Ariane), sous-titre
   facultatif dans `@section('subtitle')`, dans `@section('actions')` : l'action principale en `btn-primary` (une seule),
   les autres dans le menu engrenage `<x-ui.actions-menu>` (exports, import, actions secondaires) plutôt qu'en boutons.
-  Listes : une carte (filtres en barre d'outils, tableau, pagination en pied) ; actions de ligne
+  Listes : une carte (filtres en barre d'outils, barre de sélection, tableau, pagination en pied) ; actions de ligne
   dans `<x-ui.actions-menu row>` (« ⋮ »), le nom de l'élément menant à sa fiche. Formulaires : Annuler puis Enregistrer,
   à droite.
 - **Montants** : `money($montant)` (devise et position des Paramètres).
