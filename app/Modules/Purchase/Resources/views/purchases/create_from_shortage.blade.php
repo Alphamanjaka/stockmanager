@@ -33,7 +33,7 @@
                                         <th>Product</th>
                                         <th class="text-end">Current stock</th>
                                         <th class="text-end">Alert threshold</th>
-                                        <th class="text-end">Last unit cost</th>
+                                        <th class="text-end">Unit cost</th>
                                         <th style="width: 150px">Quantity to order</th>
                                     </tr>
                                 </thead>
@@ -46,7 +46,7 @@
                                                 {{-- Toujours envoyés, pour éviter les « Undefined array key » à la soumission --}}
                                                 <input type="hidden" name="items[{{ $product->id }}][supplier_id]" value="{{ $group['supplier_id'] }}">
                                                 <input type="hidden" name="items[{{ $product->id }}][product_id]" value="{{ $product->id }}">
-                                                <input type="hidden" name="items[{{ $product->id }}][unit_price]" value="{{ $product->last_unit_price }}">
+                                                <input type="hidden" name="items[{{ $product->id }}][unit_price]" value="{{ $product->last_unit_price ?? 0 }}">
                                             </td>
                                             <td>
                                                 <div class="ui-cell-title">{{ $product->label }}</div>
@@ -54,7 +54,15 @@
                                             </td>
                                             <td class="text-end"><x-ui.badge tone="danger" dot>{{ $product->stock }}</x-ui.badge></td>
                                             <td class="text-end text-muted">{{ $product->alert_stock }}</td>
-                                            <td class="text-end">{{ money($product->last_unit_price) }}</td>
+                                            <td class="text-end">
+                                                @if ($product->last_unit_price !== null)
+                                                    {{ money($product->last_unit_price) }}
+                                                    <div class="ui-cell-meta">{{ $product->cost_source === 'catalog' ? 'Purchase price (product)' : 'Last purchase' }}</div>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                    <div class="ui-cell-meta">To fill in on the order</div>
+                                                @endif
+                                            </td>
                                             <td>
                                                 <input type="number" class="form-control form-control-sm text-end" name="items[{{ $product->id }}][quantity]"
                                                     value="{{ $product->suggested_quantity }}" min="1" aria-label="Quantity to order">
