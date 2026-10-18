@@ -4,6 +4,7 @@ namespace App\Modules\Stock\Services;
 
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Stock\Models\StockMovement;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -136,6 +137,15 @@ class StockService
 
     public function getAllStockMovements(array $filters = [], int $perPage = 15)
     {
+        return $this->stockMovementsQuery($filters)->paginate($perPage)->withQueryString();
+    }
+
+    /**
+     * Historique des mouvements (page et export) : recherche (motif, produit), type, période.
+     * Les bornes de la période sont incluses (jour entier) et chacune est facultative.
+     */
+    public function stockMovementsQuery(array $filters = []): Builder
+    {
         $query = StockMovement::with(['productColor.product', 'productColor.color', 'productColor.brand']);
 
         if (!empty($filters['search'])) {
@@ -147,16 +157,18 @@ class StockService
             });
         }
 
-        if (!empty($filters['type'])) {
+        if (in_array($filters['type'] ?? null, ['in', 'out'], true)) {
             $query->where('type', $filters['type']);
         }
 
-        if (!empty($filters['date_from']) && !empty($filters['date_to'])) {
-            $query->whereBetween('created_at', [$filters['date_from'], $filters['date_to']]);
+        foreach (['date_from' => '>=', 'date_to' => '<='] as $bound => $operator) {
+            $value = $filters[$bound] ?? null;
+            if ($value instanceof \DateTimeInterface || (is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}/', $value))) {
+                $query->whereDate('created_at', $operator, $value);
+            }
         }
 
-        return $query->orderBy('created_at', 'desc')
-            ->paginate($perPage)->withQueryString();
+        return $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
     }
     public function getStockMovementById(int $id): StockMovement
     {

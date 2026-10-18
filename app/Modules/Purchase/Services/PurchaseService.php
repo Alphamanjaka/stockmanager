@@ -5,6 +5,7 @@ namespace App\Modules\Purchase\Services;
 use App\Modules\Catalog\Support\VariantOptions;
 use App\Modules\Purchase\Models\Purchase;
 use App\Modules\Purchase\Models\PurchaseItem;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use App\Modules\Stock\Services\StockService;
 
@@ -259,26 +260,15 @@ class PurchaseService
      */
     public function getPurchasesForApi(array $params = [], int $perPage = 15)
     {
-        $query = Purchase::with('supplier');
-
-        // Traitement des filtres de Tabulator (onglets et recherche par colonne)
-        if (!empty($params['filter']) && is_array($params['filter'])) {
-            foreach ($params['filter'] as $filter) {
-                if (isset($filter['field']) && isset($filter['value']) && $filter['value'] !== null) {
-                    if ($filter['field'] === 'state') {
-                        $query->where('state', '=', $filter['value']);
-                    }
-                    if ($filter['field'] === 'reference') {
-                        $query->whereLike('reference', '%' . $filter['value'] . '%');
-                    }
-                    if ($filter['field'] === 'supplier.name') {
-                        $query->whereHas('supplier', function ($q) use ($filter) {
-                            $q->whereLike('name', '%' . $filter['value'] . '%');
-                        });
-                    }
-                }
+        // Filtres de Tabulator (onglets et recherche par colonne) → filtres de la liste (mêmes que l'export)
+        $filters = [];
+        foreach (is_array($params['filter'] ?? null) ? $params['filter'] : [] as $filter) {
+            if (is_array($filter) && isset($filter['field'], $filter['value']) && is_string($filter['value'])) {
+                // La colonne « Supplier » du tableau s'appelle supplier (supplier.name : ancien nom, conservé)
+                $filters[$filter['field'] === 'supplier.name' ? 'supplier' : $filter['field']] = $filter['value'];
             }
         }
+        $query = $this->listQuery($filters, sorted: false);
 
         // Tri dynamique
         // Seules les colonnes de la table purchases sont triables : un champ inconnu (ex. "supplier.name")
@@ -295,6 +285,20 @@ class PurchaseService
         }
 
         return $query->paginate($perPage);
+    }
+
+    /**
+     * Liste des achats (tableau de la page et export) : statut, référence, fournisseur.
+     *
+     * @param array{state?: ?string, reference?: ?string, supplier?: ?string} $filters
+     */
+    public function listQuery(array $filters, bool $sorted = true): Builder
+    {
+        return Purchase::with('supplier')
+            ->when(in_array($filters['state'] ?? null, ['Draft', 'Ordered', 'Received'], true), fn ($q) => $q->where('state', $filters['state']))
+            ->when($filters['reference'] ?? null, fn ($q, $reference) => $q->whereLike('reference', "%{$reference}%"))
+            ->when($filters['supplier'] ?? null, fn ($q, $supplier) => $q->whereHas('supplier', fn ($s) => $s->whereLike('name', "%{$supplier}%")))
+            ->when($sorted, fn ($q) => $q->latest());
     }
 
     /**

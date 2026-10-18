@@ -5,6 +5,7 @@ namespace App\Modules\Inventory\Services;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Inventory\Models\Inventory;
 use App\Modules\Stock\Services\StockService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -14,13 +15,19 @@ class InventoryService
 
     public function getAll(int $perPage = 15)
     {
-        return Inventory::with(['category', 'user'])
+        return $this->listQuery()->paginate($perPage);
+    }
+
+    /** Liste des inventaires (page et export), du plus récent au plus ancien. */
+    public function listQuery(): Builder
+    {
+        return Inventory::with(['category', 'user', 'validator'])
             ->withCount([
                 'lines',
                 'lines as counted_lines_count' => fn ($q) => $q->whereNotNull('counted_quantity'),
             ])
             ->latest()
-            ->paginate($perPage);
+            ->latest('id');
     }
 
     /**

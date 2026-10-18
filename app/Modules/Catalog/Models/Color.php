@@ -25,4 +25,10 @@ class Color extends Model
     {
         return $this->belongsToMany(Product::class);
     }
+
+    /** Variantes de cette couleur (product_colors.color_id, conservé pendant la transition vers les options). */
+    public function variants()
+    {
+        return $this->hasMany(ProductColor::class);
+    }
 }

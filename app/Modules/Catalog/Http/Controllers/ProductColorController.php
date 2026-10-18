@@ -10,7 +10,6 @@ use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Catalog\Services\ProductService;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Sale\Services\SaleService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Core\Http\Controllers\Concerns\ArchivesRecords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -27,14 +26,6 @@ class ProductColorController extends Controller
         protected ProductColorService $productColorService,
         protected SaleService $saleService
     ) {}
-    public function exportPdf(Request $request)
-    {
-        $products = $this->productColorService->getAll([], false); // Toutes les variantes, sans pagination
-
-        $pdf = Pdf::loadView('catalog::products.pdf', compact('products'));
-
-        return $pdf->download('products.pdf');
-    }
 
     /**
      * Liste des produits, une ligne par variante (même requête que l'export : ProductsExport).

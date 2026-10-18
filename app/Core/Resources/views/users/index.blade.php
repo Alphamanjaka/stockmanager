@@ -3,6 +3,9 @@
 @section('title', 'Users')
 
 @section('actions')
+    <x-ui.actions-menu>
+        <x-ui.export-items list="users" />
+    </x-ui.actions-menu>
     <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg" aria-hidden="true"></i> New user
     </a>

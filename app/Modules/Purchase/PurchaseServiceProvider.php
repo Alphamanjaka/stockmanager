@@ -3,6 +3,7 @@
 namespace App\Modules\Purchase;
 
 use App\Core\Support\ModuleServiceProvider;
+use App\Modules\Purchase\Exports\PurchasesExport;
 
 /**
  * Module Purchase : commandes fournisseurs, panier d'achat, réapprovisionnement depuis les ruptures.
@@ -11,6 +12,10 @@ use App\Core\Support\ModuleServiceProvider;
 class PurchaseServiceProvider extends ModuleServiceProvider
 {
     protected string $name = 'purchase';
+
+    protected array $exports = [
+        'purchases' => PurchasesExport::class,
+    ];
 
     protected array $menu = [
         'purchase' => [

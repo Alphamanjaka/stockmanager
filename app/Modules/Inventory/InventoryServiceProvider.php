@@ -3,6 +3,7 @@
 namespace App\Modules\Inventory;
 
 use App\Core\Support\ModuleServiceProvider;
+use App\Modules\Inventory\Exports\InventoriesExport;
 
 /**
  * Module Inventory : inventaires physiques (comptage du stock réel).
@@ -11,6 +12,10 @@ use App\Core\Support\ModuleServiceProvider;
 class InventoryServiceProvider extends ModuleServiceProvider
 {
     protected string $name = 'inventory';
+
+    protected array $exports = [
+        'inventories' => InventoriesExport::class,
+    ];
 
     protected array $menu = [
         'stock' => [

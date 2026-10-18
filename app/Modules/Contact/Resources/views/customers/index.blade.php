@@ -3,6 +3,9 @@
 @section('title', 'Customers')
 
 @section('actions')
+    <x-ui.actions-menu>
+        <x-ui.export-items list="customers" />
+    </x-ui.actions-menu>
     <a href="{{ route('admin.customers.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg" aria-hidden="true"></i> New customer
     </a>

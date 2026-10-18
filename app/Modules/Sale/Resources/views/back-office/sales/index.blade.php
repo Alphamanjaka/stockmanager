@@ -3,6 +3,9 @@
 @section('title', 'Sales')
 
 @section('actions')
+    <x-ui.actions-menu>
+        <x-ui.export-items list="sales" />
+    </x-ui.actions-menu>
     <a href="{{ route('admin.sales.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg" aria-hidden="true"></i> New sale
     </a>
@@ -25,6 +28,21 @@
         @endif
 
         <x-ui.card flush :pagination="$sales">
+            <x-slot:toolbar>
+                <x-ui.filters :action="route('admin.sales.index')">
+                    @if ($customer)
+                        <input type="hidden" name="customer" value="{{ $customer->id }}">
+                    @endif
+                    <x-ui.search placeholder="Reference or customer..." />
+                    <div class="input-group ui-filter">
+                        <span class="input-group-text">From</span>
+                        <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" aria-label="From">
+                        <span class="input-group-text">To</span>
+                        <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}" aria-label="To">
+                    </div>
+                </x-ui.filters>
+            </x-slot:toolbar>
+
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
@@ -50,9 +68,11 @@
                                 <td class="text-end text-danger">{{ $sale->discount > 0 ? '-' . money($sale->discount) : '—' }}</td>
                                 <td class="text-end fw-semibold">{{ money($sale->total_net) }}</td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.sales.show', $sale->id) }}" class="btn btn-icon" title="View" aria-label="View">
-                                        <i class="bi bi-eye" aria-hidden="true"></i>
-                                    </a>
+                                    <x-ui.actions-menu row>
+                                        <x-ui.menu-item :href="route('admin.sales.show', $sale->id)" icon="bi-eye">View</x-ui.menu-item>
+                                        <x-ui.menu-item :href="route('admin.sales.pdf', $sale->id)" icon="bi-file-earmark-pdf">Invoice (PDF)</x-ui.menu-item>
+                                        <x-ui.menu-item :href="route('admin.sales.receipt', $sale->id)" icon="bi-printer" target="_blank">Receipt</x-ui.menu-item>
+                                    </x-ui.actions-menu>
                                 </td>
                             </tr>
                         @empty
