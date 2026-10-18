@@ -28,7 +28,6 @@ foreach (['products' => ProductColorController::class, 'categories' => CategoryC
 // Pas de edit/update : la fiche produit (show) édite les informations et les variantes en AJAX
 // destroy : suppression définitive d'un produit archivé et jamais utilisé
 Route::resource('products', ProductColorController::class)->except(['edit', 'update']);
-Route::get('/products/export/pdf', [ProductColorController::class, 'exportPdf'])->name('products.exportPdf');
 
 Route::resource('categories', CategoryController::class);
 Route::resource('colors', ColorController::class)->except(['show']);

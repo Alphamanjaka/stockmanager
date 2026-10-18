@@ -5,6 +5,7 @@ namespace App\Modules\Sale\Services;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleItem;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Modules\Stock\Services\StockService;
@@ -136,10 +137,25 @@ class SaleService
      */
     public function getAllSales(int $perPage = 15, array $filters = [])
     {
-        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user'])
+        return $this->listQuery($filters)
+            ->with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand'])
+            ->paginate($perPage);
+    }
+
+    /**
+     * Liste des ventes (page et export) : référence ou client, client, vendeur, période (bornes incluses).
+     *
+     * @param array{search?: ?string, customer?: ?int, user?: ?int, date_from?: ?string, date_to?: ?string} $filters
+     */
+    public function listQuery(array $filters = []): Builder
+    {
+        $date = fn (?string $value) => $value && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : null;
+
+        return Sale::with(['customer', 'user'])
             ->latest()
             ->when($filters['search'] ?? null, function ($query, $search) {
-                $query->whereLike('reference', "%{$search}%");
+                $query->where(fn ($q) => $q->whereLike('reference', "%{$search}%")
+                    ->orWhereHas('customer', fn ($c) => $c->whereLike('name', "%{$search}%")));
             })
             ->when($filters['customer'] ?? null, function ($query, $customerId) {
                 $query->where('customer_id', $customerId);
@@ -147,7 +163,8 @@ class SaleService
             ->when($filters['user'] ?? null, function ($query, $userId) {
                 $query->where('user_id', $userId);
             })
-            ->paginate($perPage);
+            ->when($date($filters['date_from'] ?? null), fn ($query, $from) => $query->whereDate('created_at', '>=', $from))
+            ->when($date($filters['date_to'] ?? null), fn ($query, $to) => $query->whereDate('created_at', '<=', $to));
     }
 
     public function getSaleById(int $id): Sale

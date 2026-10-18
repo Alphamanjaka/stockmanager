@@ -3,6 +3,9 @@
 @section('title', 'Stock counts')
 
 @section('actions')
+    <x-ui.actions-menu>
+        <x-ui.export-items list="inventories" />
+    </x-ui.actions-menu>
     <a href="{{ route('admin.inventories.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg" aria-hidden="true"></i> New stock count
     </a>

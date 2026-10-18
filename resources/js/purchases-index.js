@@ -1,5 +1,6 @@
 // Liste des achats (purchases/index.blade.php) : tableau Tabulator alimenté par l'API, filtre par statut,
-// actions rapides (réception, suppression). Boîtes de dialogue : window.Swal (charte, resources/js/ui.js).
+// actions rapides (réception, suppression), liens d'export aux filtres du tableau.
+// Boîtes de dialogue : window.Swal (charte, resources/js/ui.js).
 
 document.addEventListener("DOMContentLoaded", function () {
     const tableElement = document.getElementById("purchases-table");
@@ -130,6 +131,27 @@ document.addEventListener("DOMContentLoaded", function () {
             if (state) {
                 table.setFilter("state", "=", state);
             }
+        });
+    });
+
+    // Exports : mêmes filtres que le tableau (statut, référence, fournisseur), lus à chaque chargement
+    const exportLinks = [...document.querySelectorAll("[data-export-link]")];
+    exportLinks.forEach((link) => {
+        link.dataset.baseHref = link.href;
+    });
+
+    table.on("dataLoaded", () => {
+        const params = {};
+        [...table.getFilters(), ...table.getHeaderFilters()].forEach(({ field, value }) => {
+            if (["state", "reference", "supplier"].includes(field) && typeof value === "string" && value !== "") {
+                params[field] = value;
+            }
+        });
+
+        exportLinks.forEach((link) => {
+            const url = new URL(link.dataset.baseHref);
+            url.search = new URLSearchParams(params).toString();
+            link.href = url.toString();
         });
     });
 

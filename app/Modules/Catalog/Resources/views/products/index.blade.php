@@ -4,7 +4,7 @@
 
 @section('actions')
     <x-ui.actions-menu>
-        <x-ui.menu-item :href="route('admin.products.exportPdf')" icon="bi-file-earmark-pdf">Export PDF</x-ui.menu-item>
+        <x-ui.export-items list="products" />
         <li><hr class="dropdown-divider"></li>
         <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">Import products</x-ui.menu-item>
     </x-ui.actions-menu>

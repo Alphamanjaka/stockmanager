@@ -29,7 +29,8 @@ class SaleAdminController extends Controller
         // ?customer=ID : historique des ventes d'un client (lien depuis la fiche client)
         $customer = $request->filled('customer') ? Customer::find($request->integer('customer')) : null;
 
-        $sales = $this->saleService->getAllSales(15, ['customer' => $customer?->id])->withQueryString();
+        $filters = $request->only(['search', 'date_from', 'date_to']) + ['customer' => $customer?->id];
+        $sales = $this->saleService->getAllSales(15, $filters)->withQueryString();
         $stats   = $this->saleService->getSalesStatistics();
         return view('sale::back-office.sales.index', array_merge(compact('sales', 'customer'), $stats));
     }

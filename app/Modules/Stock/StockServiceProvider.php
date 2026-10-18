@@ -4,6 +4,7 @@ namespace App\Modules\Stock;
 
 use App\Core\Support\ModuleServiceProvider;
 use App\Modules\Stock\Console\Commands\MonitorStockDrop;
+use App\Modules\Stock\Exports\StockMovementsExport;
 
 /**
  * Module Stock : mouvements de stock (entrées/sorties), alertes et valorisation.
@@ -16,6 +17,10 @@ class StockServiceProvider extends ModuleServiceProvider
 
     protected array $commands = [
         MonitorStockDrop::class,
+    ];
+
+    protected array $exports = [
+        'movements' => StockMovementsExport::class,
     ];
 
     protected array $menu = [

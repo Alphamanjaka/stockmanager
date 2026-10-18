@@ -2,6 +2,7 @@
 
 namespace App\Core\Support;
 
+use App\Core\Exports\ExportRegistry;
 use App\Core\Navigation\BackOfficeMenu;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +18,7 @@ use Illuminate\Support\ServiceProvider;
  * - Routes/saler.php     → front office : préfixe /saler, noms "saler.*", auth + ensure.front.office
  * - Routes/api.php       → appels AJAX du back office : préfixe /api, auth + ensure.back.office
  * - $menuSpaces, $menu   → espaces du lanceur et pages du module dans le menu du back office
+ * - $exports             → exports PDF / Excel des listes du module (App\Core\Exports\ListExport)
  *
  * La protection est appliquée ici : une route placée dans le bon fichier ne peut pas être exposée par oubli.
  */
@@ -46,9 +48,16 @@ abstract class ModuleServiceProvider extends ServiceProvider
      */
     protected array $menu = [];
 
+    /**
+     * Exports PDF / Excel des listes du module : ['clé d'URL' => classe qui étend App\Core\Exports\ListExport].
+     * Servis par la route admin.exports.download (admin/exports/{clé}/{pdf|xlsx}).
+     */
+    protected array $exports = [];
+
     public function register(): void
     {
         $this->app->singletonIf(BackOfficeMenu::class);
+        $this->app->singletonIf(ExportRegistry::class);
     }
 
     public function boot(): void
@@ -62,6 +71,8 @@ abstract class ModuleServiceProvider extends ServiceProvider
         foreach ($this->menu as $space => $entries) {
             $menu->addEntries($space, $entries);
         }
+
+        $this->app->make(ExportRegistry::class)->add($this->exports);
 
         foreach ($this->listen as $event => $listeners) {
             foreach ((array) $listeners as $listener) {

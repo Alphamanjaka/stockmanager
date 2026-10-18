@@ -4,6 +4,8 @@
 
 @section('actions')
     <x-ui.actions-menu>
+        <x-ui.export-items list="suppliers" />
+        <li><hr class="dropdown-divider"></li>
         <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">Import suppliers</x-ui.menu-item>
     </x-ui.actions-menu>
     <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary">

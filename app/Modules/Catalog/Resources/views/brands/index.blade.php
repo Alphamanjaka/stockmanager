@@ -3,6 +3,9 @@
 @section('title', 'Brands')
 
 @section('actions')
+    <x-ui.actions-menu>
+        <x-ui.export-items list="brands" />
+    </x-ui.actions-menu>
     <a href="{{ route('admin.brands.create') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg" aria-hidden="true"></i> New brand
     </a>
