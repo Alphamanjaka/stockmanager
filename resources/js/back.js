@@ -1,5 +1,8 @@
 // Logique spécifique au Back-Office (les messages de session sont affichés par ui.js)
 
+// Sélection multiple des listes et barre d'actions groupées
+import "./bulk-select.js";
+
 document.addEventListener("DOMContentLoaded", function () {
     // --- Raccourcis Clavier (Alt + Touche) ---
     // Les touches viennent du menu déclaré par les modules (BackOfficeMenu), rendu en JSON par le layout.

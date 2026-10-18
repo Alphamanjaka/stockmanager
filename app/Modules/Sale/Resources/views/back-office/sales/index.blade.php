@@ -27,7 +27,7 @@
             </x-ui.alert>
         @endif
 
-        <x-ui.card flush :pagination="$sales">
+        <x-ui.card flush :pagination="$sales" data-bulk>
             <x-slot:toolbar>
                 <x-ui.filters :action="route('admin.sales.index')">
                     @if ($customer)
@@ -43,10 +43,13 @@
                 </x-ui.filters>
             </x-slot:toolbar>
 
+            <x-ui.bulk-bar export="sales" />
+
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <x-ui.bulk-check-all />
                             <th>Reference</th>
                             <th>Date</th>
                             <th>Customer</th>
@@ -60,6 +63,7 @@
                     <tbody>
                         @forelse ($sales as $sale)
                             <tr>
+                                <x-ui.bulk-check :value="$sale->id" :label="$sale->reference" />
                                 <td><a href="{{ route('admin.sales.show', $sale->id) }}" class="link-plain">{{ $sale->reference }}</a></td>
                                 <td class="text-nowrap">{{ $sale->created_at->format('d/m/Y H:i') }}</td>
                                 <td>{{ $sale->customer->name ?? '—' }}</td>
@@ -76,7 +80,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <x-ui.empty-row :colspan="8" icon="bi-receipt">No sale found.</x-ui.empty-row>
+                            <x-ui.empty-row :colspan="9" icon="bi-receipt">No sale found.</x-ui.empty-row>
                         @endforelse
                     </tbody>
                 </table>

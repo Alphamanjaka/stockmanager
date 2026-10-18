@@ -20,7 +20,7 @@
         <x-ui.archived-notice />
     @endif
 
-    <x-ui.card flush :pagination="$suppliers">
+    <x-ui.card flush :pagination="$suppliers" data-bulk>
         <x-slot:toolbar>
             <x-ui.filters :action="route('admin.suppliers.index')">
                 <x-ui.search placeholder="Search by name, phone, email or notes..." />
@@ -28,10 +28,13 @@
             </x-ui.filters>
         </x-slot:toolbar>
 
+        <x-ui.bulk-bar export="suppliers" :archive="route('admin.suppliers.archive')" :restore="route('admin.suppliers.restore')" />
+
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <x-ui.bulk-check-all />
                         <th>Name</th>
                         <th>Phone</th>
                         <th>Email</th>
@@ -42,6 +45,7 @@
                 <tbody>
                     @forelse ($suppliers as $supplier)
                         <tr>
+                            <x-ui.bulk-check :value="$supplier->id" :label="$supplier->name" />
                             <td><a href="{{ route('admin.suppliers.show', $supplier->id) }}" class="link-plain">{{ $supplier->name }}</a></td>
                             <td class="text-nowrap">{{ $supplier->phone ?: '—' }}</td>
                             <td>{{ $supplier->email ?: '—' }}</td>
@@ -65,7 +69,7 @@
                             </td>
                         </tr>
                     @empty
-                        <x-ui.empty-row :colspan="5" icon="bi-truck">
+                        <x-ui.empty-row :colspan="6" icon="bi-truck">
                             {{ $archived ? 'No archived supplier.' : 'No supplier found.' }}
                         </x-ui.empty-row>
                     @endforelse
