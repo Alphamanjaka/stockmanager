@@ -1,249 +1,157 @@
 @extends('layouts.app-back-office')
+
+@section('title', 'Stock movements')
+@section('subtitle', 'Every stock change: received purchases, sales, stock counts and corrections.')
+
 @section('actions')
-    <a href="{{ route('admin.movements.create') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Add Movement
+    {{-- Secours en cas d'erreur de saisie : volontairement en bouton secondaire --}}
+    <a href="{{ route('admin.movements.create') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left-right" aria-hidden="true"></i> Stock correction
     </a>
 @endsection
-@section('content')
 
-    <!-- Nav Tabs -->
-    <ul class="nav nav-tabs" id="movementTabs" role="tablist">
+@section('content')
+    <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="list-tab" data-bs-toggle="tab" data-bs-target="#list-pane" type="button"
                 role="tab" aria-controls="list-pane" aria-selected="true">
-                <i class="fas fa-list me-1"></i> Historique
+                <i class="bi bi-list-ul" aria-hidden="true"></i> History
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats-pane" type="button"
                 role="tab" aria-controls="stats-pane" aria-selected="false">
-                <i class="fas fa-chart-line me-1"></i> Statistiques
+                <i class="bi bi-graph-up" aria-hidden="true"></i> Statistics
             </button>
         </li>
     </ul>
 
-    <!-- Tab Content -->
-    <div class="tab-content" id="movementTabsContent">
-        {{-- Tab 1: Liste des Mouvements --}}
+    <div class="tab-content">
+        {{-- Historique --}}
         <div class="tab-pane fade show active" id="list-pane" role="tabpanel" aria-labelledby="list-tab" tabindex="0">
-            <div class="py-4">
-                {{-- Filters & List Section --}}
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Movement History</h6>
-                    </div>
-
-                    <div class="card-body border-bottom bg-light">
-                        <form method="GET" action="{{ route('admin.movements.index') }}" class="row g-2 align-items-end">
-                            <div class="col-md-4">
-                                <label class="form-label small text-muted mb-1">Search</label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                                    <input type="text" name="search" class="form-control"
-                                        placeholder="Product, reason..." value="{{ request('search') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small text-muted mb-1">Type</label>
-                                <select name="type" class="form-select form-select-sm">
-                                    <option value="">Tous</option>
-                                    <option value="in" {{ request('type') == 'in' ? 'selected' : '' }}>Entrées
-                                    </option>
-                                    <option value="out" {{ request('type') == 'out' ? 'selected' : '' }}>Sorties
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small text-muted mb-1">Period</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="date" name="date_from" class="form-control"
-                                        value="{{ request('date_from') }}">
-                                    <span class="input-group-text">-</span>
-                                    <input type="date" name="date_to" class="form-control"
-                                        value="{{ request('date_to') }}">
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
-                            </div>
-                            <div class="col-md-1">
-                                <a href="{{ route('admin.movements.index') }}"
-                                    class="btn btn-outline-secondary btn-sm w-100" title="Reset"><i
-                                        class="fas fa-undo"></i></a>
-                            </div>
-                        </form>
-                    </div>
-
-                    {{-- Table View (Compact) --}}
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0 align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th class="ps-4">Date</th>
-                                        <th>Product</th>
-                                        <th>Type</th>
-                                        <th>Quantity</th>
-                                        <th>Stock (Before &rarr; After)</th>
-                                        <th>Reason</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($stockMovements as $movement)
-                                        @php
-                                            $isManual =
-                                                str_contains(strtolower($movement->reason), 'ajustement') ||
-                                                str_contains(strtolower($movement->reason), 'manuel');
-                                            $isSale =
-                                                str_contains(strtolower($movement->reason), 'vente') ||
-                                                str_contains(strtolower($movement->reason), 'sale');
-                                            $isPurchase =
-                                                str_contains(strtolower($movement->reason), 'achat') ||
-                                                str_contains(strtolower($movement->reason), 'pur');
-
-                                            $badgeClass = 'bg-secondary';
-                                            $badgeText = 'Autre';
-
-                                            if ($isManual) {
-                                                $badgeClass = 'bg-info text-dark';
-                                                $badgeText = 'Ajustement';
-                                            } elseif ($movement->type === 'in') {
-                                                $badgeClass = 'bg-success';
-                                                $badgeText = $isPurchase ? 'Achat' : 'Entrée';
-                                            } elseif ($movement->type === 'out') {
-                                                $badgeClass = 'bg-danger';
-                                                $badgeText = $isSale ? 'Vente' : 'Sortie';
-                                            }
-
-                                            $isLowStock =
-                                                $movement->stock_after <= ($movement->productColor->alert_stock ?? 0);
-                                        @endphp
-                                        <tr>
-                                            <td class="ps-4 text-nowrap">
-                                                <div class="fw-bold">{{ $movement->created_at->format('d/m/Y') }}
-                                                </div>
-                                                <div class="small text-muted">
-                                                    {{ $movement->created_at->format('H:i') }}</div>
-                                            </td>
-                                            <td>
-                                                {{-- link to movement detail --}}
-                                                <a href="{{ route('admin.movements.show', $movement->id) }}"
-                                                    class="fw-bold text-dark">
-                                                    {{ $movement->productColor->toString() }}
-                                                </a>
-
-                                                @if ($isLowStock)
-                                                    <i class="fas fa-exclamation-triangle text-danger ms-1"
-                                                        title="Stock bas"></i>
-                                                @endif
-                                            </td>
-                                            <td><span class="badge {{ $badgeClass }}">{{ $badgeText }}</span>
-                                            </td>
-                                            <td
-                                                class="fw-bold {{ $movement->type === 'in' ? 'text-success' : 'text-danger' }}">
-                                                {{ $movement->type === 'in' ? '+' : '-' }}{{ abs($movement->quantity) }}
-                                            </td>
-                                            <td>
-                                                <span class="text-muted">{{ $movement->stock_before }}</span>
-                                                <i class="fas fa-long-arrow-alt-right mx-1 text-muted small"></i>
-                                                <span class="fw-bold">{{ $movement->stock_after }}</span>
-                                            </td>
-                                            <td class="text-muted small text-truncate" style="max-width: 200px;"
-                                                title="{{ $movement->reason }}">
-                                                {{ $movement->reason }}
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="6" class="text-center py-4 text-muted">No movement found.
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+            <x-ui.card flush :pagination="$stockMovements">
+                <x-slot:toolbar>
+                    <x-ui.filters :action="route('admin.movements.index')">
+                        <x-ui.search placeholder="Product, reason..." />
+                        <select name="type" class="form-select ui-filter" aria-label="Type">
+                            <option value="">All types</option>
+                            <option value="in" @selected(request('type') == 'in')>Stock in</option>
+                            <option value="out" @selected(request('type') == 'out')>Stock out</option>
+                        </select>
+                        <div class="input-group ui-filter">
+                            <span class="input-group-text">From</span>
+                            <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" aria-label="From">
+                            <span class="input-group-text">To</span>
+                            <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}" aria-label="To">
                         </div>
-                    </div>
+                    </x-ui.filters>
+                </x-slot:toolbar>
 
-                    {{-- Pagination --}}
-                    <div class="card-footer py-3">
-                        <div class="d-flex justify-content-center">
-                            {{ $stockMovements->links() }}
-                        </div>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>Type</th>
+                                <th class="text-end">Quantity</th>
+                                <th class="text-end">Stock before → after</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($stockMovements as $movement)
+                                @php
+                                    // Nature du mouvement déduite du motif (correction, inventaire, vente, achat)
+                                    $reason = strtolower((string) $movement->reason);
+                                    if (str_starts_with($reason, 'correction')) {
+                                        [$tone, $label] = ['warning', 'Correction'];
+                                    } elseif (str_starts_with($reason, 'inventaire')) {
+                                        [$tone, $label] = ['info', 'Stock count'];
+                                    } elseif (str_contains($reason, 'ajustement') || str_contains($reason, 'manuel')) {
+                                        [$tone, $label] = ['info', 'Adjustment'];
+                                    } elseif ($movement->type === 'in') {
+                                        [$tone, $label] = ['success', str_contains($reason, 'achat') || str_contains($reason, 'pur') ? 'Purchase' : 'Stock in'];
+                                    } elseif ($movement->type === 'out') {
+                                        [$tone, $label] = ['danger', str_contains($reason, 'vente') || str_contains($reason, 'sale') ? 'Sale' : 'Stock out'];
+                                    } else {
+                                        [$tone, $label] = ['neutral', 'Other'];
+                                    }
+                                    $isLowStock = $movement->stock_after <= ($movement->productColor->alert_stock ?? 0);
+                                @endphp
+                                <tr>
+                                    <td class="text-nowrap">
+                                        {{ $movement->created_at->format('d/m/Y') }}
+                                        <div class="ui-cell-meta">{{ $movement->created_at->format('H:i') }}</div>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('admin.movements.show', $movement->id) }}" class="link-plain">
+                                            {{ $movement->productColor->toString() }}
+                                        </a>
+                                        @if ($isLowStock)
+                                            <i class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Low stock" aria-label="Low stock"></i>
+                                        @endif
+                                    </td>
+                                    <td><x-ui.badge :tone="$tone" dot>{{ $label }}</x-ui.badge></td>
+                                    <td @class(['text-end fw-semibold', 'text-success' => $movement->type === 'in', 'text-danger' => $movement->type !== 'in'])>
+                                        {{ $movement->type === 'in' ? '+' : '-' }}{{ abs($movement->quantity) }}
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <span class="text-muted">{{ $movement->stock_before }}</span>
+                                        <i class="bi bi-arrow-right text-subtle mx-1" aria-hidden="true"></i>
+                                        <span class="fw-semibold">{{ $movement->stock_after }}</span>
+                                    </td>
+                                    <td class="text-muted text-truncate" style="max-width: 240px;" title="{{ $movement->reason }}">
+                                        {{ $movement->reason }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <x-ui.empty-row :colspan="6" icon="bi-arrow-left-right">No movement found.</x-ui.empty-row>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-            </div>
+            </x-ui.card>
         </div>
 
-        {{-- Tab 2: Statistiques --}}
+        {{-- Statistiques --}}
         <div class="tab-pane fade" id="stats-pane" role="tabpanel" aria-labelledby="stats-tab" tabindex="0">
-            <div class="py-4">
-                <div class="row mb-4">
-                    {{-- Chart (Left, larger) --}}
-                    <div class="col-lg-8 mb-4 mb-lg-0">
-                        <div class="card shadow h-100">
-                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                <h6 class="m-0 font-weight-bold text-primary">
-                                    <i class="fas fa-chart-line me-1"></i> Stock Value Evolution (30 days )
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="chart-area" style="height: 300px;">
-                                    <canvas id="stockValueChart"></canvas>
-                                </div>
-                            </div>
+            <div class="row g-3">
+                <div class="col-lg-8">
+                    <x-ui.card title="Stock value" subtitle="Last 30 days" class="h-100">
+                        <div style="height: 300px;">
+                            <canvas id="stockValueChart" role="img" aria-label="Stock value over the last 30 days"></canvas>
                         </div>
-                    </div>
+                    </x-ui.card>
+                </div>
 
-                    {{-- Stats (Right, stacked) --}}
-                    <div class="col-lg-4">
-                        {{-- Dormant --}}
-                        <div class="card border-warning shadow mb-3">
-                            <div class="card-header bg-warning text-dark py-2">
-                                <h6 class="mb-0 small fw-bold"><i class="fas fa-bed me-1"></i> Dormant Products (>
-                                    60 days)</h6>
-                            </div>
-                            <div class="card-body p-2" style="max-height: 140px; overflow-y: auto;">
-                                @if ($dormantProducts->isEmpty())
-                                    <p class="text-muted mb-0 small">R.A.S.</p>
-                                @else
-                                    <ul class="list-group list-group-flush small">
-                                        @foreach ($dormantProducts as $product)
-                                            <li
-                                                class="list-group-item d-flex justify-content-between align-items-center px-0 py-1">
-                                                <span class="text-truncate"
-                                                    style="max-width: 150px;">{{ $product->name }}</span>
-                                                <span
-                                                    class="badge bg-secondary rounded-pill">{{ $product->quantity_stock }}</span>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            </div>
-                        </div>
+                <div class="col-lg-4">
+                    <div class="ui-stack h-100">
+                        <x-ui.card title="Dormant products" subtitle="No movement for more than 60 days" flush>
+                            <ul class="list-group list-group-flush" style="max-height: 180px; overflow-y: auto;">
+                                @forelse ($dormantProducts as $product)
+                                    <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                                        <span class="text-truncate">{{ $product->name }}</span>
+                                        <x-ui.badge tone="neutral">{{ $product->quantity_stock }}</x-ui.badge>
+                                    </li>
+                                @empty
+                                    <li class="list-group-item text-muted">Nothing to report.</li>
+                                @endforelse
+                            </ul>
+                        </x-ui.card>
 
-                        {{-- Rotation --}}
-                        <div class="card border-success shadow">
-                            <div class="card-header bg-success text-white py-2">
-                                <h6 class="mb-0 small fw-bold"><i class="fas fa-sync-alt me-1"></i> Top Rotation
-                                </h6>
-                            </div>
-                            <div class="card-body p-2" style="max-height: 140px; overflow-y: auto;">
-                                @if ($rotationStats->isEmpty())
-                                    <p class="text-muted mb-0 small">Not enough data.</p>
-                                @else
-                                    <ul class="list-group list-group-flush small">
-                                        @foreach ($rotationStats as $stat)
-                                            <li
-                                                class="list-group-item d-flex justify-content-between align-items-center px-0 py-1">
-                                                <span class="text-truncate"
-                                                    style="max-width: 150px;" title="{{ $stat->productColor->label }}">{{ $stat->productColor->label }}</span>
-                                                <span class="badge bg-primary rounded-pill">-{{ $stat->total_out }}</span>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            </div>
-                        </div>
+                        <x-ui.card title="Top rotation" subtitle="Most frequent stock outs" flush>
+                            <ul class="list-group list-group-flush" style="max-height: 180px; overflow-y: auto;">
+                                @forelse ($rotationStats as $stat)
+                                    <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                                        <span class="text-truncate" title="{{ $stat->productColor->label }}">{{ $stat->productColor->label }}</span>
+                                        <x-ui.badge tone="primary">-{{ $stat->total_out }}</x-ui.badge>
+                                    </li>
+                                @empty
+                                    <li class="list-group-item text-muted">Not enough data.</li>
+                                @endforelse
+                            </ul>
+                        </x-ui.card>
                     </div>
                 </div>
             </div>
@@ -251,71 +159,39 @@
     </div>
 @endsection
 
-
 @push('scripts')
     <script type="module">
-        document.addEventListener("DOMContentLoaded", function() {
-            const ctx = document.getElementById('stockValueChart').getContext('2d');
-            const data = @json($stockValueEvolution);
+        const data = @json($stockValueEvolution);
+        const color = window.appTheme.token('chart-1');
+        const currency = {{ Js::from(settings('currency_symbol', 'MGA')) }};
 
-            const labels = data.map(item => item.date);
-            const values = data.map(item => item.value);
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Valeur Totale (€)',
-                        data: values,
-                        borderColor: '#4e73df',
-                        backgroundColor: 'rgba(78, 115, 223, 0.05)',
-                        pointRadius: 3,
-                        pointBackgroundColor: '#4e73df',
-                        pointBorderColor: '#4e73df',
-                        pointHoverRadius: 3,
-                        pointHoverBackgroundColor: '#4e73df',
-                        pointHoverBorderColor: '#4e73df',
-                        pointHitRadius: 10,
-                        pointBorderWidth: 2,
-                        fill: true,
-                        tension: 0.3 // Courbe lissée
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
+        new Chart(document.getElementById('stockValueChart'), {
+            type: 'line',
+            data: {
+                labels: data.map(item => item.date),
+                datasets: [{
+                    label: 'Total value',
+                    data: data.map(item => item.value),
+                    borderColor: color,
+                    backgroundColor: window.appTheme.alpha(color, 0.08),
+                    fill: true,
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.parsed.y.toLocaleString()} ${currency}`,
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.parsed.y.toLocaleString('fr-FR', {
-                                        style: 'currency',
-                                        currency: 'EUR'
-                                    });
-                                }
-                            }
-                        }
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: false,
-                            grid: {
-                                borderDash: [2],
-                                drawBorder: false
-                            }
-                        }
-                    }
-                }
-            });
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: false },
+                },
+            },
         });
     </script>
 @endpush

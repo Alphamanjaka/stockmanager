@@ -1,36 +1,25 @@
-<div class="card shadow-sm">
-    <div class="card-header bg-white fw-bold">Regional Configuration</div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Currency Symbol</label>
-                <input type="text" class="form-control" name="currency_symbol" value="{{ $settings['currency_symbol'] ?? '€' }}">
-            </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Currency position</label>
-                <select class="form-select" name="currency_position">
-                    <option value="after" {{ ($settings['currency_position'] ?? '') == 'after' ? 'selected' : '' }}>After the amount (100 €)</option>
-                    <option value="before" {{ ($settings['currency_position'] ?? '') == 'before' ? 'selected' : '' }}>Before the amount (€ 100)</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Timezone</label>
-            <select class="form-select" name="timezone">
+<x-ui.card title="Regional & currency" subtitle="Currency, time zone and date format used everywhere in the application">
+    <div class="row">
+        <x-ui.field class="col-md-6" name="currency_symbol" label="Currency symbol" :value="$settings['currency_symbol'] ?? '€'" />
+        <x-ui.field class="col-md-6" name="currency_position" label="Currency position">
+            <select class="form-select" id="currency_position" name="currency_position">
+                <option value="after" @selected(($settings['currency_position'] ?? '') == 'after')>After the amount (100 €)</option>
+                <option value="before" @selected(($settings['currency_position'] ?? '') == 'before')>Before the amount (€ 100)</option>
+            </select>
+        </x-ui.field>
+        <x-ui.field class="col-md-6 mb-0" name="timezone" label="Time zone">
+            <select class="form-select" id="timezone" name="timezone">
                 @foreach (timezone_identifiers_list() as $timezone)
-                    <option value="{{ $timezone }}" {{ ($settings['timezone'] ?? 'UTC') == $timezone ? 'selected' : '' }}>{{ $timezone }}</option>
+                    <option value="{{ $timezone }}" @selected(($settings['timezone'] ?? 'UTC') == $timezone)>{{ $timezone }}</option>
                 @endforeach
             </select>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Date format</label>
-            <select class="form-select" name="date_format">
-                <option value="d/m/Y" {{ ($settings['date_format'] ?? '') == 'd/m/Y' ? 'selected' : '' }}>JJ/MM/AAAA (31/12/2024)</option>
-                <option value="Y-m-d" {{ ($settings['date_format'] ?? '') == 'Y-m-d' ? 'selected' : '' }}>AAAA-MM-JJ (2024-12-31)</option>
-                <option value="m/d/Y" {{ ($settings['date_format'] ?? '') == 'm/d/Y' ? 'selected' : '' }}>MM/JJ/AAAA (12/31/2024)</option>
+        </x-ui.field>
+        <x-ui.field class="col-md-6 mb-0" name="date_format" label="Date format">
+            <select class="form-select" id="date_format" name="date_format">
+                <option value="d/m/Y" @selected(($settings['date_format'] ?? '') == 'd/m/Y')>DD/MM/YYYY (31/12/2024)</option>
+                <option value="Y-m-d" @selected(($settings['date_format'] ?? '') == 'Y-m-d')>YYYY-MM-DD (2024-12-31)</option>
+                <option value="m/d/Y" @selected(($settings['date_format'] ?? '') == 'm/d/Y')>MM/DD/YYYY (12/31/2024)</option>
             </select>
-        </div>
+        </x-ui.field>
     </div>
-</div>
+</x-ui.card>

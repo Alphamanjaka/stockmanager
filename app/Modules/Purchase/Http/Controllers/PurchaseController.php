@@ -2,7 +2,9 @@
 
 namespace App\Modules\Purchase\Http\Controllers;
 
+use App\Modules\Purchase\Http\Requests\SavePurchaseRequest;
 use App\Modules\Purchase\Http\Resources\PurchaseApiResourceCollection;
+use App\Modules\Purchase\Models\Purchase;
 use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Contact\Services\SupplierService;
@@ -101,9 +103,6 @@ class PurchaseController extends Controller
         return new PurchaseApiResourceCollection($purchases);
     }
 
-
-
-
     /**
      * Display a listing of the resource.
      */
@@ -119,121 +118,25 @@ class PurchaseController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Nouveau bon de commande.
      */
     public function create()
     {
-        $cart = session()->get('purchase_cart', []);
-        $cartItems = $this->purchaseService->getCartDetails($cart);
-        $productsVariant = $this->productColorService->getAll([], false); // Pour la recherche/ajout
-        $suppliers = $this->supplierService->getAllSuppliers();
-
-        // Préparation des produits pour la recherche côté client
-        $searchProducts = $productsVariant->map(function ($product) {
-            return [
-                'id' => $product->id,
-                'name' => $product->label,
-                'price' => $product->price,
-                'price_purchase' => $product->price_purchase,
-                'stock' => $product->stock,
-                'searchable' => mb_strtolower($product->label . ' ' . $product->sku),
-            ];
-        });
-
-        return view('purchase::purchases.create', compact('productsVariant', 'suppliers', 'cartItems', 'searchProducts'));
+        return view('purchase::purchases.create', $this->formData());
     }
 
     /**
-     * Ajoute un produit au panier en session.
+     * Enregistre un bon de commande, puis applique l'action du bouton : brouillon, commandé ou réceptionné.
      */
-    public function addToCart(Request $request)
+    public function store(SavePurchaseRequest $request)
     {
-        $validated = $request->validate([
-            'product_color_id' => 'required|exists:product_colors,id',
-            'quantity' => 'required|integer|min:1',
-            'unit_price' => 'required|numeric|min:0',
-        ]);
-
-        $cart = session()->get('purchase_cart', []);
-        $id = $validated['product_color_id'];
-
-        if (isset($cart[$id])) {
-            $cart[$id]['quantity'] += $validated['quantity'];
-            $cart[$id]['unit_price'] = $validated['unit_price']; // Met à jour le prix avec le dernier saisi
-        } else {
-            $cart[$id] = [
-                'quantity' => $validated['quantity'],
-                'unit_price' => $validated['unit_price']
-            ];
-        }
-
-        session()->put('purchase_cart', $cart);
-
-        return redirect()->route('admin.purchases.create')->with('success', 'Produit ajouté au panier.');
-    }
-
-    /**
-     * Supprime un produit du panier.
-     */
-    public function removeFromCart(int $id)
-    {
-        $cart = session()->get('purchase_cart', []);
-
-        if (isset($cart[$id])) {
-            unset($cart[$id]);
-            session()->put('purchase_cart', $cart);
-        }
-
-        return redirect()->route('admin.purchases.create')->with('info', 'Produit retiré du panier.');
-    }
-
-    /**
-     * Vide le panier.
-     */
-    public function clearCart()
-    {
-        session()->forget('purchase_cart');
-        return redirect()->route('admin.purchases.create')->with('warning', 'Le panier a été vidé.');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $cart = session()->get('purchase_cart', []);
-
-        if (empty($cart)) {
-            return back()->with('error', 'Le panier est vide.');
-        }
-
-        $request->validate([
-            'supplier_id' => 'nullable|exists:suppliers,id',
-        ]);
-
-        // Transformation du panier session au format attendu par le service
-        $items = [];
-        foreach ($cart as $id => $details) {
-            $items[] = [
-                'product_color_id' => $id,
-                'quantity' => $details['quantity'],
-                'unit_price' => $details['unit_price']
-            ];
-        }
-
         try {
-            $purchase = $this->purchaseService->processPurchase(
-                $request->input('supplier_id'),
-                $items
-            );
-
-            session()->forget('purchase_cart');
-
-            return redirect()->route('admin.purchases.index')
-                ->with('success', "L'achat {$purchase->reference} a été enregistré. Le stock a été mis à jour.");
+            $purchase = $this->purchaseService->savePurchaseOrder(null, $request->validated(), $request->action());
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['error' => $e->getMessage()]);
+            return back()->withInput()->with('error', "Erreur lors de l'enregistrement de l'achat : " . $e->getMessage());
         }
+
+        return redirect()->route('admin.purchases.show', $purchase->id)->with('success', $this->savedMessage($purchase, $request->action()));
     }
 
     /**
@@ -246,39 +149,18 @@ class PurchaseController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Modification d'un bon de commande : seul un brouillon peut l'être.
      */
     public function edit(int $id)
     {
         $purchase = $this->purchaseService->getPurchaseById($id);
-        $productsVariant = $this->productColorService->getAll([], false);
-        $suppliers = $this->supplierService->getAllSuppliers();
 
-        // Préparation des produits pour la recherche côté client
-        $searchProducts = $productsVariant->map(function ($product) {
-            return [
-                'id' => $product->id,
-                'name' => $product->label,
-                'price' => $product->price,
-                'stock' => $product->stock,
-                'searchable' => mb_strtolower($product->label . ' ' . $product->sku),
-            ];
-        });
+        if ($purchase->state !== 'Draft') {
+            return redirect()->route('admin.purchases.show', $id)->with('error', 'Seul un achat en brouillon peut être modifié.');
+        }
 
-        // Préparation des items actuels pour l'interface JS
-        $currentItems = $purchase->items->map(function ($item) {
-            return [
-                'product_color_id' => $item->product_color_id,
-                'name' => $item->productColor->toString(),
-                'quantity' => $item->quantity,
-                'unit_price' => $item->unit_price,
-            ];
-        });
-
-        return view('purchase::purchases.edit', compact('purchase', 'productsVariant', 'suppliers', 'searchProducts', 'currentItems'));
+        return view('purchase::purchases.edit', $this->formData($purchase));
     }
-
-
 
     /**
      * Remove the specified resource from storage.
@@ -303,24 +185,25 @@ class PurchaseController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Enregistre les modifications d'un brouillon, puis applique l'action du bouton.
      */
-    public function update(Request $request, int $id)
+    public function update(SavePurchaseRequest $request, int $id)
     {
-        $validated = $request->validate([
-            'supplier_id'           => 'nullable|exists:suppliers,id',
-            'products'              => 'required|array|min:1',
-            'products.*.product_color_id' => 'required|exists:product_colors,id',
-            'products.*.quantity'   => 'required|integer|min:1',
-            'products.*.unit_price' => 'required|numeric|min:0',
-        ]);
-
         try {
-            $this->purchaseService->updatePurchase($id, $validated);
-            return redirect()->route('admin.purchases.show', $id)->with('success', 'L\'achat a été mis à jour.');
+            $purchase = $this->purchaseService->savePurchaseOrder($id, $request->validated(), $request->action());
         } catch (\Exception $e) {
-            return back()->with('error', 'Erreur lors de la mise à jour de l\'achat : ' . $e->getMessage())->withInput();
+            return back()->withInput()->with('error', "Erreur lors de la mise à jour de l'achat : " . $e->getMessage());
         }
+
+        return redirect()->route('admin.purchases.show', $id)->with('success', $this->savedMessage($purchase, $request->action()));
+    }
+
+    /**
+     * Derniers prix payés au fournisseur, par variante (JSON) : coût proposé dans le bon de commande.
+     */
+    public function supplierPrices(int $supplier)
+    {
+        return response()->json(['prices' => (object) $this->purchaseService->lastUnitPricesForSupplier($supplier)]);
     }
 
     /**
@@ -367,5 +250,60 @@ class PurchaseController extends Controller
             }
             return back()->with('error', "Erreur lors du changement de statut : " . $e->getMessage());
         }
+    }
+
+    /**
+     * Données du formulaire de bon de commande : catalogue pour la recherche, fournisseurs,
+     * ruptures par fournisseur et lignes de départ (achat modifié, ou saisie renvoyée après une erreur).
+     */
+    private function formData(?Purchase $purchase = null): array
+    {
+        $catalog = $this->productColorService->getAll([], false)->map(fn ($variant) => [
+            'id' => $variant->id,
+            'name' => $variant->label,
+            'sku' => $variant->sku,
+            'stock' => (int) $variant->stock,
+            'alert' => (int) $variant->alert_stock,
+            // Coût proposé par défaut : prix d'achat de la variante (jamais son prix de vente)
+            'cost' => (float) $variant->price_purchase,
+        ])->values();
+
+        // Ruptures (stock au seuil d'alerte ou en dessous), rangées par dernier fournisseur connu
+        $shortages = $this->purchaseService->getShortageProductsGroupedBySupplier()
+            ->filter(fn ($group) => !empty($group['supplier_id']))
+            ->mapWithKeys(fn ($group) => [$group['supplier_id'] => collect($group['products'])->map(fn ($product) => [
+                'id' => $product->id,
+                'quantity' => $product->suggested_quantity,
+                'unit_price' => (float) $product->last_unit_price,
+            ])->values()]);
+
+        $lines = old('products', $purchase?->items->map(fn ($item) => [
+            'product_color_id' => $item->product_color_id,
+            'quantity' => $item->quantity,
+            'unit_price' => (float) $item->unit_price,
+        ])->all() ?? []);
+
+        return [
+            'purchase' => $purchase,
+            'suppliers' => $this->supplierService->getAllSuppliers(),
+            'formData' => [
+                'catalog' => $catalog,
+                'shortages' => $shortages,
+                'lines' => array_values($lines),
+                'pricesUrl' => route('admin.purchases.supplier-prices', ['supplier' => '__SUPPLIER__']),
+                'currency' => settings('currency_symbol', 'MGA'),
+                'currencyBefore' => settings('currency_position', 'after') === 'before',
+            ],
+        ];
+    }
+
+    /** Message affiché après l'enregistrement, selon l'action choisie. */
+    private function savedMessage(Purchase $purchase, string $action): string
+    {
+        return match ($action) {
+            'ordered' => "L'achat {$purchase->reference} est enregistré comme commandé.",
+            'received' => "L'achat {$purchase->reference} est réceptionné : le stock a été augmenté.",
+            default => "L'achat {$purchase->reference} est enregistré en brouillon. Le stock augmentera à sa réception.",
+        };
     }
 }

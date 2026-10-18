@@ -4,14 +4,7 @@ import "./bootstrap";
 import $ from "jquery";
 import * as bootstrap from "bootstrap";
 
-// --- 2. Styles (CSS) ---
-// Library CSS
-import "select2/dist/css/select2.min.css";
-import "select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css";
-// Custom CSS
-import "../css/purchase-form.css";
-
-// --- 3. Third-Party Libraries ---
+// --- 2. Third-Party Libraries ---
 // Chart.js
 import Chart from "chart.js/auto";
 import annotationPlugin from "chartjs-plugin-annotation";
@@ -19,16 +12,19 @@ import "chartjs-adapter-date-fns";
 
 // Tabulator
 import { TabulatorFull as Tabulator } from "tabulator-tables";
-// SweetAlert2
-import Swal from "sweetalert2";
 // Select2
 import select2 from "select2";
 
+// --- 3. Interface commune (boîtes de dialogue, confirmations, couleurs des graphiques) ---
+import { AppSwal, token, alpha, chartPalette } from "./ui.js";
+
 // --- 4. Global Assignments & Configuration ---
+// Les styles des bibliothèques sont chargés par resources/css/custom.css
 window.$ = window.jQuery = $;
 window.bootstrap = bootstrap;
 window.Tabulator = Tabulator;
-window.Swal = Swal;
+window.Swal = AppSwal;
+window.appTheme = { token, alpha, chartPalette };
 
 Chart.register(annotationPlugin);
 window.Chart = Chart;
@@ -36,5 +32,4 @@ select2();
 
 // --- 5. Custom Scripts ---
 import "./themes.js";
-import "./sidebar.js";
-import "./global-search.js"; // Nouvelle importation
+import "./global-search.js";

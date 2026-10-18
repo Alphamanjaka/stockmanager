@@ -1,96 +1,15 @@
+/*
+ * Feuille commune au back office, au front office et à la connexion : bibliothèques, puis thème de l'application.
+ * Le thème (resources/css/theme/) habille Bootstrap par ses variables : la charte se règle dans theme/tokens.css.
+ */
+
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
-@import '@fortawesome/fontawesome-free/css/all.min.css';
 @import 'select2/dist/css/select2.min.css';
 @import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';
 @import 'tabulator-tables/dist/css/tabulator_bootstrap5.min.css';
 
-/* Global Font Size Reduction */
-body {
-    font-size: 0.85rem;
-}
-
-.h1,
-h1 {
-    font-size: 1.5rem;
-}
-
-.h2,
-h2 {
-    font-size: 1.25rem;
-}
-
-.h3,
-h3 {
-    font-size: 1.1rem;
-}
-
-.h4,
-h4 {
-    font-size: 1rem;
-}
-
-.h5,
-h5 {
-    font-size: 0.9rem;
-}
-
-.h6,
-h6 {
-    font-size: 0.8rem;
-}
-
-.btn {
-    font-size: 0.8rem;
-}
-
-.form-control,
-.form-select {
-    font-size: 0.8rem;
-}
-
-.card-header {
-    padding: 0.5rem 1rem;
-}
-
-.card-body {
-    padding: 1rem;
-}
-
-
-/* Variables par défaut (Mode Clair) */
-:root {
-    --bg-main: #f8f9fa;
-    --text-main: #212529;
-    --card-bg: #ffffff;
-    --border-color: #dee2e6;
-}
-
-/* Variables pour le Mode Sombre */
-[data-theme="dark"] {
-    --bg-main: #121212;
-    --text-main: #e9ecef;
-    --card-bg: #1e1e1e;
-    --border-color: #333;
-}
-
-/* Application des variables */
-body {
-    background-color: var(--bg-main) !important;
-    color: var(--text-main) !important;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-main {
-    background-color: var(--bg-main) !important;
-}
-
-/* On force la bordure du bas à s'adapter */
-.border-bottom {
-    border-bottom-color: var(--border-color) !important;
-}
-
-/* Optionnel : On adapte les liens du fil d'Ariane */
-[data-theme="dark"] .breadcrumb-item.active {
-    color: #adb5bd !important;
-}
+@import './theme/tokens.css';
+@import './theme/base.css';
+@import './theme/components.css';
+@import './theme/vendors.css';

@@ -35,39 +35,35 @@ class StockMovementController extends Controller
 
 
     /**
-     * Show the form for creating a new resource.
+     * Formulaire de correction de stock (secours en cas d'erreur de saisie).
+     * ?variant=<id> présélectionne une variante (lien depuis la fiche produit).
      */
-    public function create()
+    public function create(Request $request)
     {
         $productColors = $this->productColorService->getAll([], false);
-        return view('stock::stock_movements.create', compact('productColors'));
+        $selectedId = $request->integer('variant') ?: null;
+
+        return view('stock::stock_movements.create', compact('productColors', 'selectedId'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Enregistre une correction de stock : le stock ne change que par ce mouvement historisé.
      */
     public function store(StoreStockMovementRequest $request)
     {
         $validatedData = $request->validated();
 
         try {
-            if ($validatedData['type'] === 'in') {
-                $this->stockService->addStock(
-                    $validatedData['product_color_id'],
-                    $validatedData['quantity'],
-                    $validatedData['reason'] ?? 'Ajustement manuel'
-                );
-            } else {
-                $this->stockService->removeStock(
-                    $validatedData['product_color_id'],
-                    $validatedData['quantity'],
-                    $validatedData['reason'] ?? 'Ajustement manuel'
-                );
-            }
+            $this->stockService->correct(
+                $validatedData['product_color_id'],
+                $validatedData['type'],
+                $validatedData['quantity'],
+                $validatedData['reason']
+            );
 
-            return redirect()->back()->with('success', 'Mouvement de stock créé avec succès.');
+            return redirect()->route('admin.movements.index')->with('success', 'Correction de stock enregistrée.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
     }
 

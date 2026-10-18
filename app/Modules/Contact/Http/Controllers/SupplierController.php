@@ -85,6 +85,7 @@ class SupplierController extends Controller
             'email'   => 'nullable|email|max:255',
             'phone'   => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
+            'notes'   => 'nullable|string|max:2000',
         ]);
 
         $this->supplierService->updateSupplier($supplier, $validated);

@@ -7,17 +7,23 @@ export default defineConfig({
         laravel({
             input: [
                 // Points d'entrée communs
-                "resources/css/custom.css", // Contient Bootstrap, FontAwesome, etc.
+                "resources/css/custom.css", // Bootstrap, Bootstrap Icons, bibliothèques et thème (resources/css/theme)
                 "resources/js/app.js",
 
                 // Points d'entrée du Back-Office
-                "resources/css/sidebar.css",
+                "resources/css/back-office.css",
                 "resources/js/back.js",
                 "resources/js/purchases-index.js",
+                "resources/js/purchase-form.js", // Bon de commande (création et modification d'un achat)
 
                 // Points d'entrée du Front-Office
                 "resources/css/front.css",
-                "resources/js/front.js",
+
+                // Connexion et choix du profil
+                "resources/css/auth.css",
+
+                // Écran de caisse (front et back office)
+                "resources/js/pos.js",
             ],
             refresh: true,
         }),

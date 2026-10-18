@@ -29,4 +29,35 @@ return [
     'logout' => 'Déconnexion',
     'admin' => 'Admin',
     'footer_rights' => 'Tous droits réservés.',
+    // Boîtes de confirmation (resources/js/ui.js)
+    'cancel' => 'Annuler',
+    'confirm' => 'Confirmer',
+
+    // Lanceur de modules et menu du back office
+    'launcher' => 'Modules',
+    'open_launcher' => 'Afficher les modules',
+    'module_menu' => 'Menu du module',
+    'breadcrumb' => "Fil d'Ariane",
+    'spaces' => [
+        'catalog' => 'Catalogue',
+        'stock' => 'Stock',
+    ],
+    'menu' => [
+        'all_products' => 'Tous les produits',
+        'new_product' => 'Nouveau produit',
+        'movement_history' => 'Historique des mouvements',
+        'new_movement' => 'Correction de stock',
+        'all_stock_counts' => 'Tous les inventaires',
+        'new_stock_count' => 'Nouvel inventaire',
+        'all_purchases' => 'Tous les achats',
+        'new_purchase' => 'Nouvel achat',
+        'restock' => 'Réapprovisionner les ruptures',
+        'all_sales' => 'Toutes les ventes',
+        'new_sale' => 'Nouvelle vente',
+    ],
+    'crumbs' => [
+        'create' => 'Nouveau',
+        'show' => 'Détail',
+        'edit' => 'Modifier',
+    ],
 ];

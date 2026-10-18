@@ -1,76 +1,45 @@
 @extends('layouts.app-front-office')
 
-@section('title', 'Product Catalog')
+@section('title', 'Product catalog')
 
 @section('content')
-    <div class="card shadow-sm">
-        <div class="card-header bg-white py-3">
-            <form action="{{ route('saler.products.index') }}" method="GET" class="row g-3">
-                <div class="col-md-10">
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
-                        <input type="text" name="search" class="form-control border-start-0 ps-0"
-                            placeholder="Search by name or reference..." value="{{ request('search') }}">
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Filter</button>
-                </div>
-            </form>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
+    <x-ui.card flush :pagination="$products">
+        <x-slot:toolbar>
+            <x-ui.filters :action="route('saler.products.index')">
+                <x-ui.search placeholder="Search by name or reference..." />
+            </x-ui.filters>
+        </x-slot:toolbar>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th class="text-end">Price</th>
+                        <th class="text-end">Stock</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($products as $item)
                         <tr>
-                            <th>Name</th>
-                            <th class="text-center">Category</th>
-                            <th class="text-end">Price</th>
-                            <th class="text-center">Stock</th>
-                            <th class="text-end pe-4">Action</th>
+                            <td>
+                                <div class="ui-cell-title">{{ $item->toString() }}</div>
+                                @if ($item->sku)
+                                    <div class="ui-cell-meta">{{ $item->sku }}</div>
+                                @endif
+                            </td>
+                            <td><span class="ui-tag">{{ $item->getCategoryNameAttribute() }}</span></td>
+                            <td class="text-end fw-semibold">{{ money($item->price, 0) }}</td>
+                            <td class="text-end">
+                                <x-ui.badge :tone="$item->stock <= $item->alert_stock ? 'danger' : 'success'" dot>{{ $item->stock }}</x-ui.badge>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($products as $item)
-                            <tr>
-                                <td>
-                                    <div class="fw-bold">
-                                        {{ $item->toString() }}
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    {{ $item->getCategoryNameAttribute() }}
-                                </td>
-                                <td class="text-end fw-bold text-primary">
-                                    {{ number_format($item->price, 0, ',', ' ') }}
-                                    {{ $settings['currency_symbol'] ?? 'Mga' }}
-                                </td>
-                                <td class="text-center">
-                                    @if ($item->stock <= $item->alert_stock)
-                                        <span class="badge bg-danger rounded-pill px-3">
-                                            {{ $item->stock }}
-                                        </span>
-                                    @else
-                                        <span class="badge bg-success rounded-pill px-3">
-                                            {{ $item->stock }}
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="text-end pe-4">
-                                    {{-- Link to add to cart (if implemented later) --}}
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">No products found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                    @empty
+                        <x-ui.empty-row :colspan="4" icon="bi-box">No product found.</x-ui.empty-row>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-        <div class="card-footer bg-white">
-            {{ $products->links() }}
-        </div>
-    </div>
+    </x-ui.card>
 @endsection

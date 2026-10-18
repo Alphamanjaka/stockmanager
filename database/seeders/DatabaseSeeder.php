@@ -8,6 +8,8 @@ use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Color;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Contact\Models\Supplier;
+use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Sale\Services\SaleService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -73,12 +75,11 @@ class DatabaseSeeder extends Seeder
         foreach ($productsData as $data) {
             $product = Product::create($data);
 
-            // Pour chaque produit, on crée les 4 variantes de couleur
+            // Pour chaque produit, on crée les 4 variantes de couleur (stock à 0 : le catalogue ne gère pas le stock)
             foreach ($colorModels as $color) {
                 $variant = ProductColor::create([
                     'product_id' => $product->id,
                     'color_id' => $color->id,
-                    'stock' => 20, // Stock initial de 50 pour chaque variante
                     'alert_stock' => 5,
                     'price' => 15000000, // Si un prix est défini au niveau du produit, on l'utilise, sinon 0
                 ]);
@@ -86,7 +87,22 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // 5. Création de 5 Ventes Statiques via le SaleService
+        // Stock de départ : un achat reçu par produit (20 unités par variante), comme dans la réalité.
+        // Toute entrée de stock passe par un mouvement « Réception Achat ».
+        $purchaseService = app(PurchaseService::class);
+        foreach (array_chunk($allVariants, count($colorModels)) as $productVariants) {
+            $openingPurchase = $purchaseService->processPurchase(
+                Supplier::query()->value('id'),
+                array_map(fn (ProductColor $variant) => [
+                    'product_color_id' => $variant->id,
+                    'quantity' => 20,
+                    'unit_price' => 1000000,
+                ], $productVariants)
+            );
+            $purchaseService->changeState($openingPurchase, 'Received');
+        }
+
+        // 5. Création de 5 Ventes Statiques via le SaleService (sorties de stock)
         // On récupère le service via le container pour que la logique de stock s'applique
         $saleService = app(SaleService::class);
 

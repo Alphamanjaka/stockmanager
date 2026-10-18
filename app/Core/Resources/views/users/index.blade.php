@@ -1,102 +1,73 @@
-@extends('layouts.app-back-office') {{-- Adaptez à votre layout principal --}}
-@section('title', 'User Management')
+@extends('layouts.app-back-office')
+
+@section('title', 'Users')
+
 @section('actions')
     <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-        <i class="fa fa-plus"></i> Create User
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> New user
     </a>
 @endsection
+
 @section('content')
+    <x-ui.card flush :pagination="$users">
+        <x-slot:toolbar>
+            <x-ui.filters :action="route('admin.users.index')">
+                <x-ui.search placeholder="Search by name or email..." />
+                <select name="role" class="form-select ui-filter" aria-label="Role">
+                    <option value="">All roles</option>
+                    <option value="back_office" @selected(request('role') === 'back_office')>Administrators</option>
+                    <option value="front_office" @selected(request('role') === 'front_office')>Sellers</option>
+                </select>
+            </x-ui.filters>
+        </x-slot:toolbar>
 
-
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-    @if (session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            {{-- recherche --}}
-            <form action="{{ url('admin/users') }}" method="GET" class="row align-items-center">
-                @csrf
-                <div class="col-md-6">
-                    <input type="text" name="search" class="form-control" placeholder="Search for a user..."
-                        value="{{ request('search') }}">
-                </div>
-                {{--  user filter: seller and administrator --}}
-                <div class="col-md-2">
-                    <select name="role" class="form-select" aria-label="Default select example">
-                        <option value="vendeur">seller</option>
-                        <option value="administrateur">administrator</option>
-                    </select>
-                </div>
-
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Filter</button>
-                    <a href="{{ url('admin/users') }}" class="btn btn-outline-secondary" rel="noopener">Reset</a>
-                </div>
-            </form>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
-                    <thead class="table-light">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th class="text-end">Sales made</th>
+                        <th>Created on</th>
+                        <th class="text-end"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($users as $user)
                         <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th class="text-center">Sales made</th>
-                            <th>Created at</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($users as $user)
-                            <tr>
-                                <td>{{ $user->name }}</td>
-                                <td>{{ $user->email }}</td>
-                                <td>
-                                    <span class="badge {{ $user->isBackOffice() ? 'bg-success' : 'bg-info text-dark' }}">
-                                        {{ $user->isBackOffice() ? 'Administrator' : 'Seller' }}
-                                    </span>
-                                </td>
-                                <td class="text-center">{{ $user->sales_count }}</td>
-                                <td>{{ $user->created_at->format('d/m/Y') }}</td>
-                                <td class="text-center">
-                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-warning"
-                                        title="Edit">
-                                        <i class="fa fa-pencil-alt"></i>
+                            <td>
+                                <span class="d-inline-flex align-items-center gap-2">
+                                    <span class="ui-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
+                                    <span class="fw-semibold">{{ $user->name }}</span>
+                                </span>
+                            </td>
+                            <td>{{ $user->email }}</td>
+                            <td>
+                                @if ($user->isBackOffice())
+                                    <x-ui.badge tone="primary" icon="bi-shield-check">Administrator</x-ui.badge>
+                                @else
+                                    <x-ui.badge tone="neutral" icon="bi-shop">Seller</x-ui.badge>
+                                @endif
+                            </td>
+                            <td class="text-end">{{ $user->sales_count }}</td>
+                            <td>{{ $user->created_at->format('d/m/Y') }}</td>
+                            <td class="text-end">
+                                <div class="ui-row-actions">
+                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-icon" title="Edit" aria-label="Edit">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>
                                     </a>
-                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
-                                        class="d-inline"
-                                        onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete"
-                                            {{ auth()->id() === $user->id ? 'disabled' : '' }}>
-                                            <i class="fa fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center">No users found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div class="d-flex justify-content-center">
-                {{ $users->links() }}
-            </div>
+                                    <x-ui.delete-button :action="route('admin.users.destroy', $user)" confirm="Delete this user?"
+                                        :disabled="auth()->id() === $user->id"
+                                        :title="auth()->id() === $user->id ? 'You cannot delete your own account' : 'Delete'" />
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <x-ui.empty-row :colspan="6" icon="bi-people">No user found.</x-ui.empty-row>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-    </div>
+    </x-ui.card>
 @endsection

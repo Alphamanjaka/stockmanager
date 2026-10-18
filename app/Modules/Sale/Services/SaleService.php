@@ -17,10 +17,12 @@ class SaleService
      * Crée une vente en l'associant à un utilisateur.
      * Si l'ID utilisateur n'est pas fourni, il utilise l'utilisateur authentifié.
      *
-     * @param array $customer client facultatif : ['customer_id' => id] pour un client existant,
-     *                        ou ['new_customer_name' => ..., 'new_customer_phone' => ...] pour le créer
+     * @param array $details client et encaissement, tous facultatifs :
+     *                       - ['customer_id' => id] pour un client existant,
+     *                         ou ['new_customer_name' => ..., 'new_customer_phone' => ...] pour le créer
+     *                       - ['payment_method' => 'cash'|'mobile_money'|'card', 'amount_received' => somme remise]
      */
-    public function createSale(array $productsData, float $discount = 0, ?int $user_id = null, array $customer = []): Sale
+    public function createSale(array $productsData, float $discount = 0, ?int $user_id = null, array $details = []): Sale
     {
         $userId = $user_id ?? auth()->id();
 
@@ -28,17 +30,20 @@ class SaleService
             throw new \Exception("Impossible de créer une vente : aucun utilisateur n'est authentifié ou fourni.");
         }
 
-        return DB::transaction(function () use ($productsData, $discount, $userId, $customer) {
+        return DB::transaction(function () use ($productsData, $discount, $userId, $details) {
             // 1. On prépare la vente (un client créé ici est annulé si la vente échoue)
             $sale = new Sale([
-                'customer_id' => $this->resolveCustomerId($customer),
+                'customer_id' => $this->resolveCustomerId($details),
                 'reference'  => 'SALE-' . strtoupper(Str::random(8)),
                 'discount'   => $discount,
                 'user_id'    => $userId, // Toujours mieux de savoir qui a vendu
+                'payment_method' => $details['payment_method'] ?? Sale::PAYMENT_CASH,
                 'company_name' => settings('company_name', 'StockMaster Pro'),
                 'company_email' => settings('company_email', ''),
                 'company_phone' => settings('company_phone', ''),
                 'company_address' => settings('company_address', ''),
+                // Devise figée comme les coordonnées : le reçu reste juste si le paramètre change
+                'currency_symbol' => settings('currency_symbol', 'MGA'),
             ]);
 
             $totalBrut = 0;
@@ -75,6 +80,7 @@ class SaleService
             // 3. Sauvegarde de la vente avec les vrais totaux du premier coup
             $sale->total_brut = $totalBrut;
             $sale->total_net = max(0, $totalBrut - $discount);
+            $sale->amount_received = $this->amountReceived($sale, $details['amount_received'] ?? null);
             $sale->save();
 
             // 4. Création groupée des lignes (une seule requête SQL au lieu d'une par produit)
@@ -101,6 +107,23 @@ class SaleService
         }
 
         return null;
+    }
+
+    /**
+     * Somme encaissée. En espèces, la somme remise doit couvrir le net à payer (calculé ici avec les prix
+     * de la base, pas ceux affichés en caisse) ; sans somme saisie ou pour un autre mode, c'est le montant exact.
+     */
+    private function amountReceived(Sale $sale, mixed $received): float
+    {
+        if ($sale->payment_method !== Sale::PAYMENT_CASH || $received === null || $received === '') {
+            return (float) $sale->total_net;
+        }
+
+        if (round((float) $received, 2) < round((float) $sale->total_net, 2)) {
+            throw new \Exception("Montant reçu insuffisant : {$received} reçu pour {$sale->total_net} à payer.");
+        }
+
+        return (float) $received;
     }
 
     /**

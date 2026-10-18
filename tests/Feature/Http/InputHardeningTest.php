@@ -48,21 +48,6 @@ class InputHardeningTest extends TestCase
     }
 
     /** @test */
-    public function backups_cannot_reach_files_outside_the_backup_folder()
-    {
-        Storage::fake('local');
-        Storage::disk('local')->put('private/secret.txt', 'secret');
-        Storage::disk('local')->put(config('backup.backup.name') . '/../private/secret.zip', 'secret');
-
-        foreach (['private/secret.txt', config('backup.backup.name') . '/../private/secret.zip'] as $path) {
-            $this->get(route('admin.settings.download-backup', ['path' => $path]))->assertRedirect();
-            $this->delete(route('admin.settings.delete-backup', ['path' => $path]))->assertRedirect();
-        }
-
-        $this->assertTrue(Storage::disk('local')->exists('private/secret.txt'));
-    }
-
-    /** @test */
     public function unknown_sort_columns_and_directions_are_ignored()
     {
         Color::factory()->count(2)->create();

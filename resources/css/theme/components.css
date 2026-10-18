@@ -1,0 +1,1236 @@
+/*
+ * Composants : habillage des composants Bootstrap et composants de l'application (ui-*).
+ * Les composants Blade correspondants sont dans resources/views/components/ui/ (<x-ui.card>, <x-ui.field>...).
+ */
+
+/* === Barre d'application : marque et avatar (back office, front office, connexion) =========== */
+
+.ui-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.5rem 0 0.25rem;
+    color: var(--app-shell-text);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+
+.ui-brand:hover {
+    color: #fff;
+}
+
+.ui-brand:focus-visible {
+    outline: 2px solid var(--app-shell-accent);
+    outline-offset: -2px;
+}
+
+.ui-brand-mark {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--app-radius);
+    background: var(--app-shell-accent);
+    color: var(--app-shell-bg);
+    font-size: 0.875rem;
+}
+
+.ui-avatar {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--app-shell-accent);
+    color: var(--app-shell-bg);
+    font-size: var(--app-fs-sm);
+    font-weight: 700;
+}
+
+/* === Boutons ================================================================================= */
+/* Un seul bouton principal par zone (btn-primary) ; actions secondaires en btn-outline-secondary ;
+   suppression en btn-outline-danger ; actions de ligne de tableau en btn-icon. */
+
+.btn {
+    --bs-btn-padding-x: 0.75rem;
+    --bs-btn-padding-y: 0.3125rem;
+    --bs-btn-font-size: var(--app-fs);
+    --bs-btn-font-weight: 500;
+    --bs-btn-line-height: 1.25;
+    --bs-btn-border-radius: var(--app-radius);
+    --bs-btn-focus-box-shadow: var(--app-focus-ring);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    min-height: var(--app-control-height);
+    white-space: nowrap;
+}
+
+.btn-sm {
+    --bs-btn-padding-x: 0.5rem;
+    --bs-btn-padding-y: 0.1875rem;
+    --bs-btn-font-size: var(--app-fs-sm);
+    --bs-btn-border-radius: var(--app-radius);
+    min-height: var(--app-control-height-sm);
+}
+
+.btn-lg {
+    --bs-btn-padding-x: 1rem;
+    --bs-btn-padding-y: 0.5rem;
+    --bs-btn-font-size: 0.875rem;
+    --bs-btn-border-radius: var(--app-radius);
+    min-height: var(--app-control-height-lg);
+}
+
+.btn > .bi {
+    font-size: 1.05em;
+    line-height: 1;
+}
+
+.btn-primary {
+    --bs-btn-color: var(--app-on-primary);
+    --bs-btn-bg: var(--app-primary-bg);
+    --bs-btn-border-color: var(--app-primary-bg);
+    --bs-btn-hover-color: var(--app-on-primary);
+    --bs-btn-hover-bg: var(--app-primary-bg-hover);
+    --bs-btn-hover-border-color: var(--app-primary-bg-hover);
+    --bs-btn-active-color: var(--app-on-primary);
+    --bs-btn-active-bg: var(--app-primary-bg-active);
+    --bs-btn-active-border-color: var(--app-primary-bg-active);
+    --bs-btn-disabled-color: var(--app-on-primary);
+    --bs-btn-disabled-bg: var(--app-primary-bg);
+    --bs-btn-disabled-border-color: var(--app-primary-bg);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--app-primary);
+    --bs-btn-bg: var(--app-surface);
+    --bs-btn-border-color: rgba(var(--app-primary-rgb), 0.45);
+    --bs-btn-hover-color: var(--app-primary-text);
+    --bs-btn-hover-bg: var(--app-primary-soft);
+    --bs-btn-hover-border-color: var(--app-primary);
+    --bs-btn-active-color: var(--app-primary-text);
+    --bs-btn-active-bg: var(--app-primary-soft);
+    --bs-btn-active-border-color: var(--app-primary);
+    --bs-btn-disabled-color: var(--app-primary);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: rgba(var(--app-primary-rgb), 0.3);
+}
+
+/* Bouton neutre (Annuler, Retour, Exporter...) */
+.btn-outline-secondary,
+.btn-secondary,
+.btn-light {
+    --bs-btn-color: var(--app-text);
+    --bs-btn-bg: var(--app-surface);
+    --bs-btn-border-color: var(--app-border-strong);
+    --bs-btn-hover-color: var(--app-text);
+    --bs-btn-hover-bg: var(--app-surface-hover);
+    --bs-btn-hover-border-color: var(--app-border-strong);
+    --bs-btn-active-color: var(--app-text);
+    --bs-btn-active-bg: var(--app-surface-hover);
+    --bs-btn-active-border-color: var(--app-text-subtle);
+    --bs-btn-disabled-color: var(--app-text-subtle);
+    --bs-btn-disabled-bg: var(--app-surface);
+    --bs-btn-disabled-border-color: var(--app-border);
+    box-shadow: var(--app-shadow-sm);
+}
+
+.btn-success {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--app-success-bg);
+    --bs-btn-border-color: var(--app-success-bg);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--app-success-bg-hover);
+    --bs-btn-hover-border-color: var(--app-success-bg-hover);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--app-success-bg-hover);
+    --bs-btn-active-border-color: var(--app-success-bg-hover);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--app-success-bg);
+    --bs-btn-disabled-border-color: var(--app-success-bg);
+}
+
+.btn-outline-success {
+    --bs-btn-color: var(--app-success);
+    --bs-btn-bg: var(--app-surface);
+    --bs-btn-border-color: rgba(var(--app-success-rgb), 0.45);
+    --bs-btn-hover-color: var(--app-success);
+    --bs-btn-hover-bg: var(--app-success-soft);
+    --bs-btn-hover-border-color: var(--app-success);
+    --bs-btn-active-color: var(--app-success);
+    --bs-btn-active-bg: var(--app-success-soft);
+    --bs-btn-active-border-color: var(--app-success);
+}
+
+.btn-danger {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--app-danger-bg);
+    --bs-btn-border-color: var(--app-danger-bg);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--app-danger-bg-hover);
+    --bs-btn-hover-border-color: var(--app-danger-bg-hover);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--app-danger-bg-hover);
+    --bs-btn-active-border-color: var(--app-danger-bg-hover);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--app-danger-bg);
+    --bs-btn-disabled-border-color: var(--app-danger-bg);
+}
+
+.btn-outline-danger {
+    --bs-btn-color: var(--app-danger);
+    --bs-btn-bg: var(--app-surface);
+    --bs-btn-border-color: rgba(var(--app-danger-rgb), 0.45);
+    --bs-btn-hover-color: var(--app-danger);
+    --bs-btn-hover-bg: var(--app-danger-soft);
+    --bs-btn-hover-border-color: var(--app-danger);
+    --bs-btn-active-color: var(--app-danger);
+    --bs-btn-active-bg: var(--app-danger-soft);
+    --bs-btn-active-border-color: var(--app-danger);
+    --bs-btn-disabled-color: var(--app-danger);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: rgba(var(--app-danger-rgb), 0.3);
+}
+
+.btn-warning {
+    --bs-btn-color: #1d2733;
+    --bs-btn-bg: var(--app-warning-bg);
+    --bs-btn-border-color: var(--app-warning-bg);
+    --bs-btn-hover-color: #1d2733;
+    --bs-btn-hover-bg: var(--app-warning-bg-hover);
+    --bs-btn-hover-border-color: var(--app-warning-bg-hover);
+    --bs-btn-active-color: #1d2733;
+    --bs-btn-active-bg: var(--app-warning-bg-hover);
+    --bs-btn-active-border-color: var(--app-warning-bg-hover);
+}
+
+.btn-link {
+    --bs-btn-color: var(--app-primary);
+    --bs-btn-hover-color: var(--app-primary-hover);
+    --bs-btn-active-color: var(--app-primary-hover);
+    --bs-btn-disabled-color: var(--app-text-subtle);
+    --bs-btn-font-weight: 500;
+    text-decoration: none;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+/* Bouton icône (actions d'une ligne de tableau, barres d'outils) : carré, sans bordure */
+.btn-icon {
+    --bs-btn-padding-x: 0;
+    --bs-btn-padding-y: 0;
+    --bs-btn-color: var(--app-text-muted);
+    --bs-btn-bg: transparent;
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-color: var(--app-text);
+    --bs-btn-hover-bg: var(--app-surface-hover);
+    --bs-btn-hover-border-color: transparent;
+    --bs-btn-active-color: var(--app-text);
+    --bs-btn-active-bg: var(--app-border);
+    --bs-btn-active-border-color: transparent;
+    --bs-btn-disabled-color: var(--app-text-subtle);
+    --bs-btn-disabled-border-color: transparent;
+    width: var(--app-control-height-sm);
+    min-height: var(--app-control-height-sm);
+    font-size: 0.9375rem;
+}
+
+.btn-icon.btn-icon-danger {
+    --bs-btn-hover-color: var(--app-danger);
+    --bs-btn-hover-bg: var(--app-danger-soft);
+    --bs-btn-active-color: var(--app-danger);
+    --bs-btn-active-bg: var(--app-danger-soft);
+}
+
+/* Actions d'une ligne : alignées à droite, rapprochées */
+.ui-row-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.125rem;
+}
+
+.ui-row-actions form {
+    display: inline-flex;
+    margin: 0;
+}
+
+/* === Champs ================================================================================== */
+
+.form-label {
+    margin-bottom: 0.3125rem;
+    color: var(--app-text);
+    font-size: var(--app-fs);
+    font-weight: 500;
+}
+
+.form-label.required::after {
+    content: " *";
+    color: var(--app-danger);
+}
+
+.form-control,
+.form-select {
+    min-height: var(--app-control-height);
+    padding-top: 0.3125rem;
+    padding-bottom: 0.3125rem;
+    border-color: var(--app-border-strong);
+    border-radius: var(--app-radius);
+    background-color: var(--app-surface);
+    color: var(--app-text);
+    font-size: var(--app-fs);
+    line-height: 1.375;
+}
+
+.form-control {
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+}
+
+.form-select {
+    padding-left: 0.625rem;
+}
+
+.form-control-sm,
+.form-select-sm {
+    min-height: var(--app-control-height-sm);
+    padding-top: 0.1875rem;
+    padding-bottom: 0.1875rem;
+    font-size: var(--app-fs-sm);
+    border-radius: var(--app-radius);
+}
+
+.form-control-lg,
+.form-select-lg {
+    min-height: var(--app-control-height-lg);
+    font-size: 0.9375rem;
+    border-radius: var(--app-radius);
+}
+
+.form-control::placeholder {
+    color: var(--app-text-subtle);
+}
+
+.form-control:hover:not(:focus):not(:disabled),
+.form-select:hover:not(:focus):not(:disabled) {
+    border-color: var(--app-text-subtle);
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+    border-color: var(--app-primary);
+    box-shadow: var(--app-focus-ring);
+}
+
+.form-control:disabled,
+.form-select:disabled,
+.form-control[readonly] {
+    background-color: var(--app-surface-muted);
+    color: var(--app-text-muted);
+}
+
+.form-control-color {
+    width: 2.5rem;
+    padding: 0.1875rem;
+}
+
+.form-text {
+    margin-top: 0.25rem;
+    color: var(--app-text-muted);
+    font-size: var(--app-fs-sm);
+}
+
+.invalid-feedback {
+    font-size: var(--app-fs-sm);
+}
+
+.form-check-input {
+    border-color: var(--app-border-strong);
+}
+
+.form-check-input:checked {
+    border-color: var(--app-primary-bg);
+    background-color: var(--app-primary-bg);
+}
+
+.input-group-text {
+    border-color: var(--app-border-strong);
+    background-color: var(--app-surface-muted);
+    color: var(--app-text-muted);
+    font-size: var(--app-fs);
+}
+
+.input-group-sm > .input-group-text {
+    font-size: var(--app-fs-sm);
+}
+
+/* Champ avec libellé, aide et erreur (<x-ui.field>) */
+.ui-field {
+    margin-bottom: 1rem;
+}
+
+.ui-field .invalid-feedback {
+    display: block;
+}
+
+/* Champ de recherche avec loupe intégrée (<x-ui.search>) */
+.ui-search {
+    position: relative;
+}
+
+.ui-search > .bi {
+    position: absolute;
+    top: 50%;
+    left: 0.625rem;
+    transform: translateY(-50%);
+    color: var(--app-text-subtle);
+    pointer-events: none;
+}
+
+.ui-search > .form-control {
+    padding-left: 2rem;
+}
+
+/* Recherche et filtres d'une liste (<x-ui.filters>) : contrôles sur une ligne, sans libellé */
+.ui-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ui-filters > .ui-search {
+    flex: 1 1 240px;
+    max-width: 420px;
+}
+
+.ui-filters > .ui-filter {
+    flex: 0 1 200px;
+    width: auto;
+    min-width: 150px;
+}
+
+.ui-filters > .input-group.ui-filter {
+    flex: 0 1 380px;
+}
+
+.ui-filters-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Bloc de champs d'un formulaire (titre de section + grille) */
+.ui-form-section + .ui-form-section {
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--app-border);
+}
+
+.ui-form-section-title {
+    margin-bottom: 0.875rem;
+    color: var(--app-text);
+    font-size: var(--app-fs);
+    font-weight: 600;
+}
+
+.ui-form-section-title + .ui-form-section-hint {
+    margin-top: -0.625rem;
+}
+
+.ui-form-section-hint {
+    margin-bottom: 0.875rem;
+    color: var(--app-text-muted);
+    font-size: var(--app-fs-sm);
+}
+
+/* Boutons d'un formulaire : à droite, Annuler puis l'action principale */
+.ui-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.ui-form-actions .ui-form-actions-start {
+    margin-right: auto;
+}
+
+/* Barre d'actions d'un formulaire en plusieurs cartes : reste visible en bas de l'écran */
+.ui-form-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin-top: 1rem;
+    padding: 0.625rem 1rem;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-lg);
+    background: var(--app-surface);
+    box-shadow: 0 -4px 16px rgba(16, 24, 40, 0.08);
+}
+
+/* Page de formulaire : largeur de lecture confortable */
+.ui-form-page {
+    max-width: 960px;
+}
+
+/* === Cartes ================================================================================== */
+
+.card {
+    --bs-card-bg: var(--app-surface);
+    --bs-card-color: var(--app-text);
+    --bs-card-border-color: var(--app-border);
+    --bs-card-border-radius: var(--app-radius-lg);
+    --bs-card-inner-border-radius: calc(var(--app-radius-lg) - 1px);
+    --bs-card-cap-bg: var(--app-surface);
+    --bs-card-cap-padding-y: 0.625rem;
+    --bs-card-cap-padding-x: 1rem;
+    --bs-card-spacer-y: 1rem;
+    --bs-card-spacer-x: 1rem;
+    --bs-card-title-spacer-y: 0;
+    box-shadow: var(--app-shadow-sm);
+}
+
+.card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    min-height: 3.125rem;
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.card-title > .bi {
+    color: var(--app-text-muted);
+}
+
+.card-subtitle {
+    margin: 0.125rem 0 0;
+    color: var(--app-text-muted);
+    font-size: var(--app-fs-sm);
+}
+
+.card-footer {
+    --bs-card-cap-bg: var(--app-surface-muted);
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+/* Barre d'outils d'une carte de liste (recherche, filtres) */
+.ui-card-toolbar {
+    padding: 0.625rem 1rem;
+    border-bottom: 1px solid var(--app-border);
+    background: var(--app-surface);
+}
+
+.card > .ui-card-toolbar:first-child {
+    border-top-left-radius: var(--bs-card-inner-border-radius);
+    border-top-right-radius: var(--bs-card-inner-border-radius);
+}
+
+.ui-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Carte « zone sensible » (suppression définitive) */
+.ui-card-danger {
+    border-color: rgba(var(--app-danger-rgb), 0.35);
+}
+
+.ui-card-danger > .card-header .card-title,
+.ui-card-danger > .card-header .card-title > .bi {
+    color: var(--app-danger);
+}
+
+/* Espacement vertical uniforme entre blocs de page */
+.ui-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ui-stack > * {
+    margin-bottom: 0 !important;
+}
+
+/* === Indicateurs (<x-ui.stat>) =============================================================== */
+
+.ui-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+}
+
+.ui-stat {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-lg);
+    background: var(--app-surface);
+    box-shadow: var(--app-shadow-sm);
+    color: var(--app-text);
+}
+
+a.ui-stat:hover {
+    border-color: var(--app-border-strong);
+    box-shadow: var(--app-shadow);
+    text-decoration: none;
+}
+
+.ui-stat-icon {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--app-radius);
+    background: var(--ui-tone-soft, var(--app-primary-soft));
+    color: var(--ui-tone, var(--app-primary));
+    font-size: 1.05rem;
+}
+
+.ui-stat-body {
+    min-width: 0;
+}
+
+.ui-stat-label {
+    color: var(--app-text-muted);
+    font-size: var(--app-fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.ui-stat-value {
+    overflow: hidden;
+    margin-top: 0.125rem;
+    font-size: 1.25rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ui-stat-value small {
+    color: var(--app-text-muted);
+    font-size: var(--app-fs-sm);
+    font-weight: 500;
+}
+
+.ui-stat-hint {
+    margin-top: 0.125rem;
+    color: var(--app-text-muted);
+    font-size: var(--app-fs-sm);
+}
+
+/* Tons : partagés par les indicateurs et les badges */
+.ui-tone-primary { --ui-tone: var(--app-primary); --ui-tone-soft: var(--app-primary-soft); }
+.ui-tone-success { --ui-tone: var(--app-success); --ui-tone-soft: var(--app-success-soft); }
+.ui-tone-warning { --ui-tone: var(--app-warning); --ui-tone-soft: var(--app-warning-soft); }
+.ui-tone-danger { --ui-tone: var(--app-danger); --ui-tone-soft: var(--app-danger-soft); }
+.ui-tone-info { --ui-tone: var(--app-info); --ui-tone-soft: var(--app-info-soft); }
+.ui-tone-neutral { --ui-tone: var(--app-neutral); --ui-tone-soft: var(--app-neutral-soft); }
+
+/* === Badges ================================================================================== */
+
+.badge {
+    --bs-badge-font-size: var(--app-fs-xs);
+    --bs-badge-font-weight: 600;
+    --bs-badge-padding-x: 0.5em;
+    --bs-badge-padding-y: 0.3em;
+    --bs-badge-border-radius: var(--app-radius-sm);
+}
+
+/* Aplats de couleur avec texte blanc : teinte foncée de la marque (lisible aussi en thème sombre) */
+.text-bg-primary,
+.bg-primary {
+    background-color: var(--app-primary-bg) !important;
+}
+
+/* Statut (<x-ui.badge>) : texte coloré sur fond doux */
+.ui-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    max-width: 100%;
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    background: var(--ui-tone-soft, var(--app-neutral-soft));
+    color: var(--ui-tone, var(--app-neutral));
+    font-size: var(--app-fs-xs);
+    font-weight: 600;
+    line-height: 1.45;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.ui-badge-dot::before {
+    content: "";
+    flex-shrink: 0;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Étiquette neutre (catégorie, option) : bordure fine */
+.ui-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.0625rem 0.4375rem;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-sm);
+    background: var(--app-surface-muted);
+    color: var(--app-text);
+    font-size: var(--app-fs-sm);
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+/* Pastille de couleur (couleurs du catalogue) */
+.ui-swatch {
+    display: inline-block;
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 1px solid var(--app-border-strong);
+    border-radius: 3px;
+    vertical-align: -0.125em;
+}
+
+/* === Tableaux ================================================================================ */
+
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--app-text);
+    --bs-table-border-color: var(--app-border);
+    --bs-table-striped-bg: var(--app-surface-muted);
+    --bs-table-striped-color: var(--app-text);
+    --bs-table-hover-bg: var(--app-surface-hover);
+    --bs-table-hover-color: var(--app-text);
+    --bs-table-active-bg: var(--app-primary-soft);
+    --bs-table-active-color: var(--app-text);
+    font-size: var(--app-fs);
+}
+
+.table > :not(caption) > * > * {
+    padding: 0.5625rem 0.75rem;
+    vertical-align: middle;
+}
+
+.table-sm > :not(caption) > * > * {
+    padding: 0.3125rem 0.625rem;
+}
+
+.table > thead > tr > th {
+    background-color: var(--app-surface-muted);
+    color: var(--app-text-muted);
+    font-size: var(--app-fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.table > thead a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.table > thead a:hover {
+    color: var(--app-text);
+}
+
+.table > thead .bi {
+    font-size: 0.875em;
+}
+
+.table-light,
+.table-dark {
+    --bs-table-color: var(--app-text-muted);
+    --bs-table-bg: var(--app-surface-muted);
+    --bs-table-border-color: var(--app-border);
+}
+
+/* Tableau dans une carte : bord à bord, pas de dernière bordure */
+.card .table {
+    margin-bottom: 0;
+}
+
+.card .table > :not(caption) > tr > :first-child {
+    padding-left: 1rem;
+}
+
+.card .table > :not(caption) > tr > :last-child {
+    padding-right: 1rem;
+}
+
+.card .table > tbody > tr:last-child > *,
+.card .table > tfoot > tr:last-child > * {
+    border-bottom-width: 0;
+}
+
+.card > .table-responsive:first-child > .table > thead > tr:first-child > :first-child {
+    border-top-left-radius: var(--bs-card-inner-border-radius);
+}
+
+.card > .table-responsive:first-child > .table > thead > tr:first-child > :last-child {
+    border-top-right-radius: var(--bs-card-inner-border-radius);
+}
+
+/* Petit écran : les lignes ne se replient pas, le tableau défile horizontalement */
+@media (max-width: 767.98px) {
+    .table-responsive > .table > :not(caption) > * > * {
+        white-space: nowrap;
+    }
+}
+
+/* Libellé principal et ligne secondaire d'une cellule (produit + SKU) */
+.ui-cell-title {
+    font-weight: 600;
+}
+
+.ui-cell-meta {
+    color: var(--app-text-muted);
+    font-size: var(--app-fs-sm);
+}
+
+/* Totaux sous un tableau (facture, achat) */
+.ui-totals {
+    width: 100%;
+    max-width: 340px;
+    margin-left: auto;
+}
+
+.ui-totals > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.3125rem 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.ui-totals > .ui-totals-grand {
+    margin-top: 0.25rem;
+    padding-top: 0.625rem;
+    border-top: 1px solid var(--app-border);
+    font-size: var(--app-fs-lg);
+    font-weight: 600;
+}
+
+/* État vide (<x-ui.empty>) */
+.ui-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 2.5rem 1rem;
+    color: var(--app-text-muted);
+    text-align: center;
+}
+
+.ui-empty > .bi {
+    margin-bottom: 0.25rem;
+    color: var(--app-text-subtle);
+    font-size: 1.75rem;
+}
+
+.ui-empty-title {
+    color: var(--app-text);
+    font-weight: 600;
+}
+
+.table > tbody > tr.ui-empty-row:hover > * {
+    --bs-table-bg-state: transparent;
+}
+
+/* === Liste de propriétés (fiche détail) ===================================================== */
+
+.ui-dl {
+    display: grid;
+    grid-template-columns: minmax(110px, 34%) minmax(0, 1fr);
+    gap: 0.5rem 1rem;
+    margin: 0;
+}
+
+.ui-dl > dt {
+    color: var(--app-text-muted);
+    font-weight: 500;
+}
+
+.ui-dl > dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* === Navigation : onglets, pastilles, fil d'Ariane, pagination ============================== */
+
+.nav-tabs {
+    --bs-nav-tabs-border-color: var(--app-border);
+    --bs-nav-tabs-border-radius: 0;
+    --bs-nav-tabs-link-hover-border-color: transparent;
+    --bs-nav-tabs-link-active-color: var(--app-primary);
+    --bs-nav-tabs-link-active-bg: transparent;
+    --bs-nav-tabs-link-active-border-color: transparent;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.nav-tabs .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: -1px;
+    padding: 0.5rem 0.75rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    color: var(--app-text-muted);
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+    border-bottom-color: var(--app-border-strong);
+    color: var(--app-text);
+}
+
+.nav-tabs .nav-link.active {
+    border-bottom-color: var(--app-primary);
+    color: var(--app-primary);
+    font-weight: 600;
+}
+
+.nav-pills {
+    --bs-nav-pills-border-radius: var(--app-radius);
+    --bs-nav-pills-link-active-color: var(--app-primary-text);
+    --bs-nav-pills-link-active-bg: var(--app-primary-soft);
+    gap: 0.25rem;
+}
+
+.nav-pills .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    color: var(--app-text-muted);
+    font-weight: 500;
+}
+
+.nav-pills .nav-link:hover {
+    background: var(--app-surface-hover);
+    color: var(--app-text);
+}
+
+.nav-pills .nav-link.active {
+    font-weight: 600;
+}
+
+.nav-pills .nav-link .badge,
+.nav-pills .nav-link .ui-badge {
+    margin-left: auto;
+}
+
+.breadcrumb {
+    --bs-breadcrumb-divider: "›";
+    --bs-breadcrumb-divider-color: var(--app-text-subtle);
+    --bs-breadcrumb-item-active-color: var(--app-text-muted);
+    --bs-breadcrumb-item-padding-x: 0.375rem;
+    margin: 0;
+    font-size: var(--app-fs-sm);
+}
+
+.pagination {
+    --bs-pagination-padding-x: 0.625rem;
+    --bs-pagination-padding-y: 0.1875rem;
+    --bs-pagination-font-size: var(--app-fs);
+    --bs-pagination-color: var(--app-text);
+    --bs-pagination-bg: var(--app-surface);
+    --bs-pagination-border-color: var(--app-border-strong);
+    --bs-pagination-border-radius: var(--app-radius);
+    --bs-pagination-hover-color: var(--app-text);
+    --bs-pagination-hover-bg: var(--app-surface-hover);
+    --bs-pagination-hover-border-color: var(--app-border-strong);
+    --bs-pagination-focus-color: var(--app-text);
+    --bs-pagination-focus-bg: var(--app-surface-hover);
+    --bs-pagination-focus-box-shadow: var(--app-focus-ring);
+    --bs-pagination-active-color: var(--app-on-primary);
+    --bs-pagination-active-bg: var(--app-primary-bg);
+    --bs-pagination-active-border-color: var(--app-primary-bg);
+    --bs-pagination-disabled-color: var(--app-text-subtle);
+    --bs-pagination-disabled-bg: var(--app-surface);
+    --bs-pagination-disabled-border-color: var(--app-border);
+    margin: 0;
+}
+
+/* Pagination Laravel (bootstrap-5) dans un pied de carte : « 1 à 15 sur 120 » à gauche, pages à droite */
+.card-footer nav p {
+    margin: 0;
+    color: var(--app-text-muted);
+}
+
+.card-footer nav .small {
+    font-size: var(--app-fs-sm);
+}
+
+/* === Alertes ================================================================================= */
+
+.alert {
+    --bs-alert-padding-x: 0.875rem;
+    --bs-alert-padding-y: 0.625rem;
+    --bs-alert-border-radius: var(--app-radius);
+    --bs-alert-margin-bottom: 1rem;
+    --bs-alert-link-color: inherit;
+    font-size: var(--app-fs);
+}
+
+.alert-success {
+    --bs-alert-color: var(--app-success);
+    --bs-alert-bg: var(--app-success-soft);
+    --bs-alert-border-color: rgba(var(--app-success-rgb), 0.25);
+}
+
+.alert-warning {
+    --bs-alert-color: var(--app-warning);
+    --bs-alert-bg: var(--app-warning-soft);
+    --bs-alert-border-color: rgba(var(--app-warning-rgb), 0.25);
+}
+
+.alert-danger {
+    --bs-alert-color: var(--app-danger);
+    --bs-alert-bg: var(--app-danger-soft);
+    --bs-alert-border-color: rgba(var(--app-danger-rgb), 0.25);
+}
+
+.alert-info,
+.alert-primary {
+    --bs-alert-color: var(--app-info);
+    --bs-alert-bg: var(--app-info-soft);
+    --bs-alert-border-color: rgba(var(--app-info-rgb), 0.25);
+}
+
+.alert-secondary,
+.alert-light {
+    --bs-alert-color: var(--app-text);
+    --bs-alert-bg: var(--app-surface-muted);
+    --bs-alert-border-color: var(--app-border);
+}
+
+.alert-heading {
+    margin-bottom: 0.25rem;
+    color: inherit;
+    font-size: var(--app-fs);
+    font-weight: 600;
+}
+
+/* Alerte avec icône (<x-ui.alert>) */
+.ui-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+}
+
+.ui-alert > .bi {
+    flex-shrink: 0;
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
+.ui-alert-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.ui-alert-body > :last-child {
+    margin-bottom: 0;
+}
+
+/* === Menus, fenêtres, listes ================================================================= */
+
+.dropdown-menu {
+    --bs-dropdown-bg: var(--app-surface);
+    --bs-dropdown-color: var(--app-text);
+    --bs-dropdown-border-color: var(--app-border);
+    --bs-dropdown-border-radius: var(--app-radius-lg);
+    --bs-dropdown-inner-border-radius: var(--app-radius-sm);
+    --bs-dropdown-box-shadow: var(--app-shadow-lg);
+    --bs-dropdown-font-size: var(--app-fs);
+    --bs-dropdown-padding-x: 0.25rem;
+    --bs-dropdown-padding-y: 0.25rem;
+    --bs-dropdown-item-padding-x: 0.625rem;
+    --bs-dropdown-item-padding-y: 0.375rem;
+    --bs-dropdown-item-border-radius: var(--app-radius-sm);
+    --bs-dropdown-link-color: var(--app-text);
+    --bs-dropdown-link-hover-color: var(--app-text);
+    --bs-dropdown-link-hover-bg: var(--app-surface-hover);
+    --bs-dropdown-link-active-color: var(--app-primary-text);
+    --bs-dropdown-link-active-bg: var(--app-primary-soft);
+    --bs-dropdown-link-disabled-color: var(--app-text-subtle);
+    --bs-dropdown-header-color: var(--app-text-subtle);
+    --bs-dropdown-divider-bg: var(--app-border);
+    --bs-dropdown-divider-margin-y: 0.25rem;
+    box-shadow: var(--bs-dropdown-box-shadow);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dropdown-header {
+    font-size: var(--app-fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.modal {
+    --bs-modal-bg: var(--app-surface);
+    --bs-modal-color: var(--app-text);
+    --bs-modal-border-color: var(--app-border);
+    --bs-modal-border-radius: var(--app-radius-lg);
+    --bs-modal-inner-border-radius: calc(var(--app-radius-lg) - 1px);
+    --bs-modal-box-shadow: var(--app-shadow-lg);
+    --bs-modal-header-padding: 0.875rem 1.25rem;
+    --bs-modal-header-border-color: var(--app-border);
+    --bs-modal-padding: 1.25rem;
+    --bs-modal-footer-gap: 0.5rem;
+    --bs-modal-footer-bg: var(--app-surface-muted);
+    --bs-modal-footer-border-color: var(--app-border);
+}
+
+.modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--app-fs-lg);
+    font-weight: 600;
+}
+
+.modal-title > .bi {
+    color: var(--app-text-muted);
+}
+
+.modal-footer {
+    padding: 0.625rem 1.25rem;
+}
+
+.modal-backdrop {
+    --bs-backdrop-bg: #0b1520;
+    --bs-backdrop-opacity: 0.45;
+}
+
+.list-group {
+    --bs-list-group-color: var(--app-text);
+    --bs-list-group-bg: var(--app-surface);
+    --bs-list-group-border-color: var(--app-border);
+    --bs-list-group-border-radius: var(--app-radius);
+    --bs-list-group-item-padding-x: 0.875rem;
+    --bs-list-group-item-padding-y: 0.5rem;
+    --bs-list-group-action-color: var(--app-text);
+    --bs-list-group-action-hover-color: var(--app-text);
+    --bs-list-group-action-hover-bg: var(--app-surface-hover);
+    --bs-list-group-action-active-color: var(--app-text);
+    --bs-list-group-action-active-bg: var(--app-surface-hover);
+    --bs-list-group-active-color: var(--app-primary-text);
+    --bs-list-group-active-bg: var(--app-primary-soft);
+    --bs-list-group-active-border-color: rgba(var(--app-primary-rgb), 0.3);
+}
+
+.progress {
+    --bs-progress-height: 0.375rem;
+    --bs-progress-bg: var(--app-surface-hover);
+    --bs-progress-bar-bg: var(--app-primary-bg);
+    --bs-progress-border-radius: 999px;
+}
+
+.btn-close:focus {
+    box-shadow: var(--app-focus-ring);
+}
+
+/* Liste à double colonne (sous-catégories) : boîte défilante */
+.ui-picklist {
+    height: 250px;
+    overflow-y: auto;
+    padding: 0.5rem 0.625rem;
+    border: 1px solid var(--app-border-strong);
+    border-radius: var(--app-radius);
+    background: var(--app-surface);
+}
+
+/* Liste de suggestions sous un champ de recherche (bon de commande) */
+.ui-combobox {
+    position: relative;
+}
+
+.ui-combobox-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    z-index: 1050;
+    max-height: 340px;
+    overflow-y: auto;
+    box-shadow: var(--app-shadow-lg);
+}
+
+.ui-combobox-list .list-group-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+/* Ligne mise en évidence brièvement (produit déjà présent) */
+@keyframes ui-flash {
+    from { background-color: var(--app-warning-soft); }
+    to { background-color: transparent; }
+}
+
+tr.ui-flash > td {
+    animation: ui-flash 1.4s ease-out;
+}
+
+/* Fil d'activité (historique des mouvements d'un produit) */
+.ui-feed {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ui-feed > li {
+    padding: 0.625rem 1rem;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.ui-feed > li:last-child {
+    border-bottom: 0;
+}

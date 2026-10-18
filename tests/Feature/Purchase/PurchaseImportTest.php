@@ -33,10 +33,10 @@ class PurchaseImportTest extends TestCase
         $noVariant = Color::factory()->create(['name' => 'Sans variante']);
         $gel = Product::factory()->create(['name' => 'Gel', 'category_id' => $category->id, 'options' => [['name' => 'Contenance', 'values' => ['25 ml', '30 ml']]]]);
         foreach (['25 ml', '30 ml'] as $value) {
-            ProductColor::create(['product_id' => $gel->id, 'color_id' => $noVariant->id, 'option_values' => ['Contenance' => $value], 'price' => 1, 'stock' => 0]);
+            ProductColor::forceCreate(['product_id' => $gel->id, 'color_id' => $noVariant->id, 'option_values' => ['Contenance' => $value], 'price' => 1, 'stock' => 0]);
         }
         $wax = Product::factory()->create(['name' => 'Wax', 'category_id' => $category->id]);
-        $rouge = ProductColor::create(['product_id' => $wax->id, 'color_id' => Color::factory()->create(['name' => 'Rouge'])->id, 'price' => 1, 'stock' => 0]);
+        $rouge = ProductColor::forceCreate(['product_id' => $wax->id, 'color_id' => Color::factory()->create(['name' => 'Rouge'])->id, 'price' => 1, 'stock' => 0]);
 
         $csv = implode("\n", [
             'reference_groupe,email_fournisseur,sku,nom_produit,couleur_produit,quantite,cout_unitaire',

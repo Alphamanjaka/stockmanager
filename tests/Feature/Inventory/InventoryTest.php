@@ -36,7 +36,7 @@ class InventoryTest extends TestCase
     {
         $product = Product::factory()->create(['name' => $name, 'category_id' => $category->id]);
 
-        return ProductColor::create(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'stock' => $stock, 'price' => 1000]);
+        return ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'stock' => $stock, 'price' => 1000]);
     }
 
     private function open(?Category $category = null): Inventory

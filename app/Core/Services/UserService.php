@@ -33,10 +33,21 @@ class UserService
         $user = $this->getUserById($id); // Utilise findOrFail
         return $user->delete();
     }
-    public function getAllUsers()
+    /**
+     * @param  array{search?: ?string, role?: ?string}  $filters  recherche (nom ou e-mail) et rôle (front_office, back_office)
+     */
+    public function getAllUsers(array $filters = [])
     {
         // Ajout de withCount pour compter les ventes de chaque utilisateur de manière optimisée
-        return User::withCount('sales')->latest('id')->paginate(15);
+        return User::withCount('sales')
+            ->when($filters['search'] ?? null, fn ($query, $search) => $query->where(fn ($q) => $q
+                ->whereLike('name', "%{$search}%")
+                ->orWhereLike('email', "%{$search}%")))
+            ->when(in_array($filters['role'] ?? null, ['front_office', 'back_office'], true),
+                fn ($query) => $query->where('role', $filters['role']))
+            ->latest('id')
+            ->paginate(15)
+            ->withQueryString();
     }
     public function getUserById($id)
     {

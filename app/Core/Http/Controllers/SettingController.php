@@ -3,26 +3,24 @@
 namespace App\Core\Http\Controllers;
 
 use App\Core\Services\SettingService;
-use App\Core\Services\BackupService;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SettingController extends Controller
 {
     protected SettingService $settingService;
-    protected BackupService $backupService;
 
-    public function __construct(SettingService $settingService, BackupService $backupService)
+    public function __construct(SettingService $settingService)
     {
         $this->settingService = $settingService;
-        $this->backupService = $backupService;
     }
 
     public function index()
     {
         $settings = $this->settingService->getAllSettings();
-        $backups = $this->backupService->getBackups();
-        return view('core::settings.index', compact('settings', 'backups'));
+
+        return view('core::settings.index', compact('settings'));
     }
 
     public function update(Request $request, $setting)
@@ -45,6 +43,7 @@ class SettingController extends Controller
             'default_tax_rate' => 'nullable|numeric|min:0|max:100',
             'stock_valuation_method' => 'nullable|in:FIFO,CUMP',
             'pagination_per_page' => 'nullable|integer|min:1|max:100',
+            'app_locale' => ['nullable', Rule::in(array_keys(config('app.supported_locales')))],
             'theme_mode' => 'nullable|in:light,dark,auto',
         ]);
 
@@ -52,52 +51,5 @@ class SettingController extends Controller
 
         // Redirect to the admin index route for consistency
         return redirect()->route('admin.settings.index')->with('success', 'Paramètres mis à jour avec succès.');
-    }
-
-    public function runBackup()
-    {
-        try {
-            $this->backupService->runBackup();
-
-            return redirect()->route('admin.settings.index')
-                ->with('success', 'La sauvegarde de la base de données a été lancée en arrière-plan.');
-        } catch (\Exception $e) {
-            return redirect()->route('admin.settings.index')
-                ->with('error', 'Impossible de lancer la sauvegarde. Veuillez consulter les logs.' . $e->getMessage());
-        }
-    }
-
-    public function downloadBackup(Request $request)
-    {
-        $download = $this->backupService->downloadBackup($request);
-
-        if ($download) {
-            return $download;
-        }
-
-        return back()->with('error', 'Le fichier de sauvegarde est introuvable.');
-    }
-
-    public function deleteBackup(Request $request)
-    {
-        if ($this->backupService->deleteBackup($request)) {
-            return back()->with('success', 'Sauvegarde supprimée avec succès.');
-        }
-
-        return back()->with('error', 'Le fichier de sauvegarde est introuvable.');
-    }
-
-    public function verifyBackup(Request $request)
-    {
-        $path = $request->input('path');
-
-        if (!$path) return back()->with('error', 'Fichier non spécifié.');
-
-        $result = $this->backupService->verifyBackup($path);
-
-        return back()->with(
-            $result['valid'] ? 'success' : 'error',
-            $result['message']
-        );
     }
 }

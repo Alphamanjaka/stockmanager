@@ -39,8 +39,8 @@ class ProductCreationTest extends TestCase
             'name' => 'Gel déshydratant',
             'options' => [['name' => 'Contenance', 'values' => '25 ml, 30 ml']],
             'variants' => [
-                ['enabled' => 1, 'values' => ['Contenance' => '25 ml'], 'price' => 8000, 'price_purchase' => 5000, 'stock' => 40],
-                ['enabled' => 1, 'values' => ['Contenance' => '30 ml'], 'price' => 9500, 'stock' => 0],
+                ['enabled' => 1, 'values' => ['Contenance' => '25 ml'], 'price' => 8000, 'price_purchase' => 5000],
+                ['enabled' => 1, 'values' => ['Contenance' => '30 ml'], 'price' => 9500],
             ],
         ])->assertRedirect(route('admin.products.index'));
 
@@ -50,11 +50,13 @@ class ProductCreationTest extends TestCase
         $variants = $product->productColors()->orderBy('id')->get();
         $this->assertSame(['GEL-DESHYDRATANT-25ML', 'GEL-DESHYDRATANT-30ML'], $variants->pluck('sku')->all());
         $this->assertSame(['Contenance' => '25 ml'], $variants[0]->option_values);
-        $this->assertSame(40, $variants[0]->stock);
         $this->assertEquals(9500, $variants[1]->price);
 
-        // Stock initial historisé, couleur technique conservée pour l'ancienne version du code
-        $this->assertDatabaseHas('stock_movements', ['product_color_id' => $variants[0]->id, 'type' => 'in', 'quantity' => 40]);
+        // Pas de stock à la création : il viendra des achats reçus
+        $this->assertSame(0, $variants[0]->stock);
+        $this->assertDatabaseCount('stock_movements', 0);
+
+        // Couleur technique conservée pour l'ancienne version du code
         $this->assertSame('Sans variante', $variants[0]->color->name);
     }
 

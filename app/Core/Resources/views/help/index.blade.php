@@ -1,33 +1,14 @@
 @extends('layouts.app-back-office')
-@section('title', 'Help & Support')
+
+@section('title', 'Help & support')
 
 @section('content')
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Help & Support</h5>
-                </div>
-                <div class="card-body">
-                    <p>Welcome to the Help & Support section of StockManager! Here you can find resources and guides to
-                        assist you in using the application effectively.</p>
-                </div>
-            </div>
-        </div>
+    <div class="ui-form-page">
+        <x-ui.card title="Welcome to StockMaster help">
+            <p class="mb-0">
+                Here you will find resources and guides to use the application effectively.
+                Keyboard shortcut: <kbd>Alt</kbd> + <kbd>L</kbd> opens the module launcher from any page.
+            </p>
+        </x-ui.card>
     </div>
 @endsection
-@section('styles')
-    <style>
-        /* Custom styles for the help page */
-        .card-header {
-            background-color: #17a2b8;
-        }
-    </style>
-@endsection
-
-@push('scripts')
-    <script>
-        // Custom JavaScript for the help page (if needed)
-        console.log('Help page loaded');
-    </script>
-@endpush

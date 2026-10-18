@@ -1,82 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockMaster - Selling @yield('title')</title>
-    {{-- Load assets specific to the Front Office --}}
-    @vite(['resources/css/custom.css', 'resources/css/front.css', 'resources/js/app.js', 'resources/js/front.js'])
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@hasSection('title')@yield('title') · @endif StockMaster</title>
+    @include('layouts.partials.theme')
+    @vite(['resources/css/custom.css', 'resources/css/front.css', 'resources/js/app.js'])
     @stack('css')
 </head>
 
-<body data-session-success="{{ session('success') }}" data-session-error="{{ session('error') }}">
+{{-- Squelette du front office (vendeurs). Sections : title, actions, content ; piles : css, scripts. --}}
 
-    <!-- Navbar simplifié -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <div class="container-fluid">
-            <a class="navbar-brand text-white fw-bold" href="{{ route('saler.dashboard') }}">
-                <i class="fas fa-shopping-cart"></i> Front Office - Selling Management
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('sales/dashboard*') ? 'active-link' : '' }}"
-                            href="{{ route('saler.dashboard') }}">
-                            <i class="fas fa-home"></i> Home
-                        </a>
+@php
+    $links = [
+        ['route' => 'saler.dashboard', 'active' => 'saler.dashboard', 'icon' => 'bi-house', 'label' => 'Home'],
+        ['route' => 'saler.products.index', 'active' => 'saler.products.*', 'icon' => 'bi-box', 'label' => 'Products'],
+        ['route' => 'saler.index', 'active' => ['saler.index', 'saler.show'], 'icon' => 'bi-receipt', 'label' => 'Sales'],
+        ['route' => 'saler.create', 'active' => 'saler.create', 'icon' => 'bi-plus-circle', 'label' => 'New Sale'],
+    ];
+@endphp
+
+<body class="fo" data-session-success="{{ session('success') }}" data-session-error="{{ session('error') }}"
+    data-i18n-cancel="{{ __('backoffice.cancel') }}" data-i18n-confirm="{{ __('backoffice.confirm') }}">
+
+    <header class="fo-topbar">
+        <a class="ui-brand" href="{{ route('saler.dashboard') }}">
+            <span class="ui-brand-mark"><i class="bi bi-box-seam-fill" aria-hidden="true"></i></span>
+            <span class="ui-brand-name">StockMaster</span>
+        </a>
+
+        <ul class="fo-nav">
+            @foreach ($links as $link)
+                @php $active = request()->routeIs(...(array) $link['active']); @endphp
+                <li>
+                    <a @class(['fo-nav-link', 'is-active' => $active]) href="{{ route($link['route']) }}"
+                        @if ($active) aria-current="page" @endif title="{{ $link['label'] }}">
+                        <i class="bi {{ $link['icon'] }}" aria-hidden="true"></i> <span>{{ $link['label'] }}</span>
+                    </a>
+                </li>
+            @endforeach
+        </ul>
+
+        <div class="fo-tools">
+            <div class="dropdown">
+                <button class="fo-user dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="ui-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
+                    <span class="d-none d-md-inline">{{ auth()->user()->name }}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><span class="dropdown-item-text small text-muted">{{ auth()->user()->email }}</span></li>
+                    <li>
+                        <hr class="dropdown-divider">
                     </li>
                     <li>
-                        <a class="nav-link {{ request()->is('sales/products*') ? 'active-link' : '' }}"
-                            href="{{ route('saler.products.index') }}">
-                            <i class="fas fa-boxes"></i> Products
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('sales') ? 'active-link' : '' }}"
-                            href="{{ route('saler.index') }}">
-                            <i class="fas fa-receipt"></i> Sales
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('sales/create') ? 'active-link' : '' }}"
-                            href="{{ route('saler.create') }}">
-                            <i class="fas fa-plus-circle"></i> New Sale
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="fas fa-user"></i> {{ auth()->user()->name }}
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('logout') }}"
-                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                    <i class="fas fa-sign-out-alt"></i> Logout
-                                </a></li>
-                        </ul>
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button class="dropdown-item text-danger" type="submit">
+                                <i class="bi bi-box-arrow-right" aria-hidden="true"></i> {{ __('backoffice.logout') }}
+                            </button>
+                        </form>
                     </li>
                 </ul>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <div class="container-fluid">
-        <main>
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h3">@yield('title')</h1>
-            </div>
-            <div class="content">
-                @yield('content')
-            </div>
-        </main>
+    <div class="fo-pagebar">
+        <h1 class="fo-page-title">@yield('title')</h1>
+        @hasSection('actions')
+            <div class="fo-actions">@yield('actions')</div>
+        @endif
     </div>
 
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-        @csrf
-    </form>
+    <main class="fo-main">
+        @yield('content')
+    </main>
+
     @stack('scripts')
 </body>
 

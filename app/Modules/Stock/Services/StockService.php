@@ -6,8 +6,16 @@ use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Stock\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Seul point d'écriture du stock : chaque variation crée un mouvement historisé.
+ * Entrées : achat reçu ; sorties : vente ; inventaire physique (adjustTo) ;
+ * correction manuelle (correct), en secours d'une erreur de saisie.
+ */
 class StockService
 {
+    /** Début du motif d'une correction manuelle, pour la distinguer dans l'historique. */
+    public const CORRECTION_PREFIX = 'Correction : ';
+
     public function getStockEvolutionForProductVariants(array $productColorIds): array
     {
         $evolutionData = [];
@@ -18,14 +26,17 @@ class StockService
 
         return $evolutionData;
     }
+    /**
+     * Entrée de stock (achat reçu, correction) : le stock augmente et le mouvement est enregistré.
+     */
     public function addStock(int $productColorId, int $quantity, string $reason)
     {
         DB::transaction(function () use ($productColorId, $quantity, $reason) {
             $variant = ProductColor::lockForUpdate()->findOrFail($productColorId);
 
             $before = $variant->stock;
-            $variant->increment('stock', $quantity);
-            $after = $variant->stock;
+            $after = $before + $quantity;
+            $this->writeStock($variant, $after);
 
             $this->createStockMovement([
                 'product_color_id' => $productColorId,
@@ -38,6 +49,9 @@ class StockService
         });
     }
 
+    /**
+     * Sortie de stock (vente, correction) : refusée si le stock est insuffisant.
+     */
     public function removeStock(int $productColorId, int $quantity, string $reason)
     {
         DB::transaction(function () use ($productColorId, $quantity, $reason) {
@@ -48,8 +62,8 @@ class StockService
             }
 
             $before = $variant->stock;
-            $variant->decrement('stock', $quantity);
-            $after = $variant->stock;
+            $after = $before - $quantity;
+            $this->writeStock($variant, $after);
 
             $this->createStockMovement([
                 'product_color_id' => $productColorId,
@@ -62,7 +76,24 @@ class StockService
         });
     }
     /**
-     * Ramène le stock d'une variante à une quantité cible (inventaire, correction manuelle, import)
+     * Correction manuelle, en secours d'une erreur de saisie (casse, erreur de comptage, retour...) :
+     * le motif est obligatoire et préfixé par « Correction : ».
+     *
+     * @param  string  $type  'in' (ajout) ou 'out' (retrait)
+     */
+    public function correct(int $productColorId, string $type, int $quantity, string $reason): void
+    {
+        $reason = self::CORRECTION_PREFIX . trim($reason);
+
+        if ($type === 'in') {
+            $this->addStock($productColorId, $quantity, $reason);
+        } else {
+            $this->removeStock($productColorId, $quantity, $reason);
+        }
+    }
+
+    /**
+     * Ramène le stock d'une variante à une quantité cible (inventaire physique)
      * en enregistrant le mouvement correspondant à l'écart.
      *
      * @return StockMovement|null le mouvement créé, ou null si le stock était déjà à la cible
@@ -80,7 +111,7 @@ class StockService
                 return null;
             }
 
-            $variant->update(['stock' => $target]);
+            $this->writeStock($variant, $target);
 
             return $this->createStockMovement([
                 'product_color_id' => $productColorId,
@@ -91,6 +122,16 @@ class StockService
                 'stock_after' => $target,
             ]);
         });
+    }
+
+    /**
+     * Seule écriture de la colonne stock de l'application, toujours accompagnée d'un mouvement.
+     * Elle passe par une requête : le modèle ProductColor refuse qu'on modifie son stock directement.
+     */
+    private function writeStock(ProductColor $variant, int $stock): void
+    {
+        ProductColor::whereKey($variant->id)->update(['stock' => $stock]);
+        $variant->setRawAttributes(['stock' => $stock] + $variant->getAttributes(), true);
     }
 
     public function getAllStockMovements(array $filters = [], int $perPage = 15)

@@ -158,7 +158,7 @@ Le code suit les principes **SOLID** et une **Architecture Orientée Services (S
 
 ### Structure par modules
 
-Le code métier est découpé en modules dans `app/Modules/` (**Catalog**, **Stock**, **Inventory**, **Purchase**, **Sale**, **Contact**), autour d'un socle commun `app/Core/` (authentification, utilisateurs, paramètres, sauvegardes, tableaux de bord, recherche globale, import).
+Le code métier est découpé en modules dans `app/Modules/` (**Catalog**, **Stock**, **Inventory**, **Purchase**, **Sale**, **Contact**, **Backup**), autour d'un socle commun `app/Core/` (authentification, utilisateurs, paramètres, tableaux de bord, recherche globale, import).
 Chaque module contient ses modèles, services, contrôleurs, vues, routes, migrations et factories.
 Conventions, règles de dépendance et recettes : voir [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -188,15 +188,15 @@ Pour activer les tâches planifiées en production, une seule entrée Cron est n
 
 ### Système de Sauvegarde
 
-La solution intègre un module complet de sauvegarde automatisée (Base de données PostgreSQL + Fichiers de stockage) géré par `Spatie Laravel Backup`.
+Le module **Backup** est maintenant **silencieux** (aucune interface) et regroupe :
 
-#### Fonctionnalités
+#### Archive ZIP (fichiers + base)
 
-- **Sauvegarde Complète** : Archive ZIP contenant le dump SQL et les fichiers uploadés.
-- **Rotation Automatique** : Nettoyage des vieilles sauvegardes pour économiser l'espace disque.
-- **Monitoring** : Vérification de l'intégrité des archives ZIP.
+Archive ZIP contenant un dump SQL complet et les fichiers uploadés, gérée par `Spatie Laravel Backup`.
 
-#### Commandes Manuelles
+- Exécutée en arrière-plan via la file d'attente (pas visible dans l'interface).
+- Planifiée tous les jours à **01:00 AM**.
+- Historique des exécutions conservé dans la table `backup_runs`.
 
 ```bash
 # Sauvegarde en arrière-plan (via la file d'attente)
@@ -206,7 +206,15 @@ php artisan app:run-backup
 php artisan app:run-backup --now
 ```
 
-Les sauvegardes sont planifiées automatiquement tous les jours à **01:00 AM**.
+#### Haute disponibilité PostgreSQL (remplace le miroir)
+
+La continuité de service en cas de panne du serveur PostgreSQL est assurée par **pg_auto_failover** avec réplication physique (streaming WAL) entre 2 nœuds (primary + standby).
+
+- L'application se connecte via une liste multi-hôtes (`DB_HOST=nodeA,nodeB`) et `target_session_attrs=read-write`, grâce au connecteur `App\Core\Database\PostgresConnector` : la bascule est **automatique** sans changement de code.
+- Un template et un guide sont fournis : `deploy/pg-ha/compose.yaml` + `docs/ha-postgresql.md`.
+
+**Notes** : pour un vrai failover, le standby doit être sur un **serveur différent** de la prod. L'archive ZIP reste un filet de sécurité (PITR/wal-g recommandé en production HA).
+
 
 ---
 

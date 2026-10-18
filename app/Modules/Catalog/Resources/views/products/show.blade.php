@@ -1,407 +1,274 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Product Details : ' . $product->name)
+@section('title', $product->name)
+
+@section('subtitle')
+    <span id="display-category">{{ $product->category->name ?? 'N/A' }}</span>
+    · <span id="variant-count">{{ $variants->count() }}</span> variant(s)
+@endsection
+
+@section('actions')
+    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#optionsModal">
+        <i class="bi bi-sliders" aria-hidden="true"></i> Options &amp; specifications
+    </button>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProductModal">
+        <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+    </button>
+@endsection
+
+@php $canAddVariant = !empty($product->options) || $variants->isEmpty(); @endphp
 
 @section('content')
-    <div class="container-fluid py-4">
-        {{-- Affichage des messages de session pour le feedback --}}
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle me-1"></i> {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
+    <div class="row g-3">
+        <div class="col-xl-8">
+            <div class="ui-stack">
+                <x-ui.card title="Details">
+                    <dl class="ui-dl">
+                        <dt>Options</dt>
+                        <dd class="d-flex flex-wrap gap-1">
+                            @forelse ($product->options ?? [] as $option)
+                                <span class="ui-tag">{{ $option['name'] }} : {{ implode(', ', $option['values']) }}</span>
+                            @empty
+                                <span class="text-muted">No options (single variant)</span>
+                            @endforelse
+                        </dd>
+                        @foreach ($product->specs ?? [] as $key => $value)
+                            <dt>{{ $key }}</dt>
+                            <dd>{{ $value }}</dd>
+                        @endforeach
+                        <dt>Description</dt>
+                        <dd class="text-prewrap" id="display-description">{{ $product->description ?: '—' }}</dd>
+                    </dl>
+                </x-ui.card>
 
-        {{-- En-tête avec informations de base --}}
-        <div class="card shadow-sm mb-4">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-1" id="display-name">{{ $product->name }}</h1>
-                    <p class="text-muted mb-0">
-                        category : <span id="display-category"
-                            class="badge bg-info text-dark">{{ $product->category->name ?? 'N/A' }}</span> |
-                        variant number : <span id="variant-count" class="fw-bold">{{ $variants->count() }}</span>
-                    </p>
-                    <div class="mt-2 small">
-                        @forelse ($product->options ?? [] as $option)
-                            <span class="badge bg-light text-dark border me-1">{{ $option['name'] }} : {{ implode(', ', $option['values']) }}</span>
-                        @empty
-                            <span class="text-muted">No options (single variant)</span>
-                        @endforelse
-                    </div>
-                    @if (!empty($product->specs))
-                        <div class="mt-1 small text-muted">
-                            @foreach ($product->specs as $key => $value)
-                                <span class="me-3"><strong>{{ $key }}</strong> : {{ $value }}</span>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#optionsModal">
-                        <i class="fas fa-sliders-h me-1"></i> options &amp; specifications
-                    </button>
-                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProductModal">
-                        <i class="fas fa-edit me-1"></i> edit general information
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            {{-- Graphique d'évolution du stock --}}
-            <div class="col-lg-8">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">Global Stock Evolution</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="stockEvolutionChart" height="100"></canvas>
-                    </div>
-                </div>
-                {{-- Table des Variantes --}}
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Variants & Stocks</h5>
-                        @php $canAddVariant = !empty($product->options) || $variants->isEmpty(); @endphp
-                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addVariantModal"
+                <x-ui.card title="Variants & stock" flush
+                    subtitle="Stock is read-only here: it changes with received purchases, sales, stock counts and corrections.">
+                    <x-slot:actions>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addVariantModal"
                             @disabled(!$canAddVariant) title="{{ $canAddVariant ? '' : 'Add an option first (options & specifications)' }}">
-                            <i class="fas fa-plus me-1"></i> Add a variant
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Add a variant
                         </button>
-                    </div>
+                    </x-slot:actions>
+
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                        <table class="table table-hover">
+                            <thead>
                                 <tr>
                                     <th>Variant</th>
-                                    <th>Purchase Price (MGA)</th>
-                                    {{-- Prix de vente --}}
-                                    <th>Price (MGA)</th>
-                                    {{-- Current stock --}}
-                                    <th>Current Stock</th>
-                                    <th>Alert Threshold</th>
-                                    <th class="text-end">Actions</th>
+                                    <th class="text-end">Purchase price</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Stock</th>
+                                    <th class="text-end">Alert at</th>
+                                    <th class="text-end"><span class="visually-hidden">Actions</span></th>
                                 </tr>
                             </thead>
                             <tbody id="variants-table-body">
                                 @forelse ($variants as $variant)
                                     <tr>
                                         <td>
-                                            <div class="fw-bold">{{ $variant->variant_name ?: 'Default' }}</div>
-                                            <small class="text-muted">{{ $variant->sku }}</small>
+                                            <div class="ui-cell-title">{{ $variant->variant_name ?: 'Default' }}</div>
+                                            <div class="ui-cell-meta">{{ $variant->sku }}</div>
                                         </td>
-                                        <td>{{ number_format($variant->price_purchase, 2) }} MGA</td>
-                                        <td>{{ number_format($variant->price, 2) }} MGA</td>
-                                        <td><span
-                                                class="badge {{ $variant->stock <= $variant->alert_stock ? 'bg-danger' : 'bg-success' }}">{{ $variant->stock }}</span>
-                                        </td>
-                                        <td>{{ $variant->alert_stock }}</td>
+                                        <td class="text-end">{{ money($variant->price_purchase) }}</td>
+                                        <td class="text-end fw-semibold">{{ money($variant->price) }}</td>
                                         <td class="text-end">
-                                            <button class="btn btn-sm btn-outline-primary edit-variant-btn"
-                                                data-bs-toggle="modal" data-bs-target="#editVariantModal"
-                                                data-id="{{ $variant->id }}"
-                                                data-values="{{ json_encode($variant->option_values ?? new stdClass()) }}"
-                                                data-brand-id="{{ $variant->brand_id }}"
-                                                data-stock="{{ $variant->stock }}"
-                                                data-alert-stock="{{ $variant->alert_stock }}"
-                                                data-price="{{ $variant->price }}"
-                                                data-price-purchase="{{ $variant->price_purchase }}">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <form action="{{ route('admin.products.variants.destroy', $variant->id) }}"
-                                                method="POST" class="d-inline"
-                                                onsubmit="return confirm('Are you sure you want to delete this variant?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                    <i class="fas fa-trash"></i>
+                                            <x-ui.badge :tone="$variant->stock <= $variant->alert_stock ? 'danger' : 'success'" dot>{{ $variant->stock }}</x-ui.badge>
+                                        </td>
+                                        <td class="text-end text-muted">{{ $variant->alert_stock }}</td>
+                                        <td class="text-end">
+                                            <div class="ui-row-actions">
+                                                <button type="button" class="btn btn-icon edit-variant-btn" title="Edit" aria-label="Edit"
+                                                    data-bs-toggle="modal" data-bs-target="#editVariantModal"
+                                                    data-id="{{ $variant->id }}"
+                                                    data-values="{{ json_encode($variant->option_values ?? new stdClass()) }}"
+                                                    data-brand-id="{{ $variant->brand_id }}"
+                                                    data-stock="{{ $variant->stock }}"
+                                                    data-alert-stock="{{ $variant->alert_stock }}"
+                                                    data-price="{{ $variant->price }}"
+                                                    data-price-purchase="{{ $variant->price_purchase }}">
+                                                    <i class="bi bi-pencil" aria-hidden="true"></i>
                                                 </button>
-                                            </form>
+                                                {{-- Secours en cas d'erreur de saisie : correction par un mouvement de stock --}}
+                                                @if (Route::has('admin.movements.create'))
+                                                    <a href="{{ route('admin.movements.create', ['variant' => $variant->id]) }}" class="btn btn-icon"
+                                                        title="Stock correction" aria-label="Stock correction">
+                                                        <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
+                                                    </a>
+                                                @endif
+                                                <x-ui.delete-button :action="route('admin.products.variants.destroy', $variant->id)"
+                                                    confirm="Delete this variant?" />
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted">No variants for this product.
-                                        </td>
-                                    </tr>
+                                    <x-ui.empty-row :colspan="6" icon="bi-box">No variant for this product.</x-ui.empty-row>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </div>
+                </x-ui.card>
 
-            {{-- Historique des mouvements --}}
-            <div class="col-lg-4">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Movement History</h5>
-                        <select id="variant-filter" class="form-select form-select-sm w-50">
-                            <option value="">All variants</option>
-                            @foreach ($variants as $variant)
-                                <option value="{{ $variant->id }}">
-                                    {{ $variant->variant_name ?: 'Default' }} ({{ $variant->sku }})
-                                </option>
+                <x-ui.card title="Stock evolution" subtitle="Total stock of all variants">
+                    <div style="height: 260px;">
+                        <canvas id="stockEvolutionChart" role="img" aria-label="Stock evolution"></canvas>
+                    </div>
+                </x-ui.card>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <x-ui.card title="Movement history" flush>
+                <x-slot:toolbar>
+                    <select id="variant-filter" class="form-select form-select-sm" aria-label="Variant">
+                        <option value="">All variants</option>
+                        @foreach ($variants as $variant)
+                            <option value="{{ $variant->id }}">{{ $variant->variant_name ?: 'Default' }} ({{ $variant->sku }})</option>
+                        @endforeach
+                    </select>
+                </x-slot:toolbar>
+
+                <ul class="ui-feed" id="history-list">
+                    {{-- Chargé en AJAX --}}
+                </ul>
+            </x-ui.card>
+        </div>
+    </div>
+
+    {{-- Modifier les informations générales --}}
+    <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="editProductForm" class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="editProductModalTitle">Edit product</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <x-ui.field name="name" id="edit-product-name" label="Product name" required :value="$product->name" />
+                    <x-ui.field name="category_id" label="Category">
+                        <select name="category_id" id="category_id" class="form-select">
+                            @foreach ($categories as $cat)
+                                <option value="{{ $cat->id }}" @selected($product->category_id == $cat->id)>{{ $cat->name }}</option>
                             @endforeach
                         </select>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush" id="history-list">
-                            {{-- Loaded via AJAX --}}
-                        </ul>
-                    </div>
-                    <div class="card-footer bg-white text-center">
-                        <button id="load-more-history" class="btn btn-sm btn-link">Load more</button>
-                    </div>
+                    </x-ui.field>
+                    <x-ui.field class="mb-0" name="description" id="edit-product-description" label="Description" type="textarea"
+                        rows="3" :value="$product->description" />
                 </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Modal Edition Infos Générales --}}
-    <div class="modal fade" id="editProductModal" tabindex="-1">
-        <div class="modal-dialog">
-            <form id="editProductForm">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Edit Product</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Product Name</label>
-                            <input type="text" name="name" class="form-control" value="{{ $product->name }}"
-                                required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Category</label>
-                            <select name="category_id" class="form-select">
-                                @foreach ($categories as $cat)
-                                    <option value="{{ $cat->id }}"
-                                        {{ $product->category_id == $cat->id ? 'selected' : '' }}>{{ $cat->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea name="description" class="form-control" rows="3">{{ $product->description }}</textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save changes</button>
                 </div>
             </form>
         </div>
     </div>
 
-    {{-- Modal Ajouter une Variante --}}
-    <div class="modal fade" id="addVariantModal" tabindex="-1">
+    {{-- Ajouter une variante --}}
+    <div class="modal fade" id="addVariantModal" tabindex="-1" aria-labelledby="addVariantModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <form action="{{ route('admin.products.variants.store', $product->id) }}" method="POST">
+            <form action="{{ route('admin.products.variants.store', $product->id) }}" method="POST" class="modal-content">
                 @csrf
-                <div class="modal-content">
-                    <div class="modal-header bg-success text-white border-0">
-                        <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>Add a new variant</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header">
+                    <h2 class="modal-title" id="addVariantModalTitle">New variant</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        @include('catalog::products._variant-identity', ['prefix' => 'add'])
+                        @include('catalog::products._variant-figures', ['prefix' => 'add', 'variant' => null])
                     </div>
-                    <div class="modal-body p-4">
-                        <div class="row">
-                            @include('catalog::products._variant-identity', ['prefix' => 'add'])
-
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Purchase
-                                    Price</label>
-                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
-                                    <span class="input-group-text bg-white border-0"><i
-                                            class="fas fa-file-invoice-dollar text-muted"></i></span>
-                                    <input type="number" name="price_purchase" class="form-control border-0 shadow-none"
-                                        step="0.01" placeholder="0.00" required>
-                                    <span class="input-group-text bg-light border-0 small">MGA</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Selling
-                                    Price</label>
-                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
-                                    <span class="input-group-text bg-white border-0"><i
-                                            class="fas fa-tag text-muted"></i></span>
-                                    <input type="number" name="price" class="form-control border-0 shadow-none"
-                                        step="0.01" value="{{ $product->price }}" required>
-                                    <span class="input-group-text bg-light border-0 small">MGA</span>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Initial
-                                    Stock</label>
-                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
-                                    <span class="input-group-text bg-white border-0"><i
-                                            class="fas fa-cubes text-muted"></i></span>
-                                    <input type="number" name="stock" class="form-control border-0 shadow-none"
-                                        min="0" value="0" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Alert
-                                    Threshold</label>
-                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
-                                    <span class="input-group-text bg-white border-0"><i
-                                            class="fas fa-bell text-warning"></i></span>
-                                    <input type="number" name="alert_stock" class="form-control border-0 shadow-none"
-                                        min="0" value="5">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer bg-light border-0">
-                        <button type="button" class="btn btn-link text-muted text-decoration-none px-4"
-                            data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success px-4 rounded-pill shadow-sm">
-                            <i class="fas fa-save me-2"></i>Save variant
-                        </button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save variant</button>
                 </div>
             </form>
         </div>
     </div>
 
-    {{-- Modal Modifier une Variante --}}
-    <div class="modal fade" id="editVariantModal" tabindex="-1">
+    {{-- Modifier une variante --}}
+    <div class="modal fade" id="editVariantModal" tabindex="-1" aria-labelledby="editVariantModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <form id="editVariantForm" method="POST">
+            <form id="editVariantForm" method="POST" class="modal-content">
                 @csrf
                 @method('PUT')
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white border-0">
-                        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Edit variant</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header">
+                    <h2 class="modal-title" id="editVariantModalTitle">Edit variant</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        @include('catalog::products._variant-identity', ['prefix' => 'edit'])
+                        @include('catalog::products._variant-figures', ['prefix' => 'edit'])
                     </div>
-                    <div class="modal-body p-4">
-                        <div class="row">
-                            @include('catalog::products._variant-identity', ['prefix' => 'edit'])
-
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Purchase
-                                    Price</label>
-                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
-                                    <span class="input-group-text bg-white border-0"><i
-                                            class="fas fa-file-invoice-dollar text-muted"></i></span>
-                                    <input type="number" name="price_purchase" id="edit-variant-price-purchase"
-                                        class="form-control border-0 shadow-none" step="0.01" required>
-                                    <span class="input-group-text bg-light border-0 small">MGA</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Selling
-                                    Price</label>
-                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
-                                    <span class="input-group-text bg-white border-0"><i
-                                            class="fas fa-tag text-muted"></i></span>
-                                    <input type="number" name="price" id="edit-variant-price"
-                                        class="form-control border-0 shadow-none" step="0.01" required>
-                                    <span class="input-group-text bg-light border-0 small">MGA</span>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Current
-                                    Stock</label>
-                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
-                                    <span class="input-group-text bg-white border-0"><i
-                                            class="fas fa-cubes text-muted"></i></span>
-                                    <input type="number" name="stock" id="edit-variant-stock"
-                                        class="form-control border-0 shadow-none" min="0" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold text-muted small text-uppercase mb-2">Alert
-                                    Threshold</label>
-                                <div class="input-group border rounded-3 overflow-hidden shadow-sm">
-                                    <span class="input-group-text bg-white border-0"><i
-                                            class="fas fa-bell text-warning"></i></span>
-                                    <input type="number" name="alert_stock" id="edit-variant-alert"
-                                        class="form-control border-0 shadow-none" min="0">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer bg-light border-0">
-                        <button type="button" class="btn btn-link text-muted text-decoration-none px-4"
-                            data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary px-4 rounded-pill shadow-sm">
-                            <i class="fas fa-check me-2"></i>Apply changes
-                        </button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Apply changes</button>
                 </div>
             </form>
         </div>
     </div>
 
-    {{-- Modal Options & spécifications --}}
-    <div class="modal fade" id="optionsModal" tabindex="-1">
+    {{-- Options et spécifications --}}
+    <div class="modal fade" id="optionsModal" tabindex="-1" aria-labelledby="optionsModalTitle" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <form action="{{ route('admin.products.options.update', $product->id) }}" method="POST">
+            <form action="{{ route('admin.products.options.update', $product->id) }}" method="POST" class="modal-content">
                 @csrf
                 @method('PUT')
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Options & specifications</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <h6 class="fw-bold">Options</h6>
-                        <p class="small text-muted">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="optionsModalTitle">Options &amp; specifications</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="ui-form-section">
+                        <h3 class="ui-form-section-title">Options</h3>
+                        <p class="ui-form-section-hint">
                             Values used by a variant cannot be removed. New values can be added here or directly when adding a variant.
                         </p>
                         <div id="product-option-rows">
                             @foreach ($product->options ?? [] as $i => $option)
                                 <div class="row g-2 mb-2 editable-row">
-                                    <div class="col-md-4"><input type="text" name="options[{{ $i }}][name]" class="form-control" value="{{ $option['name'] }}" maxlength="50" placeholder="Option (e.g. Volume)"></div>
-                                    <div class="col-md-7"><input type="text" name="options[{{ $i }}][values]" class="form-control" value="{{ implode(', ', $option['values']) }}" placeholder="Values, comma separated"></div>
-                                    <div class="col-md-1"><button type="button" class="btn btn-outline-danger w-100 remove-editable-row" title="Remove"><i class="fas fa-trash"></i></button></div>
+                                    <div class="col-md-4"><input type="text" name="options[{{ $i }}][name]" class="form-control" value="{{ $option['name'] }}" maxlength="50" placeholder="Option (e.g. Volume)" aria-label="Option name"></div>
+                                    <div class="col"><input type="text" name="options[{{ $i }}][values]" class="form-control" value="{{ implode(', ', $option['values']) }}" placeholder="Values, comma separated" aria-label="Values"></div>
+                                    <div class="col-auto"><button type="button" class="btn btn-icon btn-icon-danger remove-editable-row" title="Remove" aria-label="Remove"><i class="bi bi-trash3" aria-hidden="true"></i></button></div>
                                 </div>
                             @endforeach
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary mb-4 add-editable-row"
+                        <button type="button" class="btn btn-sm btn-outline-secondary add-editable-row"
                             data-target="product-option-rows" data-prefix="options" data-first="name" data-second="values"
                             data-first-placeholder="Option (e.g. Volume)" data-second-placeholder="Values, comma separated">
-                            <i class="fas fa-plus"></i> Add an option
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Add an option
                         </button>
+                    </div>
 
-                        <h6 class="fw-bold">Specifications</h6>
+                    <div class="ui-form-section">
+                        <h3 class="ui-form-section-title">Specifications</h3>
                         <div id="product-spec-rows">
                             @foreach ($product->specs ?? [] as $key => $value)
                                 <div class="row g-2 mb-2 editable-row">
-                                    <div class="col-md-4"><input type="text" name="specs[{{ $loop->index }}][key]" class="form-control" value="{{ $key }}" maxlength="100"></div>
-                                    <div class="col-md-7"><input type="text" name="specs[{{ $loop->index }}][value]" class="form-control" value="{{ $value }}"></div>
-                                    <div class="col-md-1"><button type="button" class="btn btn-outline-danger w-100 remove-editable-row" title="Remove"><i class="fas fa-trash"></i></button></div>
+                                    <div class="col-md-4"><input type="text" name="specs[{{ $loop->index }}][key]" class="form-control" value="{{ $key }}" maxlength="100" aria-label="Specification"></div>
+                                    <div class="col"><input type="text" name="specs[{{ $loop->index }}][value]" class="form-control" value="{{ $value }}" aria-label="Value"></div>
+                                    <div class="col-auto"><button type="button" class="btn btn-icon btn-icon-danger remove-editable-row" title="Remove" aria-label="Remove"><i class="bi bi-trash3" aria-hidden="true"></i></button></div>
                                 </div>
                             @endforeach
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary add-editable-row"
+                        <button type="button" class="btn btn-sm btn-outline-secondary add-editable-row"
                             data-target="product-spec-rows" data-prefix="specs" data-first="key" data-second="value"
                             data-first-placeholder="e.g. Origin" data-second-placeholder="e.g. China">
-                            <i class="fas fa-plus"></i> Add a specification
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Add a specification
                         </button>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save</button>
                 </div>
             </form>
         </div>
     </div>
+@endsection
 
+@push('scripts')
     <script>
         // Lignes ajoutables / supprimables (options et spécifications) : construites avec le DOM, sans HTML injecté
         (function () {
@@ -416,20 +283,24 @@
                         node.className = 'form-control';
                         node.name = `${add.dataset.prefix}[${i}][${field}]`;
                         node.placeholder = placeholder;
+                        node.setAttribute('aria-label', placeholder);
                         return node;
                     };
                     const col = (className, child) => { const div = document.createElement('div'); div.className = className; div.appendChild(child); return div; };
                     const remove = document.createElement('button');
                     remove.type = 'button';
-                    remove.className = 'btn btn-outline-danger w-100 remove-editable-row';
+                    remove.className = 'btn btn-icon btn-icon-danger remove-editable-row';
                     remove.title = 'Remove';
-                    remove.textContent = '×';
+                    remove.setAttribute('aria-label', 'Remove');
+                    const icon = document.createElement('i');
+                    icon.className = 'bi bi-trash3';
+                    remove.appendChild(icon);
                     const row = document.createElement('div');
                     row.className = 'row g-2 mb-2 editable-row';
                     row.append(
                         col('col-md-4', input(add.dataset.first, add.dataset.firstPlaceholder)),
-                        col('col-md-7', input(add.dataset.second, add.dataset.secondPlaceholder)),
-                        col('col-md-1', remove)
+                        col('col', input(add.dataset.second, add.dataset.secondPlaceholder)),
+                        col('col-auto', remove)
                     );
                     document.getElementById(add.dataset.target).appendChild(row);
                     row.querySelector('input').focus();
@@ -442,174 +313,118 @@
             });
         })();
     </script>
-@endsection
 
-
-@push('scripts')
-    <script>
+    <script type="module">
         const PRODUCT_ID = {{ $product->id }};
         let stockChart = null;
 
-        // Attendre que jQuery soit disponible
-        if (typeof jQuery !== 'undefined') {
-            initProductPage();
-        } else {
-            const checkJQuery = setInterval(() => {
-                if (typeof jQuery !== 'undefined') {
-                    clearInterval(checkJQuery);
-                    initProductPage();
-                }
-            }, 100);
-        }
+        // Motif du mouvement et libellé de variante sont des saisies : on les échappe avant de les insérer dans le HTML
+        const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
 
-        function initProductPage() {
-            const $ = window.jQuery;
-            $(document).ready(function() {
-                loadHistory();
-                loadChart();
+        // Modification des informations générales (AJAX)
+        $('#editProductForm').on('submit', function (e) {
+            e.preventDefault();
 
-                // Gestion de l'édition générale AJAX
-                $('#editProductForm').on('submit', function(e) {
-                    e.preventDefault();
-
-                    $.ajax({
-                        url: `/admin/products/main/${PRODUCT_ID}/update-details`,
-                        method: 'PATCH',
-                        data: $(this).serialize(),
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        success: function(res) {
-                            if (res.success) {
-                                $('#display-name').text(res.data.name);
-                                $('#display-category').text(res.data.category_name);
-                                // Fermer le modal
-                                const modal = bootstrap.Modal.getInstance(document
-                                    .getElementById('editProductModal'));
-                                modal.hide();
-                            }
-                        }
-                    });
-                });
-
-                // Gestion de l'ouverture du modal de modification de variante
-                $('.edit-variant-btn').on('click', function() {
-                    const id = $(this).data('id');
-                    const values = JSON.parse(this.dataset.values || '{}');
-                    const stock = $(this).data('stock');
-                    const alert = $(this).data('alert-stock');
-                    const price = $(this).data('price');
-                    const pricePurchase = $(this).data('price-purchase');
-
-                    // Remplissage des champs du formulaire
-                    document.querySelectorAll('#editVariantForm .variant-option-input').forEach(input => {
-                        input.value = values[input.dataset.optionName] ?? '';
-                    });
-                    document.querySelector('#editVariantForm .variant-brand-select').value = this.dataset.brandId || '';
-                    $('#edit-variant-stock').val(stock);
-                    $('#edit-variant-alert').val(alert);
-                    $('#edit-variant-price').val(price);
-                    $('#edit-variant-price-purchase').val(pricePurchase);
-                    $('#editVariantForm').attr('action', `/admin/products/variants/${id}`);
-                });
-
-                // Filtre d'historique
-                $('#variant-filter').on('change', function() {
-                    loadHistory($(this).val());
-                });
+            $.ajax({
+                url: `/admin/products/main/${PRODUCT_ID}/update-details`,
+                method: 'PATCH',
+                data: $(this).serialize(),
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function (res) {
+                    if (res.success) {
+                        $('.bo-page-title').text(res.data.name);
+                        $('#display-category').text(res.data.category_name);
+                        $('#display-description').text($('#edit-product-description').val() || '—');
+                        bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide();
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Product updated', showConfirmButton: false, timer: 2500 });
+                    }
+                },
             });
+        });
 
-            // Motif du mouvement et nom de couleur sont des saisies : on les échappe avant de les insérer dans le HTML
-            const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-            }[c]));
+        // Ouverture de la fenêtre de modification d'une variante : on reporte ses valeurs
+        $('.edit-variant-btn').on('click', function () {
+            const values = JSON.parse(this.dataset.values || '{}');
 
-            function loadHistory(variantId = '') {
-                const $list = $('#history-list');
-                $list.html('<li class="list-group-item text-center">Loading...</li>');
+            document.querySelectorAll('#editVariantForm .variant-option-input').forEach(input => {
+                input.value = values[input.dataset.optionName] ?? '';
+            });
+            document.querySelector('#editVariantForm .variant-brand-select').value = this.dataset.brandId || '';
+            $('#edit-variant-stock').val(this.dataset.stock);
+            $('#edit-variant-alert').val(this.dataset.alertStock);
+            $('#edit-variant-price').val(this.dataset.price);
+            $('#edit-variant-price-purchase').val(this.dataset.pricePurchase);
+            $('#editVariantForm').attr('action', `/admin/products/variants/${this.dataset.id}`);
+        });
 
-                $.getJSON(`/api/products/${PRODUCT_ID}/movements?variant_id=${variantId}`)
-                    .done(function(res) {
-                        const html = res.data.map(m => `
-                            <li class="list-group-item border-0 border-bottom">
-                                <div class="d-flex justify-content-between">
-                                    <small class="fw-bold text-uppercase">${m.type === 'in' ? 'In' : 'Out'}</small>
+        $('#variant-filter').on('change', function () {
+            loadHistory($(this).val());
+        });
+
+        function loadHistory(variantId = '') {
+            const $list = $('#history-list');
+            $list.html('<li class="text-muted">Loading...</li>');
+
+            $.getJSON(`/api/products/${PRODUCT_ID}/movements?variant_id=${variantId}`)
+                .done(function (res) {
+                    const html = res.data.map(m => {
+                        const incoming = m.type === 'in';
+                        return `
+                            <li>
+                                <div class="d-flex justify-content-between align-items-center gap-2">
+                                    <span class="ui-badge ui-badge-dot ${incoming ? 'ui-tone-success' : 'ui-tone-danger'}">${incoming ? 'In' : 'Out'}</span>
                                     <small class="text-muted">${new Date(m.created_at).toLocaleDateString()}</small>
                                 </div>
-                                <div class="small">${escapeHtml(m.variant_label)} : <strong>${m.quantity} units</strong></div>
-                                <div class="text-muted extra-small">${escapeHtml(m.reason)}</div>
-                            </li>
-                        `).join('');
-                        $list.html(html ||
-                            '<li class="list-group-item text-center text-muted">No movements found</li>');
-                    })
-                    .fail(function() {
-                        $list.html(
-                            '<li class="list-group-item text-center text-danger small">Loading error</li>');
-                    });
-            }
-
-            function loadVariants() {
-                // Cette fonction peut être utilisée pour recharger les variantes après une modification
-            }
-
-            function loadChart() {
-                $.getJSON(`/api/products/${PRODUCT_ID}/stock-evolution`)
-                    .done(function(res) {
-                        if (res.success) renderChart(res.data);
-                    })
-                    .fail(function(err) {
-                        console.error('Erreur graphique:', err);
-                    });
-            }
-
-            function renderChart(data) {
-                const chartData = Array.isArray(data) ? data : Object.values(data).flat();
-                const ctx = $('#stockEvolutionChart')[0].getContext('2d');
-
-                if (stockChart) {
-                    stockChart.data.labels = chartData.map(item => item.x);
-                    stockChart.data.datasets[0].data = chartData.map(item => item.y);
-                    stockChart.update();
-                    return;
-                }
-
-                stockChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: chartData.map(item => item.x),
-                        datasets: [{
-                            label: 'Total Stock',
-                            data: chartData.map(item => item.y),
-                            fill: false,
-                            borderColor: 'rgb(75, 192, 192)',
-                            tension: 0.1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            x: {
-                                type: 'time',
-                                time: {
-                                    unit: 'day'
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Date'
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Quantity in stock'
-                                }
-                            }
-                        }
-                    }
+                                <div class="mt-1">${escapeHtml(m.variant_label)} · <strong>${incoming ? '+' : '-'}${Math.abs(m.quantity)}</strong></div>
+                                <div class="ui-cell-meta">${escapeHtml(m.reason)}</div>
+                            </li>`;
+                    }).join('');
+                    $list.html(html || '<li class="ui-empty"><i class="bi bi-clock-history"></i>No movement found</li>');
+                })
+                .fail(function () {
+                    $list.html('<li class="text-danger small">Loading error</li>');
                 });
-            }
         }
+
+        function renderChart(data) {
+            const chartData = Array.isArray(data) ? data : Object.values(data).flat();
+            const color = window.appTheme.token('chart-1');
+
+            if (stockChart) {
+                stockChart.data.labels = chartData.map(item => item.x);
+                stockChart.data.datasets[0].data = chartData.map(item => item.y);
+                stockChart.update();
+                return;
+            }
+
+            stockChart = new Chart(document.getElementById('stockEvolutionChart'), {
+                type: 'line',
+                data: {
+                    labels: chartData.map(item => item.x),
+                    datasets: [{
+                        label: 'Total stock',
+                        data: chartData.map(item => item.y),
+                        borderColor: color,
+                        backgroundColor: window.appTheme.alpha(color, 0.08),
+                        fill: true,
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { type: 'time', time: { unit: 'day' }, grid: { display: false } },
+                        y: { beginAtZero: true },
+                    },
+                },
+            });
+        }
+
+        loadHistory();
+        $.getJSON(`/api/products/${PRODUCT_ID}/stock-evolution`)
+            .done(res => { if (res.success) renderChart(res.data); })
+            .fail(err => console.error('Stock chart:', err));
     </script>
 @endpush

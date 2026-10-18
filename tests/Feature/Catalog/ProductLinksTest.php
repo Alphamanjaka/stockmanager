@@ -31,7 +31,7 @@ class ProductLinksTest extends TestCase
 
         // Ids de variantes : 1 (Wax), 2 et 3 (Velours) ; ids produits : 1 et 2
         foreach ([[$first, 'Rouge'], [$this->second, 'Bleu'], [$this->second, 'Vert']] as [$product, $color]) {
-            ProductColor::create([
+            ProductColor::forceCreate([
                 'product_id' => $product->id,
                 'color_id' => Color::factory()->create(['name' => $color])->id,
                 'stock' => 10,

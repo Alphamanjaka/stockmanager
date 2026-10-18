@@ -49,11 +49,7 @@ class SupplierService
         $sort = in_array($filters['sort'] ?? '', $sortableColumns) ? $filters['sort'] : 'created_at';
         $order = ($filters['order'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 
-        return $query->when($filters['search'] ?? null, function ($q, $search) {
-            $search = mb_strtolower($search);
-            $q->whereLike('name', "%{$search}%")
-                ->orWhereLike('email', "%{$search}%");
-        })
+        return $query->when($filters['search'] ?? null, fn ($q, $search) => $q->search($search))
             ->orderBy($sort, $order);
     }
     public function getSupplierById(int $id)

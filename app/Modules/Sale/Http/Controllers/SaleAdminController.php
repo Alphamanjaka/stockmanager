@@ -2,9 +2,10 @@
 
 namespace App\Modules\Sale\Http\Controllers;
 
+use App\Modules\Sale\Http\Controllers\Concerns\ChecksOutSales;
 use App\Modules\Sale\Http\Requests\StoreSaleRequest;
-use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Sale\Services\SaleService;
+use App\Modules\Sale\Support\PosCatalog;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
 use App\Modules\Contact\Models\Customer;
@@ -13,10 +14,10 @@ use Illuminate\Http\Request;
 
 class SaleAdminController extends Controller
 {
-    // constructor to inject SaleService and ProductColorService
+    use ChecksOutSales;
+
     public function __construct(
         protected SaleService $saleService,
-        protected ProductColorService $productColorService,
         protected CustomerService $customerService
     ) {}
 
@@ -44,6 +45,16 @@ class SaleAdminController extends Controller
     }
 
     /**
+     * Reçu de caisse (ticket 80 mm) à imprimer.
+     */
+    public function receipt(int $id)
+    {
+        $sale = $this->saleService->getSaleById($id);
+
+        return view('sale::sales.receipt', compact('sale'));
+    }
+
+    /**
      * Export the specified resource as PDF.
      */
     public function exportPdf(int $id)
@@ -55,36 +66,21 @@ class SaleAdminController extends Controller
     }
 
     /**
-     * Create a new sale
+     * Écran de caisse.
      */
-    public function create(){
-        // provide a list of available products with their stock and price for the form
-        $items = $this->productColorService->getAvailableProducts();
+    public function create(PosCatalog $catalog)
+    {
+        $pos = $catalog->build();
         $customers = $this->customerService->getAll([], false);
-        return view('sale::back-office.sales.create', compact('items', 'customers'));
+
+        return view('sale::back-office.sales.create', compact('pos', 'customers'));
     }
+
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreSaleRequest $request){
-        try {
-            $validated = $request->validated();
-
-            $sale = $this->saleService->createSale(
-                $validated['products'],
-                $validated['discount'] ?? 0,
-                auth()->id(), // Associer la vente à l'utilisateur connecté
-                $validated
-            );
-            return redirect()
-                ->route('admin.sales.show', $sale->id)
-                ->with('success', "Vente {$sale->reference} validée avec succès !");
-        } catch (\Exception $e) {
-            return back()
-              ->withInput()
-                ->with('error', "Erreur lors de la vente : " . $e->getMessage());
-        }
-
-
+    public function store(StoreSaleRequest $request)
+    {
+        return $this->checkout($request, 'admin.sales.');
     }
 }

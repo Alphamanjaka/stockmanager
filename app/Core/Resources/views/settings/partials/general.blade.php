@@ -1,48 +1,27 @@
-<div class="card shadow-sm">
-    <div class="card-header bg-white fw-bold">Company Information</div>
-    <div class="card-body">
-        <div class="mb-3">
-            <label class="form-label">Nom du Magasin / Entreprise</label>
-            <input type="text" class="form-control" name="company_name" value="{{ $settings['company_name'] ?? '' }}">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Logo</label>
-            <input type="file" class="form-control" name="company_logo">
+<x-ui.card title="Company" subtitle="Shown on invoices, receipts and purchase orders">
+    <div class="ui-form-section">
+        <div class="row">
+            <x-ui.field class="col-md-6" name="company_name" label="Store / company name" :value="$settings['company_name'] ?? ''" />
+            <x-ui.field class="col-md-6" name="company_logo" label="Logo" type="file" accept="image/*" />
             @if (!empty($settings['company_logo']))
-                <div class="mt-2">
-                    <img src="{{ asset('storage/' . $settings['company_logo']) }}" alt="Logo actuel" style="max-height: 50px;">
+                <div class="col-12 mb-3">
+                    <img src="{{ asset('storage/' . $settings['company_logo']) }}" alt="Current logo" class="border rounded p-1"
+                        style="max-height: 56px;">
                 </div>
             @endif
-        </div>
-
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Contact email</label>
-                <input type="email" class="form-control" name="company_email" value="{{ $settings['company_email'] ?? '' }}">
-            </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Phone</label>
-                <input type="text" class="form-control" name="company_phone" value="{{ $settings['company_phone'] ?? '' }}">
-            </div>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Adresse</label>
-            <textarea class="form-control" name="company_address" rows="2">{{ $settings['company_address'] ?? '' }}</textarea>
-        </div>
-
-        <hr>
-        <h6 class="text-muted mb-3">Tax Identifiers</h6>
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Numéro SIRET</label>
-                <input type="text" class="form-control" name="company_siret" value="{{ $settings['company_siret'] ?? '' }}">
-            </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">TVA Intracommunautaire</label>
-                <input type="text" class="form-control" name="company_vat" value="{{ $settings['company_vat'] ?? '' }}">
-            </div>
+            <x-ui.field class="col-md-6" name="company_email" label="Contact email" type="email" :value="$settings['company_email'] ?? ''" />
+            <x-ui.field class="col-md-6" name="company_phone" label="Phone" :value="$settings['company_phone'] ?? ''" />
+            <x-ui.field class="col-12 mb-0" name="company_address" label="Address" type="textarea" rows="2"
+                :value="$settings['company_address'] ?? ''" />
         </div>
     </div>
-</div>
+
+    <div class="ui-form-section">
+        <h3 class="ui-form-section-title">Tax identifiers</h3>
+        <div class="row">
+            <x-ui.field class="col-md-6 mb-0" name="company_siret" label="Registration number (SIRET / NIF)"
+                :value="$settings['company_siret'] ?? ''" />
+            <x-ui.field class="col-md-6 mb-0" name="company_vat" label="VAT number" :value="$settings['company_vat'] ?? ''" />
+        </div>
+    </div>
+</x-ui.card>

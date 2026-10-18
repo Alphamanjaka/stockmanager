@@ -1,61 +1,39 @@
 @extends('layouts.app-front-office')
 
-@section('title', 'Gestion des Ventes')
-@section('content')
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm text-center h-100 bg-success text-white">
-                <div class="card-body">
-                    <h6 class="card-subtitle mb-2">Sales Today</h6>
-                    <p class="card-text fs-4 fw-bold">
-                        {{ number_format($salesToday, 2, ',', ' ') }}
-                        MGA
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm text-center h-100 bg-primary text-white">
-                <div class="card-body">
-                    <h6 class="card-subtitle mb-2">Sales This Month</h6>
-                    <p class="card-text fs-4 fw-bold">
-                        {{ number_format($salesThisMonth, 2, ',', ' ') }}
-                        MGA
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm text-center h-100 bg-info text-white">
-                <div class="card-body">
-                    <h6 class="card-subtitle mb-2">Total Sales</h6>
-                    <p class="card-text fs-4 fw-bold">{{ $totalSales }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
+@section('title', 'Welcome, ' . $user->name)
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-gradient text-white"
-                    style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);">
-                    <h5 class="mb-0"><i class="fas fa-receipt"></i> Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <a href="{{ route('saler.create') }}" class="btn btn-lg btn-success w-100 py-3">
-                                <i class="fas fa-plus-circle"></i> Create New Sale
-                            </a>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <a href="{{ route('saler.index') }}" class="btn btn-lg btn-primary w-100 py-3">
-                                <i class="fas fa-list"></i> View All Sales
-                            </a>
-                        </div>
-                    </div>
-                </div>
+@section('actions')
+    <a href="{{ route('saler.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> New sale
+    </a>
+@endsection
+
+@section('content')
+    <div class="ui-stack">
+        <div class="ui-stats">
+            <x-ui.stat label="Sales today" :value="money($salesToday)" icon="bi-calendar-day" tone="success" />
+            <x-ui.stat label="Sales this month" :value="money($salesThisMonth)" icon="bi-calendar-month" tone="primary" />
+            <x-ui.stat label="Number of sales" :value="$totalSales" icon="bi-receipt" tone="info" />
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <a href="{{ route('saler.create') }}" class="ui-stat h-100">
+                    <span class="ui-stat-icon ui-tone-primary"><i class="bi bi-shop" aria-hidden="true"></i></span>
+                    <span class="ui-stat-body">
+                        <span class="d-block fw-semibold">Open the point of sale</span>
+                        <span class="ui-stat-hint d-block">Scan or search products and take the payment.</span>
+                    </span>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a href="{{ route('saler.index') }}" class="ui-stat h-100">
+                    <span class="ui-stat-icon ui-tone-neutral"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
+                    <span class="ui-stat-body">
+                        <span class="d-block fw-semibold">Sales history</span>
+                        <span class="ui-stat-hint d-block">Find a sale, print a receipt or an invoice.</span>
+                    </span>
+                </a>
             </div>
         </div>
     </div>

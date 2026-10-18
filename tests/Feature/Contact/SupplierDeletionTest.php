@@ -32,7 +32,7 @@ class SupplierDeletionTest extends TestCase
         $this->purchase = Purchase::factory()->create(['supplier_id' => $this->supplier->id, 'state' => 'Received']);
 
         $product = Product::factory()->create(['category_id' => Category::factory()->create()->id]);
-        $variant = ProductColor::create(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'stock' => 5, 'price' => 1000]);
+        $variant = ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'stock' => 5, 'price' => 1000]);
         PurchaseItem::create(['purchase_id' => $this->purchase->id, 'product_color_id' => $variant->id, 'quantity' => 5, 'unit_price' => 700, 'subtotal' => 3500]);
     }
 

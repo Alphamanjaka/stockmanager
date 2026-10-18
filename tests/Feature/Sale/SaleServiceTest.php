@@ -35,7 +35,7 @@ class SaleServiceTest extends TestCase
     {
         // Arrange
         $product = Product::factory()->create();
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $product->id,
             'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id,
             'price' => 100.00,
@@ -79,7 +79,7 @@ class SaleServiceTest extends TestCase
     {
         // Arrange
         $product = Product::factory()->create(['name' => 'Test Product']);
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $product->id,
             'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id,
             'stock' => 1

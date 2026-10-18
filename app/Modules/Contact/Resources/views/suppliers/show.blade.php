@@ -1,175 +1,132 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Supplier Detail: ' . $supplier->name)
+@section('title', $supplier->name)
+@section('subtitle', 'Supplier since ' . $supplier->created_at->format('d/m/Y'))
+
+@section('actions')
+    <a href="{{ route('admin.suppliers.edit', $supplier->id) }}" class="btn btn-primary">
+        <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+    </a>
+@endsection
 
 @section('content')
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="{{ route('admin.suppliers.index') }}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left"></i> back to Suppliers
-            </a>
-            <div>
-                <a href="{{ route('admin.suppliers.edit', $supplier->id) }}" class="btn btn-primary">
-                    <i class="bi bi-pencil-square"></i> Update
-                </a>
+    <div class="ui-stack">
+        <div class="ui-stats">
+            <x-ui.stat label="Business volume" :value="money($totalSpent)" icon="bi-cash-stack" tone="primary"
+                :hint="'On ' . $purchases->total() . ' purchase(s)'" />
+            <x-ui.stat label="Last purchase" :value="$lastPurchase?->created_at->format('d/m/Y') ?? '—'" icon="bi-calendar-check"
+                tone="info" :hint="$lastPurchase ? $lastPurchase->reference : 'No purchase yet'" />
+        </div>
+
+        <div class="row g-3">
+            <div class="col-lg-4">
+                <x-ui.card title="Contact information" class="h-100">
+                    <dl class="ui-dl">
+                        <dt>Phone</dt>
+                        <dd>{{ $supplier->phone ?: '—' }}</dd>
+                        <dt>Email</dt>
+                        <dd>
+                            @if ($supplier->email)
+                                <a href="mailto:{{ $supplier->email }}">{{ $supplier->email }}</a>
+                            @else
+                                —
+                            @endif
+                        </dd>
+                        <dt>Address</dt>
+                        <dd>{{ $supplier->address ?: '—' }}</dd>
+                        <dt>Notes</dt>
+                        <dd class="text-prewrap">{{ $supplier->notes ?: '—' }}</dd>
+                    </dl>
+                </x-ui.card>
+            </div>
+
+            <div class="col-lg-8">
+                <x-ui.card title="Top products purchased" flush class="h-100">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-end">Quantity</th>
+                                    <th class="text-end">Total cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($topProducts as $product)
+                                    <tr>
+                                        <td>{{ $product->name }}</td>
+                                        <td class="text-end">{{ $product->total_qty }}</td>
+                                        <td class="text-end">{{ money($product->total_cost) }}</td>
+                                    </tr>
+                                @empty
+                                    <x-ui.empty-row :colspan="3" icon="bi-trophy">No product purchased from this supplier yet.</x-ui.empty-row>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </x-ui.card>
             </div>
         </div>
 
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <h3 class="mb-3">{{ $supplier->name }}</h3>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong><i class="bi bi-envelope"></i> Email:</strong>
-                                <span>{{ $supplier->email ?? 'Not provided' }}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong><i class="bi bi-telephone"></i> Phone:</strong>
-                                <span>{{ $supplier->phone }}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong><i class="bi bi-geo-alt"></i> Address:</strong>
-                                <span>{{ $supplier->address ?? 'Not provided' }}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong>Created At:</strong>
-                                <span>{{ $supplier->created_at->format('d/m/Y') }}</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card shadow-sm h-100 bg-light">
-                    <div class="card-body text-center d-flex flex-column justify-content-center">
-                        <h6 class="text-muted text-uppercase small">Business Volume</h6>
-                        <h1 class="display-5 fw-bold text-primary">{{ number_format($totalSpent, 2) }} €</h1>
-                        <p class="mb-3 text-muted">on {{ $purchases->total() }} purchases</p>
-
-                        @if ($lastPurchase)
-                            <div class="alert alert-white border shadow-sm py-2 mb-0">
-                                <small class="text-muted d-block">Last purchase on</small>
-                                <strong>{{ $lastPurchase->created_at->format('d/m/Y') }}</strong>
-                            </div>
-                        @else
-                            <span class="badge bg-secondary">No purchases</span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @if ($topProducts->isNotEmpty())
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-white">
-                            <h5 class="mb-0"><i class="bi bi-trophy"></i> Top Products Purchased</h5>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Product</th>
-                                            <th class="text-center">Total Quantity</th>
-                                            <th class="text-end">Total Cost</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($topProducts as $product)
-                                            <tr>
-                                                <td>{{ $product->name }}</td>
-                                                <td class="text-center fw-bold">{{ $product->total_qty }}</td>
-                                                <td class="text-end">{{ number_format($product->total_cost, 2) }} €</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-receipt"></i> Purchase History</h5>
-            </div>
-            <div class="card-body">
+        <x-ui.card title="Purchase history" flush :pagination="$purchases">
+            <div class="table-responsive">
                 <table class="table table-hover">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
                             <th>Reference</th>
                             <th>Date</th>
-                            <th>Total Amount</th>
                             <th>Status</th>
-                            <th>Action</th>
+                            <th class="text-end">Total net</th>
+                            <th class="text-end"><span class="visually-hidden">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($purchases as $purchase)
+                        @forelse ($purchases as $purchase)
                             <tr>
-                                <td>{{ $purchase->reference }}</td>
+                                <td><a href="{{ route('admin.purchases.show', $purchase->id) }}" class="link-plain">{{ $purchase->reference }}</a></td>
                                 <td>{{ $purchase->created_at->format('d/m/Y H:i') }}</td>
-                                <td class="fw-bold">{{ number_format($purchase->total_net, 2) }} €</td>
-                                <td>
-                                    <span class="badge bg-success">{{ $purchase->state }}</span>
-                                </td>
-                                <td>
-                                    <a href="{{ route('admin.purchases.show', $purchase->id) }}"
-                                        class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-eye"></i>
+                                <td><x-ui.status :value="$purchase->state" /></td>
+                                <td class="text-end fw-semibold">{{ money($purchase->total_net) }}</td>
+                                <td class="text-end">
+                                    <a href="{{ route('admin.purchases.show', $purchase->id) }}" class="btn btn-icon" title="View" aria-label="View">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
                                     </a>
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="5" class="text-center text-muted">No purchases recorded for this supplier.
-                                </td>
-                            </tr>
+                            <x-ui.empty-row :colspan="5" icon="bi-receipt">No purchase recorded for this supplier.</x-ui.empty-row>
                         @endforelse
                     </tbody>
                 </table>
-                <div class="d-flex justify-content-center mt-3">{{ $purchases->links() }}</div>
             </div>
-        </div>
+        </x-ui.card>
 
         {{-- Suppression volontairement difficile : il faut retaper le nom exact du fournisseur --}}
-        <div class="card border-danger shadow-sm mt-5">
-            <div class="card-header bg-danger text-white fw-bold">Danger zone</div>
-            <div class="card-body">
-                <p class="mb-2">
-                    Deleting this supplier is permanent.
-                    @if ($purchases->total() > 0)
-                        Its <strong>{{ $purchases->total() }} purchase(s)</strong> will be kept, but without supplier.
-                    @endif
-                </p>
-                <form action="{{ route('admin.suppliers.destroy', $supplier->id) }}" method="POST" class="row g-2 align-items-end"
-                    id="delete-supplier-form">
-                    @csrf
-                    @method('DELETE')
-                    <div class="col-md-8">
-                        <label for="confirm_name" class="form-label small">
-                            Type <strong>{{ $supplier->name }}</strong> to confirm
-                        </label>
-                        <input type="text" id="confirm_name" name="confirm_name" class="form-control" autocomplete="off"
-                            data-expected="{{ $supplier->name }}">
-                    </div>
-                    <div class="col-md-4">
-                        <button type="submit" id="delete-supplier-button" class="btn btn-outline-danger w-100" disabled>
-                            <i class="bi bi-trash"></i> Delete this supplier
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <x-ui.card title="Danger zone" tone="danger">
+            <p class="mb-3">
+                Deleting this supplier is permanent.
+                @if ($purchases->total() > 0)
+                    Its <strong>{{ $purchases->total() }} purchase(s)</strong> will be kept, but without supplier.
+                @endif
+            </p>
+            <form action="{{ route('admin.suppliers.destroy', $supplier->id) }}" method="POST" class="row g-2 align-items-end"
+                id="delete-supplier-form">
+                @csrf
+                @method('DELETE')
+                <div class="col-md-6">
+                    <label for="confirm_name" class="form-label">
+                        Type <strong>{{ $supplier->name }}</strong> to confirm
+                    </label>
+                    <input type="text" id="confirm_name" name="confirm_name" class="form-control" autocomplete="off"
+                        data-expected="{{ $supplier->name }}">
+                </div>
+                <div class="col-md-auto">
+                    <button type="submit" id="delete-supplier-button" class="btn btn-danger" disabled>
+                        <i class="bi bi-trash3" aria-hidden="true"></i> Delete this supplier
+                    </button>
+                </div>
+            </form>
+        </x-ui.card>
     </div>
 
     @push('scripts')

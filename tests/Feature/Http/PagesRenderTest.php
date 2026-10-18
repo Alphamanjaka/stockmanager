@@ -2,18 +2,18 @@
 
 namespace Tests\Feature\Http;
 
+use App\Models\User;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Color;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Contact\Models\Customer;
+use App\Modules\Contact\Models\Supplier;
 use App\Modules\Purchase\Models\Purchase;
 use App\Modules\Purchase\Models\PurchaseItem;
 use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleItem;
 use App\Modules\Stock\Models\StockMovement;
-use App\Models\User;
-use App\Modules\Contact\Models\Customer;
-use App\Modules\Contact\Models\Supplier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -26,7 +26,9 @@ class PagesRenderTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $seller;
+
     private array $ids;
 
     protected function setUp(): void
@@ -39,7 +41,7 @@ class PagesRenderTest extends TestCase
         $category = Category::factory()->create(['name' => 'tissu']);
         $color = Color::factory()->create(['name' => 'Rouge', 'code' => '#ff0000']);
         $product = Product::factory()->create(['category_id' => $category->id, 'price' => 1000]);
-        $variant = ProductColor::create([
+        $variant = ProductColor::forceCreate([
             'product_id' => $product->id,
             'color_id' => $color->id,
             'stock' => 3,
@@ -113,6 +115,7 @@ class PagesRenderTest extends TestCase
             '/admin/sales/create',
             "/admin/sales/{$i['sale']}",
             "/admin/sales/{$i['sale']}/pdf",
+            "/admin/sales/{$i['sale']}/receipt",
             // Contacts
             '/admin/suppliers',
             '/admin/suppliers/create',
@@ -164,6 +167,7 @@ class PagesRenderTest extends TestCase
             '/saler/create',
             "/saler/{$i['sale']}",
             "/saler/{$i['sale']}/pdf",
+            "/saler/{$i['sale']}/receipt",
         ]);
     }
 
@@ -182,12 +186,12 @@ class PagesRenderTest extends TestCase
 
             if ($response->getStatusCode() !== 200) {
                 $error = $response->exception
-                    ? class_basename($response->exception) . ': ' . $response->exception->getMessage()
+                    ? class_basename($response->exception).': '.$response->exception->getMessage()
                     : '';
                 $failures[] = "{$url} → {$response->getStatusCode()} {$error}";
             }
         }
 
-        $this->assertSame([], $failures, "Pages en erreur :\n" . implode("\n", $failures));
+        $this->assertSame([], $failures, "Pages en erreur :\n".implode("\n", $failures));
     }
 }
