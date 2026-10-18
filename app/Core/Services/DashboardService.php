@@ -23,7 +23,7 @@ class DashboardService
     public function getBackOfficeData($period = '7days')
     {
         return [
-            'salesToday' => $this->getSalesToday(),
+            'salesThisWeek' => $this->getSalesThisWeek(),
             'salesThisMonth' => $this->getSalesThisMonth(),
             'totalProducts' => $this->getTotalProducts(),
             'lowStockProducts' => $this->getLowStockProducts(),
@@ -51,6 +51,12 @@ class DashboardService
     private function getSalesToday(?int $userId = null)
     {
         return $this->getSalesSumBetween(now()->startOfDay(), now()->endOfDay(), $userId);
+    }
+
+    /** Semaine en cours, du lundi au dimanche (comme le graphique des 7 derniers jours). */
+    private function getSalesThisWeek(?int $userId = null)
+    {
+        return $this->getSalesSumBetween(now()->startOfWeek(Carbon::MONDAY), now()->endOfWeek(Carbon::SUNDAY), $userId);
     }
 
     private function getSalesThisMonth(?int $userId = null)
