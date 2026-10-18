@@ -50,7 +50,7 @@ class DashboardController extends Controller
 
         // Les données du graphique ('labels', 'values') sont maintenant chargées via API.
         return view('core::back-office.dashboard', [
-            'salesToday' => $data['salesToday'],
+            'salesThisWeek' => $data['salesThisWeek'],
             'salesThisMonth' => $data['salesThisMonth'],
             'totalProducts' => $data['totalProducts'],
             'lowStockProducts' => $data['lowStockProducts'],

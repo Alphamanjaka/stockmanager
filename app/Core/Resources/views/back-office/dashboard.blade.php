@@ -42,8 +42,8 @@
                 <x-ui.card title="Business performance" flush class="h-100">
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item py-3">
-                            <div class="ui-stat-label">Today's sales</div>
-                            <div class="ui-stat-value">{{ money($salesToday) }}</div>
+                            <div class="ui-stat-label">This week's sales</div>
+                            <div class="ui-stat-value">{{ money($salesThisWeek) }}</div>
                         </li>
                         <li class="list-group-item py-3">
                             <div class="ui-stat-label">This month</div>
