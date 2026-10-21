@@ -260,12 +260,13 @@ prépare un paquet hors ligne : images, `compose.prod.yaml` et scripts d'install
 ## CI/CD (Intégration Continue)
 
 Le pipeline GitHub Actions (`.github/workflows/ci.yml`) tourne sur chaque push sur `main` et sur chaque PR,
-y compris celles d'une pile (basées sur la branche d'une autre PR). Trois jobs en parallèle :
+y compris celles d'une pile (basées sur la branche d'une autre PR). Quatre jobs en parallèle :
 
 1.  **Style** : Laravel Pint (`vendor/bin/pint --test`). En local, `vendor/bin/pint` corrige les fichiers.
 2.  **Assets** : construction Vite (`npm ci`, `npm run build`) : les tests tournent sans les assets (`withoutVite`),
     ce job attrape les erreurs de JavaScript et de CSS.
-3.  **Tests** : PHPUnit sur PostgreSQL 16, le moteur de production.
+3.  **Docker** : construction des images de production `app` et `web` (`docker/Dockerfile`).
+4.  **Tests** : PHPUnit sur PostgreSQL 16, le moteur de production.
 
 Un nouveau push sur une PR annule sa vérification en cours.
 
