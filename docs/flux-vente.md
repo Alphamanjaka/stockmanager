@@ -51,9 +51,7 @@ Pour chaque produit dans la commande :
 1. **Verrouillage Pessimiste** : Utilisation de `lockForUpdate()` sur la ligne `ProductColor`. Cela empêche d'autres transactions de modifier le stock de ce produit précis tant que la vente n'est pas terminée (évite les _race conditions_).
 2. **Vérification de disponibilité** : Si `stock < quantity`, une `Exception` est levée, provoquant un rollback automatique de toute la transaction.
 3. **Calcul des sous-totaux** : Basé sur le prix réel en base de données (sécurité contre la manipulation de prix côté client).
-4. **Mise à jour du Stock** : Appel à `StockService->removeStock()` qui :
-    - Décrémente le stock physique.
-    - Enregistre un mouvement de stock (`StockMovement`) de type `out` pour l'audit.
+   Le coût d'achat de la variante est figé sur la ligne (`unit_cost`), comme le prix.
 
 ### Étape C : Finalisation
 
@@ -61,6 +59,9 @@ Pour chaque produit dans la commande :
 2. **Encaissement** : en espèces, une somme reçue inférieure au net à payer (calculé avec les prix de la base) lève une exception et annule tout ; sans somme saisie ou pour un autre mode, la somme reçue est le montant exact. La monnaie rendue (`change_due`) en découle. La devise des paramètres est figée sur la vente.
 3. **Persistance `Sale`** : Sauvegarde de l'en-tête de la vente.
 4. **Insertion groupée `SaleItem`** : Utilisation de `createMany()` pour insérer toutes les lignes en une seule requête SQL (optimisation de performance).
+5. **Sortie de stock** : une fois la vente enregistrée, `StockService->removeStock()` pour chaque ligne, qui :
+    - Décrémente le stock physique (les variantes sont verrouillées depuis l'étape B : le stock vérifié n'a pas bougé).
+    - Enregistre un mouvement de stock (`StockMovement`) de type `out`, avec sa source (la vente) et son auteur.
 
 ## 5. Points Clés de l'Architecture
 
@@ -95,12 +96,14 @@ sequenceDiagram
     Service->>DB: BEGIN TRANSACTION
     loop Pour chaque produit
         Service->>ProductColorModel: lockForUpdate().findOrFail(product_color_id)
-        ProductColorModel-->>Service: Variante verrouillée
-        Service->>StockSvc: removeStock(variantId, quantity, reason)
-        StockSvc->>DB: Décrémente stock ProductColor & Crée StockMovement
+        ProductColorModel-->>Service: Variante verrouillée (stock vérifié)
     end
     Service->>SaleModel: Création de l'entête de vente (save())
     Service->>SaleItemModel: Création groupée des lignes de vente (createMany())
+    loop Pour chaque ligne
+        Service->>StockSvc: removeStock(variantId, quantity, reason, source: vente)
+        StockSvc->>DB: Décrémente stock ProductColor & Crée StockMovement
+    end
     Service->>DB: COMMIT TRANSACTION
     Service-->>Controller: Objet Sale créé
     Controller-->>User: Redirection vers /sales/{id} (Succès)
