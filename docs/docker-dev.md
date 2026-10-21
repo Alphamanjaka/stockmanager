@@ -62,6 +62,11 @@ toutes les commandes deviennent `docker compose …`.
 Quand `npm run dev` tourne, il crée `public/hot` et le site charge les assets depuis Vite ; à l'arrêt, le fichier est
 supprimé et le site revient aux assets compilés (`public/build`).
 
+Le code est partagé entre Windows (Laragon) et les conteneurs. **Ne pas mettre la configuration en cache sous Windows**
+(`php artisan config:cache`, `optimize`) avant de lancer les conteneurs : ses chemins `C:\...` y sont lus comme des
+chemins relatifs. Des vues ont déjà été compilées ainsi dans `public/`, où le serveur web les servait. En cas de doute :
+`php artisan optimize:clear`.
+
 ## Tests
 
 Les tests **vident la base** : ils refusent de tourner sur la base `app` (garde-fou dans `tests/TestCase.php`).
