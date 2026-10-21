@@ -42,7 +42,10 @@
                         <x-ui.search name="" id="line-filter" placeholder="Filter by product, variant or SKU..." />
                     </div>
                     @if ($draft)
-                        <span class="small text-muted">Leave a line empty to keep its stock unchanged.</span>
+                        <span class="small text-muted">
+                            Leave a line empty to keep its stock unchanged. Save as you count: each gap is measured
+                            against the stock when its line is saved, and sales made afterwards are kept.
+                        </span>
                     @endif
                 </div>
             </x-slot:toolbar>
@@ -58,10 +61,13 @@
                                 <th class="text-end">Current stock</th>
                                 <th class="text-end" style="width: 140px">Counted</th>
                             @else
-                                <th class="text-end">Stock before</th>
+                                <th class="text-end">When counted</th>
                                 <th class="text-end">Counted</th>
                             @endif
                             <th class="text-end">Gap</th>
+                            @unless ($draft)
+                                <th class="text-end">Stock at validation</th>
+                            @endunless
                         </tr>
                     </thead>
                     <tbody>
@@ -77,8 +83,9 @@
                                 @if ($draft)
                                     <td class="text-end">
                                         {{ $line->productColor->stock }}
-                                        @if ($line->productColor->stock !== $line->expected_quantity)
-                                            <i class="bi bi-exclamation-circle text-warning" title="The stock moved since the count was opened"></i>
+                                        @if ($line->isCounted() && $line->stock_at_count !== null && $line->productColor->stock !== $line->stock_at_count)
+                                            <i class="bi bi-info-circle text-info"
+                                                title="Stock when counted: {{ $line->stock_at_count }}. The sales and receipts made since then are kept."></i>
                                         @endif
                                     </td>
                                     <td class="text-end">
@@ -87,15 +94,20 @@
                                             class="form-control form-control-sm text-end" aria-label="Counted quantity">
                                     </td>
                                 @else
-                                    <td class="text-end">{{ $line->stock_at_validation ?? '—' }}</td>
+                                    <td class="text-end">{{ $line->stock_at_count ?? $line->stock_at_validation ?? '—' }}</td>
                                     <td class="text-end">{{ $line->counted_quantity ?? 'not counted' }}</td>
                                 @endif
                                 <td @class(['text-end fw-semibold', 'text-success' => $gap > 0, 'text-danger' => $gap < 0, 'text-muted' => !$gap])>
                                     {{ $gap === null ? '' : ($gap > 0 ? '+' . $gap : $gap) }}
                                 </td>
+                                @unless ($draft)
+                                    <td class="text-end text-nowrap">
+                                        {{ $line->stockAfterValidation() === null ? '—' : $line->stock_at_validation . ' → ' . $line->stockAfterValidation() }}
+                                    </td>
+                                @endunless
                             </tr>
                         @empty
-                            <x-ui.empty-row :colspan="6" icon="bi-box">No variant in this scope.</x-ui.empty-row>
+                            <x-ui.empty-row :colspan="$draft ? 6 : 7" icon="bi-box">No variant in this scope.</x-ui.empty-row>
                         @endforelse
                     </tbody>
                 </table>
@@ -112,7 +124,7 @@
                     </button>
                     <button type="submit" class="btn btn-primary" formaction="{{ route('admin.inventories.validate', $inventory->id) }}"
                         data-confirm="Validate this stock count?" data-confirm-ok="Validate"
-                        data-confirm-text="The stock of every counted line will be set to the counted quantity. This cannot be undone.">
+                        data-confirm-text="The gap of every counted line (counted − stock when counted) will be applied to the current stock. This cannot be undone.">
                         <i class="bi bi-check2-circle" aria-hidden="true"></i> Validate and adjust stock
                     </button>
                 </div>

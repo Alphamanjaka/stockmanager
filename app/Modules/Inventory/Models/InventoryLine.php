@@ -12,8 +12,19 @@ class InventoryLine extends Model
         'product_color_id',
         'expected_quantity',
         'counted_quantity',
+        'stock_at_count',
         'stock_at_validation',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'expected_quantity' => 'integer',
+            'counted_quantity' => 'integer',
+            'stock_at_count' => 'integer',
+            'stock_at_validation' => 'integer',
+        ];
+    }
 
     public function inventory()
     {
@@ -31,8 +42,9 @@ class InventoryLine extends Model
     }
 
     /**
-     * Écart de la ligne : par rapport au stock réel à la validation une fois validée,
-     * sinon par rapport à la quantité attendue (photo à la création).
+     * Écart de la ligne : compté − stock au moment du comptage. C'est l'écart que la validation applique
+     * au stock courant. Lignes validées avant l'enregistrement du stock au comptage : par rapport au stock
+     * à la validation (le stock était alors ramené à la quantité comptée).
      */
     public function gap(): ?int
     {
@@ -40,6 +52,16 @@ class InventoryLine extends Model
             return null;
         }
 
-        return $this->counted_quantity - ($this->stock_at_validation ?? $this->expected_quantity);
+        return $this->counted_quantity - ($this->stock_at_count ?? $this->stock_at_validation ?? $this->expected_quantity);
+    }
+
+    /** Stock après validation : stock à la validation + écart, jamais négatif. */
+    public function stockAfterValidation(): ?int
+    {
+        if (!$this->isCounted() || $this->stock_at_validation === null) {
+            return null;
+        }
+
+        return max(0, $this->stock_at_validation + $this->gap());
     }
 }

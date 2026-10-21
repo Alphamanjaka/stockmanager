@@ -85,6 +85,8 @@ class InventoryService
 
     /**
      * Enregistre les quantités comptées ([id de ligne => quantité], vide = non comptée).
+     * Une ligne dont le comptage change garde le stock de la variante à cet instant (stock_at_count) :
+     * l'écart sera mesuré par rapport à lui. Une ligne inchangée garde le stock relevé à son comptage.
      *
      * @throws \Exception si l'inventaire est déjà validé
      */
@@ -97,16 +99,28 @@ class InventoryService
             }
 
             $lines = $locked->lines()->whereIn('id', array_keys($counts))->get();
+            $stocks = ProductColor::whereIn('id', $lines->pluck('product_color_id'))->pluck('stock', 'id');
+
             foreach ($lines as $line) {
                 $value = $counts[$line->id];
-                $line->update(['counted_quantity' => ($value === null || $value === '') ? null : max(0, (int) $value)]);
+                $counted = ($value === null || $value === '') ? null : max(0, (int) $value);
+
+                if ($counted === $line->counted_quantity) {
+                    continue;
+                }
+
+                $line->update([
+                    'counted_quantity' => $counted,
+                    'stock_at_count' => $counted === null ? null : (int) $stocks[$line->product_color_id],
+                ]);
             }
         });
     }
 
     /**
-     * Valide l'inventaire : le stock de chaque ligne comptée est ramené à la quantité comptée,
-     * avec un mouvement de stock « Inventaire <référence> ». Les lignes non comptées sont ignorées.
+     * Valide l'inventaire : l'écart de chaque ligne comptée (compté − stock au comptage) est appliqué
+     * au stock courant, avec un mouvement de stock « Inventaire <référence> ». Les ventes et réceptions
+     * faites depuis le comptage sont donc conservées. Les lignes non comptées sont ignorées.
      *
      * @throws \Exception si l'inventaire est déjà validé
      */
@@ -121,9 +135,13 @@ class InventoryService
 
             $lines = $locked->lines()->whereNotNull('counted_quantity')->get();
             foreach ($lines as $line) {
-                $movement = $this->stockService->adjustTo($line->product_color_id, $line->counted_quantity, "Inventaire {$locked->reference}");
-                // Stock lu sous verrou par adjustTo ; sans mouvement, il était déjà égal au comptage
-                $line->update(['stock_at_validation' => $movement?->stock_before ?? $line->counted_quantity]);
+                // Stock lu sous verrou : une vente simultanée attend la fin de la validation
+                $stock = ProductColor::lockForUpdate()->whereKey($line->product_color_id)->value('stock');
+                // Ligne comptée avant l'enregistrement du stock au comptage : le stock actuel sert de référence
+                $atCount = $line->stock_at_count ?? $stock;
+
+                $this->stockService->adjustTo($line->product_color_id, $stock + $line->counted_quantity - $atCount, "Inventaire {$locked->reference}");
+                $line->update(['stock_at_count' => $atCount, 'stock_at_validation' => $stock]);
             }
 
             $locked->update([
