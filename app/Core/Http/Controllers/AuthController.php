@@ -28,8 +28,12 @@ class AuthController extends Controller
     {
         $credentials = $request->validated();
 
+        // 5 échecs par minute au plus pour un même email depuis une même adresse IP
+        $request->ensureIsNotRateLimited();
+
         // Un compte archivé ne se connecte plus (il garde son historique de ventes et d'inventaires)
         if (Auth::attemptWhen($credentials, fn ($user) => !$user->isArchived(), $request->boolean('remember'))) {
+            $request->clearRateLimiter();
             $request->session()->regenerate(); // Prévient la fixation de session
 
             $user = Auth::user();
@@ -42,6 +46,8 @@ class AuthController extends Controller
             return redirect()->intended(route($dashboardRoute))
                 ->with('success', 'Connecté avec succès !');
         }
+
+        $request->hitRateLimiter();
 
         // Identifiants justes mais compte archivé : message explicite (le mot de passe a été vérifié)
         $message = Auth::validate($credentials)
