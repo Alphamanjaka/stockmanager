@@ -27,20 +27,22 @@ class SalesExport extends ListExport
     public function columns(): array
     {
         return [
-            Column::make('Reference', 'reference')->width('14%'),
-            Column::make('Date', 'created_at')->datetime()->width('12%'),
+            Column::make('Reference', 'reference')->width('12%'),
+            Column::make('Date', 'created_at')->datetime()->width('11%'),
             Column::make('Customer', fn (Sale $sale) => $sale->customer->name ?? null),
-            Column::make('Seller', fn (Sale $sale) => $sale->user->name ?? null)->width('13%'),
-            Column::make('Payment', 'payment_method')->width('9%'),
-            Column::make('Gross total', 'total_brut')->money()->total()->width('12%'),
-            Column::make('Discount', 'discount')->money()->total()->width('10%'),
-            Column::make('Net total', 'total_net')->money()->total()->width('12%'),
+            Column::make('Seller', fn (Sale $sale) => $sale->user->name ?? null)->width('11%'),
+            Column::make('Payment', 'payment_method')->width('8%'),
+            Column::make('Gross total', 'total_brut')->money()->total()->width('11%'),
+            Column::make('Discount', 'discount')->money()->total()->width('9%'),
+            Column::make('Net total', 'total_net')->money()->total()->width('11%'),
+            // Vide quand le coût d'un article n'est pas connu (compté 0 dans le total)
+            Column::make('Margin', fn (Sale $sale) => $sale->grossMargin())->money()->total()->width('11%'),
         ];
     }
 
     protected function query(array $filters): Builder
     {
-        return $this->sales->listQuery($filters);
+        return $this->sales->listQuery($filters)->with('items');
     }
 
     protected function filterLabels(array $filters): array

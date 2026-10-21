@@ -109,6 +109,20 @@ class ProductColor extends Model
         );
     }
 
+    /** Marge unitaire : prix de vente moins coût d'achat ; null si le coût n'est pas renseigné (0 ou vide). */
+    public function unitMargin(): ?float
+    {
+        return (float) $this->price_purchase > 0 ? round((float) $this->price - (float) $this->price_purchase, 2) : null;
+    }
+
+    /** Taux de marge, en % du prix de vente. */
+    public function marginRate(): ?float
+    {
+        $margin = $this->unitMargin();
+
+        return $margin === null || (float) $this->price <= 0 ? null : round($margin / (float) $this->price * 100, 1);
+    }
+
     /** Libellé complet de la variante (utilisé par toutes les vues). */
     public function toString()
     {

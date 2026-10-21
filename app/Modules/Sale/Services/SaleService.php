@@ -73,6 +73,8 @@ class SaleService
                     'product_color_id' => $variant->id,
                     'quantity'         => $item['quantity'],
                     'unit_price'       => $variant->price,
+                    // Coût figé comme le prix : la marge de la vente ne bouge plus quand le coût évolue
+                    'unit_cost'        => (float) $variant->price_purchase > 0 ? $variant->price_purchase : null,
                     'subtotal'         => $subtotal,
                 ];
 
@@ -197,6 +199,44 @@ class SaleService
             'total_discount' => $sales()->sum('discount') ?? 0,
         ];
     }
+    /**
+     * Marge brute des ventes d'une période (toutes les ventes sans bornes), avec les coûts figés à la vente.
+     * Une vente dont le coût d'une ligne n'est pas connu est laissée de côté (excluded) : la compter
+     * gonflerait la marge.
+     *
+     * @return array{revenue: float, cost: float, margin: float, rate: ?float, excluded: int}
+     *         rate : marge en % du net encaissé des ventes comptées
+     */
+    public function getGrossMargin(?\DateTimeInterface $from = null, ?\DateTimeInterface $to = null): array
+    {
+        $costs = SaleItem::query()
+            ->select('sale_id')
+            ->selectRaw('SUM(quantity * unit_cost) as cost')
+            ->selectRaw('COUNT(*) - COUNT(unit_cost) as unknown_costs')
+            ->groupBy('sale_id');
+
+        $totals = Sale::query()
+            ->joinSub($costs, 'costs', 'costs.sale_id', '=', 'sales.id')
+            ->when($from && $to, fn ($query) => $query->whereBetween('sales.created_at', [$from, $to]))
+            ->selectRaw('SUM(CASE WHEN costs.unknown_costs = 0 THEN sales.total_net ELSE 0 END) as revenue')
+            ->selectRaw('SUM(CASE WHEN costs.unknown_costs = 0 THEN costs.cost ELSE 0 END) as cost')
+            ->selectRaw('SUM(CASE WHEN costs.unknown_costs > 0 THEN 1 ELSE 0 END) as excluded')
+            ->toBase()
+            ->first();
+
+        $revenue = round((float) $totals->revenue, 2);
+        $cost = round((float) $totals->cost, 2);
+        $margin = round($revenue - $cost, 2);
+
+        return [
+            'revenue' => $revenue,
+            'cost' => $cost,
+            'margin' => $margin,
+            'rate' => $revenue > 0 ? round($margin / $revenue * 100, 1) : null,
+            'excluded' => (int) $totals->excluded,
+        ];
+    }
+
     /**
      * Common logic for top/least sold variants
      * 
