@@ -15,10 +15,10 @@
 
 @php
     $links = [
-        ['route' => 'saler.dashboard', 'active' => 'saler.dashboard', 'icon' => 'bi-house', 'label' => 'Home'],
-        ['route' => 'saler.products.index', 'active' => 'saler.products.*', 'icon' => 'bi-box', 'label' => 'Products'],
-        ['route' => 'saler.index', 'active' => ['saler.index', 'saler.show'], 'icon' => 'bi-receipt', 'label' => 'Sales'],
-        ['route' => 'saler.create', 'active' => 'saler.create', 'icon' => 'bi-plus-circle', 'label' => 'New Sale'],
+        ['route' => 'saler.dashboard', 'active' => 'saler.dashboard', 'icon' => 'bi-house', 'label' => __('Home')],
+        ['route' => 'saler.products.index', 'active' => 'saler.products.*', 'icon' => 'bi-box', 'label' => __('Products')],
+        ['route' => 'saler.index', 'active' => ['saler.index', 'saler.show'], 'icon' => 'bi-receipt', 'label' => __('Sales')],
+        ['route' => 'saler.create', 'active' => 'saler.create', 'icon' => 'bi-plus-circle', 'label' => __('New sale')],
     ];
 @endphp
 

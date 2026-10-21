@@ -100,8 +100,7 @@ class DashboardService
      */
     public function getChartData($period)
     {
-        Carbon::setLocale('fr');
-
+        // Jours et mois dans la langue de l'application (Carbon suit App::setLocale)
         return match ($period) {
             '1month' => $this->getChartDataByWeek(),
             '1year' => $this->getChartDataByMonth(),
@@ -164,7 +163,7 @@ class DashboardService
         for ($i = 3; $i >= 0; $i--) {
             $startOfWeek = now()->subWeeks($i)->startOfWeek(Carbon::MONDAY);
             $weekKey = $startOfWeek->toDateString();
-            $labels[] = 'Semaine du '.$startOfWeek->format('d/m');
+            $labels[] = __('Week of :date', ['date' => $startOfWeek->format('d/m')]);
             $salesByWeek[$weekKey] = 0;
         }
 

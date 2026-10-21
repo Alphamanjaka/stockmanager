@@ -18,19 +18,20 @@ export const alpha = (hex, opacity) => {
 /** Couleurs des séries de graphiques, dans l'ordre. */
 export const chartPalette = () => [1, 2, 3, 4, 5, 6].map((i) => token(`chart-${i}`));
 
-// Boutons Bootstrap ; action principale à droite, Annuler à gauche
+// Libellés traduits fournis par le layout (<body data-i18n-cancel="..." data-i18n-confirm="...">)
+const i18n = (key, fallback) => document.body?.dataset[`i18n${key}`] || fallback;
+
+// Boutons Bootstrap ; action principale à droite, Annuler à gauche (libellé dans la langue de l'application)
 export const AppSwal = Swal.mixin({
     buttonsStyling: false,
     reverseButtons: true,
+    cancelButtonText: i18n("Cancel", "Cancel"),
     customClass: {
         confirmButton: "btn btn-primary",
         cancelButton: "btn btn-outline-secondary",
         denyButton: "btn btn-outline-danger",
     },
 });
-
-// Libellés traduits fournis par le layout (<body data-i18n-cancel="..." data-i18n-confirm="...">)
-const i18n = (key, fallback) => document.body?.dataset[`i18n${key}`] || fallback;
 
 /** Message de session : succès en notification discrète, erreur en boîte de dialogue. */
 function showSessionMessages() {

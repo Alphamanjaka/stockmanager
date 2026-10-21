@@ -86,7 +86,7 @@ class SupplierDeletionTest extends TestCase
         // Achats importés ou détachés avant l'archivage : sans fournisseur
         $this->purchase->forceFill(['supplier_id' => null])->save();
 
-        $this->get(route('admin.purchases.show', $this->purchase->id))->assertOk()->assertSee('Non renseigné');
+        $this->get(route('admin.purchases.show', $this->purchase->id))->assertOk()->assertSee(__('documents.not_specified'));
         $this->get(route('admin.purchases.pdf', $this->purchase->id))->assertOk();
         $this->getJson(route('admin.purchases.get-purchases-api'))->assertOk()->assertJsonPath('data.0.supplier', null);
     }

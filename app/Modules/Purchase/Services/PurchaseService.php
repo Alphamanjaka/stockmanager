@@ -405,7 +405,7 @@ class PurchaseService
             // (jamais le prix de vente, qui comprend la marge) ; inconnu, il est à saisir sur le bon de commande.
             $product->cost_source = 'last_purchase';
             if (! $product->last_supplier_id) {
-                $product->last_supplier_name = 'No Supplier Assigned';
+                $product->last_supplier_name = __('No supplier assigned');
                 $cost = (float) ($product->price_purchase ?? 0);
                 $product->last_unit_price = $cost > 0 ? $cost : null;
                 $product->cost_source = $cost > 0 ? 'catalog' : 'unknown';

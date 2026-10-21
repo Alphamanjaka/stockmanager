@@ -1,15 +1,15 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Colors')
+@section('title', __('Colors'))
 
 @section('actions')
     <x-ui.actions-menu>
         <x-ui.export-items list="colors" />
         <li><hr class="dropdown-divider"></li>
-        <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">Import colors</x-ui.menu-item>
+        <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">{{ __('Import colors') }}</x-ui.menu-item>
     </x-ui.actions-menu>
     <a href="{{ route('admin.colors.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg" aria-hidden="true"></i> New color
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('New color') }}
     </a>
 @endsection
 
@@ -24,7 +24,7 @@
         <x-ui.card flush :pagination="$items" data-bulk>
             <x-slot:toolbar>
                 <x-ui.filters :action="route('admin.colors.index')">
-                    <x-ui.search placeholder="Search by name..." />
+                    <x-ui.search :placeholder="__('Search by name...')" />
                     <x-ui.status-filter />
                 </x-ui.filters>
             </x-slot:toolbar>
@@ -36,9 +36,9 @@
                     <thead>
                         <tr>
                             <x-ui.bulk-check-all />
-                            <th>Name</th>
-                            <th>Code</th>
-                            <th class="text-end"><span class="visually-hidden">Actions</span></th>
+                            <th>{{ __('Name') }}</th>
+                            <th>{{ __('Code') }}</th>
+                            <th class="text-end"><span class="visually-hidden">{{ __('Actions') }}</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -62,24 +62,24 @@
                                 </td>
                                 <td class="text-end">
                                     <x-ui.actions-menu row>
-                                        <x-ui.menu-item :href="route('admin.colors.edit', $item->id)" icon="bi-pencil">Edit</x-ui.menu-item>
+                                        <x-ui.menu-item :href="route('admin.colors.edit', $item->id)" icon="bi-pencil">{{ __('Edit') }}</x-ui.menu-item>
                                         @if ($archived)
                                             <x-ui.menu-item :action="route('admin.colors.restore')" :ids="[$item->id]"
-                                                icon="bi-arrow-counterclockwise">Restore</x-ui.menu-item>
+                                                icon="bi-arrow-counterclockwise">{{ __('Restore') }}</x-ui.menu-item>
                                             <li><hr class="dropdown-divider"></li>
                                             <x-ui.menu-item :action="route('admin.colors.destroy', $item->id)" method="DELETE"
-                                                icon="bi-trash3" tone="danger" confirm="Delete this color permanently?"
-                                                confirm-text="Only possible if no variant uses it.">Delete permanently</x-ui.menu-item>
+                                                icon="bi-trash3" tone="danger" :confirm="__('Delete this color permanently?')"
+                                                :confirm-text="__('Only possible if no variant uses it.')">{{ __('Delete permanently') }}</x-ui.menu-item>
                                         @else
                                             <x-ui.menu-item :action="route('admin.colors.archive')" :ids="[$item->id]" icon="bi-archive"
-                                                confirm="Archive this color?">Archive</x-ui.menu-item>
+                                                :confirm="__('Archive this color?')">{{ __('Archive') }}</x-ui.menu-item>
                                         @endif
                                     </x-ui.actions-menu>
                                 </td>
                             </tr>
                         @empty
                             <x-ui.empty-row :colspan="4" icon="bi-palette">
-                                {{ $archived ? 'No archived color.' : 'No color found.' }}
+                                {{ $archived ? __('No archived color.') : __('No color found.') }}
                             </x-ui.empty-row>
                         @endforelse
                     </tbody>

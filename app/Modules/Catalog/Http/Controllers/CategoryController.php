@@ -66,11 +66,11 @@ class CategoryController extends Controller
             $data['option_template'] = VariantOptions::normalizeOptions($request->input('option_template', [])) ?: null;
             $this->categoryService->create($data);
 
-            return redirect()->route('admin.categories.index')->with('success', 'Category created successfully.');
+            return redirect()->route('admin.categories.index')->with('success', __('Category created.'));
         } catch (\Exception $e) {
             Log::error('Erreur création catégorie : '.$e->getMessage());
 
-            return redirect()->back()->with('error', 'An unexpected error occurred. Please try again.')->withInput();
+            return redirect()->back()->with('error', __('An unexpected error occurred. Please try again.'))->withInput();
         }
     }
 

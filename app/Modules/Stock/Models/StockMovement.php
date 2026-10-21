@@ -66,11 +66,11 @@ class StockMovement extends Model
     public function kind(): array
     {
         return match ($this->source_type) {
-            MovementSource::CORRECTION => ['warning', 'Correction'],
-            MovementSource::INVENTORY => ['info', 'Stock count'],
-            MovementSource::PURCHASE => $this->type === 'in' ? ['success', 'Purchase'] : ['danger', 'Purchase cancelled'],
-            MovementSource::SALE => ['danger', 'Sale'],
-            MovementSource::SALE_RETURN => ['success', 'Sale return'],
+            MovementSource::CORRECTION => ['warning', __('Correction')],
+            MovementSource::INVENTORY => ['info', __('Stock count')],
+            MovementSource::PURCHASE => $this->type === 'in' ? ['success', __('Purchase')] : ['danger', __('Purchase cancelled')],
+            MovementSource::SALE => ['danger', __('Sale')],
+            MovementSource::SALE_RETURN => ['success', __('Sale return')],
             default => $this->kindFromReason(),
         };
     }
@@ -81,12 +81,12 @@ class StockMovement extends Model
         $reason = strtolower((string) $this->reason);
 
         return match (true) {
-            str_starts_with($reason, 'correction') => ['warning', 'Correction'],
-            str_starts_with($reason, 'inventaire') => ['info', 'Stock count'],
-            str_contains($reason, 'ajustement') || str_contains($reason, 'manuel') => ['info', 'Adjustment'],
-            $this->type === 'in' => ['success', str_contains($reason, 'achat') || str_contains($reason, 'pur') ? 'Purchase' : 'Stock in'],
-            $this->type === 'out' => ['danger', str_contains($reason, 'vente') || str_contains($reason, 'sale') ? 'Sale' : 'Stock out'],
-            default => ['neutral', 'Other'],
+            str_starts_with($reason, 'correction') => ['warning', __('Correction')],
+            str_starts_with($reason, 'inventaire') => ['info', __('Stock count')],
+            str_contains($reason, 'ajustement') || str_contains($reason, 'manuel') => ['info', __('Adjustment')],
+            $this->type === 'in' => ['success', str_contains($reason, 'achat') || str_contains($reason, 'pur') ? __('Purchase') : __('Stock in')],
+            $this->type === 'out' => ['danger', str_contains($reason, 'vente') || str_contains($reason, 'sale') ? __('Sale') : __('Stock out')],
+            default => ['neutral', __('Other')],
         };
     }
 }

@@ -1,19 +1,19 @@
 @extends('layouts.app-back-office')
 
 @section('title', $category->name)
-@section('subtitle', $category->description ?: 'No description for this category.')
+@section('subtitle', $category->description ?: __('No description for this category.'))
 
 @section('actions')
     @unless ($category->isArchived())
         <x-ui.actions-menu>
             <x-ui.menu-item :action="route('admin.categories.archive')" :ids="[$category->id]" icon="bi-archive"
-                confirm="Archive this category?" confirm-text="It must no longer contain active products or sub-categories.">
-                Archive
+                :confirm="__('Archive this category?')" :confirm-text="__('It must no longer contain active products or sub-categories.')">
+                {{ __('Archive') }}
             </x-ui.menu-item>
         </x-ui.actions-menu>
     @endunless
     <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-primary">
-        <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+        <i class="bi bi-pencil" aria-hidden="true"></i> {{ __('Edit') }}
     </a>
 @endsection
 
@@ -21,26 +21,26 @@
     <div class="ui-stack">
         @if ($category->isArchived())
             <x-ui.archived-notice :restore="route('admin.categories.restore')" :id="$category->id" :date="$category->archived_at">
-                This category is <strong>archived</strong>: it is no longer offered when creating a product.
+                {!! __('This category is <strong>archived</strong>: it is no longer offered when creating a product.') !!}
             </x-ui.archived-notice>
         @endif
         <div class="ui-stats">
-            <x-ui.stat label="Products" :value="$category->products_count" icon="bi-box" tone="primary" />
-            <x-ui.stat label="Stock value" :value="money($stockValue)" icon="bi-cash-stack" tone="success" hint="At purchase cost" />
-            <x-ui.stat label="Parent category" :value="$category->parent->name ?? 'Root'" icon="bi-diagram-3" tone="neutral"
+            <x-ui.stat :label="__('Products')" :value="$category->products_count" icon="bi-box" tone="primary" />
+            <x-ui.stat :label="__('Stock value')" :value="money($stockValue)" icon="bi-cash-stack" tone="success" :hint="__('At purchase cost')" />
+            <x-ui.stat :label="__('Parent category')" :value="$category->parent->name ?? __('Root')" icon="bi-diagram-3" tone="neutral"
                 :href="$category->parent ? route('admin.categories.show', $category->parent->id) : null"
-                :hint="'Created on ' . $category->created_at->format('d/m/Y')" />
+                :hint="__('Created on :date', ['date' => $category->created_at->format('d/m/Y')])" />
         </div>
 
-        <x-ui.card title="Products in this category" flush :pagination="$products">
+        <x-ui.card :title="__('Products in this category')" flush :pagination="$products">
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Product</th>
-                            <th class="text-end">Price</th>
-                            <th class="text-end">Stock</th>
-                            <th class="text-end"><span class="visually-hidden">Actions</span></th>
+                            <th>{{ __('Product') }}</th>
+                            <th class="text-end">{{ __('Price') }}</th>
+                            <th class="text-end">{{ __('Stock') }}</th>
+                            <th class="text-end"><span class="visually-hidden">{{ __('Actions') }}</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,13 +54,13 @@
                                     </x-ui.badge>
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.products.show', $product->id) }}" class="btn btn-icon" title="View" aria-label="View">
+                                    <a href="{{ route('admin.products.show', $product->id) }}" class="btn btn-icon" title="{{ __('View') }}" aria-label="{{ __('View') }}">
                                         <i class="bi bi-eye" aria-hidden="true"></i>
                                     </a>
                                 </td>
                             </tr>
                         @empty
-                            <x-ui.empty-row :colspan="4" icon="bi-box">No product in this category.</x-ui.empty-row>
+                            <x-ui.empty-row :colspan="4" icon="bi-box">{{ __('No product in this category.') }}</x-ui.empty-row>
                         @endforelse
                     </tbody>
                 </table>

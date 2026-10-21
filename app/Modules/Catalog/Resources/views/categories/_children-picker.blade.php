@@ -4,13 +4,13 @@
     Variables : $available (id => nom), $selected (id => nom)
 --}}
 <div class="ui-field">
-    <label for="child-search" class="form-label">Quick filter</label>
-    <x-ui.search name="" id="child-search" placeholder="Keywords separated by commas: elixir, flower, animals" />
+    <label for="child-search" class="form-label">{{ __('Quick filter') }}</label>
+    <x-ui.search name="" id="child-search" :placeholder="__('Keywords separated by commas: elixir, flower, animals')" />
 </div>
 
 <div class="row g-2 align-items-center">
     <div class="col-md-5">
-        <div class="form-label">Available</div>
+        <div class="form-label">{{ __('Available') }}</div>
         <div id="list-available" class="ui-picklist">
             @foreach ($available as $id => $name)
                 <div class="form-check child-item" data-name="{{ strtolower($name) }}">
@@ -23,15 +23,15 @@
 
     <div class="col-md-2 d-flex flex-md-column gap-2 justify-content-center">
         <button type="button" id="btn-move-right" class="btn btn-outline-secondary">
-            Add <i class="bi bi-chevron-right" aria-hidden="true"></i>
+            {{ __('Add') }} <i class="bi bi-chevron-right" aria-hidden="true"></i>
         </button>
         <button type="button" id="btn-move-left" class="btn btn-outline-secondary">
-            <i class="bi bi-chevron-left" aria-hidden="true"></i> Remove
+            <i class="bi bi-chevron-left" aria-hidden="true"></i> {{ __('Remove') }}
         </button>
     </div>
 
     <div class="col-md-5">
-        <div class="form-label">Selected sub-categories</div>
+        <div class="form-label">{{ __('Selected sub-categories') }}</div>
         <div id="list-selected" class="ui-picklist">
             @foreach ($selected as $id => $name)
                 <div class="form-check child-item" data-name="{{ strtolower($name) }}">

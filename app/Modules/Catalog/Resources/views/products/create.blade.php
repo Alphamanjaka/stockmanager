@@ -1,6 +1,6 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'New product')
+@section('title', __('New product'))
 
 @section('content')
     <x-ui.errors />
@@ -13,32 +13,32 @@
             <div class="col-xl-9">
                 <div class="ui-stack">
                     {{-- 1. Informations du produit --}}
-                    <x-ui.card title="Product">
+                    <x-ui.card :title="__('Product')">
                         <div class="row">
-                            <x-ui.field class="col-md-6" name="name" label="Product name" required maxlength="255"
-                                placeholder="e.g. Desiccant gel, Straight wig" :value="old('name')" />
-                            <x-ui.field class="col-md-3" name="category_id" label="Category" required>
+                            <x-ui.field class="col-md-6" name="name" :label="__('Product name')" required maxlength="255"
+                                :placeholder="__('e.g. Desiccant gel, Straight wig')" :value="old('name')" />
+                            <x-ui.field class="col-md-3" name="category_id" :label="__('Category')" required>
                                 <select name="category_id" id="category_id" @class(['form-select', 'is-invalid' => $errors->has('category_id')]) required>
-                                    <option value="">Select…</option>
+                                    <option value="">{{ __('Select…') }}</option>
                                     @foreach ($categories as $category)
                                         <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>{{ $category->name }}</option>
                                     @endforeach
                                 </select>
                             </x-ui.field>
-                            <x-ui.field class="col-md-3" name="price" label="Default price" type="number" step="0.01" min="0"
-                                hint="Used when a variant has no price." :value="old('price')" />
-                            <x-ui.field class="col-12 mb-0" name="description" label="Description" type="textarea" rows="2"
+                            <x-ui.field class="col-md-3" name="price" :label="__('Default price')" type="number" step="0.01" min="0"
+                                :hint="__('Used when a variant has no price.')" :value="old('price')" />
+                            <x-ui.field class="col-12 mb-0" name="description" :label="__('Description')" type="textarea" rows="2"
                                 :value="old('description')" />
                         </div>
                     </x-ui.card>
 
                     {{-- 2. Options : axes de variation --}}
-                    <x-ui.card title="Options"
-                        subtitle="What makes the variants differ: e.g. Volume = 25 ml, 30 ml, or Color + Length. Leave empty for a product without variants.">
-                        <p class="small text-muted mb-3">Choosing a category fills in its suggested options.</p>
+                    <x-ui.card :title="__('Options')"
+                        :subtitle="__('What makes the variants differ: e.g. Volume = 25 ml, 30 ml, or Color + Length. Leave empty for a product without variants.')">
+                        <p class="small text-muted mb-3">{{ __('Choosing a category fills in its suggested options.') }}</p>
                         <div id="option-rows"></div>
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="add-option">
-                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Add an option
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('Add an option') }}
                         </button>
                         <datalist id="option-names">
                             @foreach ($optionNames as $optionName)
@@ -48,20 +48,20 @@
                     </x-ui.card>
 
                     {{-- 3. Grille des variantes générée à partir des options --}}
-                    <x-ui.card title="Variants" flush
-                        subtitle="Uncheck the combinations you do not sell. SKUs are generated automatically. Stock starts at 0.">
+                    <x-ui.card :title="__('Variants')" flush
+                        :subtitle="__('Uncheck the combinations you do not sell. SKUs are generated automatically. Stock starts at 0.')">
                         <x-slot:actions>
-                            <span class="ui-tag"><span id="variant-count">0</span>&nbsp;variant(s)</span>
+                            <span class="ui-tag">{!! __(':count variant(s)', ['count' => '<span id="variant-count">0</span>']) !!}</span>
                         </x-slot:actions>
 
                         <x-slot:toolbar>
                             {{-- Saisie groupée : appliquée aux lignes cochées --}}
                             <div class="row g-2 align-items-end">
-                                <div class="col-6 col-md-3"><label class="form-label small mb-1" for="bulk-cost">Cost</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-cost"></div>
-                                <div class="col-6 col-md-3"><label class="form-label small mb-1" for="bulk-price">Price</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-price"></div>
-                                <div class="col-6 col-md-2"><label class="form-label small mb-1" for="bulk-alert">Alert</label><input type="number" min="0" class="form-control form-control-sm" id="bulk-alert"></div>
+                                <div class="col-6 col-md-3"><label class="form-label small mb-1" for="bulk-cost">{{ __('Cost') }}</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-cost"></div>
+                                <div class="col-6 col-md-3"><label class="form-label small mb-1" for="bulk-price">{{ __('Price') }}</label><input type="number" step="0.01" min="0" class="form-control form-control-sm" id="bulk-price"></div>
+                                <div class="col-6 col-md-2"><label class="form-label small mb-1" for="bulk-alert">{{ __('Alert') }}</label><input type="number" min="0" class="form-control form-control-sm" id="bulk-alert"></div>
                                 <div class="col-6 col-md-2">
-                                    <label class="form-label small mb-1" for="bulk-brand">Brand</label>
+                                    <label class="form-label small mb-1" for="bulk-brand">{{ __('Brand') }}</label>
                                     <select class="form-select form-select-sm" id="bulk-brand">
                                         <option value="">—</option>
                                         @foreach ($brands as $brand)
@@ -71,7 +71,7 @@
                                 </div>
                                 <div class="col-6 col-md-2">
                                     <button type="button" class="btn btn-sm btn-outline-secondary w-100" id="bulk-apply">
-                                        <i class="bi bi-check2-all" aria-hidden="true"></i> Apply to checked
+                                        <i class="bi bi-check2-all" aria-hidden="true"></i> {{ __('Apply to checked') }}
                                     </button>
                                 </div>
                             </div>
@@ -81,12 +81,12 @@
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
-                                        <th style="width: 40px"><span class="visually-hidden">Sold</span></th>
-                                        <th>Variant</th>
-                                        <th style="width: 160px">Brand</th>
-                                        <th style="width: 120px">Cost</th>
-                                        <th style="width: 120px">Price</th>
-                                        <th style="width: 90px">Alert</th>
+                                        <th style="width: 40px"><span class="visually-hidden">{{ __('Sold') }}</span></th>
+                                        <th>{{ __('Variant') }}</th>
+                                        <th style="width: 160px">{{ __('Brand') }}</th>
+                                        <th style="width: 120px">{{ __('Cost') }}</th>
+                                        <th style="width: 120px">{{ __('Price') }}</th>
+                                        <th style="width: 90px">{{ __('Alert') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody id="variant-rows"></tbody>
@@ -96,12 +96,12 @@
                             @if ($margin !== null)
                                 <div>
                                     <i class="bi bi-calculator" aria-hidden="true"></i>
-                                    Price = cost + {{ rtrim(rtrim(number_format($margin, 2, '.', ''), '0'), '.') }} % (default margin, Settings › Stock &amp; products).
-                                    It stays editable: a price you type is kept.
+                                    {{ __('Price = cost + :margin % (default margin, Settings › Stock & products).', ['margin' => rtrim(rtrim(number_format($margin, 2, '.', ''), '0'), '.')]) }}
+                                    {{ __('It stays editable: a price you type is kept.') }}
                                 </div>
                             @endif
                             <i class="bi bi-info-circle" aria-hidden="true"></i>
-                            The catalog does not manage stock: it increases when a purchase is received and decreases with each sale.
+                            {{ __('The catalog does not manage stock: it increases when a purchase is received and decreases with each sale.') }}
                         </div>
                         <div class="px-3 pb-3 d-none" id="variant-warning">
                             <div class="alert alert-warning mb-0 mt-3"></div>
@@ -109,32 +109,32 @@
                     </x-ui.card>
 
                     {{-- 4. Spécifications libres --}}
-                    <x-ui.card title="Specifications" subtitle="Optional: origin, material, dimensions...">
+                    <x-ui.card :title="__('Specifications')" :subtitle="__('Optional: origin, material, dimensions...')">
                         <div id="spec-rows"></div>
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="add-spec">
-                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Add a specification
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('Add a specification') }}
                         </button>
                     </x-ui.card>
                 </div>
             </div>
 
             <div class="col-xl-3">
-                <x-ui.card title="Examples">
+                <x-ui.card :title="__('Examples')">
                     <dl class="mb-0 small">
-                        <dt>Desiccant gel</dt>
-                        <dd class="text-muted">Option <em>Volume</em>: 25 ml, 30 ml → 2 variants</dd>
-                        <dt>Wig</dt>
-                        <dd class="text-muted"><em>Color</em>: Black, Brown · <em>Length</em>: 30 cm, 40 cm → 4 variants, brand per variant</dd>
-                        <dt>Simple product</dt>
-                        <dd class="text-muted mb-0">No option → 1 variant</dd>
+                        <dt>{{ __('Desiccant gel') }}</dt>
+                        <dd class="text-muted">{!! __('Option <em>Volume</em>: 25 ml, 30 ml → 2 variants') !!}</dd>
+                        <dt>{{ __('Wig') }}</dt>
+                        <dd class="text-muted">{!! __('<em>Color</em>: Black, Brown · <em>Length</em>: 30 cm, 40 cm → 4 variants, brand per variant') !!}</dd>
+                        <dt>{{ __('Simple product') }}</dt>
+                        <dd class="text-muted mb-0">{{ __('No option → 1 variant') }}</dd>
                     </dl>
                 </x-ui.card>
             </div>
         </div>
 
         <div class="ui-form-bar ui-form-actions">
-            <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save product</button>
+            <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> {{ __('Save product') }}</button>
         </div>
     </form>
 @endsection
@@ -148,6 +148,18 @@
             const oldOptions = @json(old('options'));
             const oldSpecs = @json(old('specs'));
             let oldVariants = @json(old('variants'));
+            const i18n = @js([
+                'remove' => __('Remove'),
+                'optionName' => __('Option (e.g. Volume)'),
+                'optionValues' => __('Values, comma separated (e.g. 25 ml, 30 ml)'),
+                'missingValues' => __('Add values for: :names.'),
+                'tooMany' => __(':count combinations: the maximum is :max. Reduce the number of values.'),
+                'defaultVariant' => __('Default variant (no option)'),
+                'auto' => __('auto'),
+                'specKey' => __('e.g. Origin'),
+                'specValue' => __('e.g. China'),
+                'replaceOptions' => __('Replace the current options with the ones suggested for this category?'),
+            ]);
 
             const optionRows = document.getElementById('option-rows');
             const variantRows = document.getElementById('variant-rows');
@@ -166,14 +178,14 @@
                 return node;
             }
             const cell = (child, className = '') => el('td', { class: className }, [child]);
-            const removeButton = () => el('button', { type: 'button', class: 'btn btn-icon btn-icon-danger remove-row', title: 'Remove', 'aria-label': 'Remove' }, [el('i', { class: 'bi bi-trash3', 'aria-hidden': 'true' })]);
+            const removeButton = () => el('button', { type: 'button', class: 'btn btn-icon btn-icon-danger remove-row', title: i18n.remove, 'aria-label': i18n.remove }, [el('i', { class: 'bi bi-trash3', 'aria-hidden': 'true' })]);
 
             // ---------- Options ----------
             function addOptionRow(name = '', values = '') {
                 const i = optionIndex++;
                 const row = el('div', { class: 'row g-2 mb-2 option-row' }, [
-                    el('div', { class: 'col-md-4' }, [el('input', { type: 'text', name: `options[${i}][name]`, class: 'form-control option-name', placeholder: 'Option (e.g. Volume)', list: 'option-names', maxlength: 50, value: name })]),
-                    el('div', { class: 'col' }, [el('input', { type: 'text', name: `options[${i}][values]`, class: 'form-control option-values', placeholder: 'Values, comma separated (e.g. 25 ml, 30 ml)', value: values })]),
+                    el('div', { class: 'col-md-4' }, [el('input', { type: 'text', name: `options[${i}][name]`, class: 'form-control option-name', placeholder: i18n.optionName, list: 'option-names', maxlength: 50, value: name })]),
+                    el('div', { class: 'col' }, [el('input', { type: 'text', name: `options[${i}][values]`, class: 'form-control option-values', placeholder: i18n.optionValues, value: values })]),
                     el('div', { class: 'col-auto' }, [removeButton()]),
                 ]);
                 optionRows.appendChild(row);
@@ -236,15 +248,15 @@
 
                 variantRows.replaceChildren();
                 const messages = [];
-                if (missing.length) messages.push(`Add values for: ${missing.join(', ')}.`);
-                if (combos.length > MAX_VARIANTS) messages.push(`${combos.length} combinations: the maximum is ${MAX_VARIANTS}. Reduce the number of values.`);
+                if (missing.length) messages.push(i18n.missingValues.replace(':names', missing.join(', ')));
+                if (combos.length > MAX_VARIANTS) messages.push(i18n.tooMany.replace(':count', combos.length).replace(':max', MAX_VARIANTS));
                 warning.classList.toggle('d-none', messages.length === 0);
                 warning.querySelector('.alert').textContent = messages.join(' ');
                 if (combos.length > MAX_VARIANTS) { document.getElementById('variant-count').textContent = 0; return; }
 
                 combos.forEach((values, i) => {
                     const previous = state[keyOf(values)] || {};
-                    const label = Object.values(values).join(' / ') || 'Default variant (no option)';
+                    const label = Object.values(values).join(' / ') || i18n.defaultVariant;
 
                     const brandSelect = el('select', { name: `variants[${i}][brand_id]`, class: 'form-select form-select-sm v-brand' }, [el('option', { value: '', text: '—' })]);
                     brands.forEach(brand => brandSelect.appendChild(el('option', { value: brand.id, text: brand.name })));
@@ -265,7 +277,7 @@
                         cell(brandSelect),
                         cell(number('price_purchase', 'v-cost', { step: '0.01', placeholder: '0', 'data-pricing-cost': '' })),
                         cell(price),
-                        cell(number('alert_stock', 'v-alert', { placeholder: 'auto' })),
+                        cell(number('alert_stock', 'v-alert', { placeholder: i18n.auto })),
                     ]);
                     variantRows.appendChild(row);
                 });
@@ -276,8 +288,8 @@
             function addSpecRow(key = '', value = '') {
                 const i = specIndex++;
                 specRows.appendChild(el('div', { class: 'row g-2 mb-2 spec-row' }, [
-                    el('div', { class: 'col-md-4' }, [el('input', { type: 'text', name: `specs[${i}][key]`, class: 'form-control', placeholder: 'e.g. Origin', maxlength: 100, value: key })]),
-                    el('div', { class: 'col' }, [el('input', { type: 'text', name: `specs[${i}][value]`, class: 'form-control', placeholder: 'e.g. China', value })]),
+                    el('div', { class: 'col-md-4' }, [el('input', { type: 'text', name: `specs[${i}][key]`, class: 'form-control', placeholder: i18n.specKey, maxlength: 100, value: key })]),
+                    el('div', { class: 'col' }, [el('input', { type: 'text', name: `specs[${i}][value]`, class: 'form-control', placeholder: i18n.specValue, value })]),
                     el('div', { class: 'col-auto' }, [removeButton()]),
                 ]));
             }
@@ -297,7 +309,7 @@
                 const template = templates[this.value] || [];
                 if (!template.length) return;
                 const hasOptions = readOptions().length > 0;
-                if (hasOptions && !confirm('Replace the current options with the ones suggested for this category?')) return;
+                if (hasOptions && !confirm(i18n.replaceOptions)) return;
                 optionRows.replaceChildren();
                 template.forEach(option => addOptionRow(option.name, (option.values || []).join(', ')));
                 rebuildVariants();

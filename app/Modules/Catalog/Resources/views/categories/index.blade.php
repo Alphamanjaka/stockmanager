@@ -1,15 +1,15 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Categories')
+@section('title', __('Categories'))
 
 @section('actions')
     <x-ui.actions-menu>
         <x-ui.export-items list="categories" />
         <li><hr class="dropdown-divider"></li>
-        <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">Import categories</x-ui.menu-item>
+        <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">{{ __('Import categories') }}</x-ui.menu-item>
     </x-ui.actions-menu>
     <a href="{{ route('admin.categories.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg" aria-hidden="true"></i> New category
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('New category') }}
     </a>
 @endsection
 
@@ -31,10 +31,10 @@
         @endif
 
         <div class="ui-stats">
-            <x-ui.stat label="Categories" :value="$stats['total_categories']" icon="bi-diagram-3" tone="primary" />
-            <x-ui.stat label="Categorized products" :value="$stats['total_products_linked']" icon="bi-box" tone="success" />
-            <x-ui.stat label="Most populated" :value="$stats['most_populated']->name ?? '—'" icon="bi-trophy" tone="info"
-                :hint="($stats['most_populated']->products_count ?? 0) . ' product(s)'" />
+            <x-ui.stat :label="__('Categories')" :value="$stats['total_categories']" icon="bi-diagram-3" tone="primary" />
+            <x-ui.stat :label="__('Categorized products')" :value="$stats['total_products_linked']" icon="bi-box" tone="success" />
+            <x-ui.stat :label="__('Most populated')" :value="$stats['most_populated']->name ?? '—'" icon="bi-trophy" tone="info"
+                :hint="__(':count product(s)', ['count' => $stats['most_populated']->products_count ?? 0])" />
         </div>
 
         <div>
@@ -42,13 +42,13 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="list-tab" data-bs-toggle="tab" data-bs-target="#list" type="button"
                         role="tab" aria-controls="list" aria-selected="true">
-                        <i class="bi bi-list-ul" aria-hidden="true"></i> List
+                        <i class="bi bi-list-ul" aria-hidden="true"></i> {{ __('List') }}
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart" type="button"
                         role="tab" aria-controls="chart" aria-selected="false">
-                        <i class="bi bi-pie-chart" aria-hidden="true"></i> Distribution
+                        <i class="bi bi-pie-chart" aria-hidden="true"></i> {{ __('Distribution') }}
                     </button>
                 </li>
             </ul>
@@ -58,7 +58,7 @@
                     <x-ui.card flush :pagination="$categories" data-bulk>
                         <x-slot:toolbar>
                             <x-ui.filters :action="route('admin.categories.index')">
-                                <x-ui.search placeholder="Category name..." />
+                                <x-ui.search :placeholder="__('Category name...')" />
                                 <x-ui.status-filter />
                             </x-ui.filters>
                         </x-slot:toolbar>
@@ -72,13 +72,13 @@
                                     <tr>
                                         <x-ui.bulk-check-all />
                                         <th>
-                                            <a href="{{ $sortLink('name') }}">Name <i class="bi {{ $sortIcon('name') }}" aria-hidden="true"></i></a>
+                                            <a href="{{ $sortLink('name') }}">{{ __('Name') }} <i class="bi {{ $sortIcon('name') }}" aria-hidden="true"></i></a>
                                         </th>
                                         <th>
-                                            <a href="{{ $sortLink('parent_id') }}">Parent <i class="bi {{ $sortIcon('parent_id') }}" aria-hidden="true"></i></a>
+                                            <a href="{{ $sortLink('parent_id') }}">{{ __('Parent') }} <i class="bi {{ $sortIcon('parent_id') }}" aria-hidden="true"></i></a>
                                         </th>
-                                        <th class="text-end">Products</th>
-                                        <th class="text-end"><span class="visually-hidden">Actions</span></th>
+                                        <th class="text-end">{{ __('Products') }}</th>
+                                        <th class="text-end"><span class="visually-hidden">{{ __('Actions') }}</span></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -92,34 +92,34 @@
                                                 @if ($category->parent)
                                                     <span class="ui-tag">{{ $category->parent->name }}</span>
                                                 @else
-                                                    <span class="text-muted">Root</span>
+                                                    <span class="text-muted">{{ __('Root') }}</span>
                                                 @endif
                                             </td>
                                             <td class="text-end">{{ $category->products_count }}</td>
                                             <td class="text-end">
                                                 <x-ui.actions-menu row>
-                                                    <x-ui.menu-item :href="route('admin.categories.show', $category->id)" icon="bi-eye">View</x-ui.menu-item>
-                                                    <x-ui.menu-item :href="route('admin.categories.edit', $category->id)" icon="bi-pencil">Edit</x-ui.menu-item>
+                                                    <x-ui.menu-item :href="route('admin.categories.show', $category->id)" icon="bi-eye">{{ __('View') }}</x-ui.menu-item>
+                                                    <x-ui.menu-item :href="route('admin.categories.edit', $category->id)" icon="bi-pencil">{{ __('Edit') }}</x-ui.menu-item>
                                                     @if ($archived)
                                                         <x-ui.menu-item :action="route('admin.categories.restore')" :ids="[$category->id]"
-                                                            icon="bi-arrow-counterclockwise">Restore</x-ui.menu-item>
+                                                            icon="bi-arrow-counterclockwise">{{ __('Restore') }}</x-ui.menu-item>
                                                         {{-- Une catégorie qui contient des produits (même archivés) ne peut pas être supprimée --}}
                                                         <li><hr class="dropdown-divider"></li>
                                                         <x-ui.menu-item :action="route('admin.categories.destroy', $category->id)" method="DELETE"
                                                             icon="bi-trash3" tone="danger" :disabled="$category->products_count > 0"
-                                                            :title="$category->products_count > 0 ? 'Contains products: it stays archived' : null"
-                                                            confirm="Delete this category permanently?">Delete permanently</x-ui.menu-item>
+                                                            :title="$category->products_count > 0 ? __('Contains products: it stays archived') : null"
+                                                            :confirm="__('Delete this category permanently?')">{{ __('Delete permanently') }}</x-ui.menu-item>
                                                     @else
                                                         <x-ui.menu-item :action="route('admin.categories.archive')" :ids="[$category->id]"
-                                                            icon="bi-archive" confirm="Archive this category?"
-                                                            confirm-text="It must no longer contain active products or sub-categories.">Archive</x-ui.menu-item>
+                                                            icon="bi-archive" :confirm="__('Archive this category?')"
+                                                            :confirm-text="__('It must no longer contain active products or sub-categories.')">{{ __('Archive') }}</x-ui.menu-item>
                                                     @endif
                                                 </x-ui.actions-menu>
                                             </td>
                                         </tr>
                                     @empty
                                         <x-ui.empty-row :colspan="5" icon="bi-diagram-3">
-                                            {{ $archived ? 'No archived category.' : 'No category found.' }}
+                                            {{ $archived ? __('No archived category.') : __('No category found.') }}
                                         </x-ui.empty-row>
                                     @endforelse
                                 </tbody>
@@ -129,9 +129,9 @@
                 </div>
 
                 <div class="tab-pane fade" id="chart" role="tabpanel" aria-labelledby="chart-tab">
-                    <x-ui.card title="Products by parent category" subtitle="Share of the catalog in each top-level category">
+                    <x-ui.card :title="__('Products by parent category')" :subtitle="__('Share of the catalog in each top-level category')">
                         <div style="height: 360px;">
-                            <canvas id="categoryPieChart" aria-label="Products by parent category" role="img"></canvas>
+                            <canvas id="categoryPieChart" aria-label="{{ __('Products by parent category') }}" role="img"></canvas>
                         </div>
                     </x-ui.card>
                 </div>

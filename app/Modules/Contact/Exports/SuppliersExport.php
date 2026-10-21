@@ -16,17 +16,17 @@ class SuppliersExport extends ListExport
 
     public function title(): string
     {
-        return 'Suppliers';
+        return __('Suppliers');
     }
 
     public function columns(): array
     {
         return [
-            Column::make('Name', 'name')->width('20%'),
-            Column::make('Phone', 'phone')->width('13%'),
-            Column::make('Email', 'email')->width('20%'),
-            Column::make('Address', 'address'),
-            Column::make('Notes', 'notes'),
+            Column::make(__('Name'), 'name')->width('20%'),
+            Column::make(__('Phone'), 'phone')->width('13%'),
+            Column::make(__('Email'), 'email')->width('20%'),
+            Column::make(__('Address'), 'address'),
+            Column::make(__('Notes'), 'notes'),
         ];
     }
 

@@ -17,7 +17,7 @@
 @props(['row' => false, 'label' => null, 'icon' => null])
 
 @php
-    $label ??= $row ? 'Row actions' : 'More actions';
+    $label ??= $row ? __('Row actions') : __('More actions');
     $icon ??= $row ? 'bi-three-dots-vertical' : 'bi-gear';
 @endphp
 

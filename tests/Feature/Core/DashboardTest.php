@@ -28,8 +28,8 @@ class DashboardTest extends TestCase
         $this->actingAs(User::factory()->backOffice()->create())
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee("This week's sales", false)
-            ->assertDontSee("Today's sales", false)
+            ->assertSee("This week's sales")
+            ->assertDontSee("Today's sales")
             ->assertViewHas('salesThisWeek', fn ($total) => (float) $total === 350.0);
     }
 }

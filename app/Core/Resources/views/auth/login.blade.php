@@ -1,10 +1,10 @@
 @extends('layouts.app-auth')
 
-@section('title', 'Sign in')
+@section('title', __('Sign in'))
 
 @section('content')
-    <h1 class="auth-title">Sign in</h1>
-    <p class="auth-subtitle">Enter your credentials.</p>
+    <h1 class="auth-title">{{ __('Sign in') }}</h1>
+    <p class="auth-subtitle">{{ __('Enter your credentials.') }}</p>
 
     @if ($errors->any())
         <x-ui.alert tone="danger">
@@ -19,16 +19,16 @@
     <form method="POST" action="{{ route('auth.login') }}">
         @csrf
 
-        <x-ui.field name="email" label="Email address" type="email" :value="old('email')" required autofocus
-            autocomplete="username" placeholder="name@company.com" class="mb-3" />
+        <x-ui.field name="email" :label="__('Email address')" type="email" :value="old('email')" required autofocus
+            autocomplete="username" :placeholder="__('name@company.com')" class="mb-3" />
 
         <div class="ui-field">
-            <label for="password" class="form-label required">Password</label>
+            <label for="password" class="form-label required">{{ __('Password') }}</label>
             <div class="input-group">
                 <input type="password" id="password" name="password" required autocomplete="current-password"
                     @class(['form-control', 'is-invalid' => $errors->has('password')])>
-                <button type="button" class="btn btn-outline-secondary" id="toggle-password" aria-label="Show password"
-                    title="Show password">
+                <button type="button" class="btn btn-outline-secondary" id="toggle-password" aria-label="{{ __('Show password') }}"
+                    title="{{ __('Show password') }}">
                     <i class="bi bi-eye" aria-hidden="true"></i>
                 </button>
             </div>
@@ -39,11 +39,11 @@
 
         <div class="form-check mb-4">
             <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-            <label class="form-check-label" for="remember">Remember me</label>
+            <label class="form-check-label" for="remember">{{ __('Remember me') }}</label>
         </div>
 
         <button type="submit" class="btn btn-primary btn-lg w-100">
-            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Sign in
+            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> {{ __('Sign in') }}
         </button>
     </form>
 @endsection

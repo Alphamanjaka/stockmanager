@@ -1,12 +1,12 @@
 @extends('layouts.app-front-office')
 
-@section('title', 'Product catalog')
+@section('title', __('Product catalog'))
 
 @section('content')
     <x-ui.card flush :pagination="$products">
         <x-slot:toolbar>
             <x-ui.filters :action="route('saler.products.index')">
-                <x-ui.search placeholder="Search by name or reference..." />
+                <x-ui.search :placeholder="__('Search by name or reference...')" />
             </x-ui.filters>
         </x-slot:toolbar>
 
@@ -14,10 +14,10 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Product</th>
-                        <th>Category</th>
-                        <th class="text-end">Price</th>
-                        <th class="text-end">Stock</th>
+                        <th>{{ __('Product') }}</th>
+                        <th>{{ __('Category') }}</th>
+                        <th class="text-end">{{ __('Price') }}</th>
+                        <th class="text-end">{{ __('Stock') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,7 +36,7 @@
                             </td>
                         </tr>
                     @empty
-                        <x-ui.empty-row :colspan="4" icon="bi-box">No product found.</x-ui.empty-row>
+                        <x-ui.empty-row :colspan="4" icon="bi-box">{{ __('No product found.') }}</x-ui.empty-row>
                     @endforelse
                 </tbody>
             </table>

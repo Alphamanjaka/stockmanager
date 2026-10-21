@@ -13,16 +13,16 @@
 @endphp
 
 <div class="col-md-6 ui-field">
-    <label class="form-label required" for="{{ $prefix }}-variant-price-purchase">Purchase price</label>
+    <label class="form-label required" for="{{ $prefix }}-variant-price-purchase">{{ __('Purchase price') }}</label>
     <div class="input-group">
         <input type="number" name="price_purchase" id="{{ $prefix }}-variant-price-purchase" class="form-control"
             step="0.01" min="0" placeholder="0.00" required @if ($add) data-pricing-cost @endif>
         <span class="input-group-text">{{ $currency }}</span>
     </div>
-    <div class="form-text">Updated at each received purchase (weighted average cost).</div>
+    <div class="form-text">{{ __('Updated at each received purchase (weighted average cost).') }}</div>
 </div>
 <div class="col-md-6 ui-field">
-    <label class="form-label required" for="{{ $prefix }}-variant-price">Selling price</label>
+    <label class="form-label required" for="{{ $prefix }}-variant-price">{{ __('Selling price') }}</label>
     <div class="input-group">
         <input type="number" name="price" id="{{ $prefix }}-variant-price" class="form-control" step="0.01" min="0"
             @if ($add) value="{{ $product->price }}" data-pricing-price @endif required>
@@ -30,23 +30,23 @@
     </div>
     @if ($margin !== null)
         <div class="form-text">
-            Filled in from the purchase price + {{ rtrim(rtrim(number_format($margin, 2, '.', ''), '0'), '.') }} % (default margin). You can change it.
+            {{ __('Filled in from the purchase price + :margin % (default margin). You can change it.', ['margin' => rtrim(rtrim(number_format($margin, 2, '.', ''), '0'), '.')]) }}
         </div>
     @endif
 </div>
 <div class="col-md-6 ui-field mb-md-0">
-    <label class="form-label" for="{{ $prefix }}-variant-alert">Alert threshold</label>
+    <label class="form-label" for="{{ $prefix }}-variant-alert">{{ __('Alert threshold') }}</label>
     <input type="number" name="alert_stock" id="{{ $prefix }}-variant-alert" class="form-control" min="0"
         @if ($add) value="5" @endif>
-    <div class="form-text">An alert is raised when the stock reaches this level.</div>
+    <div class="form-text">{{ __('An alert is raised when the stock reaches this level.') }}</div>
 </div>
 <div class="col-md-6 ui-field mb-0">
     {{-- Affiché seulement : pas de name, la valeur n'est jamais envoyée --}}
-    <label class="form-label" for="{{ $prefix }}-variant-stock">Stock</label>
+    <label class="form-label" for="{{ $prefix }}-variant-stock">{{ __('Stock') }}</label>
     <input type="text" id="{{ $prefix }}-variant-stock" class="form-control" readonly tabindex="-1"
         @if ($add) value="0" @endif>
     <div class="form-text">
-        {{ $add ? 'A new variant starts at 0.' : 'Read-only.' }}
-        It changes with received purchases and sales.
+        {{ $add ? __('A new variant starts at 0.') : __('Read-only.') }}
+        {{ __('It changes with received purchases and sales.') }}
     </div>
 </div>

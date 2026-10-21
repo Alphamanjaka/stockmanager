@@ -18,11 +18,11 @@
             <span class="ui-brand-name">StockMaster</span>
         </div>
         <div class="auth-brand-body">
-            <h2>Inventory, purchasing and sales in one place.</h2>
+            <h2>{{ __('Inventory, purchasing and sales in one place.') }}</h2>
             <ul>
-                <li><i class="bi bi-box-seam" aria-hidden="true"></i> Real-time stock and alerts</li>
-                <li><i class="bi bi-cart3" aria-hidden="true"></i> Purchases and supplier follow-up</li>
-                <li><i class="bi bi-shop" aria-hidden="true"></i> Point of sale and invoices</li>
+                <li><i class="bi bi-box-seam" aria-hidden="true"></i> {{ __('Real-time stock and alerts') }}</li>
+                <li><i class="bi bi-cart3" aria-hidden="true"></i> {{ __('Purchases and supplier follow-up') }}</li>
+                <li><i class="bi bi-shop" aria-hidden="true"></i> {{ __('Point of sale and invoices') }}</li>
             </ul>
         </div>
         <small>© {{ date('Y') }} StockMaster</small>

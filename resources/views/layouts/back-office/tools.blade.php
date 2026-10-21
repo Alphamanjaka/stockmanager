@@ -30,7 +30,7 @@
                         <a class="dropdown-item align-items-start py-2" href="{{ route('admin.notifications.read', $notification->id) }}">
                             <i class="bi bi-exclamation-triangle text-warning mt-1" aria-hidden="true"></i>
                             <span>
-                                <strong class="d-block">{{ $notification->data['label'] ?? 'Product' }}</strong>
+                                <strong class="d-block">{{ $notification->data['label'] ?? __('Product') }}</strong>
                                 <small class="text-muted">{{ __('backoffice.stock_alert') }}:
                                     {{ $notification->data['stock'] ?? 0 }} {{ __('backoffice.stock_left') }}
                                     · {{ $notification->created_at->diffForHumans() }}</small>

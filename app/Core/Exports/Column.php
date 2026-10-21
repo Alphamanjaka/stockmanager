@@ -101,7 +101,7 @@ final class Column
             'money' => money($value),
             'date' => $value instanceof DateTimeInterface ? $value->format('d/m/Y') : (string) $value,
             'datetime' => $value instanceof DateTimeInterface ? $value->format('d/m/Y H:i') : (string) $value,
-            default => is_bool($value) ? ($value ? 'Yes' : 'No') : (string) $value,
+            default => is_bool($value) ? ($value ? __('Yes') : __('No')) : (string) $value,
         };
     }
 

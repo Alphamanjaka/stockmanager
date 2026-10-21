@@ -7,6 +7,6 @@
 <td class="ui-col-check">
     <label class="ui-check-hit">
         <input type="checkbox" class="form-check-input" value="{{ $value }}" data-bulk-item
-            aria-label="Select {{ $label ?? "#{$value}" }}">
+            aria-label="{{ __('Select :item', ['item' => $label ?? "#{$value}"]) }}">
     </label>
 </td>

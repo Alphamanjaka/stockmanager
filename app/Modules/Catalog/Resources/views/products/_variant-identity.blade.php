@@ -17,12 +17,12 @@
     </div>
 @empty
     <div class="col-12">
-        <x-ui.alert tone="secondary">This product has no options: it has a single default variant.</x-ui.alert>
+        <x-ui.alert tone="secondary">{{ __('This product has no options: it has a single default variant.') }}</x-ui.alert>
     </div>
 @endforelse
 
 <div class="col-md-6 ui-field">
-    <label class="form-label" for="{{ $prefix }}-variant-brand">Brand</label>
+    <label class="form-label" for="{{ $prefix }}-variant-brand">{{ __('Brand') }}</label>
     <select name="brand_id" id="{{ $prefix }}-variant-brand" class="form-select variant-brand-select">
         <option value="">—</option>
         @foreach ($brands as $brand)
@@ -33,6 +33,6 @@
 
 @if (!empty($product->options))
     <div class="col-12 form-text mt-0 mb-3">
-        A new value (e.g. a new volume) is added to the product's options automatically.
+        {{ __("A new value (e.g. a new volume) is added to the product's options automatically.") }}
     </div>
 @endif

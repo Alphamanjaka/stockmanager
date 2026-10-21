@@ -78,7 +78,8 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    // Français par défaut ; les vues sont écrites en anglais (clés de traduction) et traduites dans */fr.json
+    'locale' => env('APP_LOCALE', 'fr'),
 
     // Langues proposées dans Administration › Paramètres › Interface & System (réglage "app_locale")
     'supported_locales' => [

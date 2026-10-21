@@ -11,15 +11,15 @@ class ColorsExport extends ListExport
 {
     public function title(): string
     {
-        return 'Colors';
+        return __('Colors');
     }
 
     public function columns(): array
     {
         return [
-            Column::make('Name', 'name'),
-            Column::make('Code', 'code')->width('25%'),
-            Column::make('Variants', 'variants_count')->number()->width('15%'),
+            Column::make(__('Name'), 'name'),
+            Column::make(__('Code'), 'code')->width('25%'),
+            Column::make(__('Variants'), 'variants_count')->number()->width('15%'),
         ];
     }
 

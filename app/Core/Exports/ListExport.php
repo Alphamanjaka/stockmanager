@@ -104,16 +104,16 @@ abstract class ListExport
         $described = [];
 
         if ($ids) {
-            $described['Selection'] = count($ids).' item(s)';
+            $described[__('Selection')] = __(':count item(s)', ['count' => count($ids)]);
         }
         if (filled($filters['search'] ?? null)) {
-            $described['Search'] = '« '.$filters['search'].' »';
+            $described[__('Search')] = '« '.$filters['search'].' »';
         }
 
         $described += array_filter($this->filterLabels($filters), 'filled');
 
         if (($filters['status'] ?? null) === 'archived') {
-            $described['Status'] = 'Archived';
+            $described[__('Status')] = __('Archived');
         }
 
         return $described;

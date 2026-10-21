@@ -127,7 +127,7 @@
                 <div>{{ $sale->company_address }}</div>
             @endif
             @if ($sale->company_phone)
-                <div>Tél. {{ $sale->company_phone }}</div>
+                <div>{{ __('Tel: :phone', ['phone' => $sale->company_phone]) }}</div>
             @endif
             @if ($sale->company_email)
                 <div>{{ $sale->company_email }}</div>
