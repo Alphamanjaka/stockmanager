@@ -1,7 +1,7 @@
 # Développer avec Docker
 
 L'environnement de développement Docker (`compose.dev.yaml`) fait tourner l'application comme en production
-(PHP-FPM + Nginx + PostgreSQL 16 + Redis), avec le code monté en direct : une modification faite dans VS Code est
+(PHP-FPM + Nginx + PostgreSQL 16), avec le code monté en direct : une modification faite dans VS Code est
 visible immédiatement, sans reconstruire.
 
 Il **cohabite avec Laragon** : ports différents, même fichier `.env`, `node_modules` séparé.
@@ -10,9 +10,8 @@ Il **cohabite avec Laragon** : ports différents, même fichier `.env`, `node_mo
 |---|---|---|
 | `web` | Nginx | http://localhost:8080 |
 | `php-fpm` | PHP 8.4 qui sert l'application | — |
-| `workspace` | Terminal de travail : composer, artisan, npm (Vite), tests | Vite : http://localhost:5173 |
+| `workspace` | Terminal de travail : composer, artisan, npm (Vite), tests — même image que `php-fpm` | Vite : http://localhost:5173 |
 | `postgres` | PostgreSQL 16 (base `app`, utilisateur `laravel` / `secret`) | `localhost:5433` (DBeaver, pgAdmin…) |
-| `redis` | Redis | — |
 
 Ports réglables dans `.env` : `NGINX_PORT`, `POSTGRES_PORT`, `VITE_PORT`.
 
@@ -32,11 +31,16 @@ docker compose -f compose.dev.yaml exec workspace npm ci
 docker compose -f compose.dev.yaml exec workspace php artisan migrate --seed
 ```
 
+> **Venant de l'ancienne configuration** (workspace sous Debian) : son volume `node_modules`, créé au nom de root, est
+> resté vide (`npm ci` y échouait). Le supprimer une fois, avant de reconstruire, puis refaire `npm ci` :
+> `docker compose -f compose.dev.yaml rm -sf workspace` puis
+> `docker volume rm stockmanager-dev_node-modules-development`.
+
 Ouvrir http://localhost:8080 — comptes de démonstration : `admin@stock.com` / `password` (back office),
 `vendeur@stock.com` / `password` (vendeur).
 
 > Le `.env` reste celui de Laragon : `compose.dev.yaml` impose aux conteneurs les paramètres propres à Docker
-> (`DB_HOST=postgres`, `DB_USERNAME=laravel`, `REDIS_HOST=redis`…). Si `APP_KEY` est vide :
+> (`DB_HOST=postgres`, `DB_USERNAME=laravel`…). Si `APP_KEY` est vide :
 > `docker compose -f compose.dev.yaml exec workspace php artisan key:generate`.
 
 ## Au quotidien
@@ -83,8 +87,7 @@ docker compose -f compose.dev.yaml exec -e DB_DATABASE=testing workspace php art
 ## Déboguer avec Xdebug
 
 Désactivé par défaut (il ralentit chaque requête). Pour l'activer : `XDEBUG_ENABLED=true` dans le `.env`, puis
-`docker compose -f compose.dev.yaml up -d --build`. Port 9003, clé IDE `DOCKER`, chemin du projet dans le conteneur :
-`/var/www`.
+`docker compose -f compose.dev.yaml up -d --build`. Port 9003, chemin du projet dans le conteneur : `/var/www`.
 
 ## Repartir de zéro
 

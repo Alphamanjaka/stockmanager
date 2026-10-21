@@ -70,7 +70,7 @@ Pour intégrer une nouvelle entité (ex: `Customer`) au système de recherche :
 ### � Infrastructure Optimisée
 
 - **Docker Multi-Stage** : Images ultra-légères basées sur Alpine Linux. Séparation stricte entre l'environnement de build (compilateurs, nodejs) et l'environnement de production (runtime PHP pur).
-- **Performance** : Utilisation de **Redis** pour le cache et les files d'attente, et **PostgreSQL** pour la fiabilité des données.
+- **PostgreSQL** pour les données, mais aussi le cache, les sessions et la file d'attente : un seul service à exploiter et à sauvegarder.
 
 ---
 
@@ -106,19 +106,28 @@ Pour intégrer une nouvelle entité (ex: `Customer`) au système de recherche :
 
 ## Architecture DevOps & Docker Multi-Stage
 
-Le projet utilise une stratégie de conteneurisation avancée en **3 étapes** pour garantir sécurité et légèreté (Image finale < 100Mo hors assets) :
+Toutes les images sont décrites dans un seul fichier, [`docker/Dockerfile`](docker/Dockerfile), avec une cible par usage :
 
-1.  **Build Stage (Builder)** : Image temporaire contenant tous les outils de compilation (GCC, Make, Git, Composer) pour construire les dépendances PHP.
-2.  **Frontend Stage (Node)** : Compilation des assets JS/CSS (Vite/Tailwind) dans un conteneur Node.js isolé.
-3.  **Production Stage (Runner)** : Image finale Alpine Linux minimale. Ne contient que le runtime PHP nécessaire, sans code source inutile (pas de `.git`, pas de `node_modules`, pas de compilateurs).
+1.  **`app`** : PHP-FPM 8.4 de production (Alpine), avec le code, les dépendances Composer sans les paquets de
+    développement et les assets compilés. Le worker et le scheduler utilisent la même image. Le code appartient à root :
+    PHP ne peut écrire que dans `storage` et `bootstrap/cache`.
+2.  **`web`** : Nginx de production, avec les fichiers de `public/` et les assets compilés.
+3.  **`dev`** : PHP-FPM de développement, avec Composer, Node et Xdebug à la demande ; le code est monté depuis le poste.
+
+Les assets (Vite) sont compilés une seule fois et copiés dans `app` et `web`, qui ont donc toujours le même manifeste.
+Le contexte de build est une liste blanche ([`.dockerignore`](.dockerignore)) : `.env` et `.env.*`, `storage`, `vendor`
+ou `public/hot` n'entrent jamais dans une image. La configuration Nginx ([`docker/nginx.conf`](docker/nginx.conf)) est la
+même en développement et en production.
 
 ### Commandes Rapides
 
-- **Production** : `docker compose -f compose.prod.yaml up -d --build`. Les conteneurs parlent toujours aux services
-  `postgres` et `redis` du fichier, quel que soit le `.env` (celui de Laragon convient). La base est créée au premier
-  démarrage avec `POSTGRES_DATABASE`, `POSTGRES_USERNAME` et `POSTGRES_PASSWORD` du `.env` (par défaut `app`, `laravel`,
-  `secret` : à changer sur un serveur, **avant** le premier démarrage). `php-fpm` applique les migrations au démarrage ;
-  le worker et le scheduler l'attendent.
+- **Production** : `docker compose -f compose.prod.yaml up -d --build`. Les conteneurs parlent toujours au service
+  `postgres` du fichier, quel que soit le `.env` (celui de Laragon convient), en `APP_ENV=production` et
+  `APP_DEBUG=false`. Définir `POSTGRES_PASSWORD` dans le `.env` est **obligatoire** ; `POSTGRES_DATABASE` et
+  `POSTGRES_USERNAME` sont facultatifs (`app`, `laravel`). Ils créent la base au premier démarrage puis servent à s'y
+  connecter : sur une base existante, reprendre le mot de passe d'origine (`secret` jusqu'ici). PostgreSQL n'est pas
+  exposé hors des conteneurs (`docker compose -f compose.prod.yaml exec postgres psql -U laravel app`). `php-fpm`
+  applique les migrations au démarrage ; le worker et le scheduler l'attendent.
 - **Développement** : `docker compose -f compose.dev.yaml up -d --build` — code monté en direct, PostgreSQL 16,
   Vite, Xdebug à la demande ; cohabite avec Laragon. Mode d'emploi complet : [docs/docker-dev.md](docs/docker-dev.md).
 
@@ -242,20 +251,22 @@ La documentation détaillée est rangée dans [`docs/`](docs/) ; l'historique de
 | [journal.md](docs/journal.md) | Journal de bord des évolutions |
 | [analyse-ameliorations.md](docs/analyse-ameliorations.md) | Analyse du projet et plan d'amélioration |
 
-Scripts : [`scripts/save-stockmanager.bat`](scripts/save-stockmanager.bat) prépare un paquet hors ligne des images
-Docker de production (Windows, à lancer depuis n'importe quel dossier).
+Scripts : [`scripts/save-stockmanager.bat`](scripts/save-stockmanager.bat) construit les images Docker de production et
+prépare un paquet hors ligne : images, `compose.prod.yaml` et scripts d'installation de
+[`scripts/package`](scripts/package) (Windows, à lancer depuis n'importe quel dossier).
 
 ---
 
 ## CI/CD (Intégration Continue)
 
 Le pipeline GitHub Actions (`.github/workflows/ci.yml`) tourne sur chaque push sur `main` et sur chaque PR,
-y compris celles d'une pile (basées sur la branche d'une autre PR). Trois jobs en parallèle :
+y compris celles d'une pile (basées sur la branche d'une autre PR). Quatre jobs en parallèle :
 
 1.  **Style** : Laravel Pint (`vendor/bin/pint --test`). En local, `vendor/bin/pint` corrige les fichiers.
 2.  **Assets** : construction Vite (`npm ci`, `npm run build`) : les tests tournent sans les assets (`withoutVite`),
     ce job attrape les erreurs de JavaScript et de CSS.
-3.  **Tests** : PHPUnit sur PostgreSQL 16, le moteur de production.
+3.  **Docker** : construction des images de production `app` et `web` (`docker/Dockerfile`).
+4.  **Tests** : PHPUnit sur PostgreSQL 16, le moteur de production.
 
 Un nouveau push sur une PR annule sa vérification en cours.
 

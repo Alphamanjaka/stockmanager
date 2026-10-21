@@ -62,7 +62,21 @@ jobs:
       - name: "Build"
         run: npm run build
 
-  # Job 3: Tests fonctionnels et unitaires (indépendants du style : leurs résultats s'affichent toujours)
+  # Job 3: Images Docker de production (docker/Dockerfile) : sans ce job, une erreur de build ne se verrait qu'au déploiement
+  docker:
+    name: "Build Docker Images"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+
+      - name: "Build app (PHP-FPM, worker, scheduler)"
+        run: docker build -f docker/Dockerfile --target app .
+
+      - name: "Build web (Nginx)"
+        run: docker build -f docker/Dockerfile --target web .
+
+  # Job 4: Tests fonctionnels et unitaires (indépendants du style : leurs résultats s'affichent toujours)
   test:
     name: "Tests (PostgreSQL 16)"
     runs-on: ubuntu-latest

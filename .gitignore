@@ -27,3 +27,5 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+# Paquet hors ligne produit par scripts/save-stockmanager.bat
+/stockmanager-*.tar.gz
