@@ -3,11 +3,16 @@ name: Laravel CI
 on:
   push:
     branches: [ "main", "master" ]
+  # Toutes les PR, y compris celles d'une pile (basées sur la branche d'une autre PR)
   pull_request:
-    branches: [ "main", "master" ]
+
+# Un nouveau push sur une PR annule sa vérification en cours ; chaque commit de main garde la sienne
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
-  # Job 1: Linting (Vérification du style de code avec Pint)
+  # Job 1: Style du code (Laravel Pint, préréglage Laravel). Corriger en local : vendor/bin/pint
   lint:
     name: "Check Code Style (Pint)"
     runs-on: ubuntu-latest
@@ -33,11 +38,34 @@ jobs:
       - name: "Install Composer Dependencies"
         run: composer install --prefer-dist --no-progress --no-interaction
 
-  # Job 2: Tests fonctionnels et unitaires
+      - name: "Run Laravel Pint"
+        run: vendor/bin/pint --test -v
+
+  # Job 2: Construction des assets (Vite). Les tests tournent sans eux (withoutVite) :
+  # sans ce job, une erreur de JavaScript ou de CSS passerait inaperçue.
+  assets:
+    name: "Build Assets (Vite)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout Code"
+        uses: actions/checkout@v4
+
+      - name: "Setup Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: "Install NPM Dependencies"
+        run: npm ci
+
+      - name: "Build"
+        run: npm run build
+
+  # Job 3: Tests fonctionnels et unitaires (indépendants du style : leurs résultats s'affichent toujours)
   test:
     name: "Tests (PostgreSQL 16)"
     runs-on: ubuntu-latest
-    needs: lint # Ce job ne se lancera que si le 'lint' a réussi
 
     # PostgreSQL 16, le moteur de production (base de test comme en local : stockmanager_test)
     services:

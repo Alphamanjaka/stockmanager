@@ -2,14 +2,14 @@
 
 namespace App\Modules\Catalog\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Modules\Catalog\Services\ProductColorService;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 
 class SalerProductController extends Controller
 {
-    public function __construct(protected ProductColorService $productService)
-    {}
+    public function __construct(protected ProductColorService $productService) {}
+
     /**
      * Affiche la liste des produits pour le vendeur (lecture seule).
      */

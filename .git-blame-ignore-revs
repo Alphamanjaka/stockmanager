@@ -1,0 +1,6 @@
+# Commits de mise en forme seule, ignorés par git blame :
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# (GitHub les ignore de lui-même dans la vue « Blame »)
+
+# style: format the code with Laravel Pint
+5813c841e6851c73b1c617a1c3c4b099c1bd8312

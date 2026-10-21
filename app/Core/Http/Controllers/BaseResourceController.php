@@ -2,16 +2,19 @@
 
 namespace App\Core\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Core\Services\BaseService;
-use Illuminate\Foundation\Http\FormRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Request;
 
 abstract class BaseResourceController extends Controller
 {
     protected BaseService $service;
+
     protected string $viewPath; // Ex: 'colors'
+
     protected string $routeNamePrefix; // Ex: 'admin.colors'
+
     protected string $resourceName; // Ex: 'color' (pour les messages de succès/erreur)
 
     public function __construct(BaseService $service)
@@ -25,10 +28,10 @@ abstract class BaseResourceController extends Controller
     public function index(Request $request)
     {
         $filters = [
-            'search'   => $request->get('search'),
-            'status'   => $request->get('status'),
-            'sort'     => $request->get('sort', 'name'),
-            'order'    => $request->get('order', 'asc'),
+            'search' => $request->get('search'),
+            'status' => $request->get('status'),
+            'sort' => $request->get('sort', 'name'),
+            'order' => $request->get('order', 'asc'),
             'per_page' => $request->get('per_page', 15),
         ];
 
@@ -57,7 +60,7 @@ abstract class BaseResourceController extends Controller
         $this->service->create($request->validated());
 
         return redirect()->route("{$this->routeNamePrefix}.index")
-            ->with('success', ucfirst($this->resourceName) . ' created successfully.');
+            ->with('success', ucfirst($this->resourceName).' created successfully.');
     }
 
     /**
@@ -66,6 +69,7 @@ abstract class BaseResourceController extends Controller
     public function show($id)
     {
         $item = $this->service->getById($id);
+
         return view("{$this->viewPath}.show", compact('item'));
     }
 
@@ -75,6 +79,7 @@ abstract class BaseResourceController extends Controller
     public function edit($id)
     {
         $item = $this->service->getById($id);
+
         return view("{$this->viewPath}.edit", compact('item'));
     }
 
@@ -88,7 +93,7 @@ abstract class BaseResourceController extends Controller
         $this->service->update($id, $request->validated());
 
         return redirect()->route("{$this->routeNamePrefix}.index")
-            ->with('success', ucfirst($this->resourceName) . ' updated successfully.');
+            ->with('success', ucfirst($this->resourceName).' updated successfully.');
     }
 
     /**
@@ -98,10 +103,11 @@ abstract class BaseResourceController extends Controller
     {
         try {
             $this->service->delete($id);
+
             return redirect()->route("{$this->routeNamePrefix}.index")
-                ->with('success', ucfirst($this->resourceName) . ' deleted successfully.');
+                ->with('success', ucfirst($this->resourceName).' deleted successfully.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Error deleting ' . $this->resourceName . ': ' . $e->getMessage());
+            return back()->with('error', 'Error deleting '.$this->resourceName.': '.$e->getMessage());
         }
     }
 }

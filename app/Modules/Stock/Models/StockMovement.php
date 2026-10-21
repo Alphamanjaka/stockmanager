@@ -3,12 +3,12 @@
 namespace App\Modules\Stock\Models;
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Stock\Database\Factories\StockMovementFactory;
 use App\Modules\Stock\Support\MovementSource;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
-use App\Modules\Stock\Database\Factories\StockMovementFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Route;
 
 #[UseFactory(StockMovementFactory::class)]
@@ -21,6 +21,7 @@ class StockMovement extends Model
         MovementSource::PURCHASE => 'admin.purchases.show',
         MovementSource::SALE => 'admin.sales.show',
         MovementSource::INVENTORY => 'admin.inventories.show',
+        MovementSource::SALE_RETURN => 'admin.sale-returns.show',
     ];
 
     protected $fillable = [
@@ -34,6 +35,7 @@ class StockMovement extends Model
         'source_type',
         'source_id',
     ];
+
     /**
      * Get the product color variant that owns the stock movement.
      */
@@ -48,7 +50,7 @@ class StockMovement extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** Lien vers le document à l'origine du mouvement (achat, vente, inventaire), ou null. */
+    /** Lien vers le document à l'origine du mouvement (achat, vente, avoir, inventaire), ou null. */
     public function sourceUrl(): ?string
     {
         $route = self::SOURCE_ROUTES[$this->source_type] ?? null;
@@ -68,6 +70,7 @@ class StockMovement extends Model
             MovementSource::INVENTORY => ['info', 'Stock count'],
             MovementSource::PURCHASE => $this->type === 'in' ? ['success', 'Purchase'] : ['danger', 'Purchase cancelled'],
             MovementSource::SALE => ['danger', 'Sale'],
+            MovementSource::SALE_RETURN => ['success', 'Sale return'],
             default => $this->kindFromReason(),
         };
     }

@@ -2,31 +2,33 @@
 
 namespace App\Modules\Purchase\Http\Controllers;
 
+use App\Core\Exports\PdfDocument;
+use App\Http\Controllers\Controller;
+use App\Modules\Catalog\Services\ProductColorService;
+use App\Modules\Contact\Services\SupplierService;
 use App\Modules\Purchase\Http\Requests\SavePurchaseRequest;
 use App\Modules\Purchase\Http\Resources\PurchaseApiResourceCollection;
 use App\Modules\Purchase\Models\Purchase;
-use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Purchase\Services\PurchaseService;
-use App\Modules\Contact\Services\SupplierService;
-use App\Core\Exports\PdfDocument;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
-use App\Http\Controllers\Controller;
+use Illuminate\View\View;
 
 class PurchaseController extends Controller
 {
-
     public function __construct(
         protected PurchaseService $purchaseService,
         protected SupplierService $supplierService,
         protected ProductColorService $productColorService
     ) {}
+
     /**
      * Génère et affiche le PDF du bon de commande dans le navigateur.
      *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function previewPdf(int $id)
     {
@@ -41,37 +43,38 @@ class PurchaseController extends Controller
         return $pdf->stream("bon_commande_{$purchase->reference}.pdf");
     }
 
-
     /**
      * Affiche la page de création de commandes à partir des ruptures de stock.
      * Récupère les produits en rupture de stock groupés par fournisseur pour faciliter la création de commandes.
-     * @return \Illuminate\View\View
+     *
+     * @return View
      */
     public function createFromShortage()
     {
         $groupedProducts = $this->purchaseService->getShortageProductsGroupedBySupplier();
 
         return view('purchase::purchases.create_from_shortage', [
-            'groupedProducts' => $groupedProducts
+            'groupedProducts' => $groupedProducts,
         ]);
     }
 
     /**
      * Crée les commandes soumises depuis la page de suggestion.
-     * @return \Illuminate\Http\RedirectResponse
+     *
+     * @return RedirectResponse
      */
     public function storeFromShortage(Request $request)
     {
         // Transformation et validation initiale des données soumises
         $itemsToOrder = collect($request->input('items', []))
-            ->filter(fn($item) => isset($item['selected']))
-            ->map(fn($item, $id) => [
+            ->filter(fn ($item) => isset($item['selected']))
+            ->map(fn ($item, $id) => [
                 'product_color_id' => $item['product_id'] ?? $id,
                 'quantity' => (int) ($item['quantity'] ?? 0),
                 'unit_price' => (float) ($item['unit_price'] ?? 0),
-                'supplier_id' => !empty($item['supplier_id']) ? (int) $item['supplier_id'] : null,
+                'supplier_id' => ! empty($item['supplier_id']) ? (int) $item['supplier_id'] : null,
             ])
-            ->filter(fn($item) => $item['quantity'] > 0)
+            ->filter(fn ($item) => $item['quantity'] > 0)
             ->values()
             ->all();
 
@@ -83,13 +86,13 @@ class PurchaseController extends Controller
             $createdPurchases = $this->purchaseService->createPurchasesFromShortage($itemsToOrder);
 
             return redirect()->route('admin.purchases.index')
-                ->with('success', count($createdPurchases) . ' commande(s) d\'achat créée(s) avec succès.');
+                ->with('success', count($createdPurchases).' commande(s) d\'achat créée(s) avec succès.');
         } catch (\Exception $e) {
-            Log::error('Échec de la création des commandes depuis la rupture de stock: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Une erreur est survenue lors de la création : ' . $e->getMessage());
+            Log::error('Échec de la création des commandes depuis la rupture de stock: '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de la création : '.$e->getMessage());
         }
     }
-
 
     public function getPurchasesApi(Request $request)
     {
@@ -132,7 +135,7 @@ class PurchaseController extends Controller
         try {
             $purchase = $this->purchaseService->savePurchaseOrder(null, $request->validated(), $request->action());
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', "Erreur lors de l'enregistrement de l'achat : " . $e->getMessage());
+            return back()->withInput()->with('error', "Erreur lors de l'enregistrement de l'achat : ".$e->getMessage());
         }
 
         return redirect()->route('admin.purchases.show', $purchase->id)->with('success', $this->savedMessage($purchase, $request->action()));
@@ -144,6 +147,7 @@ class PurchaseController extends Controller
     public function show(int $id)
     {
         $purchase = $this->purchaseService->getPurchaseById($id);
+
         return view('purchase::purchases.show', compact('purchase'));
     }
 
@@ -175,10 +179,11 @@ class PurchaseController extends Controller
 
             return redirect()->route('admin.purchases.index')->with('success', 'L\'achat a été supprimé avec succès.');
         } catch (\Exception $e) {
-            Log::error("Purchase Deletion Error: " . $e->getMessage());
+            Log::error('Purchase Deletion Error: '.$e->getMessage());
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Une erreur est survenue lors de la suppression.'], 500);
             }
+
             return back()->with('error', 'Une erreur est survenue lors de la suppression.');
         }
     }
@@ -191,7 +196,7 @@ class PurchaseController extends Controller
         try {
             $purchase = $this->purchaseService->savePurchaseOrder($id, $request->validated(), $request->action());
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', "Erreur lors de la mise à jour de l'achat : " . $e->getMessage());
+            return back()->withInput()->with('error', "Erreur lors de la mise à jour de l'achat : ".$e->getMessage());
         }
 
         return redirect()->route('admin.purchases.show', $id)->with('success', $this->savedMessage($purchase, $request->action()));
@@ -214,7 +219,7 @@ class PurchaseController extends Controller
 
         $pdf = PdfDocument::load('purchase::purchases.pdf', compact('purchase'));
 
-        return $pdf->download('achat_' . $purchase->reference . '.pdf');
+        return $pdf->download('achat_'.$purchase->reference.'.pdf');
     }
 
     /**
@@ -235,7 +240,7 @@ class PurchaseController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => "Le statut de l'achat #{$purchase->reference} a été mis à jour."
+                    'message' => "Le statut de l'achat #{$purchase->reference} a été mis à jour.",
                 ]);
             }
 
@@ -244,10 +249,11 @@ class PurchaseController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Erreur lors du changement de statut : " . $e->getMessage()
+                    'message' => 'Erreur lors du changement de statut : '.$e->getMessage(),
                 ], 500);
             }
-            return back()->with('error', "Erreur lors du changement de statut : " . $e->getMessage());
+
+            return back()->with('error', 'Erreur lors du changement de statut : '.$e->getMessage());
         }
     }
 
@@ -275,7 +281,7 @@ class PurchaseController extends Controller
 
         // Ruptures (stock au seuil d'alerte ou en dessous), rangées par dernier fournisseur connu
         $shortages = $this->purchaseService->getShortageProductsGroupedBySupplier()
-            ->filter(fn ($group) => !empty($group['supplier_id']))
+            ->filter(fn ($group) => ! empty($group['supplier_id']))
             ->mapWithKeys(fn ($group) => [$group['supplier_id'] => collect($group['products'])->map(fn ($product) => [
                 'id' => $product->id,
                 'quantity' => $product->suggested_quantity,

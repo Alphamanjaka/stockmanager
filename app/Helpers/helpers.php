@@ -8,7 +8,7 @@ if (! function_exists('settings')) {
      *
      * @param  string|null  $key
      * @param  mixed  $default
-     * @return mixed|\App\Core\Services\SettingService
+     * @return mixed|SettingService
      */
     function settings($key = null, $default = null)
     {

@@ -26,7 +26,7 @@ class CustomerService extends BaseService
             ->map(fn (Customer $customer) => [
                 'type' => 'customer',
                 'id' => $customer->id,
-                'name' => $customer->name . ($customer->phone ? " ({$customer->phone})" : ''),
+                'name' => $customer->name.($customer->phone ? " ({$customer->phone})" : ''),
                 'url' => route('admin.customers.show', $customer->id),
             ]);
     }

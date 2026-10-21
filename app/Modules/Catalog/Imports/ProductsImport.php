@@ -32,12 +32,17 @@ use Maatwebsite\Excel\Row;
 class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
 {
     private const COLOR_COLUMN = 'color';
+
     private const OPTION_PREFIX = 'option_';
 
     private int $created = 0;
+
     private int $updated = 0;
+
     private array $products = [];
+
     private array $categories = [];
+
     private array $brands = [];
 
     public function __construct(
@@ -52,7 +57,7 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
         try {
             $this->importRow($row->toArray());
         } catch (\Throwable $e) {
-            throw new \Exception("Erreur ligne {$row->getIndex()} : " . $e->getMessage());
+            throw new \Exception("Erreur ligne {$row->getIndex()} : ".$e->getMessage());
         }
     }
 
@@ -62,7 +67,7 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
         $sku = trim((string) ($row['sku'] ?? ''));
         $variant = $sku !== '' ? ProductColor::where('sku', $sku)->first() : null;
 
-        if (!$variant) {
+        if (! $variant) {
             $product = $this->product($row);
             $combination = $this->productColorService->extendOptions($product, $this->optionValues($row));
             $combination = VariantOptions::combination($product->fresh()->options, $combination);
@@ -71,7 +76,7 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
                 ->where('signature', VariantOptions::signature($combination, $brandId))
                 ->first();
 
-            if (!$variant) {
+            if (! $variant) {
                 $this->productColorService->createVariant($product, [
                     'values' => $combination,
                     'brand_id' => $brandId,

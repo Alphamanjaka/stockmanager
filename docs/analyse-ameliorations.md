@@ -30,7 +30,7 @@ suivie d'un plan d'amélioration priorisé et de nouvelles idées.
 - **Caisse** : utilisable au clavier et au scanner, panier gardé sur le poste, ticket 80 mm imprimé
   automatiquement. Voir [flux-vente.md](flux-vente.md).
 - **Exports** : chaque liste s'exporte en PDF et en Excel avec les mêmes filtres que la page.
-- **Tests** : 52 fichiers de tests, lancés sur SQLite et PostgreSQL 16 en intégration continue.
+- **Tests** : 52 fichiers de tests, lancés sur PostgreSQL 16 en intégration continue.
 
 Les fondations sont saines. Le problème est ailleurs : plusieurs règles métier sont incomplètes, et c'est là que
 se trouve la valeur.

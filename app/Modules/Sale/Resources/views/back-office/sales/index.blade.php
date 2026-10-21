@@ -14,7 +14,8 @@
 @section('content')
     <div class="ui-stack">
         <div class="ui-stats">
-            <x-ui.stat label="Business volume" :value="money($total_revenue)" icon="bi-graph-up-arrow" tone="success" />
+            <x-ui.stat label="Business volume" :value="money($total_revenue)" icon="bi-graph-up-arrow" tone="success"
+                :hint="$total_refunds > 0 ? money($total_refunds) . ' refunded (credit notes deducted)' : null" />
             <x-ui.stat label="Total discounts" :value="money($total_discount)" icon="bi-percent" tone="danger" />
             <x-ui.stat label="Gross margin" :value="money($margin['margin'])" icon="bi-cash-coin" tone="primary"
                 :hint="($margin['rate'] === null ? 'No sale with a known cost' : $margin['rate'] . ' % of sales')
@@ -68,13 +69,25 @@
                         @forelse ($sales as $sale)
                             <tr>
                                 <x-ui.bulk-check :value="$sale->id" :label="$sale->reference" />
-                                <td><a href="{{ route('admin.sales.show', $sale->id) }}" class="link-plain">{{ $sale->reference }}</a></td>
+                                <td>
+                                    <a href="{{ route('admin.sales.show', $sale->id) }}" class="link-plain">{{ $sale->reference }}</a>
+                                    @if ($sale->returnStatus())
+                                        <div><x-ui.badge :tone="$sale->returnStatus() === 'returned' ? 'danger' : 'warning'">
+                                            {{ $sale->returnStatus() === 'returned' ? 'Cancelled' : 'Partially returned' }}
+                                        </x-ui.badge></div>
+                                    @endif
+                                </td>
                                 <td class="text-nowrap">{{ $sale->created_at->format('d/m/Y H:i') }}</td>
                                 <td>{{ $sale->customer->name ?? '—' }}</td>
                                 <td>{{ $sale->user->name ?? '—' }}</td>
                                 <td class="text-end">{{ money($sale->total_brut) }}</td>
                                 <td class="text-end text-danger">{{ $sale->discount > 0 ? '-' . money($sale->discount) : '—' }}</td>
-                                <td class="text-end fw-semibold">{{ money($sale->total_net) }}</td>
+                                <td class="text-end fw-semibold">
+                                    {{ money($sale->total_net) }}
+                                    @if ($sale->refundedTotal() > 0)
+                                        <div class="ui-cell-meta text-danger">-{{ money($sale->refundedTotal()) }} refunded</div>
+                                    @endif
+                                </td>
                                 <td class="text-end text-nowrap">
                                     @if ($sale->grossMargin() === null)
                                         <span class="text-muted" title="The cost of an item is not known">—</span>

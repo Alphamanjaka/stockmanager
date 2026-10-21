@@ -155,7 +155,7 @@ class PurchaseOrderFormTest extends TestCase
     {
         // Coût proposé par défaut : le prix d'achat de la variante, jamais son prix de vente
         $this->get(route('admin.purchases.create'))->assertOk()
-            ->assertSee('"id":' . $this->wax->id . ',', false)
+            ->assertSee('"id":'.$this->wax->id.',', false)
             ->assertSee('"cost":700', false)
             ->assertDontSee('"cost":1400', false);
 
@@ -181,6 +181,6 @@ class PurchaseOrderFormTest extends TestCase
         PurchaseItem::create(['purchase_id' => $purchase->id, 'product_color_id' => $this->wax->id, 'quantity' => 1, 'unit_price' => 690, 'subtotal' => 690]);
 
         $this->get(route('admin.purchases.create'))->assertOk()
-            ->assertSee('"shortages":{"' . $this->supplier->id . '":[{"id":' . $this->wax->id, false);
+            ->assertSee('"shortages":{"'.$this->supplier->id.'":[{"id":'.$this->wax->id, false);
     }
 }

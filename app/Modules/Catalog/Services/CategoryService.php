@@ -2,12 +2,13 @@
 
 namespace App\Modules\Catalog\Services;
 
+use App\Core\Services\BaseService;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use App\Core\Services\BaseService;
+use Illuminate\Support\Facades\Log;
 
 class CategoryService extends BaseService
 {
@@ -17,6 +18,7 @@ class CategoryService extends BaseService
     {
         parent::__construct($category); // Appel du constructeur parent avec une instance de Category
     }
+
     public function getAvailableChildren($parentId = null)
     {
         return Category::active()->where('parent_id', $parentId)->pluck('name', 'id');
@@ -30,8 +32,10 @@ class CategoryService extends BaseService
         // Logic to create a category
         $category = Category::create($data);
         $this->syncChildren($category->id, $data['children'] ?? []);
+
         return $category;
     }
+
     public function getAllCategory($filters = [], $isPaginated = true)
     {
         // On charge le parent et le nombre de produits associés pour éviter les requêtes N+1
@@ -40,7 +44,7 @@ class CategoryService extends BaseService
         $query->withStatus($filters['status'] ?? null);
 
         // 2. On applique les filtres UNIQUEMENT s'ils sont présents
-        if (!empty($filters)) {
+        if (! empty($filters)) {
             $query = $this->applyFilters($query, $filters);
         }
         if ($isPaginated) {
@@ -56,7 +60,7 @@ class CategoryService extends BaseService
      * Récupère les catégories sous forme de liste plate (ID => Nom)
      * Idéal pour les selects de formulaires.
      */
-    public function getCategoriesList(): \Illuminate\Support\Collection
+    public function getCategoriesList(): Collection
     {
         return Category::active()->orderBy('name')->pluck('name', 'id');
     }
@@ -112,8 +116,10 @@ class CategoryService extends BaseService
             $category = Category::findOrFail($id);
             $category->update($data);
             $this->syncChildren($category->id, $data['children'] ?? []);
+
             return $category;
         });
+
         return $category;
     }
 
@@ -123,12 +129,14 @@ class CategoryService extends BaseService
 
         // Check if category has child categories
         if ($category->children()->count() > 0) {
-            throw new \Exception("Cannot delete category with child categories.");
+            throw new \Exception('Cannot delete category with child categories.');
         }
 
         $category->delete();
+
         return true;
     }
+
     public function applyfilters($query, $filters)
     {
         $sortableColumns = ['name', 'parent_id', 'created_at'];
@@ -143,7 +151,7 @@ class CategoryService extends BaseService
         $query = $query->where(function ($q) use ($filters) {
             if (isset($filters['search'])) {
                 $searchTerm = mb_strtolower($filters['search']);
-                $q->whereLike('name', '%' . $searchTerm . '%');
+                $q->whereLike('name', '%'.$searchTerm.'%');
             }
         });
 
@@ -162,11 +170,11 @@ class CategoryService extends BaseService
         // 1. Détacher les anciens enfants (ils deviennent orphelins ou racines)
         Category::where('parent_id', $parentId)->update(['parent_id' => null]);
         Log::info("Detached children for category $parentId");
-        Log::info("Children IDs: " . implode(', ', $childrenIds));
+        Log::info('Children IDs: '.implode(', ', $childrenIds));
 
         // 2. Attacher les nouveaux enfants sélectionnés
-        if (!empty($childrenIds)) {
-            Log::info("Syncing children for category $parentId: " . implode(', ', $childrenIds));
+        if (! empty($childrenIds)) {
+            Log::info("Syncing children for category $parentId: ".implode(', ', $childrenIds));
             Category::whereIn('id', $childrenIds)->update(['parent_id' => $parentId]);
         }
     }

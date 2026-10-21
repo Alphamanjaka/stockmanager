@@ -3,12 +3,12 @@
 namespace App\Modules\Catalog\Imports;
 
 use App\Modules\Catalog\Services\ColorService;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class ColorImport implements ToModel, WithHeadingRow, WithValidation, WithMapping
+class ColorImport implements ToModel, WithHeadingRow, WithMapping, WithValidation
 {
     public function __construct(private ColorService $colorService) {}
 
@@ -22,7 +22,7 @@ class ColorImport implements ToModel, WithHeadingRow, WithValidation, WithMappin
         $row['name'] = isset($row['name']) ? mb_strtolower(trim((string) $row['name'])) : null;
 
         // Définir une valeur par défaut pour 'code' si elle est manquante ou vide
-        if (!isset($row['code']) || empty($row['code'])) {
+        if (! isset($row['code']) || empty($row['code'])) {
             $row['code'] = $row['name']; // Valeur par défaut (par exemple, blanc)
         } else {
             $row['code'] = trim((string) $row['code']); // Nettoyer aussi le code s'il est présent
@@ -41,6 +41,7 @@ class ColorImport implements ToModel, WithHeadingRow, WithValidation, WithMappin
 
         return $this->colorService->create($row);
     }
+
     public function rules(): array
     {
         return [
@@ -48,6 +49,7 @@ class ColorImport implements ToModel, WithHeadingRow, WithValidation, WithMappin
             'code' => 'nullable|string|max:255',
         ];
     }
+
     public function customValidationMessages()
     {
         return [

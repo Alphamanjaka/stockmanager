@@ -2,19 +2,19 @@
 
 namespace App\Modules\Catalog\Http\Controllers;
 
+use App\Core\Http\Controllers\Concerns\ArchivesRecords;
+use App\Http\Controllers\Controller;
 use App\Modules\Catalog\Http\Requests\StoreProductRequest;
 use App\Modules\Catalog\Models\Brand;
+use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Services\CategoryService;
 use App\Modules\Catalog\Services\ColorService;
 use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Catalog\Services\ProductService;
 use App\Modules\Catalog\Support\Pricing;
-use App\Modules\Catalog\Models\Product;
 use App\Modules\Sale\Services\SaleService;
-use App\Core\Http\Controllers\Concerns\ArchivesRecords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 
 class ProductColorController extends Controller
 {
@@ -139,7 +139,7 @@ class ProductColorController extends Controller
                 'name' => $product->name,
                 'description' => $product->description,
                 'category_name' => $product->category->name,
-            ]
+            ],
         ]);
     }
 
@@ -152,9 +152,10 @@ class ProductColorController extends Controller
 
         try {
             $this->productColorService->createVariant($this->productService->getById($productId), $validated);
+
             return back()->with('success', 'Variante ajoutée avec succès.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Erreur lors de l\'ajout de la variante : ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de l\'ajout de la variante : '.$e->getMessage());
         }
     }
 
@@ -167,9 +168,10 @@ class ProductColorController extends Controller
 
         try {
             $this->productColorService->updateVariant($variantId, $validated);
+
             return back()->with('success', 'Variante mise à jour avec succès.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Erreur lors de la mise à jour de la variante : ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la mise à jour de la variante : '.$e->getMessage());
         }
     }
 
@@ -193,6 +195,7 @@ class ProductColorController extends Controller
                 $request->input('options', []),
                 $request->input('specs', [])
             );
+
             return back()->with('success', 'Options et spécifications mises à jour.');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -219,9 +222,10 @@ class ProductColorController extends Controller
     {
         try {
             $this->productColorService->deleteProductColor($variantId);
+
             return back()->with('success', 'Variante supprimée avec succès.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Erreur lors de la suppression de la variante : ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la suppression de la variante : '.$e->getMessage());
         }
     }
 }

@@ -2,11 +2,11 @@
 
 namespace App\Modules\Sale\Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Modules\Sale\Models\Sale;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Sale\Models\Sale>
+ * @extends Factory<Sale>
  */
 class SaleFactory extends Factory
 {
@@ -20,7 +20,7 @@ class SaleFactory extends Factory
     public function definition(): array
     {
         return [
-            'reference' => 'SALE-' . $this->faker->unique()->numerify('########'),
+            'reference' => 'SALE-'.$this->faker->unique()->numerify('########'),
             'total_brut' => 0, // Sera calculé dynamiquement dans le Seeder
             'discount' => 0,
             'total_net' => 0,

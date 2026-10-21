@@ -2,16 +2,16 @@
 
 namespace App\Modules\Catalog\Models;
 
+use App\Core\Models\Concerns\Archivable;
+use App\Modules\Catalog\Database\Factories\ColorFactory;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Attributes\UseFactory;
-use App\Modules\Catalog\Database\Factories\ColorFactory;
-use App\Core\Models\Concerns\Archivable;
 
 #[UseFactory(ColorFactory::class)]
 class Color extends Model
 {
-    use HasFactory, Archivable;
+    use Archivable, HasFactory;
 
     protected $fillable = ['name', 'code'];
 
@@ -19,7 +19,6 @@ class Color extends Model
     {
         return $query->whereLike('name', "%{$search}%");
     }
-
 
     public function products()
     {

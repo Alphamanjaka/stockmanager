@@ -62,7 +62,7 @@ class ProductsExport extends ListExport
 
         return [
             'Variants' => number_format($rows->count()),
-            'Low stock' => number_format($low) . ' variant(s)',
+            'Low stock' => number_format($low).' variant(s)',
         ];
     }
 }

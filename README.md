@@ -80,7 +80,7 @@ Pour intégrer une nouvelle entité (ex: `Customer`) au système de recherche :
 
 - **Point de Vente (POS)** : Interface de saisie rapide.
 - **Contrôle de Stock en Temps Réel** : Impossible de valider une vente si la quantité est insuffisante.
-- **Calculs Automatiques** : Gestion des remises, totaux bruts/nets et génération de références uniques (`SALE-XXXX`).
+- **Calculs Automatiques** : Gestion des remises, totaux bruts/nets et numéros de facture à la suite par année (`FAC-2026-000123`).
 
 ### 2. Chaîne d'Approvisionnement (Achats)
 
@@ -245,11 +245,15 @@ Docker de production (Windows, à lancer depuis n'importe quel dossier).
 
 ## CI/CD (Intégration Continue)
 
-Le projet intègre un pipeline GitHub Actions complet (`.github/workflows/ci.yml`) :
+Le pipeline GitHub Actions (`.github/workflows/ci.yml`) tourne sur chaque push sur `main` et sur chaque PR,
+y compris celles d'une pile (basées sur la branche d'une autre PR). Trois jobs en parallèle :
 
-1.  **Linting** : Vérification automatique du style de code (Laravel Pint).
-2.  **Testing** : Exécution des tests unitaires et fonctionnels (Pest/PHPUnit).
-3.  **Build & Push** : Construction de l'image Docker de production et envoi sur le registre (GHCR) uniquement si les tests passent.
+1.  **Style** : Laravel Pint (`vendor/bin/pint --test`). En local, `vendor/bin/pint` corrige les fichiers.
+2.  **Assets** : construction Vite (`npm ci`, `npm run build`) : les tests tournent sans les assets (`withoutVite`),
+    ce job attrape les erreurs de JavaScript et de CSS.
+3.  **Tests** : PHPUnit sur PostgreSQL 16, le moteur de production.
+
+Un nouveau push sur une PR annule sa vérification en cours.
 
 ---
 

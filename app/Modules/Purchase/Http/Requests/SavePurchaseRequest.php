@@ -31,7 +31,7 @@ class SavePurchaseRequest extends FormRequest
             'supplier_reference' => 'nullable|string|max:100',
             'notes' => 'nullable|string|max:2000',
             'discount' => 'nullable|numeric|min:0',
-            'products' => 'required|array|min:1|max:' . self::MAX_LINES,
+            'products' => 'required|array|min:1|max:'.self::MAX_LINES,
             'products.*.product_color_id' => 'required|distinct|exists:product_colors,id',
             'products.*.quantity' => 'required|integer|min:1',
             'products.*.unit_price' => 'required|numeric|min:0',

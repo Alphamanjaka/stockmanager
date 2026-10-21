@@ -2,6 +2,7 @@
 
 namespace App\Modules\Catalog\Http\Requests;
 
+use App\Modules\Catalog\Models\Color;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,14 +16,14 @@ class StoreColorRequest extends FormRequest
     public function rules(): array
     {
         $color = $this->route('color') ?? $this->route('id');
-        $colorId = $color instanceof \App\Modules\Catalog\Models\Color ? $color->id : $color;
+        $colorId = $color instanceof Color ? $color->id : $color;
 
         return [
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('colors', 'name')->ignore($colorId)
+                Rule::unique('colors', 'name')->ignore($colorId),
             ],
             'code' => 'nullable|string|max:50',
         ];
@@ -32,7 +33,7 @@ class StoreColorRequest extends FormRequest
     {
         return [
             'name.required' => 'Le nom de la couleur est obligatoire.',
-            'name.unique'   => 'Cette couleur existe déjà.',
+            'name.unique' => 'Cette couleur existe déjà.',
         ];
     }
 }

@@ -3,10 +3,10 @@
 namespace App\Modules\Stock\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Modules\Stock\Http\Resources\StockMovementResource;
 use App\Modules\Stock\Models\StockMovement;
 use App\Modules\Stock\Services\StockManagementService;
+use Illuminate\Http\Request;
 
 /**
  * Données de stock affichées sur la fiche produit (AJAX).
@@ -20,7 +20,7 @@ class StockMovementControllerAPI extends Controller
     {
         $variantId = $request->query('variant_id');
 
-        if (!empty($variantId)) {
+        if (! empty($variantId)) {
             // movements for a specific variant (product_color_id)
             $movements = StockMovement::with(['productColor.color', 'productColor.product', 'productColor.brand', 'user'])
                 ->where('product_color_id', (int) $variantId)
@@ -37,9 +37,10 @@ class StockMovementControllerAPI extends Controller
     public function getStockEvolution(int $productId)
     {
         $evolution = $this->stockManagementService->getStockEvolutionForProduct($productId);
+
         return response()->json([
             'success' => true,
-            'data' => $evolution
+            'data' => $evolution,
         ]);
     }
 }
