@@ -30,7 +30,7 @@ Ce projet se distingue par une approche industrielle de la gestion de stock :
 ### 🚨 Gestion Proactive des Ruptures
 
 - **Système d'Alerte Intelligent** : Surveillance automatisée des niveaux de stock.
-- **Monitoring de Valeur** : La commande `stock:monitor-drop` analyse quotidiennement la valorisation globale du stock et alerte les administrateurs par e-mail en cas de chute suspecte (vol, perte massive).
+- **Surveillance des pertes** : La commande `stock:monitor-drop` additionne chaque jour les pertes non expliquées (corrections en sortie, écarts d'inventaire négatifs) et alerte les administrateurs par e-mail quand elles dépassent un seuil (vol, casse, erreur de saisie). Les ventes ne déclenchent pas d'alerte.
 - **Seuils Critiques** : Configuration par produit d'un seuil d'alerte déclenchant des notifications de réapprovisionnement.
 
 ### 🚀 Module d'Importation Haute Performance
@@ -179,10 +179,11 @@ Le système repose sur le scheduler Laravel pour les tâches critiques :
 
 - **Monitoring Stock** (`stock:monitor-drop`) :
     ```bash
-    # Exécuté toutes les heures ou quotidiennement
-    php artisan stock:monitor-drop --threshold=15
+    # Planifié tous les jours à 18:00, sur les dernières 24 heures
+    php artisan stock:monitor-drop --threshold=1 --hours=24
     ```
-    Vérifie si la valeur du stock a chuté de plus de 15% (paramétrable) et alerte le support.
+    Alerte les administrateurs si les pertes non expliquées de la période atteignent 1 % (paramétrable) de la
+    valeur du stock, valorisée au coût d'achat (au prix de vente quand le coût n'est pas renseigné).
 
 Pour activer les tâches planifiées en production, une seule entrée Cron est nécessaire :
 

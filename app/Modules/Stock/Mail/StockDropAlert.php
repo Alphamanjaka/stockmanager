@@ -6,24 +6,26 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Alerte envoyée aux administrateurs quand les pertes non expliquées dépassent le seuil (stock:monitor-drop).
+ */
 class StockDropAlert extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $currentValue;
-    public $previousValue;
-    public $dropPercentage;
-
-    public function __construct(float $currentValue, float $previousValue, float $dropPercentage)
-    {
-        $this->currentValue = $currentValue;
-        $this->previousValue = $previousValue;
-        $this->dropPercentage = $dropPercentage;
-    }
+    /**
+     * @param  list<array{date: \DateTimeInterface, label: string, sku: ?string, quantity: int, reason: string, value: float}>  $lines
+     */
+    public function __construct(
+        public array $lines,
+        public float $lossValue,
+        public float $lossPercentage,
+        public int $hours,
+    ) {}
 
     public function build()
     {
-        return $this->subject('⚠️ Alerte Critique : Chute brutale de la valeur du stock')
+        return $this->subject('⚠️ Alerte : pertes de stock non expliquées')
             ->view('stock::emails.stock_drop_alert');
     }
 }
