@@ -1,7 +1,7 @@
 @extends('layouts.app-back-office')
 
 @section('title', 'Restock shortages')
-@section('subtitle', 'Suggested orders for variants at or below their alert threshold, grouped by last supplier.')
+@section('subtitle', 'Suggested orders for variants at or below their alert threshold once the quantities already ordered are counted, grouped by last supplier.')
 
 @section('content')
     @if ($groupedProducts->isEmpty())
@@ -32,6 +32,7 @@
                                         <th style="width: 48px"><span class="visually-hidden">Order</span></th>
                                         <th>Product</th>
                                         <th class="text-end">Current stock</th>
+                                        <th class="text-end">On order</th>
                                         <th class="text-end">Alert threshold</th>
                                         <th class="text-end">Unit cost</th>
                                         <th style="width: 150px">Quantity to order</th>
@@ -53,6 +54,14 @@
                                                 <div class="ui-cell-meta">{{ $product->sku }}</div>
                                             </td>
                                             <td class="text-end"><x-ui.badge tone="danger" dot>{{ $product->stock }}</x-ui.badge></td>
+                                            <td class="text-end">
+                                                @if ($product->ordered_quantity > 0)
+                                                    {{ $product->ordered_quantity }}
+                                                    <div class="ui-cell-meta">Already ordered, not received</div>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
+                                            </td>
                                             <td class="text-end text-muted">{{ $product->alert_stock }}</td>
                                             <td class="text-end">
                                                 @if ($product->last_unit_price !== null)

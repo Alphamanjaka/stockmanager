@@ -10,6 +10,7 @@ use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Contact\Models\Supplier;
 use App\Modules\Purchase\Models\Purchase;
 use App\Modules\Purchase\Models\PurchaseItem;
+use App\Modules\Purchase\Services\PurchaseService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -77,6 +78,80 @@ class ShortageRestockTest extends TestCase
             ->assertSee('Tissus Mada')
             ->assertSee('5,500.00')
             ->assertSee('Last purchase');
+    }
+
+    private function purchase(ProductColor $variant, string $state, int $quantity, ?Supplier $supplier = null, float $unitPrice = 5000): Purchase
+    {
+        $purchase = Purchase::factory()->create(['supplier_id' => ($supplier ?? Supplier::factory()->create())->id, 'state' => $state]);
+        PurchaseItem::create([
+            'purchase_id' => $purchase->id, 'product_color_id' => $variant->id,
+            'quantity' => $quantity, 'unit_price' => $unitPrice, 'subtotal' => $quantity * $unitPrice,
+        ]);
+
+        return $purchase;
+    }
+
+    /** Ligne de rupture calculée pour une variante, ou null si elle n'est pas proposée. */
+    private function suggestion(ProductColor $variant): ?object
+    {
+        return app(PurchaseService::class)->getShortageProductsGroupedBySupplier()
+            ->flatMap(fn ($group) => $group['products'])
+            ->firstWhere('id', $variant->id);
+    }
+
+    /** @test */
+    public function the_quantity_already_ordered_is_deducted_from_the_suggestion()
+    {
+        $variant = $this->shortage('savon repardine', 6000);
+        $this->purchase($variant, 'Ordered', 3);
+
+        // Seuil 5 : remonter à 7,5, moins le stock (1) et la commande en cours (3)
+        $suggestion = $this->suggestion($variant);
+        $this->assertSame(3, $suggestion->ordered_quantity);
+        $this->assertSame(4, $suggestion->suggested_quantity);
+
+        $this->get(route('admin.purchases.createFromShortage'))
+            ->assertOk()
+            ->assertSee('On order')
+            ->assertSee('Already ordered, not received');
+    }
+
+    /** @test */
+    public function a_variant_covered_by_its_orders_is_not_suggested_again()
+    {
+        $variant = $this->shortage('savon repardine', 6000);
+        $this->purchase($variant, 'Ordered', 2);
+        $this->purchase($variant, 'Ordered', 8);
+
+        $this->assertNull($this->suggestion($variant));
+        $this->get(route('admin.purchases.createFromShortage'))
+            ->assertOk()
+            ->assertSee('No product requires restocking')
+            ->assertDontSee('savon repardine');
+    }
+
+    /** @test */
+    public function drafts_and_received_purchases_are_not_counted_as_on_order()
+    {
+        $variant = $this->shortage('savon repardine', 6000);
+        $this->purchase($variant, 'Draft', 10);
+        $this->purchase($variant, 'Received', 10);
+
+        $suggestion = $this->suggestion($variant);
+        $this->assertSame(0, $suggestion->ordered_quantity);
+        $this->assertSame(7, $suggestion->suggested_quantity);
+    }
+
+    /** @test */
+    public function the_last_supplier_is_taken_from_orders_not_drafts()
+    {
+        $variant = $this->shortage('crème bravia', 6000);
+        $this->purchase($variant, 'Received', 1, Supplier::factory()->create(['name' => 'Tissus Mada']), 5500);
+        $this->purchase($variant, 'Draft', 4, Supplier::factory()->create(['name' => 'Brouillon SARL']), 4000);
+
+        $suggestion = $this->suggestion($variant);
+        $this->assertSame('Tissus Mada', $suggestion->last_supplier_name);
+        $this->assertEquals(5500, $suggestion->last_unit_price);
     }
 
     /** @test */

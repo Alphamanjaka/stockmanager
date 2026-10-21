@@ -325,19 +325,15 @@ class PurchaseService
 
     /**
      * Regroupe les produits en rupture de stock par leur dernier fournisseur connu.
+     * Une variante est en rupture quand son stock, plus ce qui est déjà commandé (achats au statut
+     * « Commandé »), ne dépasse pas son seuil d'alerte : une commande en cours n'est pas reproposée.
      *
      * @return \Illuminate\Support\Collection
      */
     public function getShortageProductsGroupedBySupplier()
     {
-        // --- ANCIEN CODE COMMENTÉ ---
-        /*
-        $productColorService = app(ProductColorService::class);
-        $shortageProducts = $productColorService->getShortageProducts();
-        ... (logique Query Builder)
-        */
-
-        // --- NOUVELLE LOGIQUE SQL BRUT ---
+        // oq : quantités commandées et pas encore reçues.
+        // lp : dernière ligne d'un achat commandé ou reçu chez un fournisseur (un brouillon n'engage personne).
         $sql = "
             SELECT
                 pc.id, pc.stock, pc.alert_stock, pc.price, pc.price_purchase,
@@ -345,6 +341,7 @@ class PurchaseService
                 p.options as product_options,
                 pc.option_values, pc.sku,
                 b.name as brand_name,
+                COALESCE(oq.ordered_quantity, 0) as ordered_quantity,
                 lp.unit_price as last_unit_price,
                 lp.supplier_id as last_supplier_id,
                 lp.supplier_name as last_supplier_name
@@ -352,17 +349,29 @@ class PurchaseService
             INNER JOIN products p ON pc.product_id = p.id
             LEFT JOIN brands b ON pc.brand_id = b.id
             LEFT JOIN (
+                SELECT pi.product_color_id, SUM(pi.quantity) as ordered_quantity
+                FROM purchase_items pi
+                JOIN purchases pur ON pi.purchase_id = pur.id
+                WHERE pur.state = 'Ordered'
+                GROUP BY pi.product_color_id
+            ) oq ON pc.id = oq.product_color_id
+            LEFT JOIN (
                 SELECT pi.product_color_id, pi.unit_price, s.id as supplier_id, s.name as supplier_name
                 FROM purchase_items pi
                 JOIN purchases pur ON pi.purchase_id = pur.id
                 JOIN suppliers s ON pur.supplier_id = s.id
-                WHERE pi.created_at = (
-                    SELECT MAX(created_at)
-                    FROM purchase_items
-                    WHERE product_color_id = pi.product_color_id
+                WHERE pi.id = (
+                    SELECT last_pi.id
+                    FROM purchase_items last_pi
+                    JOIN purchases last_pur ON last_pi.purchase_id = last_pur.id
+                    WHERE last_pi.product_color_id = pi.product_color_id
+                      AND last_pur.supplier_id IS NOT NULL
+                      AND last_pur.state <> 'Draft'
+                    ORDER BY last_pi.created_at DESC, last_pi.id DESC
+                    LIMIT 1
                 )
             ) lp ON pc.id = lp.product_color_id
-            WHERE pc.stock <= pc.alert_stock AND pc.alert_stock > 0
+            WHERE pc.stock + COALESCE(oq.ordered_quantity, 0) <= pc.alert_stock AND pc.alert_stock > 0
               AND p.archived_at IS NULL
         ";
 
@@ -396,12 +405,11 @@ class PurchaseService
                 $product->cost_source = $cost > 0 ? 'catalog' : 'unknown';
             }
 
-            // Calcul de la suggestion de quantité (Indépendant du fournisseur)
-            $deficit = $product->alert_stock - $product->stock;
-            $product->suggested_quantity = (int) ceil($deficit + ($product->alert_stock * 0.5));
-            if ($product->suggested_quantity <= 0) {
-                $product->suggested_quantity = $product->alert_stock > 0 ? $product->alert_stock : 10;
-            }
+            // Quantité suggérée (indépendante du fournisseur) : remonter à 1,5 × le seuil d'alerte,
+            // moins ce qui est déjà commandé
+            $product->ordered_quantity = (int) $product->ordered_quantity;
+            $missing = $product->alert_stock * 1.5 - $product->stock - $product->ordered_quantity;
+            $product->suggested_quantity = max(1, (int) ceil($missing));
 
             return $product;
         });
