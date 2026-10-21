@@ -2,19 +2,19 @@
 
 namespace App\Modules\Stock\Notifications;
 
+use App\Modules\Catalog\Models\ProductColor;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
+/**
+ * Cloche du back office : une variante vient de passer sous son seuil d'alerte (StockService).
+ * Marquée comme lue quand on l'ouvre, ou d'elle-même quand le stock repasse au-dessus du seuil.
+ */
 class LowStockAlert extends Notification
 {
     use Queueable;
-    public $product;
 
-    public function __construct($product)
-    {
-        $this->product = $product;
-    }
+    public function __construct(public ProductColor $variant) {}
 
     /**
      * Get the notification's delivery channels.
@@ -27,28 +27,21 @@ class LowStockAlert extends Notification
     }
 
     /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
-    }
-
-    /**
      * Get the array representation of the notification.
      *
      * @return array<string, mixed>
      */
-    public function toArray($notifiable)
+    public function toArray(object $notifiable): array
     {
         return [
-            'product_id' => $this->product->id,
-            'product_name' => $this->product->name,
-            'current_stock' => $this->product->quantity_stock,
-            'message' => "Le stock du produit {$this->product->name} est critique !"
+            'product_color_id' => $this->variant->id,
+            'product_id' => $this->variant->product_id,
+            'label' => $this->variant->label,
+            'sku' => $this->variant->sku,
+            'stock' => (int) $this->variant->stock,
+            'alert_stock' => (int) $this->variant->alert_stock,
+            // Lien relatif : la fiche produit, quel que soit le nom d'hôte utilisé
+            'url' => route('admin.products.show', $this->variant->product_id, false),
         ];
     }
 }

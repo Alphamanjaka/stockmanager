@@ -5,12 +5,17 @@
 use App\Core\Http\Controllers\DashboardController;
 use App\Core\Http\Controllers\ExportController;
 use App\Core\Http\Controllers\ImportController;
+use App\Core\Http\Controllers\NotificationController;
 use App\Core\Http\Controllers\SettingController;
 use App\Core\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/dashboard', [DashboardController::class, 'backOffice'])->name('dashboard');
 Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartDataApi'])->name('dashboard.chart-data');
+
+// Cloche : ouvrir une notification (marquée comme lue) ou tout marquer comme lu
+Route::get('/notifications/{notification}', [NotificationController::class, 'read'])->whereUuid('notification')->name('notifications.read');
+Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
 // Paramètres
 Route::resource('settings', SettingController::class)->only(['index', 'update']);

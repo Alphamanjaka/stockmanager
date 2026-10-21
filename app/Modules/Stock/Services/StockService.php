@@ -2,10 +2,14 @@
 
 namespace App\Modules\Stock\Services;
 
+use App\Models\User;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Stock\Models\StockMovement;
+use App\Modules\Stock\Notifications\LowStockAlert;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Seul point d'écriture du stock : chaque variation crée un mouvement historisé.
@@ -131,8 +135,41 @@ class StockService
      */
     private function writeStock(ProductColor $variant, int $stock): void
     {
+        $before = (int) $variant->stock;
+
         ProductColor::whereKey($variant->id)->update(['stock' => $stock]);
         $variant->setRawAttributes(['stock' => $stock] + $variant->getAttributes(), true);
+
+        $this->notifyAlertThreshold($variant, $before, $stock);
+    }
+
+    /**
+     * Cloche du back office. Passage sous le seuil d'alerte (stock ≤ seuil) : notification aux administrateurs.
+     * Retour au-dessus : les notifications non lues de la variante sont marquées comme lues.
+     * Comme sur la page des ruptures, un seuil à 0 ou un produit archivé ne donne pas d'alerte.
+     * Les notifications sont écrites dans la transaction du mouvement : annulées avec lui.
+     */
+    private function notifyAlertThreshold(ProductColor $variant, int $before, int $after): void
+    {
+        $alert = (int) $variant->alert_stock;
+        if ($alert <= 0) {
+            return;
+        }
+
+        if ($before > $alert && $after <= $alert) {
+            $variant->loadMissing(['product', 'color', 'brand']);
+            if ($variant->product->isArchived()) {
+                return;
+            }
+
+            Notification::send(User::where('role', 'back_office')->active()->get(), new LowStockAlert($variant));
+        } elseif ($before <= $alert && $after > $alert) {
+            $ids = DatabaseNotification::where('type', LowStockAlert::class)->whereNull('read_at')->get()
+                ->filter(fn (DatabaseNotification $notification) => ($notification->data['product_color_id'] ?? null) === $variant->id)
+                ->modelKeys();
+
+            DatabaseNotification::whereKey($ids)->update(['read_at' => now()]);
+        }
     }
 
     public function getAllStockMovements(array $filters = [], int $perPage = 15)
