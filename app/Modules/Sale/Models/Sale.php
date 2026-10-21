@@ -26,6 +26,32 @@ class Sale extends Model
         return $this->amount_received === null ? 0.0 : max(0, round($this->amount_received - $this->total_net, 2));
     }
 
+    /** Coût d'achat des articles vendus (coûts figés à la vente), ou null si le coût d'une ligne n'est pas connu. */
+    public function costTotal(): ?float
+    {
+        if ($this->items->contains(fn (SaleItem $item) => $item->unit_cost === null)) {
+            return null;
+        }
+
+        return round((float) $this->items->sum(fn (SaleItem $item) => $item->quantity * $item->unit_cost), 2);
+    }
+
+    /** Marge brute : net encaissé (remise déduite) moins le coût des articles ; null si un coût manque. */
+    public function grossMargin(): ?float
+    {
+        $cost = $this->costTotal();
+
+        return $cost === null ? null : round((float) $this->total_net - $cost, 2);
+    }
+
+    /** Taux de marge brute, en % du net encaissé. */
+    public function marginRate(): ?float
+    {
+        $margin = $this->grossMargin();
+
+        return $margin === null || (float) $this->total_net <= 0 ? null : round($margin / (float) $this->total_net * 100, 1);
+    }
+
     public function items()
     {
         return $this->hasMany(SaleItem::class);

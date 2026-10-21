@@ -26,7 +26,7 @@
         @endif
         <div class="ui-stats">
             <x-ui.stat label="Products" :value="$category->products_count" icon="bi-box" tone="primary" />
-            <x-ui.stat label="Estimated stock value" :value="money($stockValue)" icon="bi-cash-stack" tone="success" />
+            <x-ui.stat label="Stock value" :value="money($stockValue)" icon="bi-cash-stack" tone="success" hint="At purchase cost" />
             <x-ui.stat label="Parent category" :value="$category->parent->name ?? 'Root'" icon="bi-diagram-3" tone="neutral"
                 :href="$category->parent ? route('admin.categories.show', $category->parent->id) : null"
                 :hint="'Created on ' . $category->created_at->format('d/m/Y')" />

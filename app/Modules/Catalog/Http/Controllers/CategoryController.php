@@ -78,10 +78,8 @@ class CategoryController extends Controller
         $category = $this->categoryService->getCategoryById($id);
         $products = $this->categoryService->getProductsByCategory($id);
 
-        // Calcul de la valeur du stock pour cette catégorie
-        $stockValue = $products->sum(function ($product) {
-            return $product->price * $product->quantity_stock;
-        });
+        // Valeur du stock de toutes les variantes de la catégorie (pas seulement la page affichée), au coût
+        $stockValue = $this->categoryService->getStockValue($category->id);
 
         return view("catalog::categories.show", compact("category", "products", "stockValue"));
     }

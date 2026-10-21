@@ -4,6 +4,7 @@ namespace App\Modules\Catalog\Services;
 
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductColor;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Core\Services\BaseService;
@@ -70,6 +71,13 @@ class CategoryService extends BaseService
         return Product::where('category_id', $categoryId)
             ->orderBy('name')
             ->paginate($perPage);
+    }
+
+    /** Valeur du stock des variantes de la catégorie, au coût d'achat (une variante sans coût compte pour 0). */
+    public function getStockValue(int $categoryId): float
+    {
+        return (float) ProductColor::whereHas('product', fn ($query) => $query->where('category_id', $categoryId))
+            ->sum(DB::raw('stock * COALESCE(price_purchase, 0)'));
     }
 
     public function getCategoryStats()
