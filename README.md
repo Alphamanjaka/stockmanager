@@ -251,8 +251,9 @@ La documentation détaillée est rangée dans [`docs/`](docs/) ; l'historique de
 | [journal.md](docs/journal.md) | Journal de bord des évolutions |
 | [analyse-ameliorations.md](docs/analyse-ameliorations.md) | Analyse du projet et plan d'amélioration |
 
-Scripts : [`scripts/save-stockmanager.bat`](scripts/save-stockmanager.bat) prépare un paquet hors ligne des images
-Docker de production (Windows, à lancer depuis n'importe quel dossier).
+Scripts : [`scripts/save-stockmanager.bat`](scripts/save-stockmanager.bat) construit les images Docker de production et
+prépare un paquet hors ligne : images, `compose.prod.yaml` et scripts d'installation de
+[`scripts/package`](scripts/package) (Windows, à lancer depuis n'importe quel dossier).
 
 ---
 
