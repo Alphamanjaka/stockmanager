@@ -13,6 +13,15 @@
 
 @section('content')
     <div class="ui-form-page">
+        {{-- Retours enregistrés par le back office : montants seulement, jamais les coûts --}}
+        @if ($sale->returnStatus())
+            <x-ui.alert tone="warning" icon="bi-arrow-counterclockwise" class="mb-3">
+                {{ $sale->returnStatus() === 'returned' ? 'This sale was cancelled' : 'Some items of this sale were returned' }}:
+                {{ money($sale->refundedTotal(), 2, $sale->currency_symbol) }} refunded
+                ({{ $sale->returns->pluck('reference')->join(', ') }}).
+                Net after returns: {{ money($sale->netAfterReturns(), 2, $sale->currency_symbol) }}.
+            </x-ui.alert>
+        @endif
         @include('sale::partials.invoice')
     </div>
 @endsection

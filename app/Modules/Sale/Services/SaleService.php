@@ -5,6 +5,8 @@ namespace App\Modules\Sale\Services;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleItem;
+use App\Modules\Sale\Models\SaleReturn;
+use App\Modules\Sale\Models\SaleReturnItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use App\Modules\Stock\Services\StockService;
@@ -146,7 +148,7 @@ class SaleService
     public function getAllSales(int $perPage = 15, array $filters = [])
     {
         return $this->listQuery($filters)
-            ->with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand'])
+            ->with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'returns.items'])
             ->paginate($perPage);
     }
 
@@ -177,7 +179,7 @@ class SaleService
 
     public function getSaleById(int $id): Sale
     {
-        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user'])->findOrFail($id);
+        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user', 'returns.items', 'returns.user'])->findOrFail($id);
     }
 
     /**
@@ -185,7 +187,7 @@ class SaleService
      */
     public function getSaleForSeller(int $id, int $userId): Sale
     {
-        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user'])
+        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user', 'returns.items'])
             ->where('user_id', $userId)
             ->findOrFail($id);
     }
@@ -193,22 +195,47 @@ class SaleService
 
     /**
      * Statistiques de ventes ; $userId les limite aux ventes d'un vendeur (front office).
+     * Le chiffre d'affaires déduit les avoirs (total_refunds).
      */
     public function getSalesStatistics(?int $userId = null): array
     {
         $sales = fn () => Sale::query()->when($userId, fn ($q) => $q->where('user_id', $userId));
+        $refunds = (float) $this->refundsQuery(null, null, $userId)->sum('total');
 
         return [
             'today_sales_count' => $sales()->whereDate('created_at', today())->count(),
-            'total_revenue'     => $sales()->sum('total_net'),
+            'total_revenue'     => (float) $sales()->sum('total_net') - $refunds,
+            'total_refunds'     => $refunds,
             'average_sale'      => $sales()->avg('total_net') ?? 0,
             'total_discount' => $sales()->sum('discount') ?? 0,
         ];
     }
+
+    /**
+     * Chiffre d'affaires d'une période : net des ventes moins les avoirs. Un avoir compte le jour où il est
+     * fait, même pour une vente d'une période précédente. $userId : ventes d'un vendeur.
+     */
+    public function revenueBetween(?\DateTimeInterface $from, ?\DateTimeInterface $to, ?int $userId = null): float
+    {
+        $sales = Sale::query()
+            ->when($from && $to, fn ($query) => $query->whereBetween('created_at', [$from, $to]))
+            ->when($userId, fn ($query) => $query->where('user_id', $userId))
+            ->sum('total_net');
+
+        return round((float) $sales - (float) $this->refundsQuery($from, $to, $userId)->sum('total'), 2);
+    }
+
+    /** Avoirs d'une période (date de l'avoir), éventuellement limités aux ventes d'un vendeur. */
+    public function refundsQuery(?\DateTimeInterface $from, ?\DateTimeInterface $to, ?int $userId = null): Builder
+    {
+        return SaleReturn::query()
+            ->when($from && $to, fn ($query) => $query->whereBetween('sale_returns.created_at', [$from, $to]))
+            ->when($userId, fn ($query) => $query->whereHas('sale', fn ($sale) => $sale->where('user_id', $userId)));
+    }
     /**
      * Marge brute des ventes d'une période (toutes les ventes sans bornes), avec les coûts figés à la vente.
      * Une vente dont le coût d'une ligne n'est pas connu est laissée de côté (excluded) : la compter
-     * gonflerait la marge.
+     * gonflerait la marge. Les avoirs de la période retirent leur remboursement et le coût des articles rendus.
      *
      * @return array{revenue: float, cost: float, margin: float, rate: ?float, excluded: int}
      *         rate : marge en % du net encaissé des ventes comptées
@@ -230,8 +257,23 @@ class SaleService
             ->toBase()
             ->first();
 
-        $revenue = round((float) $totals->revenue, 2);
-        $cost = round((float) $totals->cost, 2);
+        // Avoirs de la période (coût connu) : remboursement et coût des articles rendus
+        $returnCosts = SaleReturnItem::query()
+            ->select('sale_return_id')
+            ->selectRaw('SUM(quantity * unit_cost) as cost')
+            ->selectRaw('COUNT(*) - COUNT(unit_cost) as unknown_costs')
+            ->groupBy('sale_return_id');
+
+        $returns = $this->refundsQuery($from, $to)
+            ->joinSub($returnCosts, 'costs', 'costs.sale_return_id', '=', 'sale_returns.id')
+            ->where('costs.unknown_costs', 0)
+            ->selectRaw('SUM(sale_returns.total) as refunds')
+            ->selectRaw('SUM(costs.cost) as cost')
+            ->toBase()
+            ->first();
+
+        $revenue = round((float) $totals->revenue - (float) $returns->refunds, 2);
+        $cost = round((float) $totals->cost - (float) $returns->cost, 2);
         $margin = round($revenue - $cost, 2);
 
         return [

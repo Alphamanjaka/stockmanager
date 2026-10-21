@@ -14,7 +14,7 @@ app/
 │   ├── Stock/                Mouvements de stock, alertes, valorisation
 │   ├── Inventory/            Inventaires physiques (comptage, écarts, ajustement du stock)
 │   ├── Purchase/             Achats fournisseurs, panier, réapprovisionnement depuis les ruptures
-│   ├── Sale/                 Ventes (back office et vendeurs), client de la vente, factures PDF
+│   ├── Sale/                 Ventes (back office et vendeurs), client de la vente, factures PDF, avoirs (retours)
 │   ├── Contact/              Fournisseurs et clients
 │   └── Backup/               Sauvegarde en arrière-plan : archive ZIP (Spatie), historique `backup_runs`, sans UI
 │
@@ -82,6 +82,7 @@ pour que l'ordre de chargement des modules n'ait pas d'importance.
   |---|---|---|
   | Achat passé au statut « Reçu » | entrée, coût moyen pondéré recalculé | `addStock` avec coût unitaire |
   | Vente | sortie | `removeStock` |
+  | Retour de vente (avoir), annulation | entrée, au coût figé à la vente | `addStock` avec coût unitaire |
   | Inventaire physique validé | écart compté | `adjustTo` |
   | Correction manuelle (secours en cas d'erreur, motif obligatoire) | entrée ou sortie | `correct` |
 

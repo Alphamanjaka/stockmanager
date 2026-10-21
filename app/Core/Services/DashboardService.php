@@ -3,6 +3,7 @@
 namespace App\Core\Services;
 
 use App\Modules\Sale\Models\Sale;
+use App\Modules\Sale\Models\SaleReturn;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Contact\Models\Supplier;
@@ -41,12 +42,25 @@ class DashboardService
     /**
      * Get sales sum for a specific range
      */
-    /** $userId : limite aux ventes d'un vendeur (tableau de bord du front office). */
+    /**
+     * Chiffre d'affaires de la période, avoirs déduits (un avoir compte le jour où il est fait).
+     * $userId : limite aux ventes d'un vendeur (tableau de bord du front office).
+     */
     private function getSalesSumBetween($start, $end, ?int $userId = null)
     {
-        return Sale::whereBetween('created_at', [$start, $end])
-            ->when($userId, fn ($q) => $q->where('user_id', $userId))
-            ->sum('total_net');
+        return $this->saleService->revenueBetween($start, $end, $userId);
+    }
+
+    /**
+     * Avoirs de la période, par jour (ou par mois avec $groupExpression) : [clé => montant remboursé].
+     * Retirés des ventes de chaque point des graphiques.
+     */
+    private function refundsGroupedBy(string $groupExpression, $start, $end)
+    {
+        return SaleReturn::select(DB::raw("$groupExpression as period"), DB::raw('SUM(total) as total'))
+            ->whereBetween('created_at', [$start, $end])
+            ->groupBy('period')
+            ->pluck('total', 'period');
     }
 
     private function getSalesToday(?int $userId = null)
@@ -113,6 +127,7 @@ class DashboardService
             ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
             ->groupBy('sale_date')
             ->pluck('total', 'sale_date');
+        $refunds = $this->refundsGroupedBy('DATE(created_at)', $startOfWeek, $endOfWeek);
 
         $labels = [];
         $values = [];
@@ -122,7 +137,7 @@ class DashboardService
             $dateKey = $day->toDateString();
 
             $labels[] = ucfirst($day->isoFormat('dddd'));
-            $values[] = $salesData->get($dateKey, 0);
+            $values[] = (float) $salesData->get($dateKey, 0) - (float) $refunds->get($dateKey, 0);
         }
 
         return compact('labels', 'values');
@@ -143,6 +158,7 @@ class DashboardService
             ->whereBetween('created_at', [$startDate, $endDate])
             ->groupBy('sale_date')
             ->pluck('total', 'sale_date');
+        $refunds = $this->refundsGroupedBy('DATE(created_at)', $startDate, $endDate);
 
         $labels = [];
         $salesByWeek = [];
@@ -158,6 +174,12 @@ class DashboardService
             $weekKey = Carbon::parse($date)->startOfWeek(Carbon::MONDAY)->toDateString();
             if (isset($salesByWeek[$weekKey])) {
                 $salesByWeek[$weekKey] += $total;
+            }
+        }
+        foreach ($refunds as $date => $total) {
+            $weekKey = Carbon::parse($date)->startOfWeek(Carbon::MONDAY)->toDateString();
+            if (isset($salesByWeek[$weekKey])) {
+                $salesByWeek[$weekKey] -= $total;
             }
         }
 
@@ -188,6 +210,7 @@ class DashboardService
             ->whereBetween('created_at', [$startDate, $endDate])
             ->groupBy('sale_month')
             ->pluck('total', 'sale_month');
+        $refunds = $this->refundsGroupedBy($monthExpression, $startDate, $endDate);
 
         $labels = [];
         $values = [];
@@ -197,7 +220,7 @@ class DashboardService
             $monthKey = $date->format('Y-m');
 
             $labels[] = ucfirst($date->isoFormat('MMM YYYY'));
-            $values[] = $salesData->get($monthKey, 0);
+            $values[] = (float) $salesData->get($monthKey, 0) - (float) $refunds->get($monthKey, 0);
         }
 
         return compact('labels', 'values');

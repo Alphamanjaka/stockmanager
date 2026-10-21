@@ -29,35 +29,82 @@ class Sale extends Model
         return $this->amount_received === null ? 0.0 : max(0, round($this->amount_received - $this->total_net, 2));
     }
 
-    /** Coût d'achat des articles vendus (coûts figés à la vente), ou null si le coût d'une ligne n'est pas connu. */
+    /** Montant remboursé par les avoirs de la vente. */
+    public function refundedTotal(): float
+    {
+        return round((float) $this->returns->sum('total'), 2);
+    }
+
+    /** Net encaissé, avoirs déduits. */
+    public function netAfterReturns(): float
+    {
+        return round((float) $this->total_net - $this->refundedTotal(), 2);
+    }
+
+    /** Quantités déjà rendues, par ligne de vente : [id de ligne => quantité]. */
+    public function returnedQuantities(): array
+    {
+        return $this->returns->flatMap->items
+            ->groupBy('sale_item_id')
+            ->map(fn ($items) => (int) $items->sum('quantity'))
+            ->all();
+    }
+
+    /** 'returned' (tout est rendu : vente annulée), 'partially_returned', ou null sans retour. */
+    public function returnStatus(): ?string
+    {
+        if ($this->returns->isEmpty()) {
+            return null;
+        }
+
+        $returned = $this->returnedQuantities();
+        $all = $this->items->every(fn (SaleItem $item) => ($returned[$item->id] ?? 0) >= $item->quantity);
+
+        return $all ? 'returned' : 'partially_returned';
+    }
+
+    /**
+     * Coût d'achat des articles gardés par le client (coûts figés à la vente, articles rendus déduits),
+     * ou null si le coût d'une ligne n'est pas connu.
+     */
     public function costTotal(): ?float
     {
         if ($this->items->contains(fn (SaleItem $item) => $item->unit_cost === null)) {
             return null;
         }
 
-        return round((float) $this->items->sum(fn (SaleItem $item) => $item->quantity * $item->unit_cost), 2);
+        $sold = $this->items->sum(fn (SaleItem $item) => $item->quantity * $item->unit_cost);
+        $returned = $this->returns->sum(fn (SaleReturn $return) => $return->costTotal() ?? 0);
+
+        return round((float) ($sold - $returned), 2);
     }
 
-    /** Marge brute : net encaissé (remise déduite) moins le coût des articles ; null si un coût manque. */
+    /** Marge brute : net encaissé (remise et avoirs déduits) moins le coût des articles ; null si un coût manque. */
     public function grossMargin(): ?float
     {
         $cost = $this->costTotal();
 
-        return $cost === null ? null : round((float) $this->total_net - $cost, 2);
+        return $cost === null ? null : round($this->netAfterReturns() - $cost, 2);
     }
 
-    /** Taux de marge brute, en % du net encaissé. */
+    /** Taux de marge brute, en % du net encaissé (avoirs déduits). */
     public function marginRate(): ?float
     {
         $margin = $this->grossMargin();
+        $net = $this->netAfterReturns();
 
-        return $margin === null || (float) $this->total_net <= 0 ? null : round($margin / (float) $this->total_net * 100, 1);
+        return $margin === null || $net <= 0 ? null : round($margin / $net * 100, 1);
     }
 
     public function items()
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    /** Avoirs (retours d'articles), du plus ancien au plus récent. */
+    public function returns()
+    {
+        return $this->hasMany(SaleReturn::class)->oldest()->orderBy('id');
     }
     public function user()
     {

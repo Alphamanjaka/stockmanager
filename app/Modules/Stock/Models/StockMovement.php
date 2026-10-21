@@ -21,6 +21,7 @@ class StockMovement extends Model
         MovementSource::PURCHASE => 'admin.purchases.show',
         MovementSource::SALE => 'admin.sales.show',
         MovementSource::INVENTORY => 'admin.inventories.show',
+        MovementSource::SALE_RETURN => 'admin.sale-returns.show',
     ];
 
     protected $fillable = [
@@ -48,7 +49,7 @@ class StockMovement extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** Lien vers le document à l'origine du mouvement (achat, vente, inventaire), ou null. */
+    /** Lien vers le document à l'origine du mouvement (achat, vente, avoir, inventaire), ou null. */
     public function sourceUrl(): ?string
     {
         $route = self::SOURCE_ROUTES[$this->source_type] ?? null;
@@ -68,6 +69,7 @@ class StockMovement extends Model
             MovementSource::INVENTORY => ['info', 'Stock count'],
             MovementSource::PURCHASE => $this->type === 'in' ? ['success', 'Purchase'] : ['danger', 'Purchase cancelled'],
             MovementSource::SALE => ['danger', 'Sale'],
+            MovementSource::SALE_RETURN => ['success', 'Sale return'],
             default => $this->kindFromReason(),
         };
     }

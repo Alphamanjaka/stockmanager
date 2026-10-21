@@ -13,6 +13,7 @@ final class MovementSource
     public const SALE = 'sale';
     public const INVENTORY = 'inventory';
     public const CORRECTION = 'correction';
+    public const SALE_RETURN = 'sale_return';
 
     public function __construct(public readonly string $type, public readonly ?int $id = null) {}
 
@@ -25,6 +26,12 @@ final class MovementSource
     public static function sale(int $saleId): self
     {
         return new self(self::SALE, $saleId);
+    }
+
+    /** Retour d'articles vendus (avoir) : remise en stock. */
+    public static function saleReturn(int $saleReturnId): self
+    {
+        return new self(self::SALE_RETURN, $saleReturnId);
     }
 
     public static function inventory(int $inventoryId): self
