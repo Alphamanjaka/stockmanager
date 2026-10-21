@@ -52,11 +52,11 @@ class ListExportTest extends TestCase
         $this->get(route('admin.exports.download', ['list' => 'products', 'format' => 'pdf']))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf')
-            ->assertDownload('products-' . now()->format('Y-m-d') . '.pdf');
+            ->assertDownload('products-'.now()->format('Y-m-d').'.pdf');
 
         $this->get(route('admin.exports.download', ['list' => 'products', 'format' => 'xlsx']))
             ->assertOk()
-            ->assertDownload('products-' . now()->format('Y-m-d') . '.xlsx');
+            ->assertDownload('products-'.now()->format('Y-m-d').'.xlsx');
     }
 
     /** @test */

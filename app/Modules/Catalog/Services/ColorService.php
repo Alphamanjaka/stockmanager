@@ -2,8 +2,8 @@
 
 namespace App\Modules\Catalog\Services;
 
-use App\Modules\Catalog\Models\Color;
 use App\Core\Services\BaseService;
+use App\Modules\Catalog\Models\Color;
 
 class ColorService extends BaseService
 {
@@ -19,6 +19,7 @@ class ColorService extends BaseService
     {
         // Définit un tri par défaut spécifique aux couleurs si non fourni
         $filters['sort'] = $filters['sort'] ?? 'name';
+
         return $this->getAll($filters, $isPaginated);
     }
 }

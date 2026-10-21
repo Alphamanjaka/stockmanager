@@ -2,16 +2,16 @@
 
 namespace Tests\Feature\Purchase;
 
-use App\Modules\Catalog\Models\Product;
 use App\Models\User;
-use App\Modules\Purchase\Models\Purchase;
-use App\Modules\Contact\Models\Supplier;
-use App\Modules\Purchase\Services\PurchaseService;
+use App\Modules\Catalog\Models\Color;
+use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
-use App\Modules\Stock\Services\StockService;
+use App\Modules\Contact\Models\Supplier;
+use App\Modules\Purchase\Models\Purchase;
 use App\Modules\Purchase\Models\PurchaseItem;
+use App\Modules\Purchase\Services\PurchaseService;
+use App\Modules\Stock\Services\StockService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -21,7 +21,9 @@ class PurchaseServiceTest extends TestCase
     use RefreshDatabase;
 
     protected PurchaseService $service;
+
     protected MockInterface $stockServiceMock;
+
     protected User $user;
 
     protected function setUp(): void
@@ -49,8 +51,8 @@ class PurchaseServiceTest extends TestCase
         $product1 = Product::factory()->create(['price' => 100]);
         $product2 = Product::factory()->create(['price' => 200]);
 
-        $variant1 = ProductColor::forceCreate(['product_id' => $product1->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
-        $variant2 = ProductColor::forceCreate(['product_id' => $product2->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $variant1 = ProductColor::forceCreate(['product_id' => $product1->id, 'color_id' => Color::factory()->create()->id, 'stock' => 0]);
+        $variant2 = ProductColor::forceCreate(['product_id' => $product2->id, 'color_id' => Color::factory()->create()->id, 'stock' => 0]);
 
         // Créer une commande en Draft
         $purchase = Purchase::factory()->create([
@@ -81,8 +83,8 @@ class PurchaseServiceTest extends TestCase
                     'product_color_id' => $variant2->id, // Nouveau produit
                     'quantity' => 2,
                     'unit_price' => 150,
-                ]
-            ]
+                ],
+            ],
         ];
 
         // 3. Action (Appel direct au service)
@@ -117,11 +119,11 @@ class PurchaseServiceTest extends TestCase
             'state' => 'Received', // Déjà reçu
         ]);
 
-        $variant = ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $variant = ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'stock' => 0]);
 
         $data = [
             'supplier_id' => $supplier->id,
-            'products' => [['product_color_id' => $variant->id, 'quantity' => 1, 'unit_price' => 10]]
+            'products' => [['product_color_id' => $variant->id, 'quantity' => 1, 'unit_price' => 10]],
         ];
 
         $this->expectException(\Exception::class);
@@ -138,8 +140,8 @@ class PurchaseServiceTest extends TestCase
         $product1 = Product::factory()->create();
         $product2 = Product::factory()->create();
 
-        $variant1 = ProductColor::forceCreate(['product_id' => $product1->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
-        $variant2 = ProductColor::forceCreate(['product_id' => $product2->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $variant1 = ProductColor::forceCreate(['product_id' => $product1->id, 'color_id' => Color::factory()->create()->id, 'stock' => 0]);
+        $variant2 = ProductColor::forceCreate(['product_id' => $product2->id, 'color_id' => Color::factory()->create()->id, 'stock' => 0]);
 
         $items = [
             ['product_color_id' => $variant1->id, 'quantity' => 5, 'unit_price' => 10.00], // 50
@@ -182,7 +184,7 @@ class PurchaseServiceTest extends TestCase
         // Arrange
         $purchase = Purchase::factory()
             ->hasItems(2, function (array $attributes, Purchase $purchase) {
-                return ['product_color_id' => ProductColor::forceCreate(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0])->id];
+                return ['product_color_id' => ProductColor::forceCreate(['product_id' => Product::factory()->create()->id, 'color_id' => Color::factory()->create()->id, 'stock' => 0])->id];
             })
             ->create(['state' => 'Ordered']);
 
@@ -194,8 +196,8 @@ class PurchaseServiceTest extends TestCase
                 ->shouldReceive('addStock')
                 ->once()
                 ->with($item->product_color_id, $item->quantity, "Réception Achat #{$purchase->reference}",
-                    \Mockery::on(fn ($cost) => abs($cost - $expectedCost) < 0.001),
-                    \Mockery::on(fn ($source) => $source->type === 'purchase' && $source->id === $purchase->id));
+                    Mockery::on(fn ($cost) => abs($cost - $expectedCost) < 0.001),
+                    Mockery::on(fn ($source) => $source->type === 'purchase' && $source->id === $purchase->id));
         }
 
         // Act
@@ -237,7 +239,7 @@ class PurchaseServiceTest extends TestCase
     public function it_adds_stock_only_once_when_a_purchase_is_received_twice()
     {
         // Arrange
-        $variant = ProductColor::forceCreate(['product_id' => Product::factory()->create()->id, 'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id, 'stock' => 0]);
+        $variant = ProductColor::forceCreate(['product_id' => Product::factory()->create()->id, 'color_id' => Color::factory()->create()->id, 'stock' => 0]);
         $purchase = Purchase::factory()->create(['state' => 'Ordered']);
         PurchaseItem::create([
             'purchase_id' => $purchase->id,

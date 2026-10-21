@@ -245,11 +245,15 @@ Docker de production (Windows, à lancer depuis n'importe quel dossier).
 
 ## CI/CD (Intégration Continue)
 
-Le projet intègre un pipeline GitHub Actions complet (`.github/workflows/ci.yml`) :
+Le pipeline GitHub Actions (`.github/workflows/ci.yml`) tourne sur chaque push sur `main` et sur chaque PR,
+y compris celles d'une pile (basées sur la branche d'une autre PR). Trois jobs en parallèle :
 
-1.  **Linting** : Vérification automatique du style de code (Laravel Pint).
-2.  **Testing** : Exécution des tests unitaires et fonctionnels (Pest/PHPUnit).
-3.  **Build & Push** : Construction de l'image Docker de production et envoi sur le registre (GHCR) uniquement si les tests passent.
+1.  **Style** : Laravel Pint (`vendor/bin/pint --test`). En local, `vendor/bin/pint` corrige les fichiers.
+2.  **Assets** : construction Vite (`npm ci`, `npm run build`) : les tests tournent sans les assets (`withoutVite`),
+    ce job attrape les erreurs de JavaScript et de CSS.
+3.  **Tests** : PHPUnit sur PostgreSQL 16, le moteur de production.
+
+Un nouveau push sur une PR annule sa vérification en cours.
 
 ---
 

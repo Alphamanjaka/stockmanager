@@ -21,6 +21,7 @@ class InvoiceNumberTest extends TestCase
     use RefreshDatabase;
 
     private ProductColor $wax;
+
     private User $seller;
 
     protected function setUp(): void

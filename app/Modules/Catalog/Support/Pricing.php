@@ -25,7 +25,7 @@ class Pricing
     {
         $margin = self::defaultMargin();
 
-        if ($margin === null || !is_numeric($cost) || (float) $cost <= 0) {
+        if ($margin === null || ! is_numeric($cost) || (float) $cost <= 0) {
             return null;
         }
 

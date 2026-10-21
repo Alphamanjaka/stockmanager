@@ -7,7 +7,6 @@ use App\Modules\Catalog\Models\Brand;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Color;
 use App\Modules\Catalog\Models\Product;
-use App\Modules\Catalog\Models\ProductColor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

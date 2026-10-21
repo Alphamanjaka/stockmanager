@@ -3,11 +3,11 @@
 namespace App\Core\Http\Controllers;
 
 use App\Core\Http\Controllers\Concerns\ArchivesRecords;
-use App\Http\Controllers\Controller;
 use App\Core\Http\Requests\StoreUserRequest;
 use App\Core\Http\Requests\UpdateUserRequest;
-use App\Models\User;
 use App\Core\Services\UserService;
+use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -25,6 +25,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $users = $this->userService->getAllUsers($request->only(['search', 'role', 'status']));
+
         return view('core::users.index', compact('users'));
     }
 

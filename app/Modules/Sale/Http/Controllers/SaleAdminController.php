@@ -2,14 +2,14 @@
 
 namespace App\Modules\Sale\Http\Controllers;
 
-use App\Modules\Sale\Http\Controllers\Concerns\ChecksOutSales;
-use App\Modules\Sale\Http\Requests\StoreSaleRequest;
-use App\Modules\Sale\Services\SaleService;
-use App\Modules\Sale\Support\PosCatalog;
 use App\Core\Exports\PdfDocument;
 use App\Http\Controllers\Controller;
 use App\Modules\Contact\Models\Customer;
 use App\Modules\Contact\Services\CustomerService;
+use App\Modules\Sale\Http\Controllers\Concerns\ChecksOutSales;
+use App\Modules\Sale\Http\Requests\StoreSaleRequest;
+use App\Modules\Sale\Services\SaleService;
+use App\Modules\Sale\Support\PosCatalog;
 use Illuminate\Http\Request;
 
 class SaleAdminController extends Controller
@@ -31,9 +31,10 @@ class SaleAdminController extends Controller
 
         $filters = $request->only(['search', 'date_from', 'date_to']) + ['customer' => $customer?->id];
         $sales = $this->saleService->getAllSales(15, $filters)->withQueryString();
-        $stats   = $this->saleService->getSalesStatistics();
+        $stats = $this->saleService->getSalesStatistics();
         // Marge : back office seulement (les vendeurs ne voient pas les coûts)
         $margin = $this->saleService->getGrossMargin();
+
         return view('sale::back-office.sales.index', array_merge(compact('sales', 'customer', 'margin'), $stats));
     }
 

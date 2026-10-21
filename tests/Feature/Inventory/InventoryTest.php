@@ -17,7 +17,9 @@ class InventoryTest extends TestCase
     use RefreshDatabase;
 
     private ProductColor $wax;
+
     private ProductColor $velours;
+
     private Category $tissu;
 
     protected function setUp(): void
@@ -233,7 +235,7 @@ class InventoryTest extends TestCase
         $inventory = $this->open($this->tissu);
 
         $this->put(route('admin.inventories.update', $inventory->id), ['counts' => [$this->lineId($inventory, $this->wax) => -3]])
-            ->assertSessionHasErrors('counts.' . $this->lineId($inventory, $this->wax));
+            ->assertSessionHasErrors('counts.'.$this->lineId($inventory, $this->wax));
     }
 
     /** @test */

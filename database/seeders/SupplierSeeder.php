@@ -2,14 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Modules\Contact\Services\SupplierService;
+use Illuminate\Database\Seeder;
 
 class SupplierSeeder extends Seeder
 {
-
     /**
-     *
      * Run the database seeds.
      */
     public function run(): void
@@ -17,12 +15,11 @@ class SupplierSeeder extends Seeder
         $supplierService = app(SupplierService::class);
         // crate suppliers
         $supplierService->createSupplier([
-                'name' => 'Grossiste Informatique SARL',
+            'name' => 'Grossiste Informatique SARL',
             'email' => 'contact@grossiste-info.test',
             'phone' => '034 11 222 33',
-            'address' => 'Rue des Tech, Antananarivo'
+            'address' => 'Rue des Tech, Antananarivo',
         ]);
-
 
         // $supplierService->createSupplier([
         //     'name' => 'Buro-Top Fournisseurs',

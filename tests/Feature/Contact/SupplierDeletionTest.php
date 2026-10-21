@@ -22,6 +22,7 @@ class SupplierDeletionTest extends TestCase
     use RefreshDatabase;
 
     private Supplier $supplier;
+
     private Purchase $purchase;
 
     protected function setUp(): void

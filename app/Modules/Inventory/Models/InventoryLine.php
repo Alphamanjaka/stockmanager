@@ -48,7 +48,7 @@ class InventoryLine extends Model
      */
     public function gap(): ?int
     {
-        if (!$this->isCounted()) {
+        if (! $this->isCounted()) {
             return null;
         }
 
@@ -58,7 +58,7 @@ class InventoryLine extends Model
     /** Stock après validation : stock à la validation + écart, jamais négatif. */
     public function stockAfterValidation(): ?int
     {
-        if (!$this->isCounted() || $this->stock_at_validation === null) {
+        if (! $this->isCounted() || $this->stock_at_validation === null) {
             return null;
         }
 

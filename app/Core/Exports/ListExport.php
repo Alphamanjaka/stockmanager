@@ -104,10 +104,10 @@ abstract class ListExport
         $described = [];
 
         if ($ids) {
-            $described['Selection'] = count($ids) . ' item(s)';
+            $described['Selection'] = count($ids).' item(s)';
         }
         if (filled($filters['search'] ?? null)) {
-            $described['Search'] = '« ' . $filters['search'] . ' »';
+            $described['Search'] = '« '.$filters['search'].' »';
         }
 
         $described += array_filter($this->filterLabels($filters), 'filled');
@@ -121,7 +121,7 @@ abstract class ListExport
 
     public function filename(string $extension): string
     {
-        return Str::slug($this->title()) . '-' . now()->format('Y-m-d') . ".{$extension}";
+        return Str::slug($this->title()).'-'.now()->format('Y-m-d').".{$extension}";
     }
 
     public function toPdf(array $filters, array $ids = []): Response

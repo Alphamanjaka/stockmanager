@@ -2,22 +2,24 @@
 
 namespace App\Core\Services;
 
+use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Contact\Models\Supplier;
 use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleReturn;
-use App\Modules\Catalog\Models\ProductColor;
-use App\Modules\Catalog\Models\Category;
-use App\Modules\Contact\Models\Supplier;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 use App\Modules\Sale\Services\SaleService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardService
 {
     protected SaleService $saleService;
+
     public function __construct(SaleService $saleService)
     {
         $this->saleService = $saleService;
     }
+
     /**
      * Get back office KPIs and chart data
      */
@@ -79,12 +81,11 @@ class DashboardService
         return $this->getSalesSumBetween(now()->startOfMonth(), now()->endOfMonth(), $userId);
     }
 
-
-
     private function getMostSoldProduct()
     {
         return $this->saleService->getMostSoldProduct();
     }
+
     private function getLeastSoldProduct()
     {
         return $this->saleService->getLeastSoldProduct();
@@ -93,9 +94,6 @@ class DashboardService
     /**
      * Get chart data for specified period
      */
-
-
-
 
     /**
      * Get chart data for specified period
@@ -166,7 +164,7 @@ class DashboardService
         for ($i = 3; $i >= 0; $i--) {
             $startOfWeek = now()->subWeeks($i)->startOfWeek(Carbon::MONDAY);
             $weekKey = $startOfWeek->toDateString();
-            $labels[] = "Semaine du " . $startOfWeek->format('d/m');
+            $labels[] = 'Semaine du '.$startOfWeek->format('d/m');
             $salesByWeek[$weekKey] = 0;
         }
 
@@ -257,8 +255,18 @@ class DashboardService
             ->count();
     }
 
-    private function getTotalCategories() { return Category::active()->count(); }
-    private function getTotalSuppliers() { return Supplier::active()->count(); }
-    private function getTotalSales() { return Sale::count(); }
+    private function getTotalCategories()
+    {
+        return Category::active()->count();
+    }
 
+    private function getTotalSuppliers()
+    {
+        return Supplier::active()->count();
+    }
+
+    private function getTotalSales()
+    {
+        return Sale::count();
+    }
 }

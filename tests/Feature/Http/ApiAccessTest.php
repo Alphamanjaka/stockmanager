@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Http;
 
-use App\Modules\Catalog\Models\Category;
 use App\Models\User;
+use App\Modules\Catalog\Models\Category;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

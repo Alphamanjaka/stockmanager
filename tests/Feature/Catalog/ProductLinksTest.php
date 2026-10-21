@@ -62,7 +62,7 @@ class ProductLinksTest extends TestCase
 
         $this->get('/admin/products')
             ->assertOk()
-            ->assertSee('href="' . route('admin.products.show', $this->second->id) . '"', false)
-            ->assertDontSee('href="' . route('admin.products.show', 3) . '"', false);
+            ->assertSee('href="'.route('admin.products.show', $this->second->id).'"', false)
+            ->assertDontSee('href="'.route('admin.products.show', 3).'"', false);
     }
 }

@@ -3,12 +3,12 @@
 namespace App\Modules\Stock\Models;
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Stock\Database\Factories\StockMovementFactory;
 use App\Modules\Stock\Support\MovementSource;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
-use App\Modules\Stock\Database\Factories\StockMovementFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Route;
 
 #[UseFactory(StockMovementFactory::class)]
@@ -35,6 +35,7 @@ class StockMovement extends Model
         'source_type',
         'source_id',
     ];
+
     /**
      * Get the product color variant that owns the stock movement.
      */

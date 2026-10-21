@@ -10,9 +10,13 @@ namespace App\Modules\Stock\Support;
 final class MovementSource
 {
     public const PURCHASE = 'purchase';
+
     public const SALE = 'sale';
+
     public const INVENTORY = 'inventory';
+
     public const CORRECTION = 'correction';
+
     public const SALE_RETURN = 'sale_return';
 
     public function __construct(public readonly string $type, public readonly ?int $id = null) {}

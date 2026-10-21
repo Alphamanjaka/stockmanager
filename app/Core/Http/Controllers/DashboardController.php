@@ -3,8 +3,8 @@
 namespace App\Core\Http\Controllers;
 
 use App\Core\Services\DashboardService;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -41,7 +41,7 @@ class DashboardController extends Controller
      */
     public function backOffice(Request $request)
     {
-        if (!auth()->user()->isBackOffice()) {
+        if (! auth()->user()->isBackOffice()) {
             return redirect()->route('dashboard')->with('error', 'Accès non autorisé');
         }
 
@@ -69,7 +69,7 @@ class DashboardController extends Controller
      */
     public function frontOffice(Request $request)
     {
-        if (!auth()->user()->isFrontOffice()) {
+        if (! auth()->user()->isFrontOffice()) {
             return redirect()->route('dashboard')->with('error', 'Accès non autorisé');
         }
 
@@ -88,12 +88,12 @@ class DashboardController extends Controller
      */
     public function getChartDataApi(Request $request)
     {
-        if (!auth()->user()->isBackOffice()) {
+        if (! auth()->user()->isBackOffice()) {
             return response()->json(['error' => 'Accès non autorisé'], 403);
         }
 
         $request->validate([
-            'period' => 'in:7days,1month,1year'
+            'period' => 'in:7days,1month,1year',
         ]);
 
         $period = $request->get('period', '7days');

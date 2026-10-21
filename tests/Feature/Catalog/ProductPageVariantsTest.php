@@ -20,6 +20,7 @@ class ProductPageVariantsTest extends TestCase
     use RefreshDatabase;
 
     private Product $gel;
+
     private ProductColor $ml25;
 
     protected function setUp(): void

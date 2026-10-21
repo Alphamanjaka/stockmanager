@@ -2,6 +2,7 @@
 
 namespace App\Modules\Purchase\Http\Resources;
 
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class PurchaseApiResourceCollection extends ResourceCollection
@@ -16,7 +17,7 @@ class PurchaseApiResourceCollection extends ResourceCollection
     /**
      * Transform the resource collection into an array.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @return array
      */
     public function toArray($request)
@@ -25,7 +26,7 @@ class PurchaseApiResourceCollection extends ResourceCollection
         // pour la pagination à distance, ce qui évite d'avoir à utiliser un rappel ajaxResponse côté client.
         return [
             'last_page' => $this->resource->lastPage(),
-            'data'      => $this->collection,
+            'data' => $this->collection,
         ];
     }
 }

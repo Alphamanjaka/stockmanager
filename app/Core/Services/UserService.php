@@ -8,35 +8,39 @@ use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
-
     public function create(array $data)
     {
         return User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
+            'name' => $data['name'],
+            'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role'     => $data['role'] ?? 'front_office',
+            'role' => $data['role'] ?? 'front_office',
         ]);
     }
+
     public function update(User $user, array $data)
     {
-        if (!empty($data['password'])) {
+        if (! empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
             unset($data['password']); // Ne pas mettre à jour le mot de passe s'il est vide
         }
 
         $user->update($data);
+
         return $user->fresh();
     }
+
     public function delete($id)
     {
         $user = $this->getUserById($id); // Utilise findOrFail
+
         return $user->delete();
     }
+
     /**
      * @param  array{search?: ?string, role?: ?string, status?: ?string}  $filters  recherche (nom ou e-mail),
-     *         rôle (front_office, back_office), statut (comptes actifs, ou archivés : status=archived)
+     *                                                                              rôle (front_office, back_office), statut (comptes actifs, ou archivés : status=archived)
      */
     public function getAllUsers(array $filters = [])
     {
@@ -56,6 +60,7 @@ class UserService
                 fn ($query) => $query->where('role', $filters['role']))
             ->latest('id');
     }
+
     public function getUserById($id)
     {
         // Utilisation de findOrFail pour un code plus propre et standard
