@@ -16,7 +16,7 @@ use App\Modules\Sale\Models\Sale;
 trait ChecksOutSales
 {
     /**
-     * @param string $routePrefix préfixe des routes de l'espace : 'saler.' ou 'admin.sales.'
+     * @param  string  $routePrefix  préfixe des routes de l'espace : 'saler.' ou 'admin.sales.'
      */
     protected function checkout(StoreSaleRequest $request, string $routePrefix)
     {
@@ -36,7 +36,7 @@ trait ChecksOutSales
 
             return back()
                 ->withInput()
-                ->with('error', "Erreur lors de la vente : " . $e->getMessage());
+                ->with('error', 'Erreur lors de la vente : '.$e->getMessage());
         }
 
         if ($request->expectsJson()) {

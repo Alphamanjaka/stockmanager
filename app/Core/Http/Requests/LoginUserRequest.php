@@ -3,6 +3,7 @@
 namespace App\Core\Http\Requests;
 
 use Illuminate\Auth\Events\Lockout;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -27,7 +28,7 @@ class LoginUserRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -37,6 +38,7 @@ class LoginUserRequest extends FormRequest
             'password' => 'required|min:6',
         ];
     }
+
     public function messages(): array
     {
         return [
@@ -55,7 +57,7 @@ class LoginUserRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (!RateLimiter::tooManyAttempts($this->throttleKey(), self::MAX_ATTEMPTS)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), self::MAX_ATTEMPTS)) {
             return;
         }
 
@@ -83,6 +85,6 @@ class LoginUserRequest extends FormRequest
     /** Clé du compteur : l'email (sans tenir compte de la casse) et l'adresse IP. */
     private function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
+        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
     }
 }

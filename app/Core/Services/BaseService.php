@@ -23,7 +23,7 @@ abstract class BaseService
     {
         $query = $this->model->query();
 
-        if (!empty($filters['search']) && method_exists($this->model, 'scopeSearch')) {
+        if (! empty($filters['search']) && method_exists($this->model, 'scopeSearch')) {
             // Appel de la méthode de recherche personnalisée du modèle
             $query->search($filters['search']);
         }
@@ -32,7 +32,7 @@ abstract class BaseService
             $query->withStatus($filters['status'] ?? null);
         }
         // filtrage par catégorie si le filtre est présent
-        if (!empty($filters['category'])) {
+        if (! empty($filters['category'])) {
             $query->where('category_id', $filters['category']);
         }
         // Tri générique, limité aux colonnes déclarées dans $sortable
@@ -61,6 +61,7 @@ abstract class BaseService
     {
         $record = $this->getById($id);
         $record->update($data);
+
         return $record;
     }
 

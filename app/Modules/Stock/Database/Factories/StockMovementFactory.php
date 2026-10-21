@@ -2,11 +2,12 @@
 
 namespace App\Modules\Stock\Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Stock\Models\StockMovement;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Stock\Models\StockMovement>
+ * @extends Factory<StockMovement>
  */
 class StockMovementFactory extends Factory
 {
@@ -25,7 +26,7 @@ class StockMovementFactory extends Factory
         $before = $this->faker->numberBetween(100, 500);
 
         return [
-            'product_color_id' => \App\Modules\Catalog\Models\ProductColor::factory(),
+            'product_color_id' => ProductColor::factory(),
             'type' => $type,
             'quantity' => $signedQty,
             'stock_before' => $before,

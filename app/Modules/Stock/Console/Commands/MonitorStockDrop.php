@@ -2,11 +2,11 @@
 
 namespace App\Modules\Stock\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Modules\Stock\Services\StockService;
-use Illuminate\Support\Facades\Mail;
-use App\Modules\Stock\Mail\StockDropAlert;
 use App\Models\User;
+use App\Modules\Stock\Mail\StockDropAlert;
+use App\Modules\Stock\Services\StockService;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Surveille les pertes non expliquées : corrections en sortie et écarts d'inventaire négatifs.
@@ -41,14 +41,16 @@ class MonitorStockDrop extends Command
 
         if (empty($losses['lines'])) {
             $this->info("✅ Aucune perte non expliquée sur les {$hours} dernières heures.");
+
             return;
         }
 
-        $summary = count($losses['lines']) . ' sortie(s), ' . money($losses['value'])
-            . ' (' . number_format($losses['percentage'], 2) . ' % de la valeur du stock)';
+        $summary = count($losses['lines']).' sortie(s), '.money($losses['value'])
+            .' ('.number_format($losses['percentage'], 2).' % de la valeur du stock)';
 
         if ($losses['percentage'] < $threshold) {
             $this->info("✅ Pertes non expliquées : {$summary}. Seuil d'alerte : {$threshold} %.");
+
             return;
         }
 

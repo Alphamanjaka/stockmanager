@@ -14,6 +14,7 @@ use App\Modules\Purchase\Models\PurchaseItem;
 use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Tests\TestCase;
 
 /**
@@ -117,7 +118,7 @@ class InvoicePdfTest extends TestCase
     /** @test */
     public function document_labels_exist_in_every_language()
     {
-        $keys = fn (string $locale) => array_keys(\Illuminate\Support\Arr::dot(require lang_path("{$locale}/documents.php")));
+        $keys = fn (string $locale) => array_keys(Arr::dot(require lang_path("{$locale}/documents.php")));
 
         foreach (array_keys(config('app.supported_locales')) as $locale) {
             $this->assertSame($keys('en'), $keys($locale), "lang/{$locale}/documents.php");

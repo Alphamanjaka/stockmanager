@@ -19,10 +19,10 @@ class ContactModelTest extends TestCase
     /** @test */
     public function suppliers_and_customers_share_the_contact_attributes()
     {
-        $this->assertInstanceOf(Contact::class, new Supplier());
-        $this->assertInstanceOf(Contact::class, new Customer());
-        $this->assertSame((new Supplier())->getFillable(), (new Customer())->getFillable());
-        $this->assertSame(['suppliers', 'customers'], [(new Supplier())->getTable(), (new Customer())->getTable()]);
+        $this->assertInstanceOf(Contact::class, new Supplier);
+        $this->assertInstanceOf(Contact::class, new Customer);
+        $this->assertSame((new Supplier)->getFillable(), (new Customer)->getFillable());
+        $this->assertSame(['suppliers', 'customers'], [(new Supplier)->getTable(), (new Customer)->getTable()]);
     }
 
     /** @test */

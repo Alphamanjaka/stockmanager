@@ -2,16 +2,15 @@
 
 namespace App\Modules\Stock\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Stock\Http\Requests\StoreStockMovementRequest;
 use App\Modules\Stock\Services\StockService;
-use App\Modules\Catalog\Services\ProductColorService;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 
 class StockMovementController extends Controller
 {
-    public function __construct(protected StockService $stockService,protected ProductColorService $productColorService)
-    {}
+    public function __construct(protected StockService $stockService, protected ProductColorService $productColorService) {}
 
     /**
      * Display a listing of the resource.
@@ -33,7 +32,6 @@ class StockMovementController extends Controller
 
         return view('stock::stock_movements.index', compact('stockMovements', 'dormantProducts', 'rotationStats', 'stockValueEvolution', 'variantsWithoutCost'));
     }
-
 
     /**
      * Formulaire de correction de stock (secours en cas d'erreur de saisie).
@@ -74,6 +72,7 @@ class StockMovementController extends Controller
     public function show(int $id)
     {
         $stockMovement = $this->stockService->getStockMovementById($id);
+
         return view('stock::stock_movements.show', compact('stockMovement'));
     }
 }

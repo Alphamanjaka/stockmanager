@@ -42,7 +42,7 @@ class PurchaseImportTest extends TestCase
             'reference_groupe,email_fournisseur,sku,nom_produit,couleur_produit,quantite,cout_unitaire',
             'A1,contact@tissus.mg,GEL-30ML,,,12,5000',
             'A1,contact@tissus.mg,,Wax,Rouge,3,700',
-        ]) . "\n";
+        ])."\n";
 
         $import = new PurchaseImport(app(PurchaseService::class), app(SupplierService::class), app(ProductService::class), app(ProductColorService::class));
         app(ImportService::class)->import(UploadedFile::fake()->createWithContent('purchases.csv', $csv), $import);

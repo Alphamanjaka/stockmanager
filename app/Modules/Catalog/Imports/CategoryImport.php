@@ -4,24 +4,22 @@ namespace App\Modules\Catalog\Imports;
 
 use App\Modules\Catalog\Services\CategoryService;
 use Maatwebsite\Excel\Concerns\OnEachRow;
-use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Row;
 
 class CategoryImport implements OnEachRow, WithHeadingRow, WithValidation
 {
-
     private int $created = 0;
+
     private int $updated = 0;
+
     private array $parentsCache = [];
 
     public function __construct(
         protected CategoryService $categoryService
     ) {}
 
-    /**
-     * @param Row $row
-     */
     public function onRow(Row $row)
     {
         $rowData = $row->toArray();
@@ -31,14 +29,14 @@ class CategoryImport implements OnEachRow, WithHeadingRow, WithValidation
             $parentId = null;
 
             // 1. Si un ID de parent est fourni directement
-            if (!empty($rowData['parent_id'])) {
+            if (! empty($rowData['parent_id'])) {
                 $parentId = $rowData['parent_id'];
             }
             // 2. Sinon, si un NOM de parent est fourni, on cherche son ID
-            elseif (!empty($rowData['parent'])) {
+            elseif (! empty($rowData['parent'])) {
                 // On s'assure que le nom du parent est bien une chaîne de caractères
                 $parentName = mb_strtolower(trim((string) $rowData['parent']));
-                if (!array_key_exists($parentName, $this->parentsCache)) {
+                if (! array_key_exists($parentName, $this->parentsCache)) {
                     $parent = $this->categoryService->findOneBy(['name' => $parentName]);
                     $this->parentsCache[$parentName] = $parent ? $parent->id : null;
                 }
@@ -64,16 +62,17 @@ class CategoryImport implements OnEachRow, WithHeadingRow, WithValidation
                 $this->created++;
             }
         } catch (\Throwable $e) {
-            throw new \Exception("Erreur ligne {$rowIndex} : " . $e->getMessage());
+            throw new \Exception("Erreur ligne {$rowIndex} : ".$e->getMessage());
         }
     }
+
     public function rules(): array
     {
         return [
-            'name'        => 'required',
+            'name' => 'required',
             'description' => 'nullable|string',
-            'parent_id'   => 'nullable|integer|exists:categories,id',
-            'parent'      => 'nullable',
+            'parent_id' => 'nullable|integer|exists:categories,id',
+            'parent' => 'nullable',
         ];
     }
 

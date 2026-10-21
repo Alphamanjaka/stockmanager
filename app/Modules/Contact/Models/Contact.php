@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 abstract class Contact extends Model
 {
-    use HasFactory, Archivable;
+    use Archivable, HasFactory;
 
     protected $fillable = [
         'name',

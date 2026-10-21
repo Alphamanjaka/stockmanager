@@ -43,7 +43,7 @@ class StoreProductRequest extends FormRequest
             'specs.*.key' => 'nullable|string|max:100',
             'specs.*.value' => 'nullable|string|max:1000',
 
-            'variants' => 'required|array|min:1|max:' . self::MAX_VARIANTS,
+            'variants' => 'required|array|min:1|max:'.self::MAX_VARIANTS,
             'variants.*.enabled' => 'nullable|boolean',
             'variants.*.values' => 'nullable|array',
             'variants.*.values.*' => 'nullable|string|max:100',
@@ -66,7 +66,7 @@ class StoreProductRequest extends FormRequest
             }
 
             $options = VariantOptions::normalizeOptions($this->input('options', []));
-            $enabled = array_filter($this->input('variants', []), fn ($variant) => !empty($variant['enabled']));
+            $enabled = array_filter($this->input('variants', []), fn ($variant) => ! empty($variant['enabled']));
 
             if ($enabled === []) {
                 $validator->errors()->add('variants', 'Select at least one variant.');
@@ -79,14 +79,14 @@ class StoreProductRequest extends FormRequest
                 $values = $variant['values'] ?? [];
                 foreach ($options as $option) {
                     $value = trim((string) ($values[$option['name']] ?? ''));
-                    if ($value === '' || ($option['values'] !== [] && !in_array($value, $option['values'], true))) {
+                    if ($value === '' || ($option['values'] !== [] && ! in_array($value, $option['values'], true))) {
                         $validator->errors()->add('variants', "Each variant needs a valid value for « {$option['name']} ».");
 
                         return;
                     }
                 }
 
-                $brandId = !empty($variant['brand_id']) ? (int) $variant['brand_id'] : null;
+                $brandId = ! empty($variant['brand_id']) ? (int) $variant['brand_id'] : null;
                 $signature = VariantOptions::signature(VariantOptions::combination($options, $values), $brandId);
                 if (in_array($signature, $signatures, true)) {
                     $validator->errors()->add('variants', 'The same variant appears twice.');
@@ -102,7 +102,7 @@ class StoreProductRequest extends FormRequest
     {
         return [
             'variants.required' => 'Add at least one variant.',
-            'variants.max' => 'Too many variants (maximum ' . self::MAX_VARIANTS . '): reduce the number of option values.',
+            'variants.max' => 'Too many variants (maximum '.self::MAX_VARIANTS.'): reduce the number of option values.',
         ];
     }
 }

@@ -1,44 +1,44 @@
     <?php
 
     use Illuminate\Database\Migrations\Migration;
-    use Illuminate\Database\Schema\Blueprint;
-    use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-    return new class extends Migration
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
     {
-        /**
-         * Run the migrations.
-         */
-        public function up(): void
-        {
-            Schema::create('stock_movements', function (Blueprint $table) {
-                $table->id();
+        Schema::create('stock_movements', function (Blueprint $table) {
+            $table->id();
 
-                // Relation avec la variante (Produit + Couleur)
-                $table->foreignId('product_color_id')->constrained('product_colors')->onDelete('cascade');
+            // Relation avec la variante (Produit + Couleur)
+            $table->foreignId('product_color_id')->constrained('product_colors')->onDelete('cascade');
 
-                // Quantité du mouvement (toujours positive)
-                $table->integer('quantity');
+            // Quantité du mouvement (toujours positive)
+            $table->integer('quantity');
 
-                // Type de mouvement : 'in' (entrée) ou 'out' (sortie)
-                $table->enum('type', ['in', 'out']);
+            // Type de mouvement : 'in' (entrée) ou 'out' (sortie)
+            $table->enum('type', ['in', 'out']);
 
-                // Pour savoir pourquoi le stock a bougé (ex: "Vente", "Réapprovisionnement", "Casse")
-                $table->string('reason')->nullable();
+            // Pour savoir pourquoi le stock a bougé (ex: "Vente", "Réapprovisionnement", "Casse")
+            $table->string('reason')->nullable();
 
-                $table->integer('stock_before')->default(0); // Stock juste avant le mouvement
-                $table->integer('stock_after')->default(0);  // Stock juste après le mouvement
+            $table->integer('stock_before')->default(0); // Stock juste avant le mouvement
+            $table->integer('stock_after')->default(0);  // Stock juste après le mouvement
 
-                // Date et heure du mouvement
-                $table->timestamps();
-            });
-        }
+            // Date et heure du mouvement
+            $table->timestamps();
+        });
+    }
 
-        /**
-         * Reverse the migrations.
-         */
-        public function down(): void
-        {
-            Schema::dropIfExists('stock_movements');
-        }
-    };
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('stock_movements');
+    }
+};

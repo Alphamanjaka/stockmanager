@@ -26,19 +26,20 @@ return new class extends Migration
     public function up(): void
     {
         foreach (self::LEGACY_TABLES as $table => $legacyColumn) {
-            if (!Schema::hasTable($table) || !Schema::hasColumn($table, $legacyColumn) || Schema::hasColumn($table, 'status')) {
+            if (! Schema::hasTable($table) || ! Schema::hasColumn($table, $legacyColumn) || Schema::hasColumn($table, 'status')) {
                 continue;
             }
 
             if (DB::table($table)->doesntExist()) {
                 Schema::drop($table);
+
                 continue;
             }
 
             Schema::rename($table, "legacy_{$table}");
             if (DB::getDriverName() === 'pgsql') {
                 // PostgreSQL ne renomme ni les index ni la séquence : leurs noms bloqueraient la nouvelle table
-                foreach (["{$table}_pkey", "{$table}_sku_unique", "variants_attributes_gin"] as $index) {
+                foreach (["{$table}_pkey", "{$table}_sku_unique", 'variants_attributes_gin'] as $index) {
                     DB::statement("ALTER INDEX IF EXISTS {$index} RENAME TO legacy_{$index}");
                 }
                 DB::statement("ALTER SEQUENCE IF EXISTS {$table}_id_seq RENAME TO legacy_{$table}_id_seq");

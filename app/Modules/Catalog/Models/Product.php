@@ -2,18 +2,17 @@
 
 namespace App\Modules\Catalog\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use \Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Attributes\UseFactory;
-use App\Modules\Catalog\Database\Factories\ProductFactory;
 use App\Core\Models\Concerns\Archivable;
+use App\Modules\Catalog\Database\Factories\ProductFactory;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 #[UseFactory(ProductFactory::class)]
 class Product extends Model
 {
     // has factory ; archivé plutôt que supprimé (ses ventes, achats et mouvements restent complets)
-    use HasFactory, Archivable;
-
+    use Archivable, HasFactory;
 
     // Define fillable attributes for mass assignment
     protected $fillable = [
@@ -56,6 +55,7 @@ class Product extends Model
             ->withPivot('stock', 'alert_stock') // Now pivot also tracks alert_stock
             ->timestamps();
     }
+
     public function toString()
     {
         return $this->name;
@@ -65,6 +65,7 @@ class Product extends Model
     public function scopeSearch($query, $term)
     {
         $term = strtolower($term);
+
         return $query->whereRaw('LOWER(name) LIKE ?', ["%{$term}%"]);
     }
 }

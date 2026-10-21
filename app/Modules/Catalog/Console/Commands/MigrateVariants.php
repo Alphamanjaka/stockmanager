@@ -25,7 +25,9 @@ class MigrateVariants extends Command
     protected $description = 'Remplit les options, signatures et SKU des variantes à partir des couleurs existantes';
 
     private array $stats = [];
+
     private array $reservedSkus = [];
+
     private array $duplicates = [];
 
     public function handle(): int

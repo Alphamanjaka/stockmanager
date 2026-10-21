@@ -2,11 +2,11 @@
 
 namespace App\Modules\Catalog\Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Modules\Catalog\Models\Category;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Catalog\Models\Category>
+ * @extends Factory<Category>
  */
 class CategoryFactory extends Factory
 {
@@ -20,9 +20,9 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            "name" => $this->faker->unique()->randomElement(['tissu', 'creme', 'postiche', 'pommade']),
-            "description" => $this->faker->sentence(),
-            "parent_id" => null, // by default, no parent category
+            'name' => $this->faker->unique()->randomElement(['tissu', 'creme', 'postiche', 'pommade']),
+            'description' => $this->faker->sentence(),
+            'parent_id' => null, // by default, no parent category
         ];
     }
 }

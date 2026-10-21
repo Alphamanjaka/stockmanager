@@ -45,7 +45,7 @@ class ProductsImportTest extends TestCase
             'Gel déshydratant,soins,,30 ml,,,9500,6000,12,',
             'Postiche lisse,postiches,Bella,,Noir,30 cm,45000,30000,4,2',
             'Postiche lisse,postiches,Bella,,Noir,40 cm,52000,35000,2,2',
-        ]) . "\n");
+        ])."\n");
 
         $this->assertSame(['created' => 4, 'updated' => 0], array_intersect_key($report, ['created' => 0, 'updated' => 0]));
 
@@ -113,7 +113,7 @@ class ProductsImportTest extends TestCase
                 'name,category,option_couleur,option_taille,price',
                 'Postiche,postiches,Noir,30 cm,45000',
                 'Postiche,postiches,Brun,,45000', // taille manquante
-            ]) . "\n");
+            ])."\n");
             $this->fail('L\'import aurait dû échouer');
         } catch (\Exception $e) {
             $this->assertStringContainsString('Erreur ligne 3', $e->getMessage());

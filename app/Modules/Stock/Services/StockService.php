@@ -9,6 +9,7 @@ use App\Modules\Stock\Notifications\LowStockAlert;
 use App\Modules\Stock\Support\MovementSource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
@@ -23,7 +24,6 @@ class StockService
     /** Début du motif d'une correction manuelle, pour la distinguer dans l'historique. */
     public const CORRECTION_PREFIX = 'Correction : ';
 
-
     public function getStockEvolutionForProductVariants(array $productColorIds): array
     {
         $evolutionData = [];
@@ -34,6 +34,7 @@ class StockService
 
         return $evolutionData;
     }
+
     /**
      * Entrée de stock (achat reçu, correction) : le stock augmente et le mouvement est enregistré.
      * Avec un coût unitaire (réception d'achat), le prix d'achat de la variante devient son coût moyen
@@ -88,6 +89,7 @@ class StockService
             ], $source);
         });
     }
+
     /**
      * Correction manuelle, en secours d'une erreur de saisie (casse, erreur de comptage, retour...) :
      * le motif est obligatoire et préfixé par « Correction : ».
@@ -96,7 +98,7 @@ class StockService
      */
     public function correct(int $productColorId, string $type, int $quantity, string $reason): void
     {
-        $reason = self::CORRECTION_PREFIX . trim($reason);
+        $reason = self::CORRECTION_PREFIX.trim($reason);
 
         if ($type === 'in') {
             $this->addStock($productColorId, $quantity, $reason, source: MovementSource::correction());
@@ -210,7 +212,7 @@ class StockService
     {
         $query = StockMovement::with(['productColor.product', 'productColor.color', 'productColor.brand', 'user']);
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->whereLike('reason', "%{$filters['search']}%")
                     ->orWhereHas('productColor.product', function ($sq) use ($filters) {
@@ -232,6 +234,7 @@ class StockService
 
         return $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
     }
+
     public function getStockMovementById(int $id): StockMovement
     {
         return StockMovement::with(['productColor.product', 'productColor.color', 'productColor.brand', 'user'])->findOrFail($id);
@@ -317,6 +320,7 @@ class StockService
 
         return $globalEvolution;
     }
+
     /** Enregistre un mouvement avec son auteur (l'utilisateur connecté, vide en tâche planifiée) et sa source. */
     public function createStockMovement(array $data, ?MovementSource $source = null): StockMovement
     {
@@ -385,7 +389,7 @@ class StockService
 
             $dataPoints[] = [
                 'date' => $date->format('d/m'),
-                'value' => max(0, round($runningValue, 2))
+                'value' => max(0, round($runningValue, 2)),
             ];
 
             if (isset($movementsByDay[$dateString])) {
@@ -414,7 +418,7 @@ class StockService
      * Valorisées au coût d'achat de la variante, ou à son prix de vente quand le coût n'est pas renseigné.
      *
      * @return array{lines: list<array>, value: float, stock_value: float, percentage: float}
-     *         percentage : part des pertes dans la valeur du stock avant ces pertes
+     *                                                                                        percentage : part des pertes dans la valeur du stock avant ces pertes
      */
     public function getUnexplainedLosses(\DateTimeInterface $since): array
     {
@@ -455,17 +459,17 @@ class StockService
     /**
      * Recherche les mouvements de stock pour la recherche globale.
      */
-    public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
+    public function searchForGlobalSearch(string $query, int $limit = 5): Collection
     {
         return StockMovement::with(['productColor.product'])
             ->whereLike('reason', "%{$query}%")
-            ->orWhereHas('productColor.product', fn($q) => $q->whereLike('name', "%{$query}%"))
+            ->orWhereHas('productColor.product', fn ($q) => $q->whereLike('name', "%{$query}%"))
             ->limit($limit)
             ->get()
-            ->map(fn(StockMovement $movement) => [
+            ->map(fn (StockMovement $movement) => [
                 'type' => 'movement',
                 'id' => $movement->id,
-                'name' => "Mouv. " . strtoupper($movement->type) . ": " . ($movement->reason ?? 'Sans raison'),
+                'name' => 'Mouv. '.strtoupper($movement->type).': '.($movement->reason ?? 'Sans raison'),
                 'url' => route('admin.movements.show', $movement->id),
             ]);
     }
