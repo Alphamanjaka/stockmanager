@@ -17,6 +17,10 @@
 /public/build
 /public/hot
 /public/storage
+# Le seul PHP du dossier public est index.php : il est servi par le serveur web, tout autre fichier PHP
+# y serait exécutable par son URL (ex. vues compilées dans un mauvais dossier, script de test)
+/public/**/*.php
+!/public/index.php
 /storage/*.key
 /storage/pail
 /vendor

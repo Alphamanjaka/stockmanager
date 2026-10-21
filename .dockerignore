@@ -7,6 +7,8 @@ storage/*.key
 storage/framework/cache/data/*
 storage/framework/sessions/*
 storage/framework/views/*
+# Caches Laravel du poste (config:cache sous Windows : chemins C:\...) : regénérés dans le conteneur
+bootstrap/cache/*.php
 storage/logs/*
 tests/
 .env
