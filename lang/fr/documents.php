@@ -31,6 +31,11 @@ return [
     'subtotal' => 'Sous-total',
     'discount' => 'Remise',
     'total_due' => 'Net à payer',
+    // TVA (prix TTC, taux figé sur la vente)
+    'unit_price_incl_vat' => 'Prix unitaire TTC',
+    'total_excl_vat' => 'Total HT',
+    'vat' => 'TVA :rate %',
+    'total_due_incl_vat' => 'Net à payer TTC',
     'order_total' => 'Total de la commande',
     'paid_by' => 'Payé par',
     'received' => 'Reçu',

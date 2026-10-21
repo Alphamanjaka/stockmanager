@@ -47,6 +47,14 @@
                     </table>
                 </div>
                 <div class="ui-totals">
+                    {{-- TVA de l'avoir : celle de la vente rendue (taux figé à la vente) --}}
+                    @if ($sale->hasVat())
+                        <div><span class="text-muted">{{ __('Total excl. VAT') }}</span><span>{{ $money($sale->excludingVat((float) $saleReturn->total)) }}</span></div>
+                        <div>
+                            <span class="text-muted">{{ __('VAT :rate %', ['rate' => $sale->vatRateLabel()]) }}</span>
+                            <span>{{ $money($sale->vatIncluded((float) $saleReturn->total)) }}</span>
+                        </div>
+                    @endif
                     <div class="ui-totals-grand"><span>{{ __('Total refunded') }}</span><span>{{ $money($saleReturn->total) }}</span></div>
                 </div>
             </x-ui.card>

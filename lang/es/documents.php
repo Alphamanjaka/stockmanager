@@ -31,6 +31,11 @@ return [
     'subtotal' => 'Subtotal',
     'discount' => 'Descuento',
     'total_due' => 'Total a pagar',
+    // TVA (prix TTC, taux figé sur la vente)
+    'unit_price_incl_vat' => 'Precio unitario IVA incl.',
+    'total_excl_vat' => 'Total sin IVA',
+    'vat' => 'IVA :rate %',
+    'total_due_incl_vat' => 'Total a pagar IVA incl.',
     'order_total' => 'Total del pedido',
     'paid_by' => 'Pagado con',
     'received' => 'Recibido',

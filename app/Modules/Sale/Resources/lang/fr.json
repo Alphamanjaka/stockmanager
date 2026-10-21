@@ -6,6 +6,7 @@
     "Already returned": "Déjà rendu",
     "Back to the sale": "Retour à la vente",
     "Billed to": "Facturé à",
+    "Calculated excluding VAT: purchase costs are excluding VAT.": "Calculée hors taxes : les coûts d'achat sont hors taxes.",
     "Cancel the sale": "Annuler la vente",
     "Cancel this sale?": "Annuler cette vente ?",
     "Cost of items": "Coût des articles",
@@ -57,7 +58,12 @@
     "The returned items go back to stock, and the refunded amount is deducted from the revenue of the day. The sale itself is kept unchanged. A credit note is numbered for each return.": "Les articles rendus reviennent en stock, et le montant remboursé est déduit du chiffre d'affaires du jour. La vente elle-même reste inchangée. Chaque retour donne lieu à un avoir numéroté.",
     "This sale was cancelled:": "Cette vente a été annulée :",
     "Total discounts": "Total des remises",
+    "Total excl. VAT": "Total HT",
+    "Total incl. VAT": "Total TTC",
     "Total refunded": "Total remboursé",
     "Unit price": "Prix unitaire",
+    "Unit price incl. VAT": "Prix unitaire TTC",
+    "VAT": "TVA",
+    "VAT :rate %": "TVA :rate %",
     "Walk-in customer": "Client de passage"
 }

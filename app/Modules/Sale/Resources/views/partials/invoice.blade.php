@@ -45,7 +45,7 @@
                 <tr>
                     <th>{{ __('Product') }}</th>
                     <th class="text-end">{{ __('Quantity') }}</th>
-                    <th class="text-end">{{ __('Unit price') }}</th>
+                    <th class="text-end">{{ $sale->hasVat() ? __('Unit price incl. VAT') : __('Unit price') }}</th>
                     <th class="text-end">{{ __('Subtotal') }}</th>
                 </tr>
             </thead>
@@ -69,7 +69,17 @@
                 <span class="text-muted">{{ __('Discount') }}</span>
                 <span @class(['text-danger' => $sale->discount > 0])>{{ $sale->discount > 0 ? '-' : '' }}{{ $amount($sale->discount) }}</span>
             </div>
-            <div class="ui-totals-grand"><span>{{ __('Net total') }}</span><span>{{ $amount($sale->total_net) }}</span></div>
+            {{-- Prix TTC : total HT et TVA au taux figé sur la vente --}}
+            @if ($sale->hasVat())
+                <div><span class="text-muted">{{ __('Total excl. VAT') }}</span><span>{{ $amount($sale->excludingVat($sale->total_net)) }}</span></div>
+                <div>
+                    <span class="text-muted">{{ __('VAT :rate %', ['rate' => $sale->vatRateLabel()]) }}</span>
+                    <span>{{ $amount($sale->vatIncluded($sale->total_net)) }}</span>
+                </div>
+            @endif
+            <div class="ui-totals-grand">
+                <span>{{ $sale->hasVat() ? __('Total incl. VAT') : __('Net total') }}</span><span>{{ $amount($sale->total_net) }}</span>
+            </div>
         </div>
     </x-slot:footer>
 </x-ui.card>

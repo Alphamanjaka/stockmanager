@@ -57,7 +57,7 @@ Pour chaque produit dans la commande :
 ### Étape C : Finalisation
 
 1. **Calcul des totaux** : Somme des lignes moins la remise (avec sécurité `max(0, ...)`).
-2. **Encaissement** : en espèces, une somme reçue inférieure au net à payer (calculé avec les prix de la base) lève une exception et annule tout ; sans somme saisie ou pour un autre mode, la somme reçue est le montant exact. La monnaie rendue (`change_due`) en découle. La devise des paramètres est figée sur la vente.
+2. **Encaissement** : en espèces, une somme reçue inférieure au net à payer (calculé avec les prix de la base) lève une exception et annule tout ; sans somme saisie ou pour un autre mode, la somme reçue est le montant exact. La monnaie rendue (`change_due`) en découle. La devise des paramètres est figée sur la vente, et le taux de TVA aussi (voir ci-dessous).
 3. **Persistance `Sale`** : Sauvegarde de l'en-tête de la vente.
 4. **Insertion groupée `SaleItem`** : Utilisation de `createMany()` pour insérer toutes les lignes en une seule requête SQL (optimisation de performance).
 5. **Sortie de stock** : une fois la vente enregistrée, `StockService->removeStock()` pour chaque ligne, qui :
@@ -77,6 +77,19 @@ Réservés au back office (fiche vente › « Return items »). La vente n'est j
   dans le coût moyen pondéré.
 - **Chiffre d'affaires et marge** : l'avoir compte en négatif **le jour où il est fait** (tableau de bord,
   graphiques, statistiques, marge), même pour une vente d'une période précédente.
+
+### TVA
+
+Réglage « Assujetti à la TVA » (Paramètres › Entreprise), désactivé par défaut : sans lui, aucune TVA n'apparaît,
+même si un taux est saisi.
+
+- **Prix TTC** : les prix de vente comprennent la TVA ; la caisse encaisse le prix affiché.
+- **Taux figé** sur chaque vente (`sales.vat_rate`, vide sans TVA), comme la devise : changer le réglage ne modifie
+  pas les ventes passées.
+- **Documents** : la facture (page et PDF), le reçu et l'avoir affichent le total HT, la TVA et le total TTC,
+  calculés depuis le net à payer (HT = TTC / (1 + taux), TVA = TTC − HT).
+- **Marge** : calculée hors taxes (`Sale::grossMargin`, `SaleService::getGrossMargin`) : les coûts d'achat sont hors
+  taxes et la TVA collectée n'est pas une marge. Le chiffre d'affaires affiché reste TTC (montant encaissé).
 
 ## 6. Points Clés de l'Architecture
 

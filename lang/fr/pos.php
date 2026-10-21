@@ -76,6 +76,9 @@ return [
     // Reçu
     'receipt' => 'Reçu',
     'receipt_number' => 'Reçu n°',
+    'total_excl_vat' => 'Total HT',
+    'vat' => 'TVA :rate %',
+    'total_incl_vat' => 'Total TTC',
     'date' => 'Date',
     'cashier' => 'Caissier',
     'customer' => 'Client',

@@ -51,7 +51,7 @@
             <tr>
                 <th>{{ __('documents.item') }}</th>
                 <th class="text-end" style="width: 10%;">{{ __('documents.quantity') }}</th>
-                <th class="text-end" style="width: 19%;">{{ __('documents.unit_price') }}</th>
+                <th class="text-end" style="width: 19%;">{{ $sale->hasVat() ? __('documents.unit_price_incl_vat') : __('documents.unit_price') }}</th>
                 <th class="text-end" style="width: 19%;">{{ __('documents.amount') }}</th>
             </tr>
         </thead>
@@ -93,8 +93,19 @@
                             <td class="text-end">-{{ $money($sale->discount) }}</td>
                         </tr>
                     @endif
+                    {{-- Prix TTC : le total HT et la TVA sont déduits du net à payer, au taux figé sur la vente --}}
+                    @if ($sale->hasVat())
+                        <tr>
+                            <td>{{ __('documents.total_excl_vat') }}</td>
+                            <td class="text-end">{{ $money($sale->excludingVat($sale->total_net)) }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ __('documents.vat', ['rate' => $sale->vatRateLabel()]) }}</td>
+                            <td class="text-end">{{ $money($sale->vatIncluded($sale->total_net)) }}</td>
+                        </tr>
+                    @endif
                     <tr class="is-grand">
-                        <td>{{ __('documents.total_due') }}</td>
+                        <td>{{ $sale->hasVat() ? __('documents.total_due_incl_vat') : __('documents.total_due') }}</td>
                         <td class="text-end">{{ $money($sale->total_net) }}</td>
                     </tr>
                 </table>

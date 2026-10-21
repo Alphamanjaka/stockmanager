@@ -68,6 +68,9 @@
                             <dt>{{ __('Margin rate') }}</dt>
                             <dd>{{ $status ? __(':rate % of the net total, returns deducted', ['rate' => $sale->marginRate() ?? 0]) : __(':rate % of the net total', ['rate' => $sale->marginRate() ?? 0]) }}</dd>
                         </dl>
+                        @if ($sale->hasVat())
+                            <p class="small text-muted mt-2 mb-0">{{ __('Calculated excluding VAT: purchase costs are excluding VAT.') }}</p>
+                        @endif
                     @endif
                 </x-ui.card>
 

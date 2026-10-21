@@ -166,7 +166,15 @@
             <div class="row"><span>{{ __('pos.subtotal') }}</span><span>{{ $money($sale->total_brut) }}</span></div>
             <div class="row"><span>{{ __('pos.discount') }}</span><span>-{{ $money($sale->discount) }}</span></div>
         @endif
-        <div class="row total"><span>{{ __('pos.total') }}</span><span>{{ $money($sale->total_net) }}</span></div>
+        @if ($sale->hasVat())
+            <div class="row"><span>{{ __('pos.total_excl_vat') }}</span><span>{{ $money($sale->excludingVat($sale->total_net)) }}</span></div>
+            <div class="row">
+                <span>{{ __('pos.vat', ['rate' => $sale->vatRateLabel()]) }}</span><span>{{ $money($sale->vatIncluded($sale->total_net)) }}</span>
+            </div>
+        @endif
+        <div class="row total">
+            <span>{{ $sale->hasVat() ? __('pos.total_incl_vat') : __('pos.total') }}</span><span>{{ $money($sale->total_net) }}</span>
+        </div>
         <hr>
 
         <div class="row">
