@@ -8,6 +8,7 @@ use App\Modules\Purchase\Models\PurchaseItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use App\Modules\Stock\Services\StockService;
+use App\Modules\Stock\Support\MovementSource;
 
 class PurchaseService
 {
@@ -26,10 +27,12 @@ class PurchaseService
             // Si l'achat est déjà reçu, il faut d'abord retirer le stock avant de supprimer l'achat
             if ($purchase->state === 'Received') {
                 foreach ($purchase->items as $item) {
+                    // Source sans identifiant : l'achat est supprimé juste après (le motif garde sa référence)
                     $this->stockService->removeStock(
                         $item->product_color_id,
                         $item->quantity,
-                        "Annulation Réception Achat #{$purchase->reference}"
+                        "Annulation Réception Achat #{$purchase->reference}",
+                        MovementSource::purchase(null)
                     );
                 }
             }
@@ -72,7 +75,8 @@ class PurchaseService
                         $item->product_color_id,
                         $item->quantity,
                         "Réception Achat #{$locked->reference}",
-                        (float) $item->unit_price * $netRatio
+                        (float) $item->unit_price * $netRatio,
+                        MovementSource::purchase($locked->id)
                     );
                 }
             }

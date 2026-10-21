@@ -62,12 +62,13 @@
                                 <th class="text-end">Quantity</th>
                                 <th class="text-end">Stock before → after</th>
                                 <th>Reason</th>
+                                <th>By</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($stockMovements as $movement)
                                 @php
-                                    // Nature du mouvement déduite du motif (correction, inventaire, vente, achat)
+                                    // Nature du mouvement d'après sa source (correction, inventaire, vente, achat)
                                     [$tone, $label] = $movement->kind();
                                     $isLowStock = $movement->stock_after <= ($movement->productColor->alert_stock ?? 0);
                                 @endphp
@@ -97,9 +98,10 @@
                                     <td class="text-muted text-truncate" style="max-width: 240px;" title="{{ $movement->reason }}">
                                         {{ $movement->reason }}
                                     </td>
+                                    <td class="text-nowrap">{{ $movement->user->name ?? '—' }}</td>
                                 </tr>
                             @empty
-                                <x-ui.empty-row :colspan="7" icon="bi-arrow-left-right">No movement found.</x-ui.empty-row>
+                                <x-ui.empty-row :colspan="8" icon="bi-arrow-left-right">No movement found.</x-ui.empty-row>
                             @endforelse
                         </tbody>
                     </table>

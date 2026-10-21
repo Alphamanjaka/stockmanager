@@ -5,6 +5,7 @@ namespace App\Modules\Inventory\Services;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Inventory\Models\Inventory;
 use App\Modules\Stock\Services\StockService;
+use App\Modules\Stock\Support\MovementSource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -140,7 +141,7 @@ class InventoryService
                 // Ligne comptée avant l'enregistrement du stock au comptage : le stock actuel sert de référence
                 $atCount = $line->stock_at_count ?? $stock;
 
-                $this->stockService->adjustTo($line->product_color_id, $stock + $line->counted_quantity - $atCount, "Inventaire {$locked->reference}");
+                $this->stockService->adjustTo($line->product_color_id, $stock + $line->counted_quantity - $atCount, "Inventaire {$locked->reference}", MovementSource::inventory($locked->id));
                 $line->update(['stock_at_count' => $atCount, 'stock_at_validation' => $stock]);
             }
 

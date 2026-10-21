@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Stock\Models\StockMovement;
 use App\Modules\Stock\Notifications\LowStockAlert;
+use App\Modules\Stock\Support\MovementSource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\DB;
@@ -15,14 +16,13 @@ use Illuminate\Support\Facades\Notification;
  * Seul point d'écriture du stock : chaque variation crée un mouvement historisé.
  * Entrées : achat reçu ; sorties : vente ; inventaire physique (adjustTo) ;
  * correction manuelle (correct), en secours d'une erreur de saisie.
+ * Chaque mouvement garde son auteur (utilisateur connecté) et sa source (MovementSource : document d'origine).
  */
 class StockService
 {
     /** Début du motif d'une correction manuelle, pour la distinguer dans l'historique. */
     public const CORRECTION_PREFIX = 'Correction : ';
 
-    /** Début du motif des écarts d'inventaire (InventoryService : « Inventaire <référence> »). */
-    public const INVENTORY_PREFIX = 'Inventaire ';
 
     public function getStockEvolutionForProductVariants(array $productColorIds): array
     {
@@ -39,9 +39,9 @@ class StockService
      * Avec un coût unitaire (réception d'achat), le prix d'achat de la variante devient son coût moyen
      * pondéré (CUMP). Sans coût (correction, retour), il ne change pas.
      */
-    public function addStock(int $productColorId, int $quantity, string $reason, ?float $unitCost = null)
+    public function addStock(int $productColorId, int $quantity, string $reason, ?float $unitCost = null, ?MovementSource $source = null)
     {
-        DB::transaction(function () use ($productColorId, $quantity, $reason, $unitCost) {
+        DB::transaction(function () use ($productColorId, $quantity, $reason, $unitCost, $source) {
             $variant = ProductColor::lockForUpdate()->findOrFail($productColorId);
 
             $before = $variant->stock;
@@ -58,16 +58,16 @@ class StockService
                 'reason' => $reason,
                 'stock_before' => $before,
                 'stock_after' => $after,
-            ]);
+            ], $source);
         });
     }
 
     /**
      * Sortie de stock (vente, correction) : refusée si le stock est insuffisant.
      */
-    public function removeStock(int $productColorId, int $quantity, string $reason)
+    public function removeStock(int $productColorId, int $quantity, string $reason, ?MovementSource $source = null)
     {
-        DB::transaction(function () use ($productColorId, $quantity, $reason) {
+        DB::transaction(function () use ($productColorId, $quantity, $reason, $source) {
             $variant = ProductColor::with('product', 'color')->lockForUpdate()->findOrFail($productColorId);
 
             if ($variant->stock < $quantity) {
@@ -85,7 +85,7 @@ class StockService
                 'reason' => $reason,
                 'stock_before' => $before,
                 'stock_after' => $after,
-            ]);
+            ], $source);
         });
     }
     /**
@@ -99,9 +99,9 @@ class StockService
         $reason = self::CORRECTION_PREFIX . trim($reason);
 
         if ($type === 'in') {
-            $this->addStock($productColorId, $quantity, $reason);
+            $this->addStock($productColorId, $quantity, $reason, source: MovementSource::correction());
         } else {
-            $this->removeStock($productColorId, $quantity, $reason);
+            $this->removeStock($productColorId, $quantity, $reason, MovementSource::correction());
         }
     }
 
@@ -111,9 +111,9 @@ class StockService
      *
      * @return StockMovement|null le mouvement créé, ou null si le stock était déjà à la cible
      */
-    public function adjustTo(int $productColorId, int $target, string $reason): ?StockMovement
+    public function adjustTo(int $productColorId, int $target, string $reason, ?MovementSource $source = null): ?StockMovement
     {
-        return DB::transaction(function () use ($productColorId, $target, $reason) {
+        return DB::transaction(function () use ($productColorId, $target, $reason, $source) {
             $variant = ProductColor::lockForUpdate()->findOrFail($productColorId);
 
             $target = max(0, $target);
@@ -133,7 +133,7 @@ class StockService
                 'reason' => $reason,
                 'stock_before' => $before,
                 'stock_after' => $target,
-            ]);
+            ], $source);
         });
     }
 
@@ -208,7 +208,7 @@ class StockService
      */
     public function stockMovementsQuery(array $filters = []): Builder
     {
-        $query = StockMovement::with(['productColor.product', 'productColor.color', 'productColor.brand']);
+        $query = StockMovement::with(['productColor.product', 'productColor.color', 'productColor.brand', 'user']);
 
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
@@ -234,7 +234,7 @@ class StockService
     }
     public function getStockMovementById(int $id): StockMovement
     {
-        return StockMovement::with(['productColor.product', 'productColor.color', 'productColor.brand'])->findOrFail($id);
+        return StockMovement::with(['productColor.product', 'productColor.color', 'productColor.brand', 'user'])->findOrFail($id);
     }
 
     public function getStockMovementsForProduct(int $productId, int $perPage = 10)
@@ -242,7 +242,7 @@ class StockService
         return StockMovement::whereHas('productColor', function ($q) use ($productId) {
             $q->where('product_id', $productId);
         })
-            ->with(['productColor.color', 'productColor.product', 'productColor.brand'])
+            ->with(['productColor.color', 'productColor.product', 'productColor.brand', 'user'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
     }
@@ -317,9 +317,14 @@ class StockService
 
         return $globalEvolution;
     }
-    public function createStockMovement(array $data): StockMovement
+    /** Enregistre un mouvement avec son auteur (l'utilisateur connecté, vide en tâche planifiée) et sa source. */
+    public function createStockMovement(array $data, ?MovementSource $source = null): StockMovement
     {
-        return StockMovement::create($data);
+        return StockMovement::create($data + [
+            'user_id' => auth()->id(),
+            'source_type' => $source?->type,
+            'source_id' => $source?->id,
+        ]);
     }
 
     /**
@@ -416,8 +421,7 @@ class StockService
         $lines = StockMovement::with(['productColor.product', 'productColor.color', 'productColor.brand'])
             ->where('type', 'out')
             ->where('created_at', '>=', $since)
-            ->where(fn ($q) => $q->where('reason', 'like', self::CORRECTION_PREFIX . '%')
-                ->orWhere('reason', 'like', self::INVENTORY_PREFIX . '%'))
+            ->whereIn('source_type', [MovementSource::CORRECTION, MovementSource::INVENTORY])
             ->orderBy('created_at')
             ->orderBy('id')
             ->get()

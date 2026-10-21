@@ -22,7 +22,7 @@ class StockMovementControllerAPI extends Controller
 
         if (!empty($variantId)) {
             // movements for a specific variant (product_color_id)
-            $movements = StockMovement::with(['productColor.color', 'productColor.product', 'productColor.brand'])
+            $movements = StockMovement::with(['productColor.color', 'productColor.product', 'productColor.brand', 'user'])
                 ->where('product_color_id', (int) $variantId)
                 ->orderBy('created_at', 'desc')
                 ->paginate(50);

@@ -7,6 +7,7 @@ use App\Modules\Sale\Models\Sale;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Sale\Services\SaleService;
 use App\Modules\Stock\Services\StockService;
+use App\Modules\Stock\Support\MovementSource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
@@ -54,7 +55,7 @@ class SaleServiceTest extends TestCase
             ->once()
             ->with($variant->id, 2, Mockery::on(function ($reason) {
                 return str_starts_with($reason, 'Vente SALE-');
-            }));
+            }), Mockery::on(fn (MovementSource $source) => $source->type === MovementSource::SALE && $source->id !== null));
 
         // Act
         $sale = $this->service->createSale($productsData, $discount, $user->id);

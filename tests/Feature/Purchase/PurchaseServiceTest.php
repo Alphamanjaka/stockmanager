@@ -194,7 +194,8 @@ class PurchaseServiceTest extends TestCase
                 ->shouldReceive('addStock')
                 ->once()
                 ->with($item->product_color_id, $item->quantity, "Réception Achat #{$purchase->reference}",
-                    \Mockery::on(fn ($cost) => abs($cost - $expectedCost) < 0.001));
+                    \Mockery::on(fn ($cost) => abs($cost - $expectedCost) < 0.001),
+                    \Mockery::on(fn ($source) => $source->type === 'purchase' && $source->id === $purchase->id));
         }
 
         // Act

@@ -85,6 +85,10 @@ pour que l'ordre de chargement des modules n'ait pas d'importance.
   | Inventaire physique validé | écart compté | `adjustTo` |
   | Correction manuelle (secours en cas d'erreur, motif obligatoire) | entrée ou sortie | `correct` |
 
+- **Auteur et source de chaque mouvement** : `user_id` (utilisateur connecté, vide en tâche planifiée) et
+  `source_type` / `source_id`, le document à l'origine (`App\Modules\Stock\Support\MovementSource` : achat, vente,
+  inventaire, correction). Le type est un libellé court, pas un nom de classe : le module Stock ne dépend pas des
+  modules qui l'appellent. La nature affichée d'un mouvement et l'alerte de pertes lisent la source, plus le motif.
 - **Coût d'une variante** (`price_purchase`) : coût moyen pondéré (CUMP). À chaque réception, `StockService`
   le recalcule sous le même verrou que le stock : `(stock × coût actuel + quantité reçue × coût payé) / nouveau stock`,
   la remise de l'achat étant répartie sur ses lignes. Les ventes, inventaires et corrections ne le changent pas.

@@ -2,17 +2,27 @@
 
 namespace App\Modules\Stock\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Stock\Support\MovementSource;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use App\Modules\Stock\Database\Factories\StockMovementFactory;
+use Illuminate\Support\Facades\Route;
 
 #[UseFactory(StockMovementFactory::class)]
 class StockMovement extends Model
 {
     use HasFactory;
-    //
+
+    /** Page du document à l'origine du mouvement, par type de source (routes des autres modules). */
+    private const SOURCE_ROUTES = [
+        MovementSource::PURCHASE => 'admin.purchases.show',
+        MovementSource::SALE => 'admin.sales.show',
+        MovementSource::INVENTORY => 'admin.inventories.show',
+    ];
+
     protected $fillable = [
         'product_color_id',
         'quantity',
@@ -20,6 +30,9 @@ class StockMovement extends Model
         'reason',
         'stock_before',
         'stock_after',
+        'user_id',
+        'source_type',
+        'source_id',
     ];
     /**
      * Get the product color variant that owns the stock movement.
@@ -29,12 +42,38 @@ class StockMovement extends Model
         return $this->belongsTo(ProductColor::class);
     }
 
+    /** Auteur de l'opération (vide : tâche planifiée, ou mouvement enregistré avant le suivi des auteurs). */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /** Lien vers le document à l'origine du mouvement (achat, vente, inventaire), ou null. */
+    public function sourceUrl(): ?string
+    {
+        $route = self::SOURCE_ROUTES[$this->source_type] ?? null;
+
+        return $route && $this->source_id && Route::has($route) ? route($route, $this->source_id) : null;
+    }
+
     /**
-     * Nature du mouvement, déduite du motif (correction, inventaire, vente, achat) : [ton du badge, libellé].
+     * Nature du mouvement, d'après sa source : [ton du badge, libellé].
      *
      * @return array{0: string, 1: string}
      */
     public function kind(): array
+    {
+        return match ($this->source_type) {
+            MovementSource::CORRECTION => ['warning', 'Correction'],
+            MovementSource::INVENTORY => ['info', 'Stock count'],
+            MovementSource::PURCHASE => $this->type === 'in' ? ['success', 'Purchase'] : ['danger', 'Purchase cancelled'],
+            MovementSource::SALE => ['danger', 'Sale'],
+            default => $this->kindFromReason(),
+        };
+    }
+
+    /** Mouvement sans source (enregistré avant leur suivi, motif non reconnu) : nature déduite du motif, comme avant. */
+    private function kindFromReason(): array
     {
         $reason = strtolower((string) $this->reason);
 

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Modules\Stock\Services\StockService;
+use App\Modules\Stock\Support\MovementSource;
 use App\Modules\Contact\Services\CustomerService;
 
 class SaleService
@@ -77,22 +78,22 @@ class SaleService
                     'unit_cost'        => (float) $variant->price_purchase > 0 ? $variant->price_purchase : null,
                     'subtotal'         => $subtotal,
                 ];
-
-                // 2. DÉCRÉMENTER via le StockService (qui doit maintenant accepter product_color_id)
-                $this->stockService->removeStock($variant->id, $item['quantity'], "Vente {$sale->reference}");
             }
 
-
-
-
-            // 3. Sauvegarde de la vente avec les vrais totaux du premier coup
+            // 2. Sauvegarde de la vente avec les vrais totaux du premier coup
             $sale->total_brut = $totalBrut;
             $sale->total_net = max(0, $totalBrut - $discount);
             $sale->amount_received = $this->amountReceived($sale, $details['amount_received'] ?? null);
             $sale->save();
 
-            // 4. Création groupée des lignes (une seule requête SQL au lieu d'une par produit)
+            // 3. Création groupée des lignes (une seule requête SQL au lieu d'une par produit)
             $sale->items()->createMany($itemsToCreate);
+
+            // 4. Sortie de stock, une fois la vente enregistrée : chaque mouvement cite la vente.
+            // Les variantes sont verrouillées depuis leur lecture : le stock vérifié plus haut n'a pas bougé.
+            foreach ($itemsToCreate as $line) {
+                $this->stockService->removeStock($line['product_color_id'], $line['quantity'], "Vente {$sale->reference}", MovementSource::sale($sale->id));
+            }
 
             return $sale;
         });
