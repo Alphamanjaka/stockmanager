@@ -80,7 +80,7 @@ Pour intégrer une nouvelle entité (ex: `Customer`) au système de recherche :
 
 - **Point de Vente (POS)** : Interface de saisie rapide.
 - **Contrôle de Stock en Temps Réel** : Impossible de valider une vente si la quantité est insuffisante.
-- **Calculs Automatiques** : Gestion des remises, totaux bruts/nets et génération de références uniques (`SALE-XXXX`).
+- **Calculs Automatiques** : Gestion des remises, totaux bruts/nets et numéros de facture à la suite par année (`FAC-2026-000123`).
 
 ### 2. Chaîne d'Approvisionnement (Achats)
 

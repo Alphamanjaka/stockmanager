@@ -41,7 +41,8 @@ C'est le cœur critique du système. Toutes les opérations sont encapsulées da
 
 ### Étape A : Initialisation
 
-- Génération d'une référence unique (`SALE-XXXXXXXX`).
+- Numéro de facture à la suite, avec un compteur par année (`FAC-2026-000123`, `DocumentNumberService`).
+  Pris dans la transaction : une vente annulée rend son numéro, la suite n'a pas de trou.
 - Identification de l'auteur de la vente (`user_id`).
 
 ### Étape B : Traitement des produits (Boucle)
