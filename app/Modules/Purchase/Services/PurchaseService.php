@@ -63,12 +63,16 @@ class PurchaseService
             }
 
             if ($state === 'Received') {
+                // Remise de l'achat répartie sur les lignes au prorata : coût réellement payé par article
+                $netRatio = (float) $locked->total_amount > 0 ? (float) $locked->total_net / (float) $locked->total_amount : 1;
+
                 foreach ($locked->items as $item) {
-                    //We increase stock for each item in the purchase
+                    // Entrée en stock ; le coût de la variante devient son coût moyen pondéré (CUMP)
                     $this->stockService->addStock(
                         $item->product_color_id,
                         $item->quantity,
-                        "Réception Achat #{$locked->reference}"
+                        "Réception Achat #{$locked->reference}",
+                        (float) $item->unit_price * $netRatio
                     );
                 }
             }

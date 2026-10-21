@@ -186,12 +186,15 @@ class PurchaseServiceTest extends TestCase
             })
             ->create(['state' => 'Ordered']);
 
-        // We expect addStock to be called for each item in the purchase
+        // We expect addStock to be called for each item in the purchase,
+        // with its unit cost net of the purchase discount (spread over the lines)
         foreach ($purchase->items as $item) {
+            $expectedCost = $item->unit_price * $purchase->total_net / $purchase->total_amount;
             $this->stockServiceMock
                 ->shouldReceive('addStock')
                 ->once()
-                ->with($item->product_color_id, $item->quantity, "Réception Achat #{$purchase->reference}");
+                ->with($item->product_color_id, $item->quantity, "Réception Achat #{$purchase->reference}",
+                    \Mockery::on(fn ($cost) => abs($cost - $expectedCost) < 0.001));
         }
 
         // Act

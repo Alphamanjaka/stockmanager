@@ -80,10 +80,15 @@ pour que l'ordre de chargement des modules n'ait pas d'importance.
 
   | Origine | Effet | Méthode |
   |---|---|---|
-  | Achat passé au statut « Reçu » | entrée | `addStock` |
+  | Achat passé au statut « Reçu » | entrée, coût moyen pondéré recalculé | `addStock` avec coût unitaire |
   | Vente | sortie | `removeStock` |
   | Inventaire physique validé | écart compté | `adjustTo` |
   | Correction manuelle (secours en cas d'erreur, motif obligatoire) | entrée ou sortie | `correct` |
+
+- **Coût d'une variante** (`price_purchase`) : coût moyen pondéré (CUMP). À chaque réception, `StockService`
+  le recalcule sous le même verrou que le stock : `(stock × coût actuel + quantité reçue × coût payé) / nouveau stock`,
+  la remise de l'achat étant répartie sur ses lignes. Les ventes, inventaires et corrections ne le changent pas.
+  Il reste modifiable dans le catalogue (coût de départ, correction).
 
 - **Le catalogue ne gère pas le stock** : il crée les produits et leurs variantes, qui démarrent à 0.
   Le stock y est en lecture seule (formulaires, fiche produit, import des produits : aucune saisie de stock).
