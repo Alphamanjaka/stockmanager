@@ -7,14 +7,18 @@ use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use App\Modules\Stock\Services\StockService;
 use App\Modules\Stock\Support\MovementSource;
 use App\Modules\Contact\Services\CustomerService;
+use App\Core\Services\DocumentNumberService;
 
 class SaleService
 {
-    public function __construct(protected StockService $stockService, protected CustomerService $customerService) {}
+    public function __construct(
+        protected StockService $stockService,
+        protected CustomerService $customerService,
+        protected DocumentNumberService $documentNumbers,
+    ) {}
     /**
      * Crée une vente en l'associant à un utilisateur.
      * Si l'ID utilisateur n'est pas fourni, il utilise l'utilisateur authentifié.
@@ -36,7 +40,8 @@ class SaleService
             // 1. On prépare la vente (un client créé ici est annulé si la vente échoue)
             $sale = new Sale([
                 'customer_id' => $this->resolveCustomerId($details),
-                'reference'  => 'SALE-' . strtoupper(Str::random(8)),
+                // Numéro de facture à la suite (pris dans la transaction : une vente annulée ne laisse pas de trou)
+                'reference'  => $this->documentNumbers->next(Sale::INVOICE_PREFIX),
                 'discount'   => $discount,
                 'user_id'    => $userId, // Toujours mieux de savoir qui a vendu
                 'payment_method' => $details['payment_method'] ?? Sale::PAYMENT_CASH,

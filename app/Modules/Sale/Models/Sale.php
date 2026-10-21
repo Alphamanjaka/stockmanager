@@ -18,6 +18,9 @@ class Sale extends Model
     public const PAYMENT_CASH = 'cash';
     public const PAYMENT_METHODS = [self::PAYMENT_CASH, 'mobile_money', 'card'];
 
+    /** Préfixe des numéros de facture, à la suite par année : FAC-2026-000123 (DocumentNumberService). */
+    public const INVOICE_PREFIX = 'FAC';
+
     protected $fillable = ['reference', 'total_brut', 'discount', 'total_net','user_id', 'customer_id', 'company_name', 'company_email', 'company_phone', 'company_address','currency_symbol', 'payment_method', 'amount_received'];
 
     /** Monnaie rendue au client : somme reçue moins le net à payer (0 si la somme reçue n'est pas connue). */

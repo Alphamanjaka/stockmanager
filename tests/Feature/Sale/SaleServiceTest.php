@@ -28,7 +28,11 @@ class SaleServiceTest extends TestCase
         $this->stockServiceMock = Mockery::mock(StockService::class);
         $this->app->instance(StockService::class, $this->stockServiceMock);
         // On injecte le mock dans notre service
-        $this->service = new SaleService($this->app->make(StockService::class), $this->app->make(\App\Modules\Contact\Services\CustomerService::class));
+        $this->service = new SaleService(
+            $this->app->make(StockService::class),
+            $this->app->make(\App\Modules\Contact\Services\CustomerService::class),
+            $this->app->make(\App\Core\Services\DocumentNumberService::class),
+        );
     }
 
     /** @test */
@@ -54,7 +58,7 @@ class SaleServiceTest extends TestCase
             ->shouldReceive('removeStock')
             ->once()
             ->with($variant->id, 2, Mockery::on(function ($reason) {
-                return str_starts_with($reason, 'Vente SALE-');
+                return str_starts_with($reason, 'Vente FAC-');
             }), Mockery::on(fn (MovementSource $source) => $source->type === MovementSource::SALE && $source->id !== null));
 
         // Act
