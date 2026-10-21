@@ -17,6 +17,9 @@ class StockService
     /** Début du motif d'une correction manuelle, pour la distinguer dans l'historique. */
     public const CORRECTION_PREFIX = 'Correction : ';
 
+    /** Début du motif des écarts d'inventaire (InventoryService : « Inventaire <référence> »). */
+    public const INVENTORY_PREFIX = 'Inventaire ';
+
     public function getStockEvolutionForProductVariants(array $productColorIds): array
     {
         $evolutionData = [];
@@ -331,6 +334,51 @@ class StockService
         }
 
         return array_reverse($dataPoints);
+    }
+
+    /**
+     * Pertes non expliquées depuis une date : les sorties qui ne viennent ni d'une vente ni de l'annulation
+     * d'un achat, c'est-à-dire les corrections en sortie et les écarts d'inventaire négatifs.
+     * Valorisées au coût d'achat de la variante, ou à son prix de vente quand le coût n'est pas renseigné.
+     *
+     * @return array{lines: list<array>, value: float, stock_value: float, percentage: float}
+     *         percentage : part des pertes dans la valeur du stock avant ces pertes
+     */
+    public function getUnexplainedLosses(\DateTimeInterface $since): array
+    {
+        $lines = StockMovement::with(['productColor.product', 'productColor.color', 'productColor.brand'])
+            ->where('type', 'out')
+            ->where('created_at', '>=', $since)
+            ->where(fn ($q) => $q->where('reason', 'like', self::CORRECTION_PREFIX . '%')
+                ->orWhere('reason', 'like', self::INVENTORY_PREFIX . '%'))
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (StockMovement $movement) => [
+                'date' => $movement->created_at,
+                'label' => $movement->productColor->label,
+                'sku' => $movement->productColor->sku,
+                'quantity' => abs($movement->quantity),
+                'reason' => $movement->reason,
+                'value' => abs($movement->quantity) * $this->unitValue($movement->productColor),
+            ]);
+
+        $value = (float) $lines->sum('value');
+        $stockValue = (float) ProductColor::sum(DB::raw('stock * COALESCE(NULLIF(price_purchase, 0), price)'));
+        $valueBefore = $stockValue + $value;
+
+        return [
+            'lines' => $lines->all(),
+            'value' => round($value, 2),
+            'stock_value' => round($stockValue, 2),
+            'percentage' => $valueBefore > 0 ? round($value / $valueBefore * 100, 2) : 0.0,
+        ];
+    }
+
+    /** Valeur d'une unité perdue : coût d'achat, ou prix de vente à défaut. */
+    private function unitValue(ProductColor $variant): float
+    {
+        return (float) $variant->price_purchase > 0 ? (float) $variant->price_purchase : (float) $variant->price;
     }
 
     /**

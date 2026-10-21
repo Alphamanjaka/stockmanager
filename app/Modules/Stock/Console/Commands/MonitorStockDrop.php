@@ -8,15 +8,21 @@ use Illuminate\Support\Facades\Mail;
 use App\Modules\Stock\Mail\StockDropAlert;
 use App\Models\User;
 
+/**
+ * Surveille les pertes non expliquées : corrections en sortie et écarts d'inventaire négatifs.
+ * Les ventes et les annulations d'achat ne comptent pas : une bonne journée de ventes ne déclenche plus d'alerte.
+ */
 class MonitorStockDrop extends Command
 {
     /**
      * La signature de la commande.
-     * Exemple d'utilisation : php artisan stock:monitor-drop --threshold=15
+     * Exemple d'utilisation : php artisan stock:monitor-drop --threshold=2 --hours=24
      */
-    protected $signature = 'stock:monitor-drop {--threshold=10 : Pourcentage de chute pour déclencher l\'alerte}';
+    protected $signature = 'stock:monitor-drop
+        {--threshold=1 : Pertes, en % de la valeur du stock, à partir desquelles l\'alerte est envoyée}
+        {--hours=24 : Période surveillée, en heures (24 pour une exécution quotidienne)}';
 
-    protected $description = 'Surveille la valeur du stock et envoie une alerte en cas de chute brutale.';
+    protected $description = 'Surveille les pertes de stock non expliquées et alerte les administrateurs.';
 
     protected $stockService;
 
@@ -29,39 +35,31 @@ class MonitorStockDrop extends Command
     public function handle()
     {
         $threshold = (float) $this->option('threshold');
+        $hours = max(1, (int) $this->option('hours'));
 
-        // On récupère l'évolution sur 2 jours via le service existant
-        // Index 0 = Hier (Fin de journée), Index 1 = Aujourd'hui (Instant T)
-        $evolution = $this->stockService->getTotalStockValueEvolution(2);
+        $losses = $this->stockService->getUnexplainedLosses(now()->subHours($hours));
 
-        if (count($evolution) < 2) {
-            $this->info('Pas assez de données historiques pour l\'analyse.');
+        if (empty($losses['lines'])) {
+            $this->info("✅ Aucune perte non expliquée sur les {$hours} dernières heures.");
             return;
         }
 
-        $previousValue = $evolution[0]['value'];
-        $currentValue = $evolution[1]['value'];
+        $summary = count($losses['lines']) . ' sortie(s), ' . money($losses['value'])
+            . ' (' . number_format($losses['percentage'], 2) . ' % de la valeur du stock)';
 
-        if ($previousValue == 0) {
-            return; // Évite la division par zéro
+        if ($losses['percentage'] < $threshold) {
+            $this->info("✅ Pertes non expliquées : {$summary}. Seuil d'alerte : {$threshold} %.");
+            return;
         }
 
-        // Calcul du pourcentage de variation
-        $variation = (($currentValue - $previousValue) / $previousValue) * 100;
+        $this->warn("⚠️ Pertes non expliquées : {$summary}. Envoi des alertes...");
 
-        // Si la variation est négative (chute) et dépasse le seuil (en valeur absolue)
-        if ($variation < 0 && abs($variation) >= $threshold) {
-            $this->warn("⚠️ Chute de " . number_format($variation, 2) . "% détectée ! Envoi des alertes...");
-
-            // Envoi aux administrateurs (utilisateurs avec le rôle 'back_office')
-            $admins = User::where('role', 'back_office')->get();
-            foreach ($admins as $admin) {
-                Mail::to($admin->email)->send(new StockDropAlert($currentValue, $previousValue, $variation));
-                // Pause de 2 secondes entre chaque email pour éviter le "Rate Limit" de Mailtrap
-                sleep(2);
-            }
-        } else {
-            $this->info("✅ Variation normale (" . number_format($variation, 2) . "%). Seuil d'alerte : -{$threshold}%");
+        // Envoi aux administrateurs en service (rôle 'back_office', compte non archivé)
+        $admins = User::where('role', 'back_office')->active()->get();
+        foreach ($admins as $admin) {
+            Mail::to($admin->email)->send(new StockDropAlert($losses['lines'], $losses['value'], $losses['percentage'], $hours));
+            // Pause de 2 secondes entre chaque email pour éviter le "Rate Limit" de Mailtrap
+            sleep(2);
         }
     }
 }

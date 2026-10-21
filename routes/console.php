@@ -8,9 +8,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Vérifie la valeur du stock tous les jours à 18h00.
-// Le seuil peut être ajusté ici (--threshold=15 pour 15%).
-Schedule::command('stock:monitor-drop --threshold=10')->dailyAt('18:00');
+// Surveille les pertes non expliquées des dernières 24 heures (corrections en sortie, écarts d'inventaire
+// négatifs) tous les jours à 18h00. Alerte à partir de 1 % de la valeur du stock (--threshold=2 pour 2 %).
+Schedule::command('stock:monitor-drop --threshold=1 --hours=24')->dailyAt('18:00');
 
 // Sauvegarde quotidienne (fichiers + base) à 01:00, traitée par le worker de file d'attente.
 // withoutOverlapping : évite de lancer deux sauvegardes si la précédente n'est pas terminée.
