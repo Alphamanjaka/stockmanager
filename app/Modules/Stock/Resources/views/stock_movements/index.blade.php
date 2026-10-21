@@ -111,7 +111,13 @@
         <div class="tab-pane fade" id="stats-pane" role="tabpanel" aria-labelledby="stats-tab" tabindex="0">
             <div class="row g-3">
                 <div class="col-lg-8">
-                    <x-ui.card title="Stock value" subtitle="Last 30 days" class="h-100">
+                    <x-ui.card title="Stock value" subtitle="Last 30 days, at purchase cost" class="h-100">
+                        @if ($variantsWithoutCost > 0)
+                            <p class="small text-muted">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                                {{ $variantsWithoutCost }} variant(s) in stock have no purchase price and count for 0.
+                            </p>
+                        @endif
                         <div style="height: 300px;">
                             <canvas id="stockValueChart" role="img" aria-label="Stock value over the last 30 days"></canvas>
                         </div>

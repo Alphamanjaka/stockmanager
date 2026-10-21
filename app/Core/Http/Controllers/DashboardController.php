@@ -52,6 +52,7 @@ class DashboardController extends Controller
         return view('core::back-office.dashboard', [
             'salesThisWeek' => $data['salesThisWeek'],
             'salesThisMonth' => $data['salesThisMonth'],
+            'marginThisMonth' => $data['marginThisMonth'],
             'totalProducts' => $data['totalProducts'],
             'lowStockProducts' => $data['lowStockProducts'],
             'totalCategories' => $data['totalCategories'],

@@ -20,6 +20,22 @@
 
         <div class="col-lg-4">
             <div class="ui-stack">
+                {{-- Coûts figés à la vente : back office seulement (la facture est partagée avec les vendeurs) --}}
+                <x-ui.card title="Margin">
+                    @if ($sale->grossMargin() === null)
+                        <span class="text-muted">The purchase cost of at least one item was not known at the time of the sale.</span>
+                    @else
+                        <dl class="ui-dl">
+                            <dt>Cost of items</dt>
+                            <dd>{{ money($sale->costTotal(), 2, $sale->currency_symbol) }}</dd>
+                            <dt>Gross margin</dt>
+                            <dd @class(['fw-semibold', 'text-danger' => $sale->grossMargin() < 0])>{{ money($sale->grossMargin(), 2, $sale->currency_symbol) }}</dd>
+                            <dt>Margin rate</dt>
+                            <dd>{{ $sale->marginRate() ?? 0 }} % of the net total</dd>
+                        </dl>
+                    @endif
+                </x-ui.card>
+
                 <x-ui.card title="Seller">
                     <dl class="ui-dl">
                         <dt>Name</dt>

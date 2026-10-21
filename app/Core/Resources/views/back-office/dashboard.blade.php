@@ -50,6 +50,16 @@
                             <div class="ui-stat-value">{{ money($salesThisMonth) }}</div>
                         </li>
                         <li class="list-group-item py-3">
+                            <div class="ui-stat-label">Gross margin this month</div>
+                            <div class="ui-stat-value">{{ money($marginThisMonth['margin']) }}</div>
+                            <div class="ui-cell-meta">
+                                {{ $marginThisMonth['rate'] === null ? 'No sale with a known cost' : $marginThisMonth['rate'] . ' % of sales' }}
+                                @if ($marginThisMonth['excluded'] > 0)
+                                    · {{ $marginThisMonth['excluded'] }} sale(s) without a known cost not counted
+                                @endif
+                            </div>
+                        </li>
+                        <li class="list-group-item py-3">
                             <div class="ui-stat-label">Number of sales</div>
                             <div class="ui-stat-value">{{ $totalSales }}</div>
                         </li>

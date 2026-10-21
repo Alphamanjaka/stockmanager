@@ -16,6 +16,9 @@
         <div class="ui-stats">
             <x-ui.stat label="Business volume" :value="money($total_revenue)" icon="bi-graph-up-arrow" tone="success" />
             <x-ui.stat label="Total discounts" :value="money($total_discount)" icon="bi-percent" tone="danger" />
+            <x-ui.stat label="Gross margin" :value="money($margin['margin'])" icon="bi-cash-coin" tone="primary"
+                :hint="($margin['rate'] === null ? 'No sale with a known cost' : $margin['rate'] . ' % of sales')
+                    . ($margin['excluded'] > 0 ? ' · ' . $margin['excluded'] . ' sale(s) without a known cost not counted' : '')" />
         </div>
 
         @if ($customer)
@@ -57,6 +60,7 @@
                             <th class="text-end">Gross total</th>
                             <th class="text-end">Discount</th>
                             <th class="text-end">Net total</th>
+                            <th class="text-end">Margin</th>
                             <th class="text-end"><span class="visually-hidden">Actions</span></th>
                         </tr>
                     </thead>
@@ -71,6 +75,14 @@
                                 <td class="text-end">{{ money($sale->total_brut) }}</td>
                                 <td class="text-end text-danger">{{ $sale->discount > 0 ? '-' . money($sale->discount) : '—' }}</td>
                                 <td class="text-end fw-semibold">{{ money($sale->total_net) }}</td>
+                                <td class="text-end text-nowrap">
+                                    @if ($sale->grossMargin() === null)
+                                        <span class="text-muted" title="The cost of an item is not known">—</span>
+                                    @else
+                                        <span @class(['text-danger' => $sale->grossMargin() < 0])>{{ money($sale->grossMargin()) }}</span>
+                                        <div class="ui-cell-meta">{{ $sale->marginRate() ?? 0 }} %</div>
+                                    @endif
+                                </td>
                                 <td class="text-end">
                                     <x-ui.actions-menu row>
                                         <x-ui.menu-item :href="route('admin.sales.show', $sale->id)" icon="bi-eye">View</x-ui.menu-item>
@@ -80,7 +92,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <x-ui.empty-row :colspan="9" icon="bi-receipt">No sale found.</x-ui.empty-row>
+                            <x-ui.empty-row :colspan="10" icon="bi-receipt">No sale found.</x-ui.empty-row>
                         @endforelse
                     </tbody>
                 </table>

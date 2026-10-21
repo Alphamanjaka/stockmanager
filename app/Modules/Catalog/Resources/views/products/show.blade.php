@@ -73,6 +73,7 @@
                                     <th>Variant</th>
                                     <th class="text-end">Purchase price</th>
                                     <th class="text-end">Price</th>
+                                    <th class="text-end">Margin</th>
                                     <th class="text-end">Stock</th>
                                     <th class="text-end">Alert at</th>
                                     <th class="text-end"><span class="visually-hidden">Actions</span></th>
@@ -87,6 +88,14 @@
                                         </td>
                                         <td class="text-end">{{ money($variant->price_purchase) }}</td>
                                         <td class="text-end fw-semibold">{{ money($variant->price) }}</td>
+                                        <td class="text-end text-nowrap">
+                                            @if ($variant->unitMargin() === null)
+                                                <span class="text-muted" title="No purchase price">—</span>
+                                            @else
+                                                <span @class(['text-danger' => $variant->unitMargin() < 0])>{{ money($variant->unitMargin()) }}</span>
+                                                <div class="ui-cell-meta">{{ $variant->marginRate() ?? 0 }} % of the price</div>
+                                            @endif
+                                        </td>
                                         <td class="text-end">
                                             <x-ui.badge :tone="$variant->stock <= $variant->alert_stock ? 'danger' : 'success'" dot>{{ $variant->stock }}</x-ui.badge>
                                         </td>
@@ -117,7 +126,7 @@
                                         </td>
                                     </tr>
                                 @empty
-                                    <x-ui.empty-row :colspan="6" icon="bi-box">No variant for this product.</x-ui.empty-row>
+                                    <x-ui.empty-row :colspan="7" icon="bi-box">No variant for this product.</x-ui.empty-row>
                                 @endforelse
                             </tbody>
                         </table>

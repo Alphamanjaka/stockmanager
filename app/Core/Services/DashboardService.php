@@ -25,6 +25,7 @@ class DashboardService
         return [
             'salesThisWeek' => $this->getSalesThisWeek(),
             'salesThisMonth' => $this->getSalesThisMonth(),
+            'marginThisMonth' => $this->saleService->getGrossMargin(now()->startOfMonth(), now()->endOfMonth()),
             'totalProducts' => $this->getTotalProducts(),
             'lowStockProducts' => $this->getLowStockProducts(),
             'totalCategories' => $this->getTotalCategories(),

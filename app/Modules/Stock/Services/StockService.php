@@ -332,13 +332,13 @@ class StockService
     }
 
     /**
-     * Calcule l'évolution de la valeur totale du stock sur les X derniers jours.
-     * La valeur est calculée au prix de vente de chaque variante, aussi bien pour la valeur actuelle
-     * que pour la reconstitution des jours précédents (le prix du produit parent n'est plus utilisé).
+     * Calcule l'évolution de la valeur totale du stock sur les X derniers jours, au coût d'achat de chaque
+     * variante (jamais au prix de vente, qui comprend la marge). Une variante sans coût renseigné compte pour 0
+     * (voir countStockWithoutCost). Les jours précédents sont reconstitués avec le coût actuel de la variante.
      */
     public function getTotalStockValueEvolution(int $days = 30): array
     {
-        $currentTotalValue = ProductColor::sum(DB::raw('stock * price'));
+        $currentTotalValue = (float) ProductColor::sum(DB::raw('stock * COALESCE(price_purchase, 0)'));
 
         $movements = StockMovement::with('productColor')
             ->where('created_at', '>=', now()->subDays($days)->startOfDay())
@@ -364,13 +364,21 @@ class StockService
             if (isset($movementsByDay[$dateString])) {
                 foreach ($movementsByDay[$dateString] as $movement) {
                     if ($movement->productColor) {
-                        $runningValue -= ($movement->quantity * $movement->productColor->price);
+                        $runningValue -= ($movement->quantity * (float) $movement->productColor->price_purchase);
                     }
                 }
             }
         }
 
         return array_reverse($dataPoints);
+    }
+
+    /** Variantes en stock sans coût d'achat renseigné : elles comptent pour 0 dans la valeur du stock. */
+    public function countStockWithoutCost(): int
+    {
+        return ProductColor::where('stock', '>', 0)
+            ->where(fn ($query) => $query->whereNull('price_purchase')->orWhere('price_purchase', '<=', 0))
+            ->count();
     }
 
     /**

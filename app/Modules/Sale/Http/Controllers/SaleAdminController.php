@@ -32,7 +32,9 @@ class SaleAdminController extends Controller
         $filters = $request->only(['search', 'date_from', 'date_to']) + ['customer' => $customer?->id];
         $sales = $this->saleService->getAllSales(15, $filters)->withQueryString();
         $stats   = $this->saleService->getSalesStatistics();
-        return view('sale::back-office.sales.index', array_merge(compact('sales', 'customer'), $stats));
+        // Marge : back office seulement (les vendeurs ne voient pas les coûts)
+        $margin = $this->saleService->getGrossMargin();
+        return view('sale::back-office.sales.index', array_merge(compact('sales', 'customer', 'margin'), $stats));
     }
 
     /**
