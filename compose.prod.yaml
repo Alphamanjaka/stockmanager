@@ -1,3 +1,19 @@
+# Production Docker. Le .env peut être celui de Laragon : les paramètres propres à Docker (base, Redis, pg_dump)
+# sont imposés ci-dessous, comme dans compose.dev.yaml. Identifiants de la base : POSTGRES_DATABASE, POSTGRES_USERNAME,
+# POSTGRES_PASSWORD (.env) ; ils servent à créer la base au premier démarrage et à s'y connecter.
+
+x-docker-env: &docker-env
+  # Prioritaires sur le .env (Laravel ne remplace pas une variable déjà définie)
+  DB_CONNECTION: pgsql
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_DATABASE: ${POSTGRES_DATABASE:-app}
+  DB_USERNAME: ${POSTGRES_USERNAME:-laravel}
+  DB_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+  REDIS_HOST: redis
+  # pg_dump du conteneur (postgresql-client), pour les sauvegardes : pas celui de Windows
+  PGDUMP_PATH: /usr/bin/
+
 services:
   web:
     build:
@@ -38,6 +54,7 @@ services:
       - laravel-storage-production:/var/www/storage  # Mount the storage volume
     env_file:
       - .env
+    environment: *docker-env
     networks:
       - laravel-production
     healthcheck:
@@ -64,12 +81,17 @@ services:
       - laravel-storage-production:/var/www/storage
     env_file:
       - .env
+    environment: *docker-env
     networks:
       - laravel-production
     depends_on:
       redis:
         condition: service_healthy
       postgres:
+        condition: service_healthy
+      # php-fpm applique les migrations avant de se déclarer prêt : sans cette attente, le worker et le scheduler
+      # démarraient sur une base sans tables (ex. « relation "cache" does not exist ») puis redémarraient
+      php-fpm:
         condition: service_healthy
 
   scheduler:
@@ -84,10 +106,15 @@ services:
       - laravel-storage-production:/var/www/storage
     env_file:
       - .env
+    environment: *docker-env
     networks:
       - laravel-production
     depends_on:
       postgres:
+        condition: service_healthy
+      # php-fpm applique les migrations avant de se déclarer prêt : sans cette attente, le worker et le scheduler
+      # démarraient sur une base sans tables (ex. « relation "cache" does not exist ») puis redémarraient
+      php-fpm:
         condition: service_healthy
 
   postgres:
