@@ -69,7 +69,7 @@ Purpose: short, actionable guidance for future Copilot CLI / assistant sessions 
 - app/Imports -> CSV/Excel import logic
 - routes/web.php -> route ordering matters for some purchase routes
 - phpunit.xml -> test environment overrides (sqlite in-memory)
-- compose.dev.yaml / compose.prod.yaml & install/setup scripts (install.bat, setup-dev.bat)
+- compose.dev.yaml / compose.prod.yaml (setup guide: docs/docker-dev.md) & scripts/ (save-stockmanager.bat: offline package of the production images)
 - .github/workflows -> CI definitions (lint/test/build)
 
 -- AI / assistant config files checked

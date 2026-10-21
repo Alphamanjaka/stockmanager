@@ -13,6 +13,7 @@
 3.  [Architecture DevOps & Docker Multi-Stage](#architecture-devops--docker-multi-stage)
 4.  [Installation et Configuration](#installation-et-configuration)
 5.  [Architecture Technique (Backend)](#architecture-technique-backend)
+6.  [Documentation](#documentation)
 
 ---
 
@@ -135,20 +136,23 @@ Le projet utilise une stratégie de conteneurisation avancée en **3 étapes** p
     cd stockmanager
     ```
 
-2.  **Lancer l'installation**
-    - **Windows** : Double-cliquez sur `setup-dev.bat`.
-      _Ce script gère automatiquement la configuration Docker, la génération de l'APP_KEY, la migration des données et l'extraction des assets._
-    - **Linux/Mac (Manuel)** :
-        ```bash
-        cp .env.example .env
-        docker compose -f compose.dev.yaml up -d --build
-        docker compose -f compose.dev.yaml exec php-fpm composer install
-        docker compose -f compose.dev.yaml exec php-fpm php artisan migrate:seed
-        ```
+2.  **Lancer l'installation** (mêmes commandes sous Windows, Linux et Mac ; Docker Desktop démarré)
+
+    ```bash
+    cp .env.example .env
+    docker compose -f compose.dev.yaml up -d --build
+    docker compose -f compose.dev.yaml exec workspace composer install
+    docker compose -f compose.dev.yaml exec workspace npm ci
+    docker compose -f compose.dev.yaml exec workspace php artisan key:generate
+    docker compose -f compose.dev.yaml exec workspace php artisan migrate --seed
+    ```
+
+    Avec un `.env` existant (Laragon), sauter `cp` et `key:generate` : la clé serait remplacée, ce qui ferme les
+    sessions et rend illisibles les données chiffrées. Détails, tests et Xdebug : [docs/docker-dev.md](docs/docker-dev.md).
 
 3.  **Accéder à l'application**
-    - URL : `http://localhost`
-    - Mailpit (Emails locaux) : `http://localhost:8025` (si activé)
+    - URL : `http://localhost:8080` (port réglable par `NGINX_PORT` dans le `.env`)
+    - Comptes de démonstration : `admin@stock.com` / `password` (back office), `vendeur@stock.com` / `password` (vendeur)
 
 ---
 
@@ -160,7 +164,7 @@ Le code suit les principes **SOLID** et une **Architecture Orientée Services (S
 
 Le code métier est découpé en modules dans `app/Modules/` (**Catalog**, **Stock**, **Inventory**, **Purchase**, **Sale**, **Contact**, **Backup**), autour d'un socle commun `app/Core/` (authentification, utilisateurs, paramètres, tableaux de bord, recherche globale, import).
 Chaque module contient ses modèles, services, contrôleurs, vues, routes, migrations et factories.
-Conventions, règles de dépendance et recettes : voir [ARCHITECTURE.md](ARCHITECTURE.md).
+Conventions, règles de dépendance et recettes : voir [docs/architecture.md](docs/architecture.md).
 
 ### Couches Applicatives
 
@@ -215,6 +219,26 @@ La continuité de service en cas de panne du serveur PostgreSQL est assurée par
 
 **Notes** : pour un vrai failover, le standby doit être sur un **serveur différent** de la prod. L'archive ZIP reste un filet de sécurité (PITR/wal-g recommandé en production HA).
 
+---
+
+## Documentation
+
+La documentation détaillée est rangée dans [`docs/`](docs/) ; l'historique des versions reste dans [CHANGELOG.md](CHANGELOG.md).
+
+| Document | Contenu |
+|---|---|
+| [architecture.md](docs/architecture.md) | Modules, règles de dépendance, conventions de l'interface, recettes |
+| [flux-vente.md](docs/flux-vente.md) | Création d'une vente, de la caisse jusqu'à la base de données |
+| [migration-variantes.md](docs/migration-variantes.md) | Variantes flexibles : conception et migration en production |
+| [decisions-parametres.md](docs/decisions-parametres.md) | Système de paramètres (`settings()`, cache) |
+| [api-tabulator.md](docs/api-tabulator.md) | API de la liste des achats et intégration de Tabulator |
+| [docker-dev.md](docs/docker-dev.md) | Environnement Docker de développement |
+| [ha-postgresql.md](docs/ha-postgresql.md) | Haute disponibilité PostgreSQL (pg_auto_failover) |
+| [journal.md](docs/journal.md) | Journal de bord des évolutions |
+| [analyse-ameliorations.md](docs/analyse-ameliorations.md) | Analyse du projet et plan d'amélioration |
+
+Scripts : [`scripts/save-stockmanager.bat`](scripts/save-stockmanager.bat) prépare un paquet hors ligne des images
+Docker de production (Windows, à lancer depuis n'importe quel dossier).
 
 ---
 

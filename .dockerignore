@@ -11,7 +11,7 @@ storage/logs/*
 tests/
 .env
 .env.backup
-save-stockmanager.bat
+scripts/
 *.tar.gz
 *.zip
 *.log

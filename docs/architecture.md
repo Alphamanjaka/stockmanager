@@ -218,7 +218,7 @@ class PurchaseFactory extends Factory { protected $model = Purchase::class; }
 ## Variantes flexibles
 
 Les variantes ne dépendent plus d'une couleur obligatoire : options libres en JSONB, marque et SKU généré.
-Conception, procédure de migration en production et tests sur PostgreSQL : voir [docs/migration-variantes.md](docs/migration-variantes.md).
+Conception, procédure de migration en production et tests sur PostgreSQL : voir [migration-variantes.md](migration-variantes.md).
 
 ## Tests
 

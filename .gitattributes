@@ -1,4 +1,7 @@
 * text=auto eol=lf
+# Scripts Windows : cmd.exe lit mal les fins de ligne LF (blocs entre parenthèses, étiquettes)
+*.bat text eol=crlf
+*.cmd text eol=crlf
 
 *.blade.php diff=html
 *.css diff=css

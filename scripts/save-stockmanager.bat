@@ -1,6 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
 
+REM Le script est range dans scripts\ : il travaille depuis la racine du projet (.env, paquet cree)
+cd /d "%~dp0.."
+
 echo ========================================
 echo Sauvegarde du projet StockManager
 echo ========================================
