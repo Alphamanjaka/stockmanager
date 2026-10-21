@@ -24,6 +24,7 @@ return [
     'stock_alert' => 'Alerte de stock',
     'stock_left' => 'restant(s)',
     'no_notifications' => 'Aucune notification trouvée.',
+    'mark_all_read' => 'Tout marquer comme lu',
     'profile' => 'Mon Profil',
     'login' => 'Connexion',
     'logout' => 'Déconnexion',

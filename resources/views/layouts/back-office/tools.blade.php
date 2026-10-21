@@ -24,21 +24,33 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-end bo-notifications">
                 <li class="dropdown-header">{{ __('backoffice.notifications') }}</li>
+                {{-- Alertes de stock (LowStockAlert) : ouvrir une alerte la marque comme lue --}}
                 @forelse ($latestNotifications as $notification)
                     <li>
-                        <a class="dropdown-item align-items-start py-2"
-                            href="{{ Route::has('admin.products.index') ? route('admin.products.index', ['search' => $notification->data['product_name'] ?? '']) : '#' }}">
+                        <a class="dropdown-item align-items-start py-2" href="{{ route('admin.notifications.read', $notification->id) }}">
                             <i class="bi bi-exclamation-triangle text-warning mt-1" aria-hidden="true"></i>
                             <span>
-                                <strong class="d-block">{{ $notification->data['product_name'] ?? 'Product' }}</strong>
+                                <strong class="d-block">{{ $notification->data['label'] ?? 'Product' }}</strong>
                                 <small class="text-muted">{{ __('backoffice.stock_alert') }}:
-                                    {{ $notification->data['current_stock'] ?? 0 }} {{ __('backoffice.stock_left') }}</small>
+                                    {{ $notification->data['stock'] ?? 0 }} {{ __('backoffice.stock_left') }}
+                                    · {{ $notification->created_at->diffForHumans() }}</small>
                             </span>
                         </a>
                     </li>
                 @empty
                     <li><span class="dropdown-item-text text-muted small">{{ __('backoffice.no_notifications') }}</span></li>
                 @endforelse
+                @if ($unreadCount > 0)
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form action="{{ route('admin.notifications.read-all') }}" method="POST">
+                            @csrf
+                            <button class="dropdown-item small" type="submit">
+                                <i class="bi bi-check2-all" aria-hidden="true"></i> {{ __('backoffice.mark_all_read') }}
+                            </button>
+                        </form>
+                    </li>
+                @endif
             </ul>
         </div>
 
