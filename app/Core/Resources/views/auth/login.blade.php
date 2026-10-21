@@ -4,7 +4,7 @@
 
 @section('content')
     <h1 class="auth-title">Sign in</h1>
-    <p class="auth-subtitle">Choose your workspace and enter your credentials.</p>
+    <p class="auth-subtitle">Enter your credentials.</p>
 
     @if ($errors->any())
         <x-ui.alert tone="danger">
@@ -18,28 +18,6 @@
 
     <form method="POST" action="{{ route('auth.login') }}">
         @csrf
-
-        <fieldset class="ui-field">
-            <legend class="form-label">Workspace</legend>
-            <div class="auth-workspaces">
-                <div class="auth-workspace">
-                    <input type="radio" id="front_office" name="role" value="front_office"
-                        {{ old('role') === 'front_office' ? 'checked' : '' }} required>
-                    <label for="front_office">
-                        <i class="bi bi-shop" aria-hidden="true"></i>
-                        <span><strong>Front Office</strong><small>Point of sale</small></span>
-                    </label>
-                </div>
-                <div class="auth-workspace">
-                    <input type="radio" id="back_office" name="role" value="back_office"
-                        {{ old('role', 'back_office') === 'back_office' ? 'checked' : '' }} required>
-                    <label for="back_office">
-                        <i class="bi bi-building-gear" aria-hidden="true"></i>
-                        <span><strong>Back Office</strong><small>Administration</small></span>
-                    </label>
-                </div>
-            </div>
-        </fieldset>
 
         <x-ui.field name="email" label="Email address" type="email" :value="old('email')" required autofocus
             autocomplete="username" placeholder="name@company.com" class="mb-3" />

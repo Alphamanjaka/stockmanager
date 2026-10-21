@@ -25,8 +25,6 @@ class LoginUserRequest extends FormRequest
             // Validation rules for login
             'email' => 'required|email',
             'password' => 'required|min:6',
-            'role' => 'required|in:front_office,back_office',
-
         ];
     }
     public function messages(): array
@@ -36,8 +34,6 @@ class LoginUserRequest extends FormRequest
             'email.email' => 'Veuillez entrer un email valide.',
             'password.required' => 'Le mot de passe est requis.',
             'password.min' => 'Le mot de passe doit contenir au moins 6 caractères.',
-            'role.required' => 'Veuillez sélectionner un profil.',
-            'role.in' => 'Le profil sélectionné est invalide.',
         ];
     }
 }

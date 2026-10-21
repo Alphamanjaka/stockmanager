@@ -248,7 +248,7 @@ class ArchiveTest extends TestCase
         $seller->archive();
         auth()->logout();
 
-        $this->post(route('auth.login'), ['email' => 'vendeur@example.com', 'password' => 'secret-123', 'role' => 'front_office'])
+        $this->post(route('auth.login'), ['email' => 'vendeur@example.com', 'password' => 'secret-123'])
             ->assertSessionHasErrors(['email' => 'Votre compte a été désactivé : contactez un administrateur.']);
         $this->assertGuest();
 

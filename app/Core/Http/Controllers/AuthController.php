@@ -14,7 +14,7 @@ use App\Http\Controllers\Controller;
 class AuthController extends Controller
 {
     /**
-     * Show the login page with role selection
+     * Show the login page
      */
     public function showLoginPage()
     {
@@ -22,7 +22,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle user login with role selection
+     * Handle user login: the space (back office or front office) follows the account's role
      */
     public function login(LoginUserRequest $request)
     {
@@ -46,9 +46,9 @@ class AuthController extends Controller
         // Identifiants justes mais compte archivé : message explicite (le mot de passe a été vérifié)
         $message = Auth::validate($credentials)
             ? 'Votre compte a été désactivé : contactez un administrateur.'
-            : 'Les identifiants fournis sont incorrects ou vous n\'avez pas accès à ce profil.';
+            : 'Les identifiants fournis sont incorrects.';
 
-        return back()->withErrors(['email' => $message])->onlyInput('email', 'role');
+        return back()->withErrors(['email' => $message])->onlyInput('email');
     }
 
     /**
