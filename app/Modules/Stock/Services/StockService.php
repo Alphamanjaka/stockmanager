@@ -36,14 +36,19 @@ class StockService
     }
     /**
      * Entrée de stock (achat reçu, correction) : le stock augmente et le mouvement est enregistré.
+     * Avec un coût unitaire (réception d'achat), le prix d'achat de la variante devient son coût moyen
+     * pondéré (CUMP). Sans coût (correction, retour), il ne change pas.
      */
-    public function addStock(int $productColorId, int $quantity, string $reason)
+    public function addStock(int $productColorId, int $quantity, string $reason, ?float $unitCost = null)
     {
-        DB::transaction(function () use ($productColorId, $quantity, $reason) {
+        DB::transaction(function () use ($productColorId, $quantity, $reason, $unitCost) {
             $variant = ProductColor::lockForUpdate()->findOrFail($productColorId);
 
             $before = $variant->stock;
             $after = $before + $quantity;
+            if ($unitCost !== null && $unitCost > 0) {
+                $this->writeAverageCost($variant, $before, $quantity, $unitCost);
+            }
             $this->writeStock($variant, $after);
 
             $this->createStockMovement([
@@ -144,6 +149,23 @@ class StockService
         $variant->setRawAttributes(['stock' => $stock] + $variant->getAttributes(), true);
 
         $this->notifyAlertThreshold($variant, $before, $stock);
+    }
+
+    /**
+     * Coût moyen pondéré après une entrée : (stock × coût actuel + quantité × coût d'entrée) / nouveau stock.
+     * Sans stock, ou sans coût actuel renseigné, le coût d'entrée devient le coût de la variante.
+     * Le stock lu ici est celui d'avant l'entrée, sous le verrou d'addStock.
+     */
+    private function writeAverageCost(ProductColor $variant, int $stock, int $quantity, float $unitCost): void
+    {
+        $current = (float) $variant->price_purchase;
+        $cost = $stock > 0 && $current > 0
+            ? ($stock * $current + $quantity * $unitCost) / ($stock + $quantity)
+            : $unitCost;
+        $cost = round($cost, 2);
+
+        ProductColor::whereKey($variant->id)->update(['price_purchase' => $cost]);
+        $variant->setRawAttributes(['price_purchase' => $cost] + $variant->getAttributes(), true);
     }
 
     /**

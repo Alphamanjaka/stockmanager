@@ -19,6 +19,7 @@
             step="0.01" min="0" placeholder="0.00" required @if ($add) data-pricing-cost @endif>
         <span class="input-group-text">{{ $currency }}</span>
     </div>
+    <div class="form-text">Updated at each received purchase (weighted average cost).</div>
 </div>
 <div class="col-md-6 ui-field">
     <label class="form-label required" for="{{ $prefix }}-variant-price">Selling price</label>
