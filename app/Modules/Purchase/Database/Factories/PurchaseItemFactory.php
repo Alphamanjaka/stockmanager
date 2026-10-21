@@ -2,11 +2,13 @@
 
 namespace App\Modules\Purchase\Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Purchase\Models\Purchase;
 use App\Modules\Purchase\Models\PurchaseItem;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Purchase\Models\PurchaseItem>
+ * @extends Factory<PurchaseItem>
  */
 class PurchaseItemFactory extends Factory
 {
@@ -21,8 +23,8 @@ class PurchaseItemFactory extends Factory
     {
         return [
             //
-            'purchase_id' => \App\Modules\Purchase\Models\Purchase::factory(),
-            'product_color_id' => \App\Modules\Catalog\Models\ProductColor::factory(),
+            'purchase_id' => Purchase::factory(),
+            'product_color_id' => ProductColor::factory(),
             'quantity' => $this->faker->numberBetween(1, 10),
             'unit_price' => $this->faker->randomFloat(2, 10, 500),
             'subtotal' => 0, // Sera calculé (qty * price)

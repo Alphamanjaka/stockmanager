@@ -22,8 +22,11 @@ class GrossMarginTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $seller;
+
     private ProductColor $wax;
+
     private ProductColor $savon;
 
     protected function setUp(): void

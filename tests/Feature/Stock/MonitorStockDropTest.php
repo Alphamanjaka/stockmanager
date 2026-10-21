@@ -9,6 +9,7 @@ use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Stock\Mail\StockDropAlert;
 use App\Modules\Stock\Services\StockService;
+use App\Modules\Stock\Support\MovementSource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -22,8 +23,11 @@ class MonitorStockDropTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private StockService $stock;
+
     private ProductColor $wax;
+
     private ProductColor $savon;
 
     protected function setUp(): void
@@ -71,7 +75,7 @@ class MonitorStockDropTest extends TestCase
 
         // 5 wax cassés (5 × 6 000) et 10 savons manquants à l'inventaire (10 × 2 000) : 50 000
         $this->stock->correct($this->wax->id, 'out', 5, 'casse');
-        $this->stock->adjustTo($this->savon->id, 40, 'Inventaire INV-20261021-ABCD');
+        $this->stock->adjustTo($this->savon->id, 40, 'Inventaire INV-20261021-ABCD', MovementSource::inventory(1));
 
         // 50 000 sur 700 000 avant les pertes : 7,14 %
         $this->artisan('stock:monitor-drop', ['--threshold' => 5])
@@ -114,7 +118,7 @@ class MonitorStockDropTest extends TestCase
 
         // Aujourd'hui : entrées seulement (correction en entrée, surplus d'inventaire)
         $this->stock->correct($this->wax->id, 'in', 5, 'retour client');
-        $this->stock->adjustTo($this->savon->id, 60, 'Inventaire INV-20261021-ABCD');
+        $this->stock->adjustTo($this->savon->id, 60, 'Inventaire INV-20261021-ABCD', MovementSource::inventory(1));
 
         $this->artisan('stock:monitor-drop', ['--threshold' => 0])
             ->expectsOutput('✅ Aucune perte non expliquée sur les 24 dernières heures.')

@@ -59,7 +59,7 @@ class PosCatalog
     private function lineage(?int $categoryId, $parents): array
     {
         $lineage = [];
-        while ($categoryId !== null && !in_array($categoryId, $lineage, true)) {
+        while ($categoryId !== null && ! in_array($categoryId, $lineage, true)) {
             $lineage[] = $categoryId;
             $categoryId = $parents[$categoryId] ?? null;
         }

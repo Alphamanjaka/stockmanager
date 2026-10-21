@@ -2,26 +2,35 @@
 
 namespace App\Modules\Sale\Services;
 
+use App\Core\Services\DocumentNumberService;
 use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Contact\Services\CustomerService;
 use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleItem;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use App\Modules\Sale\Models\SaleReturn;
+use App\Modules\Sale\Models\SaleReturnItem;
 use App\Modules\Stock\Services\StockService;
-use App\Modules\Contact\Services\CustomerService;
+use App\Modules\Stock\Support\MovementSource;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class SaleService
 {
-    public function __construct(protected StockService $stockService, protected CustomerService $customerService) {}
+    public function __construct(
+        protected StockService $stockService,
+        protected CustomerService $customerService,
+        protected DocumentNumberService $documentNumbers,
+    ) {}
+
     /**
      * Crée une vente en l'associant à un utilisateur.
      * Si l'ID utilisateur n'est pas fourni, il utilise l'utilisateur authentifié.
      *
-     * @param array $details client et encaissement, tous facultatifs :
-     *                       - ['customer_id' => id] pour un client existant,
-     *                         ou ['new_customer_name' => ..., 'new_customer_phone' => ...] pour le créer
-     *                       - ['payment_method' => 'cash'|'mobile_money'|'card', 'amount_received' => somme remise]
+     * @param  array  $details  client et encaissement, tous facultatifs :
+     *                          - ['customer_id' => id] pour un client existant,
+     *                          ou ['new_customer_name' => ..., 'new_customer_phone' => ...] pour le créer
+     *                          - ['payment_method' => 'cash'|'mobile_money'|'card', 'amount_received' => somme remise]
      */
     public function createSale(array $productsData, float $discount = 0, ?int $user_id = null, array $details = []): Sale
     {
@@ -35,9 +44,10 @@ class SaleService
             // 1. On prépare la vente (un client créé ici est annulé si la vente échoue)
             $sale = new Sale([
                 'customer_id' => $this->resolveCustomerId($details),
-                'reference'  => 'SALE-' . strtoupper(Str::random(8)),
-                'discount'   => $discount,
-                'user_id'    => $userId, // Toujours mieux de savoir qui a vendu
+                // Numéro de facture à la suite (pris dans la transaction : une vente annulée ne laisse pas de trou)
+                'reference' => $this->documentNumbers->next(Sale::INVOICE_PREFIX),
+                'discount' => $discount,
+                'user_id' => $userId, // Toujours mieux de savoir qui a vendu
                 'payment_method' => $details['payment_method'] ?? Sale::PAYMENT_CASH,
                 'company_name' => settings('company_name', 'StockMaster Pro'),
                 'company_email' => settings('company_email', ''),
@@ -49,8 +59,6 @@ class SaleService
 
             $totalBrut = 0;
             $itemsToCreate = [];
-
-
 
             foreach ($productsData as $item) {
                 // VERROUILLAGE : On verrouille la variante spécifique (Produit + Couleur)
@@ -71,28 +79,28 @@ class SaleService
                 // On prépare les données pour une insertion groupée (plus rapide)
                 $itemsToCreate[] = [
                     'product_color_id' => $variant->id,
-                    'quantity'         => $item['quantity'],
-                    'unit_price'       => $variant->price,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $variant->price,
                     // Coût figé comme le prix : la marge de la vente ne bouge plus quand le coût évolue
-                    'unit_cost'        => (float) $variant->price_purchase > 0 ? $variant->price_purchase : null,
-                    'subtotal'         => $subtotal,
+                    'unit_cost' => (float) $variant->price_purchase > 0 ? $variant->price_purchase : null,
+                    'subtotal' => $subtotal,
                 ];
-
-                // 2. DÉCRÉMENTER via le StockService (qui doit maintenant accepter product_color_id)
-                $this->stockService->removeStock($variant->id, $item['quantity'], "Vente {$sale->reference}");
             }
 
-
-
-
-            // 3. Sauvegarde de la vente avec les vrais totaux du premier coup
+            // 2. Sauvegarde de la vente avec les vrais totaux du premier coup
             $sale->total_brut = $totalBrut;
             $sale->total_net = max(0, $totalBrut - $discount);
             $sale->amount_received = $this->amountReceived($sale, $details['amount_received'] ?? null);
             $sale->save();
 
-            // 4. Création groupée des lignes (une seule requête SQL au lieu d'une par produit)
+            // 3. Création groupée des lignes (une seule requête SQL au lieu d'une par produit)
             $sale->items()->createMany($itemsToCreate);
+
+            // 4. Sortie de stock, une fois la vente enregistrée : chaque mouvement cite la vente.
+            // Les variantes sont verrouillées depuis leur lecture : le stock vérifié plus haut n'a pas bougé.
+            foreach ($itemsToCreate as $line) {
+                $this->stockService->removeStock($line['product_color_id'], $line['quantity'], "Vente {$sale->reference}", MovementSource::sale($sale->id));
+            }
 
             return $sale;
         });
@@ -103,11 +111,11 @@ class SaleService
      */
     private function resolveCustomerId(array $customer): ?int
     {
-        if (!empty($customer['customer_id'])) {
+        if (! empty($customer['customer_id'])) {
             return (int) $customer['customer_id'];
         }
 
-        if (!empty($customer['new_customer_name'])) {
+        if (! empty($customer['new_customer_name'])) {
             return $this->customerService->create([
                 'name' => $customer['new_customer_name'],
                 'phone' => $customer['new_customer_phone'] ?? null,
@@ -140,14 +148,14 @@ class SaleService
     public function getAllSales(int $perPage = 15, array $filters = [])
     {
         return $this->listQuery($filters)
-            ->with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand'])
+            ->with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'returns.items'])
             ->paginate($perPage);
     }
 
     /**
      * Liste des ventes (page et export) : référence ou client, client, vendeur, période (bornes incluses).
      *
-     * @param array{search?: ?string, customer?: ?int, user?: ?int, date_from?: ?string, date_to?: ?string} $filters
+     * @param  array{search?: ?string, customer?: ?int, user?: ?int, date_from?: ?string, date_to?: ?string}  $filters
      */
     public function listQuery(array $filters = []): Builder
     {
@@ -171,7 +179,7 @@ class SaleService
 
     public function getSaleById(int $id): Sale
     {
-        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user'])->findOrFail($id);
+        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user', 'returns.items', 'returns.user'])->findOrFail($id);
     }
 
     /**
@@ -179,33 +187,58 @@ class SaleService
      */
     public function getSaleForSeller(int $id, int $userId): Sale
     {
-        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user'])
+        return Sale::with(['items.productColor.product', 'items.productColor.color', 'items.productColor.brand', 'customer', 'user', 'returns.items'])
             ->where('user_id', $userId)
             ->findOrFail($id);
     }
 
-
     /**
      * Statistiques de ventes ; $userId les limite aux ventes d'un vendeur (front office).
+     * Le chiffre d'affaires déduit les avoirs (total_refunds).
      */
     public function getSalesStatistics(?int $userId = null): array
     {
         $sales = fn () => Sale::query()->when($userId, fn ($q) => $q->where('user_id', $userId));
+        $refunds = (float) $this->refundsQuery(null, null, $userId)->sum('total');
 
         return [
             'today_sales_count' => $sales()->whereDate('created_at', today())->count(),
-            'total_revenue'     => $sales()->sum('total_net'),
-            'average_sale'      => $sales()->avg('total_net') ?? 0,
+            'total_revenue' => (float) $sales()->sum('total_net') - $refunds,
+            'total_refunds' => $refunds,
+            'average_sale' => $sales()->avg('total_net') ?? 0,
             'total_discount' => $sales()->sum('discount') ?? 0,
         ];
     }
+
+    /**
+     * Chiffre d'affaires d'une période : net des ventes moins les avoirs. Un avoir compte le jour où il est
+     * fait, même pour une vente d'une période précédente. $userId : ventes d'un vendeur.
+     */
+    public function revenueBetween(?\DateTimeInterface $from, ?\DateTimeInterface $to, ?int $userId = null): float
+    {
+        $sales = Sale::query()
+            ->when($from && $to, fn ($query) => $query->whereBetween('created_at', [$from, $to]))
+            ->when($userId, fn ($query) => $query->where('user_id', $userId))
+            ->sum('total_net');
+
+        return round((float) $sales - (float) $this->refundsQuery($from, $to, $userId)->sum('total'), 2);
+    }
+
+    /** Avoirs d'une période (date de l'avoir), éventuellement limités aux ventes d'un vendeur. */
+    public function refundsQuery(?\DateTimeInterface $from, ?\DateTimeInterface $to, ?int $userId = null): Builder
+    {
+        return SaleReturn::query()
+            ->when($from && $to, fn ($query) => $query->whereBetween('sale_returns.created_at', [$from, $to]))
+            ->when($userId, fn ($query) => $query->whereHas('sale', fn ($sale) => $sale->where('user_id', $userId)));
+    }
+
     /**
      * Marge brute des ventes d'une période (toutes les ventes sans bornes), avec les coûts figés à la vente.
      * Une vente dont le coût d'une ligne n'est pas connu est laissée de côté (excluded) : la compter
-     * gonflerait la marge.
+     * gonflerait la marge. Les avoirs de la période retirent leur remboursement et le coût des articles rendus.
      *
      * @return array{revenue: float, cost: float, margin: float, rate: ?float, excluded: int}
-     *         rate : marge en % du net encaissé des ventes comptées
+     *                                                                                        rate : marge en % du net encaissé des ventes comptées
      */
     public function getGrossMargin(?\DateTimeInterface $from = null, ?\DateTimeInterface $to = null): array
     {
@@ -224,8 +257,23 @@ class SaleService
             ->toBase()
             ->first();
 
-        $revenue = round((float) $totals->revenue, 2);
-        $cost = round((float) $totals->cost, 2);
+        // Avoirs de la période (coût connu) : remboursement et coût des articles rendus
+        $returnCosts = SaleReturnItem::query()
+            ->select('sale_return_id')
+            ->selectRaw('SUM(quantity * unit_cost) as cost')
+            ->selectRaw('COUNT(*) - COUNT(unit_cost) as unknown_costs')
+            ->groupBy('sale_return_id');
+
+        $returns = $this->refundsQuery($from, $to)
+            ->joinSub($returnCosts, 'costs', 'costs.sale_return_id', '=', 'sale_returns.id')
+            ->where('costs.unknown_costs', 0)
+            ->selectRaw('SUM(sale_returns.total) as refunds')
+            ->selectRaw('SUM(costs.cost) as cost')
+            ->toBase()
+            ->first();
+
+        $revenue = round((float) $totals->revenue - (float) $returns->refunds, 2);
+        $cost = round((float) $totals->cost - (float) $returns->cost, 2);
         $margin = round($revenue - $cost, 2);
 
         return [
@@ -239,7 +287,6 @@ class SaleService
 
     /**
      * Common logic for top/least sold variants
-     * 
      */
     private function getVariantSaleStats(string $direction = 'desc'): ?SaleItem
     {
@@ -254,6 +301,7 @@ class SaleService
     {
         return $this->getVariantSaleStats('desc');
     }
+
     public function getLeastSoldProduct()
     {
         return $this->getVariantSaleStats('asc');
@@ -262,12 +310,12 @@ class SaleService
     /**
      * Recherche les ventes pour la recherche globale.
      */
-    public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
+    public function searchForGlobalSearch(string $query, int $limit = 5): Collection
     {
         return Sale::whereLike('reference', "%{$query}%")
             ->limit($limit)
             ->get()
-            ->map(fn(Sale $sale) => [
+            ->map(fn (Sale $sale) => [
                 'type' => 'sale',
                 'id' => $sale->id,
                 'name' => "Vente #{$sale->reference}",

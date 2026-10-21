@@ -4,16 +4,17 @@ namespace App\Modules\Catalog\Http\Controllers\Api;
 
 use App\Core\Services\ArchiveService;
 use App\Http\Controllers\Controller;
-use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Http\Requests\StoreCategoryRequest;
 use App\Modules\Catalog\Http\Requests\UpdateCategoryRequest;
 use App\Modules\Catalog\Http\Resources\CategoryResource;
+use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Services\CategoryService;
 
 class CategoryControllerAPI extends Controller
 {
     // constructor with dependency injection for CategoryService
     public function __construct(protected CategoryService $categoryService) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -30,6 +31,7 @@ class CategoryControllerAPI extends Controller
     {
         // Validation is handled by StoreCategoryRequest
         $category = $this->categoryService->create($request->validated());
+
         return new CategoryResource($category);
 
     }
@@ -40,10 +42,11 @@ class CategoryControllerAPI extends Controller
     public function show(string $id)
     {
         // Find category by ID and return it as a resource
-        $category = $this->categoryService->getCategoryById((int)$id);
-        if (!$category) {
+        $category = $this->categoryService->getCategoryById((int) $id);
+        if (! $category) {
             return response()->json(['message' => 'Category not found'], 404);
-            }
+        }
+
         return new CategoryResource($category);
     }
 
@@ -54,9 +57,10 @@ class CategoryControllerAPI extends Controller
     {
         // Validation is handled by UpdateCategoryRequest
         $category = $this->categoryService->update($id, $request->validated());
-        if (!$category) {
+        if (! $category) {
             return response()->json(['message' => 'Category not found'], 404);
         }
+
         return new CategoryResource($category);
     }
 
@@ -74,7 +78,7 @@ class CategoryControllerAPI extends Controller
 
         return response()->json([
             'message' => $result['skipped']
-                ? 'Category cannot be deleted: ' . implode(' ; ', $result['skipped'])
+                ? 'Category cannot be deleted: '.implode(' ; ', $result['skipped'])
                 : 'Only an archived category can be deleted: archive it first.',
         ], 422);
     }

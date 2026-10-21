@@ -2,11 +2,16 @@
 
 namespace Tests\Feature\Sale;
 
+use App\Core\Services\DocumentNumberService;
+use App\Models\User;
+use App\Modules\Catalog\Models\Color;
 use App\Modules\Catalog\Models\Product;
-use App\Modules\Sale\Models\Sale;
 use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Contact\Services\CustomerService;
+use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Services\SaleService;
 use App\Modules\Stock\Services\StockService;
+use App\Modules\Stock\Support\MovementSource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Mockery\MockInterface;
@@ -17,6 +22,7 @@ class SaleServiceTest extends TestCase
     use RefreshDatabase;
 
     protected SaleService $service;
+
     protected MockInterface $stockServiceMock;
 
     protected function setUp(): void
@@ -27,7 +33,11 @@ class SaleServiceTest extends TestCase
         $this->stockServiceMock = Mockery::mock(StockService::class);
         $this->app->instance(StockService::class, $this->stockServiceMock);
         // On injecte le mock dans notre service
-        $this->service = new SaleService($this->app->make(StockService::class), $this->app->make(\App\Modules\Contact\Services\CustomerService::class));
+        $this->service = new SaleService(
+            $this->app->make(StockService::class),
+            $this->app->make(CustomerService::class),
+            $this->app->make(DocumentNumberService::class),
+        );
     }
 
     /** @test */
@@ -37,15 +47,15 @@ class SaleServiceTest extends TestCase
         $product = Product::factory()->create();
         $variant = ProductColor::forceCreate([
             'product_id' => $product->id,
-            'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id,
+            'color_id' => Color::factory()->create()->id,
             'price' => 100.00,
             'alert_stock' => 5,
-            'stock' => 50
+            'stock' => 50,
         ]);
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         $productsData = [
-            ['product_color_id' => $variant->id, 'quantity' => 2]
+            ['product_color_id' => $variant->id, 'quantity' => 2],
         ];
         $discount = 10.00;
 
@@ -53,8 +63,8 @@ class SaleServiceTest extends TestCase
             ->shouldReceive('removeStock')
             ->once()
             ->with($variant->id, 2, Mockery::on(function ($reason) {
-                return str_starts_with($reason, 'Vente SALE-');
-            }));
+                return str_starts_with($reason, 'Vente FAC-');
+            }), Mockery::on(fn (MovementSource $source) => $source->type === MovementSource::SALE && $source->id !== null));
 
         // Act
         $sale = $this->service->createSale($productsData, $discount, $user->id);
@@ -81,12 +91,12 @@ class SaleServiceTest extends TestCase
         $product = Product::factory()->create(['name' => 'Test Product']);
         $variant = ProductColor::forceCreate([
             'product_id' => $product->id,
-            'color_id' => \App\Modules\Catalog\Models\Color::factory()->create()->id,
-            'stock' => 1
+            'color_id' => Color::factory()->create()->id,
+            'stock' => 1,
         ]);
 
         $productsData = [
-            ['product_color_id' => $variant->id, 'quantity' => 2]
+            ['product_color_id' => $variant->id, 'quantity' => 2],
         ];
 
         // On s'assure que la méthode removeStock n'est JAMAIS appelée
@@ -95,7 +105,7 @@ class SaleServiceTest extends TestCase
         // Assert & Act
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage("Stock insuffisant pour : {$product->name}");
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
         $this->service->createSale($productsData, 0, $user->id);
     }
 

@@ -3,11 +3,11 @@
 namespace App\Modules\Purchase\Imports;
 
 use App\Modules\Catalog\Models\ProductColor;
-use App\Modules\Contact\Models\Supplier;
 use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Catalog\Services\ProductService;
-use App\Modules\Purchase\Services\PurchaseService;
+use App\Modules\Contact\Models\Supplier;
 use App\Modules\Contact\Services\SupplierService;
+use App\Modules\Purchase\Services\PurchaseService;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -16,11 +16,15 @@ use Maatwebsite\Excel\Concerns\WithValidation;
 class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
 {
     protected PurchaseService $purchaseService;
+
     protected SupplierService $supplierService;
+
     protected ProductService $productService;
+
     protected ProductColorService $productColorService;
 
     private int $created = 0;
+
     private array $errors = [];
 
     public function __construct(
@@ -35,9 +39,6 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
         $this->productColorService = $productColorService;
     }
 
-    /**
-     * @param Collection $rows
-     */
     public function collection(Collection $rows)
     {
         // Optimisation N+1 : On récupère toutes les références nécessaires en une seule fois
@@ -53,7 +54,7 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
             ->select('product_colors.id', 'products.name as p_name', 'colors.name as c_name')
             ->get()
             ->mapWithKeys(function ($item) {
-                return [($item->p_name . '|' . $item->c_name) => $item->id];
+                return [($item->p_name.'|'.$item->c_name) => $item->id];
             });
 
         // Identification par SKU (prioritaire) : indispensable pour les variantes sans couleur (ex. gel 25 ml / 30 ml)
@@ -68,7 +69,7 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
             $email = $firstItem['email_fournisseur'];
 
             // Recherche du fournisseur
-            if (!isset($suppliers[$email])) {
+            if (! isset($suppliers[$email])) {
                 // On pourrait logger une erreur ici si le fournisseur n'existe pas
                 continue;
             }
@@ -78,19 +79,19 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
 
             foreach ($items as $item) {
                 $sku = trim((string) ($item['sku'] ?? ''));
-                $variantKey = ((string) ($item['nom_produit'] ?? '')) . '|' . ((string) ($item['couleur_produit'] ?? ''));
+                $variantKey = ((string) ($item['nom_produit'] ?? '')).'|'.((string) ($item['couleur_produit'] ?? ''));
                 $variantId = $sku !== '' ? ($variantsBySku[$sku] ?? null) : ($variants[$variantKey] ?? null);
 
                 if ($variantId) {
                     $purchaseItems[] = [
                         'product_color_id' => $variantId,
-                        'quantity'   => $item['quantite'],
+                        'quantity' => $item['quantite'],
                         'unit_price' => $item['cout_unitaire'],
                     ];
                 }
             }
 
-            if (!empty($purchaseItems)) {
+            if (! empty($purchaseItems)) {
                 // Le service gère la transaction, la création de l'achat, des items et la mise à jour du stock
                 $this->purchaseService->processPurchase($supplierId, $purchaseItems);
                 $this->created++;
@@ -101,13 +102,13 @@ class PurchaseImport implements ToCollection, WithHeadingRow, WithValidation
     public function rules(): array
     {
         return [
-            'reference_groupe'  => 'required|string',
+            'reference_groupe' => 'required|string',
             'email_fournisseur' => 'required|email|exists:suppliers,email',
-            'sku'               => 'nullable|string|max:64',
-            'nom_produit'       => 'required_without:sku|nullable|string',
-            'couleur_produit'   => 'required_without:sku|nullable|string',
-            'quantite'          => 'required|integer|min:1',
-            'cout_unitaire'     => 'required|numeric|min:0',
+            'sku' => 'nullable|string|max:64',
+            'nom_produit' => 'required_without:sku|nullable|string',
+            'couleur_produit' => 'required_without:sku|nullable|string',
+            'quantite' => 'required|integer|min:1',
+            'cout_unitaire' => 'required|numeric|min:0',
         ];
     }
 

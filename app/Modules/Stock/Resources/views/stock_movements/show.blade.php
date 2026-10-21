@@ -3,7 +3,10 @@
 @section('title', 'Stock movement #' . $stockMovement->id)
 @section('subtitle', $stockMovement->created_at->format('d/m/Y H:i'))
 
-@php $incoming = $stockMovement->type === 'in'; @endphp
+@php
+    $incoming = $stockMovement->type === 'in';
+    [$tone, $kind] = $stockMovement->kind();
+@endphp
 
 @section('content')
     <div class="ui-form-page">
@@ -27,6 +30,15 @@
                 <dd class="fw-semibold">{{ $stockMovement->stock_after }}</dd>
                 <dt>Reason</dt>
                 <dd>{{ $stockMovement->reason ?? '—' }}</dd>
+                <dt>Source</dt>
+                <dd>
+                    <x-ui.badge :tone="$tone">{{ $kind }}</x-ui.badge>
+                    @if ($stockMovement->sourceUrl())
+                        <a href="{{ $stockMovement->sourceUrl() }}" class="ms-1">Open the document</a>
+                    @endif
+                </dd>
+                <dt>By</dt>
+                <dd>{{ $stockMovement->user->name ?? '—' }}</dd>
                 <dt>Date</dt>
                 <dd>{{ $stockMovement->created_at->format('d/m/Y H:i') }}</dd>
             </dl>

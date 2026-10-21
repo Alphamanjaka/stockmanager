@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 class Inventory extends Model
 {
     public const DRAFT = 'draft';
+
     public const VALIDATED = 'validated';
 
     protected $fillable = [

@@ -6,7 +6,7 @@ use App\Modules\Catalog\Models\Brand;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Catalog\Models\Brand>
+ * @extends Factory<Brand>
  */
 class BrandFactory extends Factory
 {

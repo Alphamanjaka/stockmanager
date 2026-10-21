@@ -8,7 +8,7 @@ use App\Modules\Catalog\Models\ProductColor;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Catalog\Models\ProductColor>
+ * @extends Factory<ProductColor>
  */
 class ProductColorFactory extends Factory
 {

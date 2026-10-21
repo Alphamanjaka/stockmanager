@@ -16,6 +16,7 @@ class StockMovementResource extends JsonResource
     {
         return parent::toArray($request) + [
             'variant_label' => $this->productColor?->label,
+            'user_name' => $this->user?->name,
         ];
     }
 }

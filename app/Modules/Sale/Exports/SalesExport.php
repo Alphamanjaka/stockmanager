@@ -31,18 +31,20 @@ class SalesExport extends ListExport
             Column::make('Date', 'created_at')->datetime()->width('11%'),
             Column::make('Customer', fn (Sale $sale) => $sale->customer->name ?? null),
             Column::make('Seller', fn (Sale $sale) => $sale->user->name ?? null)->width('11%'),
-            Column::make('Payment', 'payment_method')->width('8%'),
+            Column::make('Payment', 'payment_method')->width('7%'),
             Column::make('Gross total', 'total_brut')->money()->total()->width('11%'),
             Column::make('Discount', 'discount')->money()->total()->width('9%'),
             Column::make('Net total', 'total_net')->money()->total()->width('11%'),
-            // Vide quand le coût d'un article n'est pas connu (compté 0 dans le total)
+            // Avoirs de la vente (retours d'articles, annulation)
+            Column::make('Refunded', fn (Sale $sale) => $sale->refundedTotal() ?: null)->money()->total()->width('9%'),
+            // Avoirs déduits ; vide quand le coût d'un article n'est pas connu (compté 0 dans le total)
             Column::make('Margin', fn (Sale $sale) => $sale->grossMargin())->money()->total()->width('11%'),
         ];
     }
 
     protected function query(array $filters): Builder
     {
-        return $this->sales->listQuery($filters)->with('items');
+        return $this->sales->listQuery($filters)->with(['items', 'returns.items']);
     }
 
     protected function filterLabels(array $filters): array

@@ -33,7 +33,8 @@ class StockMovementsExport extends ListExport
                 ->number()->width('8%'),
             Column::make('Before', 'stock_before')->number()->width('7%'),
             Column::make('After', 'stock_after')->number()->width('7%'),
-            Column::make('Reason', 'reason')->width('25%'),
+            Column::make('Reason', 'reason')->width('20%'),
+            Column::make('By', fn (StockMovement $movement) => $movement->user?->name)->width('10%'),
         ];
     }
 

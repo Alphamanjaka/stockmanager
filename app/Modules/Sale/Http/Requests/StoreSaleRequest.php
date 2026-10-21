@@ -3,6 +3,7 @@
 namespace App\Modules\Sale\Http\Requests;
 
 use App\Modules\Sale\Models\Sale;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,7 +20,7 @@ class StoreSaleRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     // app/Http/Requests/StoreSaleRequest.php
     public function rules(): array
@@ -36,7 +37,7 @@ class StoreSaleRequest extends FormRequest
             'products' => 'required|array|min:1',
             // 'distinct' empêche d'envoyer deux fois le même product_color_id
             'products.*.product_color_id' => 'required|exists:product_colors,id|distinct',
-            'products.*.quantity'   => 'required|integer|min:1',
+            'products.*.quantity' => 'required|integer|min:1',
         ];
-}
+    }
 }

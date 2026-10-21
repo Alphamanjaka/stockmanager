@@ -18,10 +18,10 @@ abstract class TestCase extends BaseTestCase
         $connection = $app['config']->get('database.default');
         $database = (string) $app['config']->get("database.connections.{$connection}.database");
 
-        if (!str_contains(strtolower($database), 'test')) {
+        if (! str_contains(strtolower($database), 'test')) {
             throw new \RuntimeException(
                 "Tests refusés sur la base « {$database} » : ils l'effaceraient. "
-                . 'Utilisez la base de test (DB_DATABASE=stockmanager_test, voir phpunit.xml).'
+                .'Utilisez la base de test (DB_DATABASE=stockmanager_test, voir phpunit.xml).'
             );
         }
 

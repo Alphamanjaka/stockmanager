@@ -2,8 +2,9 @@
 
 namespace Tests\Feature\Core;
 
-use App\Models\User;
 use App\Core\Services\UserService;
+use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
@@ -18,7 +19,7 @@ class UserServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new UserService();
+        $this->service = new UserService;
     }
 
     /** @test */
@@ -39,7 +40,7 @@ class UserServiceTest extends TestCase
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
-            'role' => 'back_office'
+            'role' => 'back_office',
         ];
 
         $user = $this->service->create($data);
@@ -62,7 +63,7 @@ class UserServiceTest extends TestCase
     /** @test */
     public function it_throws_exception_for_non_existent_user()
     {
-        $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        $this->expectException(ModelNotFoundException::class);
         $this->service->getUserById(999);
     }
 

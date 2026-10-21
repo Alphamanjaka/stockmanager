@@ -2,13 +2,13 @@
 
 namespace App\Modules\Sale\Http\Controllers;
 
+use App\Core\Exports\PdfDocument;
+use App\Http\Controllers\Controller;
+use App\Modules\Contact\Services\CustomerService;
 use App\Modules\Sale\Http\Controllers\Concerns\ChecksOutSales;
 use App\Modules\Sale\Http\Requests\StoreSaleRequest;
 use App\Modules\Sale\Services\SaleService;
 use App\Modules\Sale\Support\PosCatalog;
-use App\Core\Exports\PdfDocument;
-use App\Http\Controllers\Controller;
-use App\Modules\Contact\Services\CustomerService;
 
 class SaleController extends Controller
 {

@@ -5,9 +5,12 @@ namespace App\Modules\Purchase\Services;
 use App\Modules\Catalog\Support\VariantOptions;
 use App\Modules\Purchase\Models\Purchase;
 use App\Modules\Purchase\Models\PurchaseItem;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 use App\Modules\Stock\Services\StockService;
+use App\Modules\Stock\Support\MovementSource;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class PurchaseService
 {
@@ -16,6 +19,7 @@ class PurchaseService
 
     // Injecter StockService pour gérer les mouvements de stock lors des achats
     public function __construct(protected StockService $stockService) {}
+
     public function deletePurchase(int $id)
     {
         // Tout ou rien : si le retrait du stock échoue pour une ligne (articles déjà vendus),
@@ -26,10 +30,12 @@ class PurchaseService
             // Si l'achat est déjà reçu, il faut d'abord retirer le stock avant de supprimer l'achat
             if ($purchase->state === 'Received') {
                 foreach ($purchase->items as $item) {
+                    // Source sans identifiant : l'achat est supprimé juste après (le motif garde sa référence)
                     $this->stockService->removeStock(
                         $item->product_color_id,
                         $item->quantity,
-                        "Annulation Réception Achat #{$purchase->reference}"
+                        "Annulation Réception Achat #{$purchase->reference}",
+                        MovementSource::purchase(null)
                     );
                 }
             }
@@ -37,7 +43,6 @@ class PurchaseService
             $purchase->delete();
         });
     }
-
 
     // Make a purchase as received: update stock and purchase state
     public function markAsReceived(Purchase $purchase): Purchase
@@ -72,7 +77,8 @@ class PurchaseService
                         $item->product_color_id,
                         $item->quantity,
                         "Réception Achat #{$locked->reference}",
-                        (float) $item->unit_price * $netRatio
+                        (float) $item->unit_price * $netRatio,
+                        MovementSource::purchase($locked->id)
                     );
                 }
             }
@@ -88,9 +94,8 @@ class PurchaseService
      * Traite un achat : création de l'achat, des lignes d'achat.
      * Le stock n'est pas augmenté ici mais lors du passage au statut "Reçu".
      *
-     * @param int|null $supplierId
-     * @param array $items  [['product_color_id', 'quantity', 'unit_price'], ...]
-     * @param array $details  facultatif : discount, supplier_reference, notes
+     * @param  array  $items  [['product_color_id', 'quantity', 'unit_price'], ...]
+     * @param  array  $details  facultatif : discount, supplier_reference, notes
      * @return Purchase
      */
     public function processPurchase(?int $supplierId, array $items, array $details = [])
@@ -100,7 +105,7 @@ class PurchaseService
 
             // 1. Créer l'achat
             $purchase = Purchase::create([
-                'reference' => 'PUR-' . now()->format('YmdHis') . '-' . rand(100, 789546),
+                'reference' => 'PUR-'.now()->format('YmdHis').'-'.rand(100, 789546),
                 'supplier_id' => $supplierId,
                 'supplier_reference' => $details['supplier_reference'] ?? null,
                 'notes' => $details['notes'] ?? null,
@@ -132,13 +137,14 @@ class PurchaseService
                 'discount' => $discount,
                 'total_net' => $totalAmount - $discount,
             ]);
+
             return $purchase;
         });
     }
 
     /**
      * Get single purchase by ID
-     * @param integer $id
+     *
      * @return Purchase
      */
     public function getPurchaseById(int $id)
@@ -149,9 +155,7 @@ class PurchaseService
     /**
      * Récupère les achats paginés pour un fournisseur spécifique.
      *
-     * @param integer $supplierId
-     * @param integer $perPage
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @return LengthAwarePaginator
      */
     public function getPurchasesForSupplier(int $supplierId, int $perPage = 10)
     {
@@ -170,6 +174,7 @@ class PurchaseService
             'totalDiscounts' => Purchase::where('state', 'Received')->sum('discount'), // Total des remises accordées.
         ];
     }
+
     /**
      * Modifie un brouillon : fournisseur, lignes (remplacées) et, s'ils sont fournis,
      * remise, référence fournisseur et notes.
@@ -199,9 +204,9 @@ class PurchaseService
 
                 $purchase->items()->create([
                     'product_color_id' => $item['product_color_id'],
-                    'quantity'   => $item['quantity'],
+                    'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
-                    'subtotal'   => $subtotal,
+                    'subtotal' => $subtotal,
                 ]);
             }
 
@@ -209,17 +214,18 @@ class PurchaseService
             $discount = $this->discount($data['discount'] ?? $purchase->discount, $totalAmount);
             $purchase->update([
                 'total_amount' => $totalAmount,
-                'discount'     => $discount,
-                'total_net'    => $totalAmount - $discount,
+                'discount' => $discount,
+                'total_net' => $totalAmount - $discount,
             ]);
 
             return $purchase;
         });
     }
+
     /**
      * Get the count of purchases for each state, plus a total.
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getPurchaseStateCounts()
     {
@@ -238,26 +244,23 @@ class PurchaseService
     /**
      * Effectue une recherche légère sur les achats pour la fonctionnalité de recherche globale.
      *
-     * @param string $query La chaîne de recherche.
-     * @param int $limit Le nombre maximum de résultats.
-     * @return \Illuminate\Support\Collection
+     * @param  string  $query  La chaîne de recherche.
+     * @param  int  $limit  Le nombre maximum de résultats.
      */
-    public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
+    public function searchForGlobalSearch(string $query, int $limit = 5): Collection
     {
         return Purchase::with('supplier')
             ->whereLike('reference', "%{$query}%")
-            ->orWhereHas('supplier', fn($q) => $q->whereLike('name', "%{$query}%"))
+            ->orWhereHas('supplier', fn ($q) => $q->whereLike('name', "%{$query}%"))
             ->limit($limit)
             ->get()
-            ->map(fn(Purchase $purchase) => [
+            ->map(fn (Purchase $purchase) => [
                 'type' => 'purchase',
                 'id' => $purchase->id,
-                'name' => "Achat #{$purchase->reference} (" . ($purchase->supplier->name ?? 'Sans fournisseur') . ")",
+                'name' => "Achat #{$purchase->reference} (".($purchase->supplier->name ?? 'Sans fournisseur').')',
                 'url' => route('admin.purchases.show', $purchase->id),
             ]);
     }
-
-
 
     /**
      * Récupère les achats pour l'API (Tabulator) avec tri dynamique et recherche.
@@ -278,7 +281,7 @@ class PurchaseService
         // Seules les colonnes de la table purchases sont triables : un champ inconnu (ex. "supplier.name")
         // provoquait une erreur SQL.
         $sortable = ['reference', 'total_amount', 'discount', 'total_net', 'state', 'created_at'];
-        if (!empty($params['sort']) && is_array($params['sort'])) {
+        if (! empty($params['sort']) && is_array($params['sort'])) {
             foreach ($params['sort'] as $s) {
                 if (in_array($s['field'] ?? null, $sortable, true)) {
                     $query->orderBy($s['field'], ($s['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc');
@@ -294,7 +297,7 @@ class PurchaseService
     /**
      * Liste des achats (tableau de la page et export) : statut, référence, fournisseur.
      *
-     * @param array{state?: ?string, reference?: ?string, supplier?: ?string} $filters
+     * @param  array{state?: ?string, reference?: ?string, supplier?: ?string}  $filters
      */
     public function listQuery(array $filters, bool $sorted = true): Builder
     {
@@ -308,10 +311,9 @@ class PurchaseService
     /**
      * Crée des commandes d'achat groupées par fournisseur à partir d'une liste de produits en rupture.
      *
-     * @param array $itemsToOrder
      * @return array Liste des achats créés
      */
-    public function     createPurchasesFromShortage(array $itemsToOrder): array
+    public function createPurchasesFromShortage(array $itemsToOrder): array
     {
         return DB::transaction(function () use ($itemsToOrder) {
             $itemsBySupplier = collect($itemsToOrder)->groupBy('supplier_id');
@@ -319,7 +321,7 @@ class PurchaseService
 
             foreach ($itemsBySupplier as $supplierId => $items) {
                 // Si le groupement par 'supplier_id' donne une clé vide (null/empty), on passe null
-                $actualSupplierId = ($supplierId === "" || $supplierId === null) ? null : (int) $supplierId;
+                $actualSupplierId = ($supplierId === '' || $supplierId === null) ? null : (int) $supplierId;
                 $createdPurchases[] = $this->processPurchase($actualSupplierId, $items->toArray());
             }
 
@@ -332,7 +334,7 @@ class PurchaseService
      * Une variante est en rupture quand son stock, plus ce qui est déjà commandé (achats au statut
      * « Commandé »), ne dépasse pas son seuil d'alerte : une commande en cours n'est pas reproposée.
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getShortageProductsGroupedBySupplier()
     {
@@ -387,7 +389,7 @@ class PurchaseService
 
         $productsWithSupplier = collect($results)->map(function ($item) {
             // Formatage des noms pour la vue (objet simulé)
-            $product = new \stdClass();
+            $product = new \stdClass;
             foreach ($item as $key => $value) {
                 $product->$key = $value;
             }
@@ -402,7 +404,7 @@ class PurchaseService
             // Coût proposé : dernier prix payé au fournisseur ; sans historique, prix d'achat de la fiche produit
             // (jamais le prix de vente, qui comprend la marge) ; inconnu, il est à saisir sur le bon de commande.
             $product->cost_source = 'last_purchase';
-            if (!$product->last_supplier_id) {
+            if (! $product->last_supplier_id) {
                 $product->last_supplier_name = 'No Supplier Assigned';
                 $cost = (float) ($product->price_purchase ?? 0);
                 $product->last_unit_price = $cost > 0 ? $cost : null;
@@ -424,7 +426,7 @@ class PurchaseService
                 return [
                     'supplier_name' => $products->first()->last_supplier_name,
                     'supplier_id' => $supplierId,
-                    'products' => $products
+                    'products' => $products,
                 ];
             });
     }
@@ -434,7 +436,7 @@ class PurchaseService
      * 'draft' reste en brouillon, 'ordered' passe en commandé, 'received' réceptionne (entrée en stock).
      * Tout ou rien : si la réception échoue, l'achat n'est pas enregistré non plus.
      *
-     * @param array $data supplier_id, products[], discount, supplier_reference, notes
+     * @param  array  $data  supplier_id, products[], discount, supplier_reference, notes
      */
     public function savePurchaseOrder(?int $purchaseId, array $data, string $action = 'draft'): Purchase
     {

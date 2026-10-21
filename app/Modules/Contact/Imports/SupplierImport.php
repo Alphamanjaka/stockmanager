@@ -4,20 +4,18 @@ namespace App\Modules\Contact\Imports;
 
 use App\Modules\Contact\Services\SupplierService;
 use Maatwebsite\Excel\Concerns\OnEachRow;
-use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Row;
 
 class SupplierImport implements OnEachRow, WithHeadingRow, WithValidation
 {
     private int $created = 0;
+
     private int $updated = 0;
 
     public function __construct(private SupplierService $supplierService) {}
 
-    /**
-     * @param Row $row
-     */
     public function onRow(Row $row)
     {
         $rowData = $row->toArray();
@@ -44,13 +42,14 @@ class SupplierImport implements OnEachRow, WithHeadingRow, WithValidation
                 $this->created++;
             }
         } catch (\Throwable $e) {
-            throw new \Exception("Ligne {$rowIndex} : " . $e->getMessage());
+            throw new \Exception("Ligne {$rowIndex} : ".$e->getMessage());
         }
     }
+
     public function rules(): array
     {
         return [
-            'name'  => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'email' => 'required|email',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',

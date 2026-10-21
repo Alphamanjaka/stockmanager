@@ -23,7 +23,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * Version Excel d'un export de liste (ListExport) : mêmes colonnes que le PDF, valeurs brutes
  * (nombres et dates réels, triables et additionnables), en-tête figé et filtres automatiques.
  */
-class ExcelSheet implements FromArray, WithHeadings, WithTitle, WithColumnFormatting, WithStyles, WithEvents, ShouldAutoSize, WithStrictNullComparison
+class ExcelSheet implements FromArray, ShouldAutoSize, WithColumnFormatting, WithEvents, WithHeadings, WithStrictNullComparison, WithStyles, WithTitle
 {
     /** @param list<Column> $columns */
     public function __construct(
@@ -83,7 +83,7 @@ class ExcelSheet implements FromArray, WithHeadings, WithTitle, WithColumnFormat
                 $lastColumn = Coordinate::stringFromColumnIndex(count($this->columns));
 
                 $sheet->freezePane('A2');
-                $sheet->setAutoFilter("A1:{$lastColumn}" . max(1, $this->rows->count() + 1));
+                $sheet->setAutoFilter("A1:{$lastColumn}".max(1, $this->rows->count() + 1));
             },
         ];
     }

@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 #[UseFactory(BrandFactory::class)]
 class Brand extends Model
 {
-    use HasFactory, Archivable;
+    use Archivable, HasFactory;
 
     protected $fillable = ['name'];
 
