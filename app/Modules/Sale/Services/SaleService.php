@@ -73,6 +73,8 @@ class SaleService
                     'product_color_id' => $variant->id,
                     'quantity'         => $item['quantity'],
                     'unit_price'       => $variant->price,
+                    // Coût figé comme le prix : la marge de la vente ne bouge plus quand le coût évolue
+                    'unit_cost'        => (float) $variant->price_purchase > 0 ? $variant->price_purchase : null,
                     'subtotal'         => $subtotal,
                 ];
 

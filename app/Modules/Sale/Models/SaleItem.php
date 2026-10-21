@@ -12,7 +12,8 @@ use App\Modules\Sale\Database\Factories\SaleItemFactory;
 class SaleItem extends Model
 {
     use HasFactory;
-    protected $fillable = ['sale_id', 'product_color_id', 'quantity', 'unit_price', 'subtotal'];
+    // unit_cost : coût d'achat unitaire figé à la vente (vide si le coût n'était pas connu)
+    protected $fillable = ['sale_id', 'product_color_id', 'quantity', 'unit_price', 'unit_cost', 'subtotal'];
 
     /**
      * Relation vers la variante spécifique (Produit + Couleur)
