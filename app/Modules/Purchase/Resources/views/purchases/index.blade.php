@@ -21,6 +21,7 @@
         'All' => ['label' => __('All'), 'icon' => 'bi-list-ul'],
         'Draft' => ['label' => __('Drafts'), 'icon' => 'bi-pencil'],
         'Ordered' => ['label' => __('Ordered'), 'icon' => 'bi-send'],
+        'PartiallyReceived' => ['label' => __('Partially received'), 'icon' => 'bi-hourglass-split'],
         'Received' => ['label' => __('Received'), 'icon' => 'bi-check2-circle'],
     ];
 @endphp
@@ -62,11 +63,12 @@
          Construits à part : la directive json découpe son argument aux virgules. --}}
     @php
         $i18n = [
-            'states' => ['Draft' => __('Draft'), 'Ordered' => __('Ordered'), 'Received' => __('Received')],
+            'states' => \App\Modules\Purchase\Models\Purchase::stateLabels(),
             'unexpectedError' => __('An unexpected error occurred.'),
-            'receiveTitle' => __('Mark this purchase as received?'),
-            'receiveText' => __('The stock of every line will be increased. This cannot be undone.'),
-            'receiveConfirm' => __('Mark as received'),
+            'receiveTitle' => __('Receive everything still expected?'),
+            'receiveText' => __('The remaining quantity of every line is added to the stock. This cannot be undone.'),
+            'receiveConfirm' => __('Receive'),
+            'recordDelivery' => __('Record a delivery'),
             'deleteTitle' => __('Delete this purchase?'),
             'deleteText' => __('This action cannot be undone.'),
             'delete' => __('Delete'),

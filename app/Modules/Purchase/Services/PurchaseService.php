@@ -27,17 +27,15 @@ class PurchaseService
         DB::transaction(function () use ($id) {
             $purchase = Purchase::with('items')->lockForUpdate()->findOrFail($id);
 
-            // Si l'achat est déjà reçu, il faut d'abord retirer le stock avant de supprimer l'achat
-            if ($purchase->state === 'Received') {
-                foreach ($purchase->items as $item) {
-                    // Source sans identifiant : l'achat est supprimé juste après (le motif garde sa référence)
-                    $this->stockService->removeStock(
-                        $item->product_color_id,
-                        $item->quantity,
-                        "Annulation Réception Achat #{$purchase->reference}",
-                        MovementSource::purchase(null)
-                    );
-                }
+            // Ce qui a déjà été livré (réception complète ou partielle) sort du stock avant la suppression
+            foreach ($purchase->items->where('received_quantity', '>', 0) as $item) {
+                // Source sans identifiant : l'achat est supprimé juste après (le motif garde sa référence)
+                $this->stockService->removeStock(
+                    $item->product_color_id,
+                    $item->received_quantity,
+                    "Annulation Réception Achat #{$purchase->reference}",
+                    MovementSource::purchase(null)
+                );
             }
 
             $purchase->delete();
@@ -51,42 +49,122 @@ class PurchaseService
     }
 
     /**
-     * Change le statut d'un achat.
-     * "Received" est un statut final : le stock a déjà été incrémenté, et revenir en arrière
-     * permettrait de réceptionner la même commande plusieurs fois.
+     * Change le statut d'un achat. « Received » réceptionne tout ce qui reste à livrer.
+     * « Received » est un statut final : le stock a déjà été incrémenté, et revenir en arrière
+     * permettrait de réceptionner la même commande plusieurs fois. Un achat en partie reçu ne revient
+     * pas non plus en brouillon ni en commande : une partie de son stock est déjà entrée.
      *
-     * @throws \Exception si l'achat est déjà réceptionné
+     * @throws \Exception si l'achat est déjà réceptionné, ou en partie reçu pour un retour en arrière
      */
     public function changeState(Purchase $purchase, string $state): Purchase
     {
         return DB::transaction(function () use ($purchase, $state) {
             // Verrou sur la ligne : deux requêtes simultanées (double clic) ne peuvent pas réceptionner deux fois.
-            $locked = Purchase::with('items')->lockForUpdate()->findOrFail($purchase->id);
+            $locked = $this->lockOpenPurchase($purchase);
 
-            if ($locked->state === 'Received') {
-                throw new \Exception("L'achat #{$locked->reference} a déjà été réceptionné : son statut ne peut plus être modifié.");
+            if ($state === Purchase::RECEIVED) {
+                return $this->receiveLines($locked, $locked->items->mapWithKeys(
+                    fn (PurchaseItem $item) => [$item->id => $item->remainingQuantity()]
+                )->all(), requireQuantity: false);
             }
 
-            if ($state === 'Received') {
-                // Remise de l'achat répartie sur les lignes au prorata : coût réellement payé par article
-                $netRatio = (float) $locked->total_amount > 0 ? (float) $locked->total_net / (float) $locked->total_amount : 1;
-
-                foreach ($locked->items as $item) {
-                    // Entrée en stock ; le coût de la variante devient son coût moyen pondéré (CUMP)
-                    $this->stockService->addStock(
-                        $item->product_color_id,
-                        $item->quantity,
-                        "Réception Achat #{$locked->reference}",
-                        (float) $item->unit_price * $netRatio,
-                        MovementSource::purchase($locked->id)
-                    );
-                }
+            if ($locked->state === Purchase::PARTIALLY_RECEIVED) {
+                throw new \Exception("L'achat #{$locked->reference} est déjà en partie reçu : il ne peut plus revenir en brouillon ni en commande.");
             }
 
             $locked->update(['state' => $state]);
 
             return $locked;
         });
+    }
+
+    /**
+     * Enregistre une livraison, complète ou partielle : [id de ligne => quantité livrée].
+     * Une ligne absente ou à 0 n'est pas livrée cette fois. L'achat devient « partiellement reçu »
+     * tant qu'il reste des articles à livrer, puis « reçu » quand tout est arrivé.
+     *
+     * @param  array<int, int|string|null>  $quantities
+     *
+     * @throws \Exception quantité supérieure au reste à livrer, livraison vide, achat déjà reçu
+     */
+    public function receive(Purchase $purchase, array $quantities): Purchase
+    {
+        return DB::transaction(fn () => $this->receiveLines($this->lockOpenPurchase($purchase), $quantities));
+    }
+
+    /**
+     * Solde une commande en partie reçue : le fournisseur ne livrera pas le reste. L'achat devient « reçu »
+     * et le reste n'est plus attendu (il ne compte plus dans les quantités commandées) ; les quantités
+     * reçues restent celles livrées.
+     *
+     * @throws \Exception si l'achat n'est pas en partie reçu
+     */
+    public function closeRemaining(Purchase $purchase): Purchase
+    {
+        return DB::transaction(function () use ($purchase) {
+            $locked = $this->lockOpenPurchase($purchase);
+
+            if ($locked->state !== Purchase::PARTIALLY_RECEIVED) {
+                throw new \Exception("Seule une commande en partie reçue peut être soldée : réceptionnez d'abord ce qui a été livré.");
+            }
+
+            $locked->update(['state' => Purchase::RECEIVED]);
+
+            return $locked;
+        });
+    }
+
+    /** Achat verrouillé jusqu'à la fin de la transaction, refusé s'il est déjà entièrement reçu. */
+    private function lockOpenPurchase(Purchase $purchase): Purchase
+    {
+        $locked = Purchase::with('items.productColor')->lockForUpdate()->findOrFail($purchase->id);
+
+        if ($locked->state === Purchase::RECEIVED) {
+            throw new \Exception("L'achat #{$locked->reference} a déjà été réceptionné : son statut ne peut plus être modifié.");
+        }
+
+        return $locked;
+    }
+
+    /**
+     * Entrée en stock des quantités livrées (achat verrouillé), puis statut selon ce qui reste à livrer.
+     * $requireQuantity : une livraison sans aucun article est refusée (réception de tout le reste : non).
+     */
+    private function receiveLines(Purchase $purchase, array $quantities, bool $requireQuantity = true): Purchase
+    {
+        // Remise de l'achat répartie sur les lignes au prorata : coût réellement payé par article
+        $netRatio = $purchase->netRatio();
+        $received = 0;
+
+        foreach ($purchase->items as $item) {
+            $quantity = (int) ($quantities[$item->id] ?? 0);
+            if ($quantity <= 0) {
+                continue;
+            }
+            if ($quantity > $item->remainingQuantity()) {
+                throw new \Exception("{$item->productColor?->label} : {$quantity} reçu(s) pour {$item->remainingQuantity()} restant(s) à livrer.");
+            }
+
+            // Entrée en stock ; le coût de la variante devient son coût moyen pondéré (CUMP)
+            $this->stockService->addStock(
+                $item->product_color_id,
+                $quantity,
+                "Réception Achat #{$purchase->reference}",
+                (float) $item->unit_price * $netRatio,
+                MovementSource::purchase($purchase->id)
+            );
+            $item->increment('received_quantity', $quantity);
+            $received += $quantity;
+        }
+
+        if ($received === 0 && $requireQuantity) {
+            throw new \Exception('Indiquez la quantité livrée d\'au moins une ligne.');
+        }
+
+        $complete = $purchase->items->every(fn (PurchaseItem $item) => $item->remainingQuantity() === 0);
+        $purchase->update(['state' => $complete ? Purchase::RECEIVED : Purchase::PARTIALLY_RECEIVED]);
+
+        return $purchase;
     }
 
     // Traite un achat : création de l'achat, des lignes d'achat et mise à jour du stock
@@ -163,15 +241,28 @@ class PurchaseService
     }
 
     /**
-     * Get purchase statistics
+     * Statistiques des achats qui ont fait entrer du stock (partiellement ou entièrement reçus),
+     * sur ce qui a été livré : une commande soldée avant la fin ne compte que pour ses articles reçus.
      */
     public function getPurchaseStatistics()
     {
+        $totals = PurchaseItem::query()
+            ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+            ->whereIn('purchases.state', Purchase::WITH_RECEPTIONS)
+            ->selectRaw('COUNT(DISTINCT purchases.id) as purchases')
+            ->selectRaw('SUM(purchase_items.received_quantity * purchase_items.unit_price) as gross')
+            ->selectRaw('SUM('.PurchaseItem::RECEIVED_NET_SQL.') as net')
+            ->toBase()
+            ->first();
+
+        $spent = round((float) $totals->net, 2);
+        $count = (int) $totals->purchases;
+
         return [
-            'totalSpent' => Purchase::where('state', 'Received')->sum('total_net'), // Montant total dépensé pour les achats.
-            'totalPurchases' => Purchase::where('state', 'Received')->count(),
-            'averagePurchaseValue' => Purchase::where('state', 'Received')->avg('total_net'), // Valeur moyenne des achats.
-            'totalDiscounts' => Purchase::where('state', 'Received')->sum('discount'), // Total des remises accordées.
+            'totalSpent' => $spent, // Montant dépensé : articles reçus, remise déduite
+            'totalPurchases' => $count,
+            'averagePurchaseValue' => $count > 0 ? round($spent / $count, 2) : 0,
+            'totalDiscounts' => round((float) $totals->gross - $spent, 2), // Remises sur les articles reçus
         ];
     }
 
@@ -302,7 +393,7 @@ class PurchaseService
     public function listQuery(array $filters, bool $sorted = true): Builder
     {
         return Purchase::with('supplier')
-            ->when(in_array($filters['state'] ?? null, ['Draft', 'Ordered', 'Received'], true), fn ($q) => $q->where('state', $filters['state']))
+            ->when(in_array($filters['state'] ?? null, Purchase::STATES, true), fn ($q) => $q->where('state', $filters['state']))
             ->when($filters['reference'] ?? null, fn ($q, $reference) => $q->whereLike('reference', "%{$reference}%"))
             ->when($filters['supplier'] ?? null, fn ($q, $supplier) => $q->whereHas('supplier', fn ($s) => $s->whereLike('name', "%{$supplier}%")))
             ->when($sorted, fn ($q) => $q->latest());
@@ -331,14 +422,14 @@ class PurchaseService
 
     /**
      * Regroupe les produits en rupture de stock par leur dernier fournisseur connu.
-     * Une variante est en rupture quand son stock, plus ce qui est déjà commandé (achats au statut
-     * « Commandé »), ne dépasse pas son seuil d'alerte : une commande en cours n'est pas reproposée.
+     * Une variante est en rupture quand son stock, plus ce qui est déjà commandé (reste à livrer des achats
+     * commandés ou partiellement reçus), ne dépasse pas son seuil d'alerte : une commande en cours n'est pas reproposée.
      *
      * @return Collection
      */
     public function getShortageProductsGroupedBySupplier()
     {
-        // oq : quantités commandées et pas encore reçues.
+        // oq : quantités commandées et pas encore livrées (reste à livrer des commandes en cours).
         // lp : dernière ligne d'un achat commandé ou reçu chez un fournisseur (un brouillon n'engage personne).
         $sql = "
             SELECT
@@ -355,10 +446,10 @@ class PurchaseService
             INNER JOIN products p ON pc.product_id = p.id
             LEFT JOIN brands b ON pc.brand_id = b.id
             LEFT JOIN (
-                SELECT pi.product_color_id, SUM(pi.quantity) as ordered_quantity
+                SELECT pi.product_color_id, SUM(pi.quantity - pi.received_quantity) as ordered_quantity
                 FROM purchase_items pi
                 JOIN purchases pur ON pi.purchase_id = pur.id
-                WHERE pur.state = 'Ordered'
+                WHERE pur.state IN ('Ordered', 'PartiallyReceived')
                 GROUP BY pi.product_color_id
             ) oq ON pc.id = oq.product_color_id
             LEFT JOIN (

@@ -16,6 +16,10 @@ Route::prefix('purchases')->name('purchases.')->group(function () {
     Route::get('/supplier-prices/{supplier}', [PurchaseController::class, 'supplierPrices'])
         ->whereNumber('supplier')->name('supplier-prices');
     Route::patch('/{id}/state', [PurchaseController::class, 'updateState'])->name('updateState');
+    // Livraison complète ou partielle, et commande soldée (le reste ne sera pas livré)
+    Route::get('/{id}/receive', [PurchaseController::class, 'receiveForm'])->whereNumber('id')->name('receive');
+    Route::post('/{id}/receive', [PurchaseController::class, 'receive'])->whereNumber('id')->name('receive.store');
+    Route::post('/{id}/close', [PurchaseController::class, 'closeRemaining'])->whereNumber('id')->name('close');
     Route::get('/{id}/pdf', [PurchaseController::class, 'exportPdf'])->name('pdf');
 });
 Route::resource('purchases', PurchaseController::class);

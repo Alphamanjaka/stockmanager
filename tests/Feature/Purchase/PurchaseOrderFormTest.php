@@ -178,7 +178,7 @@ class PurchaseOrderFormTest extends TestCase
     {
         // Wax (2 en stock, alerte à 5) a déjà été acheté à ce fournisseur : il est proposé dans ses ruptures
         $purchase = Purchase::factory()->create(['supplier_id' => $this->supplier->id, 'state' => 'Received']);
-        PurchaseItem::create(['purchase_id' => $purchase->id, 'product_color_id' => $this->wax->id, 'quantity' => 1, 'unit_price' => 690, 'subtotal' => 690]);
+        PurchaseItem::create(['purchase_id' => $purchase->id, 'product_color_id' => $this->wax->id, 'quantity' => 1, 'received_quantity' => 1, 'unit_price' => 690, 'subtotal' => 690]);
 
         $this->get(route('admin.purchases.create'))->assertOk()
             ->assertSee('"shortages":{"'.$this->supplier->id.'":[{"id":'.$this->wax->id, false);

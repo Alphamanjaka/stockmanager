@@ -28,6 +28,7 @@ class PurchaseApiResource extends JsonResource
                 'edit' => route('admin.purchases.edit', $this->id),
                 'destroy' => route('admin.purchases.destroy', $this->id),
                 'update_state' => route('admin.purchases.updateState', $this->id),
+                'receive' => route('admin.purchases.receive', $this->id),
                 'csrf' => csrf_token(),
             ],
         ];

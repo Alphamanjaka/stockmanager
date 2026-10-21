@@ -146,7 +146,8 @@ class PurchaseController extends Controller
      */
     public function show(int $id)
     {
-        $purchase = $this->purchaseService->getPurchaseById($id);
+        $purchase = $this->purchaseService->getPurchaseById($id)
+            ->load(['receptions.user', 'receptions.productColor.product', 'receptions.productColor.brand']);
 
         return view('purchase::purchases.show', compact('purchase'));
     }
@@ -255,6 +256,56 @@ class PurchaseController extends Controller
 
             return back()->with('error', 'Erreur lors du changement de statut : '.$e->getMessage());
         }
+    }
+
+    /**
+     * Livraison d'un achat : quantité reçue par ligne, proposée égale au reste à livrer.
+     */
+    public function receiveForm(int $id)
+    {
+        $purchase = $this->purchaseService->getPurchaseById($id);
+
+        if ($purchase->state === Purchase::RECEIVED) {
+            return redirect()->route('admin.purchases.show', $id)->with('error', __('This purchase has already been received.'));
+        }
+
+        return view('purchase::purchases.receive', compact('purchase'));
+    }
+
+    /**
+     * Enregistre une livraison, complète ou partielle : le stock augmente des quantités reçues.
+     */
+    public function receive(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'quantities' => ['required', 'array'],
+            'quantities.*' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        try {
+            $purchase = $this->purchaseService->receive($this->purchaseService->getPurchaseById($id), $validated['quantities']);
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('admin.purchases.show', $id)->with('success', $purchase->state === Purchase::RECEIVED
+            ? __('Delivery recorded: the purchase is fully received.')
+            : __('Delivery recorded: :count item(s) still to be delivered.', ['count' => $purchase->remainingQuantity()]));
+    }
+
+    /**
+     * Solde une commande en partie reçue : le reste n'est plus attendu.
+     */
+    public function closeRemaining(int $id)
+    {
+        try {
+            $this->purchaseService->closeRemaining($this->purchaseService->getPurchaseById($id));
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('admin.purchases.show', $id)
+            ->with('success', __('Order closed: the remaining items are no longer expected.'));
     }
 
     /**

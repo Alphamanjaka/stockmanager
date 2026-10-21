@@ -71,7 +71,7 @@ class ShortageRestockTest extends TestCase
         $variant = $this->shortage('crème bravia', 6000);
         $supplier = Supplier::factory()->create(['name' => 'Tissus Mada']);
         $purchase = Purchase::factory()->create(['supplier_id' => $supplier->id, 'state' => 'Received']);
-        PurchaseItem::create(['purchase_id' => $purchase->id, 'product_color_id' => $variant->id, 'quantity' => 4, 'unit_price' => 5500, 'subtotal' => 22000]);
+        PurchaseItem::create(['purchase_id' => $purchase->id, 'product_color_id' => $variant->id, 'quantity' => 4, 'received_quantity' => 4, 'unit_price' => 5500, 'subtotal' => 22000]);
 
         $this->get(route('admin.purchases.createFromShortage'))
             ->assertOk()
@@ -80,12 +80,14 @@ class ShortageRestockTest extends TestCase
             ->assertSee('Last purchase');
     }
 
-    private function purchase(ProductColor $variant, string $state, int $quantity, ?Supplier $supplier = null, float $unitPrice = 5000): Purchase
+    /** $received : quantité déjà livrée (par défaut : tout pour un achat reçu, rien sinon). */
+    private function purchase(ProductColor $variant, string $state, int $quantity, ?Supplier $supplier = null, float $unitPrice = 5000, ?int $received = null): Purchase
     {
         $purchase = Purchase::factory()->create(['supplier_id' => ($supplier ?? Supplier::factory()->create())->id, 'state' => $state]);
         PurchaseItem::create([
-            'purchase_id' => $purchase->id, 'product_color_id' => $variant->id,
-            'quantity' => $quantity, 'unit_price' => $unitPrice, 'subtotal' => $quantity * $unitPrice,
+            'purchase_id' => $purchase->id, 'product_color_id' => $variant->id, 'quantity' => $quantity,
+            'received_quantity' => $received ?? ($state === Purchase::RECEIVED ? $quantity : 0),
+            'unit_price' => $unitPrice, 'subtotal' => $quantity * $unitPrice,
         ]);
 
         return $purchase;
@@ -128,6 +130,20 @@ class ShortageRestockTest extends TestCase
             ->assertOk()
             ->assertSee('No product requires restocking')
             ->assertDontSee('savon repardine');
+    }
+
+    /** @test */
+    public function only_the_rest_of_a_partially_received_order_is_on_order()
+    {
+        $variant = $this->shortage('savon repardine', 6000);
+        $this->purchase($variant, 'PartiallyReceived', 10, received: 7);
+        // Commande soldée : le reste ne sera pas livré
+        $this->purchase($variant, 'Received', 10, received: 4);
+
+        // Seuil 5 : remonter à 7,5, moins le stock (1) et les 3 encore attendus
+        $suggestion = $this->suggestion($variant);
+        $this->assertSame(3, $suggestion->ordered_quantity);
+        $this->assertSame(4, $suggestion->suggested_quantity);
     }
 
     /** @test */

@@ -39,7 +39,7 @@ class PurchaseIntegrityTest extends TestCase
         foreach ($lines as [$variant, $quantity]) {
             PurchaseItem::create([
                 'purchase_id' => $purchase->id, 'product_color_id' => $variant->id,
-                'quantity' => $quantity, 'unit_price' => 100, 'subtotal' => 100 * $quantity,
+                'quantity' => $quantity, 'received_quantity' => $quantity, 'unit_price' => 100, 'subtotal' => 100 * $quantity,
             ]);
         }
 

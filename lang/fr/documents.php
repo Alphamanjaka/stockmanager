@@ -42,6 +42,7 @@ return [
     'states' => [
         'Draft' => 'Brouillon',
         'Ordered' => 'Commandé',
+        'PartiallyReceived' => 'Partiellement reçu',
         'Received' => 'Reçu',
     ],
 ];

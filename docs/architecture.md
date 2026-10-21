@@ -81,7 +81,7 @@ pour que l'ordre de chargement des modules n'ait pas d'importance.
 
   | Origine | Effet | Méthode |
   |---|---|---|
-  | Achat passé au statut « Reçu » | entrée, coût moyen pondéré recalculé | `addStock` avec coût unitaire |
+  | Livraison d'un achat (complète ou partielle) | entrée des quantités livrées, coût moyen pondéré recalculé | `addStock` avec coût unitaire |
   | Vente | sortie | `removeStock` |
   | Retour de vente (avoir), annulation | entrée, au coût figé à la vente | `addStock` avec coût unitaire |
   | Inventaire physique validé | écart compté | `adjustTo` |
@@ -91,6 +91,11 @@ pour que l'ordre de chargement des modules n'ait pas d'importance.
   `source_type` / `source_id`, le document à l'origine (`App\Modules\Stock\Support\MovementSource` : achat, vente,
   inventaire, correction). Le type est un libellé court, pas un nom de classe : le module Stock ne dépend pas des
   modules qui l'appellent. La nature affichée d'un mouvement et l'alerte de pertes lisent la source, plus le motif.
+- **Réception partielle** : chaque ligne d'achat garde sa quantité reçue (`received_quantity`). Statuts :
+  Brouillon → Commandé → Partiellement reçu (une partie livrée, le reste attendu) → Reçu (tout livré, ou commande
+  soldée : le reste n'est plus attendu). `PurchaseService::receive()` enregistre une livraison ; le reste à livrer
+  des commandes en cours compte comme « commandé » dans les ruptures. Les statistiques d'achat portent sur ce qui a
+  été livré.
 - **Coût d'une variante** (`price_purchase`) : coût moyen pondéré (CUMP). À chaque réception, `StockService`
   le recalcule sous le même verrou que le stock : `(stock × coût actuel + quantité reçue × coût payé) / nouveau stock`,
   la remise de l'achat étant répartie sur ses lignes. Les ventes, inventaires et corrections ne le changent pas.

@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // Statut : même pastille que <x-ui.status>
-    const stateTones = { Draft: "neutral", Ordered: "info", Received: "success" };
+    const stateTones = { Draft: "neutral", Ordered: "info", PartiallyReceived: "warning", Received: "success" };
     const stateFormatter = (cell) => {
         const state = cell.getValue();
         return `<span class="ui-badge ui-badge-dot ui-tone-${stateTones[state] ?? "neutral"}">${escapeHtml(i18n.states?.[state] ?? state)}</span>`;
@@ -96,8 +96,9 @@ document.addEventListener("DOMContentLoaded", function () {
             buttons =
                 iconButton({ href: urls.edit }, "bi-pencil", escapeHtml(t("edit"))) +
                 iconButton({ type: "button", "data-url": urls.destroy, "data-token": urls.csrf }, "bi-trash3", escapeHtml(t("delete")), "btn-icon-danger quick-delete");
-        } else if (state === "Ordered") {
-            buttons = `
+        } else if (state === "Ordered" || state === "PartiallyReceived") {
+            // Livraison partielle (page de réception) ou réception de tout ce qui reste
+            buttons = iconButton({ href: urls.receive }, "bi-truck", escapeHtml(t("recordDelivery"))) + `
                 <button type="button" class="btn btn-sm btn-outline-success quick-update-state" data-url="${urls.update_state}"
                     data-token="${urls.csrf}" data-new-state="Received">
                     <i class="bi bi-check2-circle" aria-hidden="true"></i> ${escapeHtml(t("received"))}
@@ -135,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
             { title: t("date"), field: "date", width: 150 },
             { title: t("status"), field: "state", formatter: stateFormatter, width: 130 },
             { title: t("netTotal"), field: "total_net", hozAlign: "right", headerHozAlign: "right", width: 160 },
-            { title: "", field: "urls", formatter: actionsFormatter, hozAlign: "right", headerSort: false, width: 190 },
+            { title: "", field: "urls", formatter: actionsFormatter, hozAlign: "right", headerSort: false, width: 230 },
         ],
     });
 
