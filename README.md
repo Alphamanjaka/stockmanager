@@ -114,7 +114,11 @@ Le projet utilise une stratégie de conteneurisation avancée en **3 étapes** p
 
 ### Commandes Rapides
 
-- **Production** : `docker compose -f compose.prod.yaml up -d --build`.
+- **Production** : `docker compose -f compose.prod.yaml up -d --build`. Les conteneurs parlent toujours aux services
+  `postgres` et `redis` du fichier, quel que soit le `.env` (celui de Laragon convient). La base est créée au premier
+  démarrage avec `POSTGRES_DATABASE`, `POSTGRES_USERNAME` et `POSTGRES_PASSWORD` du `.env` (par défaut `app`, `laravel`,
+  `secret` : à changer sur un serveur, **avant** le premier démarrage). `php-fpm` applique les migrations au démarrage ;
+  le worker et le scheduler l'attendent.
 - **Développement** : `docker compose -f compose.dev.yaml up -d --build` — code monté en direct, PostgreSQL 16,
   Vite, Xdebug à la demande ; cohabite avec Laragon. Mode d'emploi complet : [docs/docker-dev.md](docs/docker-dev.md).
 
