@@ -102,6 +102,11 @@ kbd {
     white-space: pre-line;
 }
 
+/* Élément d'une ligne flex qui peut rétrécir : son texte .text-truncate est alors coupé avec « … » */
+.min-w-0 {
+    min-width: 0;
+}
+
 :focus-visible {
     outline-color: var(--app-primary);
 }

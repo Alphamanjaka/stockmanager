@@ -97,8 +97,8 @@ class TranslationsTest extends TestCase
         $this->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('<html lang="fr">', false)
-            ->assertSee('Vue d\'ensemble du catalogue, du stock et des ventes')
-            ->assertDontSee('Overview of the catalog');
+            ->assertSee('Ce qui demande votre attention aujourd\'hui')
+            ->assertDontSee('What needs your attention');
 
         $this->get(route('admin.products.index'))->assertOk()->assertSee('Nouveau produit')->assertSee('Prix d\'achat');
 

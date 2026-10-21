@@ -2,42 +2,63 @@
 
 namespace App\Core\Services;
 
-use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\ProductColor;
-use App\Modules\Contact\Models\Supplier;
+use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleReturn;
 use App\Modules\Sale\Services\SaleService;
+use App\Modules\Stock\Services\StockService;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class DashboardService
 {
-    protected SaleService $saleService;
-
-    public function __construct(SaleService $saleService)
-    {
-        $this->saleService = $saleService;
-    }
+    public function __construct(
+        protected SaleService $saleService,
+        protected PurchaseService $purchaseService,
+        protected StockService $stockService,
+    ) {}
 
     /**
-     * Get back office KPIs and chart data
+     * Tableau de bord du back office, orienté action : ce qui demande une décision aujourd'hui
+     * (commandes à recevoir, ruptures à réapprovisionner, stock dormant), les ventes du jour et la marge,
+     * puis les ventes de la semaine et du mois. Le graphique est chargé à part (getChartData).
      */
     public function getBackOfficeData($period = '7days')
     {
         return [
+            'salesToday' => $this->getSalesToday(),
+            'salesTodayCount' => Sale::whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()])->count(),
+            'marginThisMonth' => $this->saleService->getGrossMargin(now()->startOfMonth(), now()->endOfMonth()),
+            'awaitingDelivery' => $this->purchaseService->getAwaitingDelivery(),
+            'shortages' => $this->getShortages(),
+            'dormantStock' => $this->stockService->getDormantStock(),
             'salesThisWeek' => $this->getSalesThisWeek(),
             'salesThisMonth' => $this->getSalesThisMonth(),
-            'marginThisMonth' => $this->saleService->getGrossMargin(now()->startOfMonth(), now()->endOfMonth()),
-            'totalProducts' => $this->getTotalProducts(),
-            'lowStockProducts' => $this->getLowStockProducts(),
-            'totalCategories' => $this->getTotalCategories(),
-            'totalSuppliers' => $this->getTotalSuppliers(),
-            'totalSales' => $this->getTotalSales(),
             'mostSoldProduct' => $this->getMostSoldProduct(),
-            'leastSoldProduct' => $this->getLeastSoldProduct(),
-            'chartData' => $this->getChartData($period),
             'period' => $period,
+        ];
+    }
+
+    /**
+     * Variantes à réapprovisionner : au seuil d'alerte ou en dessous une fois les commandes en cours comptées
+     * (même calcul que la page « Réapprovisionner les ruptures »), les plus en manque d'abord.
+     *
+     * @return array{count: int, below_threshold: int, items: Collection<int, object>}
+     *                                                                                 below_threshold : variantes sous leur seuil, commandes en cours ou non
+     */
+    private function getShortages(int $limit = 5): array
+    {
+        $products = $this->purchaseService->getShortageProductsGroupedBySupplier()
+            ->flatMap(fn (array $group) => $group['products'])
+            ->sortBy(fn (object $product) => $product->stock + $product->ordered_quantity - $product->alert_stock)
+            ->values();
+
+        return [
+            'count' => $products->count(),
+            'below_threshold' => $this->getLowStockProducts(),
+            'items' => $products->take($limit),
         ];
     }
 
@@ -84,11 +105,6 @@ class DashboardService
     private function getMostSoldProduct()
     {
         return $this->saleService->getMostSoldProduct();
-    }
-
-    private function getLeastSoldProduct()
-    {
-        return $this->saleService->getLeastSoldProduct();
     }
 
     /**
@@ -237,35 +253,14 @@ class DashboardService
     }
 
     /**
-     * Get total count of products (variantes des produits en service)
-     */
-    private function getTotalProducts()
-    {
-        return ProductColor::whereHas('product', fn ($query) => $query->active())->count();
-    }
-
-    /**
-     * Get count of low stock variants (from product_colors table) ; un produit archivé n'est plus réapprovisionné
+     * Variantes à leur seuil d'alerte ou en dessous. Sans seuil (0), une variante n'est pas surveillée,
+     * comme pour les ruptures ; un produit archivé n'est plus réapprovisionné.
      */
     private function getLowStockProducts()
     {
         return ProductColor::whereColumn('stock', '<=', 'alert_stock')
+            ->where('alert_stock', '>', 0)
             ->whereHas('product', fn ($query) => $query->active())
             ->count();
-    }
-
-    private function getTotalCategories()
-    {
-        return Category::active()->count();
-    }
-
-    private function getTotalSuppliers()
-    {
-        return Supplier::active()->count();
-    }
-
-    private function getTotalSales()
-    {
-        return Sale::count();
     }
 }

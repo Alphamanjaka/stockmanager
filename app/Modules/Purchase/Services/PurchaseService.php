@@ -267,6 +267,23 @@ class PurchaseService
     }
 
     /**
+     * Commandes en cours (commandées ou partiellement reçues) : leur nombre, la valeur encore attendue
+     * (remise déduite) et les $limit plus anciennes, à relancer en premier.
+     *
+     * @return array{count: int, value: float, purchases: Collection<int, Purchase>}
+     */
+    public function getAwaitingDelivery(int $limit = 5): array
+    {
+        $purchases = Purchase::awaitingDelivery()->with(['items', 'supplier'])->oldest()->oldest('id')->get();
+
+        return [
+            'count' => $purchases->count(),
+            'value' => round($purchases->sum(fn (Purchase $purchase) => $purchase->remainingValue()), 2),
+            'purchases' => $purchases->take($limit)->values(),
+        ];
+    }
+
+    /**
      * Modifie un brouillon : fournisseur, lignes (remplacées) et, s'ils sont fournis,
      * remise, référence fournisseur et notes.
      *

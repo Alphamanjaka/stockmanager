@@ -21,7 +21,7 @@
     "Last 30 days, at purchase cost": "30 derniers jours, au coût d'achat",
     "Most frequent stock outs": "Sorties de stock les plus fréquentes",
     "Movement details": "Détails du mouvement",
-    "No movement for more than 60 days": "Aucun mouvement depuis plus de 60 jours",
+    "No movement for more than 60 days · :value at cost": "Aucun mouvement depuis plus de 60 jours · :value au coût d'achat",
     "No movement found.": "Aucun mouvement trouvé.",
     "Not enough data.": "Pas assez de données.",
     "Nothing to report.": "Rien à signaler.",

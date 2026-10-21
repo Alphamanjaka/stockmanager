@@ -128,12 +128,13 @@
 
                 <div class="col-lg-4">
                     <div class="ui-stack h-100">
-                        <x-ui.card :title="__('Dormant products')" :subtitle="__('No movement for more than 60 days')" flush>
+                        <x-ui.card :title="__('Dormant products')" :count="$dormantStock['count']"
+                            :subtitle="__('No movement for more than 60 days · :value at cost', ['value' => money($dormantStock['value'])])" flush>
                             <ul class="list-group list-group-flush" style="max-height: 180px; overflow-y: auto;">
-                                @forelse ($dormantProducts as $product)
+                                @forelse ($dormantStock['variants'] as $variant)
                                     <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
-                                        <span class="text-truncate">{{ $product->name }}</span>
-                                        <x-ui.badge tone="neutral">{{ $product->quantity_stock }}</x-ui.badge>
+                                        <span class="text-truncate" title="{{ $variant->label }}">{{ $variant->label }}</span>
+                                        <x-ui.badge tone="neutral">{{ $variant->stock }}</x-ui.badge>
                                     </li>
                                 @empty
                                     <li class="list-group-item text-muted">{{ __('Nothing to report.') }}</li>
