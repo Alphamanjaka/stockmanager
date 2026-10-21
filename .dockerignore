@@ -1,20 +1,30 @@
-.git
-.github
-node_modules
-vendor/
-storage/app/public/*
-storage/*.key
-storage/framework/cache/data/*
-storage/framework/sessions/*
-storage/framework/views/*
-# Caches Laravel du poste (config:cache sous Windows : chemins C:\...) : regénérés dans le conteneur
+# Liste blanche : seul ce dont les images ont besoin entre dans le contexte de build. Le reste du poste (.env et
+# .env.*, storage avec ses sauvegardes et fichiers temporaires, vendor, node_modules…) n'atteint jamais une image.
+*
+!app
+!bootstrap
+!config
+!database
+!docker
+!lang
+!public
+!resources
+!routes
+!artisan
+!composer.json
+!composer.lock
+!package.json
+!package-lock.json
+!vite.config.js
+# Lu par Tailwind pour savoir quels fichiers ne pas analyser
+!.gitignore
+
+# Produits sur le poste, régénérés dans les images
 bootstrap/cache/*.php
-storage/logs/*
-tests/
-.env
-.env.backup
-scripts/
-*.tar.gz
-*.zip
-*.log
-*.sql
+public/build
+public/storage
+# Présent tant que « npm run dev » tourne : copié dans une image, il ferait charger les assets depuis Vite
+public/hot
+# Seul index.php est exécuté (voir docker/nginx.conf)
+public/**/*.php
+!public/index.php

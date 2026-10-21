@@ -1,0 +1,4 @@
+#!/bin/sh
+# Sonde de santé de PHP-FPM : sa page de ping (docker/php-fpm.conf) doit répondre « pong »
+SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET \
+    cgi-fcgi -bind -connect 127.0.0.1:9000 | grep -q pong

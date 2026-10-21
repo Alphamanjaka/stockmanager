@@ -1,142 +1,92 @@
-# Production Docker. Le .env peut être celui de Laragon : les paramètres propres à Docker (base, Redis, pg_dump)
-# sont imposés ci-dessous, comme dans compose.dev.yaml. Identifiants de la base : POSTGRES_DATABASE, POSTGRES_USERNAME,
-# POSTGRES_PASSWORD (.env) ; ils servent à créer la base au premier démarrage et à s'y connecter.
+# Production Docker : docker compose -f compose.prod.yaml up -d --build
+#
+# Le .env est chargé tel quel (celui de Laragon convient) : les paramètres propres à Docker sont imposés ci-dessous.
+# Base de données : POSTGRES_PASSWORD (obligatoire), POSTGRES_DATABASE et POSTGRES_USERNAME (par défaut app et
+# laravel), à définir dans le .env avant le premier démarrage. Ils créent la base et servent à s'y connecter.
+name: stockmanager
 
-x-docker-env: &docker-env
-  # Prioritaires sur le .env (Laravel ne remplace pas une variable déjà définie)
-  DB_CONNECTION: pgsql
-  DB_HOST: postgres
-  DB_PORT: 5432
-  DB_DATABASE: ${POSTGRES_DATABASE:-app}
-  DB_USERNAME: ${POSTGRES_USERNAME:-laravel}
-  DB_PASSWORD: ${POSTGRES_PASSWORD:-secret}
-  REDIS_HOST: redis
-  # pg_dump du conteneur (postgresql-client), pour les sauvegardes : pas celui de Windows
-  PGDUMP_PATH: /usr/bin/
+# PHP-FPM, worker et scheduler : une seule image, construite une fois
+x-app: &app
+  image: stockmanager-app
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+    target: app
+  restart: unless-stopped
+  env_file: .env
+  environment:
+    # Prioritaires sur le .env (Laravel ne remplace pas une variable déjà définie)
+    APP_ENV: production
+    APP_DEBUG: "false"
+    DB_CONNECTION: pgsql
+    DB_HOST: postgres
+    DB_PORT: 5432
+    DB_DATABASE: ${POSTGRES_DATABASE:-app}
+    DB_USERNAME: ${POSTGRES_USERNAME:-laravel}
+    DB_PASSWORD: ${POSTGRES_PASSWORD:?définir POSTGRES_PASSWORD dans le .env}
+    REDIS_HOST: redis
+    # pg_dump du conteneur, pour les sauvegardes : pas celui de Windows
+    PGDUMP_PATH: /usr/bin/
+  volumes:
+    - laravel-storage-production:/var/www/storage
 
 services:
   web:
+    image: stockmanager-web
     build:
       context: .
-      dockerfile: ./docker/production/nginx/Dockerfile
-    restart: unless-stopped # Automatically restart unless the service is explicitly stopped
-    volumes:
-      # Mount the 'laravel-storage-production' volume to '/var/www/storage' inside the container.
-      # -----------------------------------------------------------
-      # This volume stores persistent data like uploaded files and cache.
-      # The ':ro' option mounts it as read-only in the 'web' service because Nginx only needs to read these files.
-      # The 'php-fpm' service mounts the same volume without ':ro' to allow write operations.
-      # -----------------------------------------------------------
-      - laravel-storage-production:/var/www/storage:ro
-      - laravel-public-assets:/var/www/public/build:ro
-    networks:
-      - laravel-production
+      dockerfile: docker/Dockerfile
+      target: web
+    restart: unless-stopped
     ports:
-      # Map port 80 inside the container to the port specified by 'NGINX_PORT' on the host machine.
-      # -----------------------------------------------------------
-      # This allows external access to the Nginx web server running inside the container.
-      # For example, if 'NGINX_PORT' is set to '8080', accessing 'http://localhost:8080' will reach the application.
-      # -----------------------------------------------------------
       - "${NGINX_PORT:-80}:80"
+    volumes:
+      # Fichiers du disque « public » (logo…), servis sous /storage ; Nginx n'écrit rien
+      - laravel-storage-production:/var/www/storage:ro
     depends_on:
       php-fpm:
-        condition: service_healthy  # Wait for php-fpm health check
+        condition: service_healthy
 
   php-fpm:
-    # For the php-fpm service, we will create a custom image to install the necessary PHP extensions and setup proper permissions.
-    build:
-      context: .
-      dockerfile: ./docker/common/php-fpm/Dockerfile
-      target: production
-    restart: unless-stopped
-    volumes:
-      - laravel-public-assets:/var/www/public/build  # Mount built public assets to ensure the manifest.json and hashed files match between Nginx and PHP-FPM
-      - laravel-storage-production:/var/www/storage  # Mount the storage volume
-    env_file:
-      - .env
-    environment: *docker-env
-    networks:
-      - laravel-production
+    <<: *app
     healthcheck:
-      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      test: ["CMD", "php-fpm-healthcheck"]
       interval: 10s
       timeout: 5s
       retries: 3
-    # The 'depends_on' attribute with 'condition: service_healthy' ensures that
-    # this service will not start until the 'postgres' service passes its health check.
-    # This prevents the application from trying to connect to the database before it's ready.
+      # Migrations et mise en cache avant le démarrage de PHP-FPM
+      start_period: 60s
     depends_on:
       postgres:
         condition: service_healthy
-
-  worker:
-    build:
-      context: .
-      dockerfile: ./docker/common/php-fpm/Dockerfile
-      target: production
-    restart: unless-stopped
-    # On écrase la commande par défaut (php-fpm) pour lancer le worker
-    command: php artisan queue:work --verbose --tries=3 --timeout=90
-    volumes:
-      - laravel-storage-production:/var/www/storage
-    env_file:
-      - .env
-    environment: *docker-env
-    networks:
-      - laravel-production
-    depends_on:
       redis:
         condition: service_healthy
-      postgres:
-        condition: service_healthy
-      # php-fpm applique les migrations avant de se déclarer prêt : sans cette attente, le worker et le scheduler
-      # démarraient sur une base sans tables (ex. « relation "cache" does not exist ») puis redémarraient
+
+  # Le worker et le scheduler attendent php-fpm, qui applique les migrations avant de se déclarer prêt
+  worker:
+    <<: *app
+    command: php artisan queue:work --verbose --tries=3 --timeout=90
+    depends_on:
       php-fpm:
         condition: service_healthy
 
   scheduler:
-    build:
-      context: .
-      dockerfile: ./docker/common/php-fpm/Dockerfile
-      target: production
-    restart: unless-stopped
-    # Cette commande maintient le conteneur actif et execute le scheduler chaque minute
+    <<: *app
     command: php artisan schedule:work
-    volumes:
-      - laravel-storage-production:/var/www/storage
-    env_file:
-      - .env
-    environment: *docker-env
-    networks:
-      - laravel-production
     depends_on:
-      postgres:
-        condition: service_healthy
-      # php-fpm applique les migrations avant de se déclarer prêt : sans cette attente, le worker et le scheduler
-      # démarraient sur une base sans tables (ex. « relation "cache" does not exist ») puis redémarraient
       php-fpm:
         condition: service_healthy
 
   postgres:
     image: postgres:16
     restart: unless-stopped
-    user: postgres
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+    # Pas de port publié : seuls les conteneurs y accèdent. Console : docker compose exec postgres psql -U laravel app
     environment:
-      - POSTGRES_DB=${POSTGRES_DATABASE:-app}
-      - POSTGRES_USER=${POSTGRES_USERNAME:-laravel}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secret}
+      POSTGRES_DB: ${POSTGRES_DATABASE:-app}
+      POSTGRES_USER: ${POSTGRES_USERNAME:-laravel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?définir POSTGRES_PASSWORD dans le .env}
     volumes:
       - postgres-data-production:/var/lib/postgresql/data
-    networks:
-      - laravel-production
-    # Health check for PostgreSQL
-    # -----------------------------------------------------------
-    # Health checks allow Docker to determine if a service is operational.
-    # The 'pg_isready' command checks if PostgreSQL is ready to accept connections.
-    # This prevents dependent services from starting before the database is ready.
-    # -----------------------------------------------------------
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 10s
@@ -145,29 +95,13 @@ services:
 
   redis:
     image: redis:alpine
-    restart: unless-stopped  # Automatically restart unless the service is explicitly stopped
-    networks:
-      - laravel-production
-    # Health check for Redis
-    # -----------------------------------------------------------
-    # Checks if Redis is responding to the 'PING' command.
-    # This ensures that the service is not only running but also operational.
-    # -----------------------------------------------------------
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 3
 
-networks:
-  # Attach the service to the 'laravel' network.
-  # -----------------------------------------------------------
-  # This custom network allows all services within it to communicate using their service names as hostnames.
-  # For example, 'php-fpm' can connect to 'postgres' by using 'postgres' as the hostname.
-  # -----------------------------------------------------------
-  laravel-production:
-
 volumes:
   postgres-data-production:
   laravel-storage-production:
-  laravel-public-assets:
