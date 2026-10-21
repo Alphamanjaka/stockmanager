@@ -2,7 +2,7 @@
 #
 # Conçu pour cohabiter avec Laragon sur la même machine :
 # - ports différents par défaut (site : 8080, PostgreSQL : 5433), réglables via NGINX_PORT / POSTGRES_PORT ;
-# - même fichier .env que Laragon : les paramètres propres à Docker (base, Redis) sont imposés ci-dessous ;
+# - même fichier .env que Laragon : les paramètres propres à Docker (base de données) sont imposés ci-dessous ;
 # - node_modules du conteneur dans un volume séparé (les binaires de Vite diffèrent entre Windows et Linux).
 name: stockmanager-dev
 
@@ -27,7 +27,6 @@ x-dev: &dev
     DB_DATABASE: app
     DB_USERNAME: laravel
     DB_PASSWORD: secret
-    REDIS_HOST: redis
     PGDUMP_PATH: /usr/bin/
     APP_URL: http://localhost:${NGINX_PORT:-8080}
   volumes:
@@ -91,9 +90,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
-  redis:
-    image: redis:alpine
 
 volumes:
   postgres-data-development:

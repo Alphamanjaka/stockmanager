@@ -1,7 +1,7 @@
 # Développer avec Docker
 
 L'environnement de développement Docker (`compose.dev.yaml`) fait tourner l'application comme en production
-(PHP-FPM + Nginx + PostgreSQL 16 + Redis), avec le code monté en direct : une modification faite dans VS Code est
+(PHP-FPM + Nginx + PostgreSQL 16), avec le code monté en direct : une modification faite dans VS Code est
 visible immédiatement, sans reconstruire.
 
 Il **cohabite avec Laragon** : ports différents, même fichier `.env`, `node_modules` séparé.
@@ -12,7 +12,6 @@ Il **cohabite avec Laragon** : ports différents, même fichier `.env`, `node_mo
 | `php-fpm` | PHP 8.4 qui sert l'application | — |
 | `workspace` | Terminal de travail : composer, artisan, npm (Vite), tests — même image que `php-fpm` | Vite : http://localhost:5173 |
 | `postgres` | PostgreSQL 16 (base `app`, utilisateur `laravel` / `secret`) | `localhost:5433` (DBeaver, pgAdmin…) |
-| `redis` | Redis | — |
 
 Ports réglables dans `.env` : `NGINX_PORT`, `POSTGRES_PORT`, `VITE_PORT`.
 
@@ -41,7 +40,7 @@ Ouvrir http://localhost:8080 — comptes de démonstration : `admin@stock.com` /
 `vendeur@stock.com` / `password` (vendeur).
 
 > Le `.env` reste celui de Laragon : `compose.dev.yaml` impose aux conteneurs les paramètres propres à Docker
-> (`DB_HOST=postgres`, `DB_USERNAME=laravel`, `REDIS_HOST=redis`…). Si `APP_KEY` est vide :
+> (`DB_HOST=postgres`, `DB_USERNAME=laravel`…). Si `APP_KEY` est vide :
 > `docker compose -f compose.dev.yaml exec workspace php artisan key:generate`.
 
 ## Au quotidien

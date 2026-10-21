@@ -70,7 +70,7 @@ Pour intégrer une nouvelle entité (ex: `Customer`) au système de recherche :
 ### � Infrastructure Optimisée
 
 - **Docker Multi-Stage** : Images ultra-légères basées sur Alpine Linux. Séparation stricte entre l'environnement de build (compilateurs, nodejs) et l'environnement de production (runtime PHP pur).
-- **Performance** : Utilisation de **Redis** pour le cache et les files d'attente, et **PostgreSQL** pour la fiabilité des données.
+- **PostgreSQL** pour les données, mais aussi le cache, les sessions et la file d'attente : un seul service à exploiter et à sauvegarder.
 
 ---
 
@@ -121,8 +121,8 @@ même en développement et en production.
 
 ### Commandes Rapides
 
-- **Production** : `docker compose -f compose.prod.yaml up -d --build`. Les conteneurs parlent toujours aux services
-  `postgres` et `redis` du fichier, quel que soit le `.env` (celui de Laragon convient), en `APP_ENV=production` et
+- **Production** : `docker compose -f compose.prod.yaml up -d --build`. Les conteneurs parlent toujours au service
+  `postgres` du fichier, quel que soit le `.env` (celui de Laragon convient), en `APP_ENV=production` et
   `APP_DEBUG=false`. Définir `POSTGRES_PASSWORD` dans le `.env` est **obligatoire** ; `POSTGRES_DATABASE` et
   `POSTGRES_USERNAME` sont facultatifs (`app`, `laravel`). Ils créent la base au premier démarrage puis servent à s'y
   connecter : sur une base existante, reprendre le mot de passe d'origine (`secret` jusqu'ici). PostgreSQL n'est pas

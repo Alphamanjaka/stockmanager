@@ -12,13 +12,12 @@ docker build -f docker\Dockerfile --target app -t stockmanager-app . || goto err
 docker build -f docker\Dockerfile --target web -t stockmanager-web . || goto erreur
 REM Hors ligne, les versions deja presentes sur le poste servent
 docker pull postgres:16 >nul 2>&1
-docker pull redis:alpine >nul 2>&1
 
 if exist %PACKAGE% rmdir /s /q %PACKAGE%
 mkdir %PACKAGE%
 
 echo [2/3] Export des images...
-docker save stockmanager-app stockmanager-web postgres:16 redis:alpine -o %PACKAGE%\images.tar || goto erreur
+docker save stockmanager-app stockmanager-web postgres:16 -o %PACKAGE%\images.tar || goto erreur
 
 echo [3/3] Fichiers d'installation et archive...
 copy compose.prod.yaml %PACKAGE%\compose.yaml >nul

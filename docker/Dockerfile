@@ -11,7 +11,7 @@ FROM php:8.4-fpm-alpine AS base
 
 # install-php-extensions installe aussi les bibliothèques nécessaires et supprime les outils de compilation
 COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /usr/local/bin/
-RUN install-php-extensions bcmath gd intl pcntl pdo_pgsql redis zip \
+RUN install-php-extensions bcmath gd intl pcntl pdo_pgsql zip \
     # pg_dump (sauvegardes) de la version du serveur PostgreSQL ; cgi-fcgi pour la sonde de santé
     && apk add --no-cache fcgi postgresql16-client
 

@@ -24,7 +24,6 @@ x-app: &app
     DB_DATABASE: ${POSTGRES_DATABASE:-app}
     DB_USERNAME: ${POSTGRES_USERNAME:-laravel}
     DB_PASSWORD: ${POSTGRES_PASSWORD:?définir POSTGRES_PASSWORD dans le .env}
-    REDIS_HOST: redis
     # pg_dump du conteneur, pour les sauvegardes : pas celui de Windows
     PGDUMP_PATH: /usr/bin/
   volumes:
@@ -59,8 +58,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
 
   # Le worker et le scheduler attendent php-fpm, qui applique les migrations avant de se déclarer prêt
   worker:
@@ -92,15 +89,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  redis:
-    image: redis:alpine
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
 volumes:
   postgres-data-production:
