@@ -12,9 +12,10 @@ class SupplierService
         // Initial query : fournisseurs en service, ou les archives (status=archived)
         $query = Supplier::query()->withStatus($filters['status'] ?? null);
         // Apply filters if any
-        if (!empty($filters)) {
+        if (! empty($filters)) {
             $query = $this->applyFilters($query, $filters);
         }
+
         // Return paginated results
         return $query->paginate($filters['per_page'] ?? 15)->appends(request()->except('page'));
     }
@@ -38,6 +39,7 @@ class SupplierService
         if (isset($data['email'])) {
             $data['email'] = mb_strtolower(trim($data['email']));
         }
+
         return Supplier::create($data);
     }
 
@@ -51,7 +53,7 @@ class SupplierService
         return Supplier::whereIn('email', $emails)->pluck('id', 'email');
     }
 
-    public function  applyFilters($query, array $filters)
+    public function applyFilters($query, array $filters)
     {
         // On réutilise ta logique de colonnes autorisées
         $sortableColumns = ['name', 'email', 'created_at'];
@@ -62,6 +64,7 @@ class SupplierService
         return $query->when($filters['search'] ?? null, fn ($q, $search) => $q->search($search))
             ->orderBy($sort, $order);
     }
+
     public function getSupplierById(int $id)
     {
         return Supplier::findOrFail($id);
@@ -69,9 +72,6 @@ class SupplierService
 
     /**
      * Récupère les détails et statistiques pour un fournisseur donné.
-     *
-     * @param Supplier $supplier
-     * @return array
      */
     public function getSupplierDetails(Supplier $supplier): array
     {
@@ -110,6 +110,7 @@ class SupplierService
             $data['email'] = mb_strtolower(trim($data['email']));
         }
         $supplier->update($data);
+
         return $supplier;
     }
 }

@@ -2,10 +2,10 @@
 
 namespace App\Core\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Core\Http\Requests\LoginUserRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Connexion et déconnexion. Il n'y a pas d'inscription publique :
@@ -32,7 +32,7 @@ class AuthController extends Controller
         $request->ensureIsNotRateLimited();
 
         // Un compte archivé ne se connecte plus (il garde son historique de ventes et d'inventaires)
-        if (Auth::attemptWhen($credentials, fn ($user) => !$user->isArchived(), $request->boolean('remember'))) {
+        if (Auth::attemptWhen($credentials, fn ($user) => ! $user->isArchived(), $request->boolean('remember'))) {
             $request->clearRateLimiter();
             $request->session()->regenerate(); // Prévient la fixation de session
 

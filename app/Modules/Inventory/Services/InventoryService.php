@@ -39,7 +39,7 @@ class InventoryService
     {
         return DB::transaction(function () use ($categoryId, $notes, $userId) {
             $inventory = Inventory::create([
-                'reference' => 'INV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4)),
+                'reference' => 'INV-'.now()->format('Ymd').'-'.strtoupper(Str::random(4)),
                 'status' => Inventory::DRAFT,
                 'category_id' => $categoryId,
                 'notes' => $notes,
@@ -95,7 +95,7 @@ class InventoryService
     {
         DB::transaction(function () use ($inventory, $counts) {
             $locked = Inventory::lockForUpdate()->findOrFail($inventory->id);
-            if (!$locked->isDraft()) {
+            if (! $locked->isDraft()) {
                 throw new \Exception("L'inventaire {$locked->reference} est validé : les comptages ne peuvent plus être modifiés.");
             }
 
@@ -130,7 +130,7 @@ class InventoryService
         return DB::transaction(function () use ($inventory, $userId) {
             // Verrou : deux validations simultanées ne peuvent pas ajuster deux fois le stock
             $locked = Inventory::lockForUpdate()->findOrFail($inventory->id);
-            if (!$locked->isDraft()) {
+            if (! $locked->isDraft()) {
                 throw new \Exception("L'inventaire {$locked->reference} a déjà été validé.");
             }
 
@@ -160,8 +160,8 @@ class InventoryService
      */
     public function delete(Inventory $inventory): void
     {
-        if (!$inventory->isDraft()) {
-            throw new \Exception("Un inventaire validé ne peut pas être supprimé.");
+        if (! $inventory->isDraft()) {
+            throw new \Exception('Un inventaire validé ne peut pas être supprimé.');
         }
 
         $inventory->delete();

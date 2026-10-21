@@ -64,7 +64,7 @@ trait ArchivesRecords
         }
 
         return back()->with('error', $result['skipped']
-            ? 'Suppression impossible : ' . implode(' ; ', $result['skipped']) . '.'
+            ? 'Suppression impossible : '.implode(' ; ', $result['skipped']).'.'
             : 'Seul un élément archivé peut être supprimé définitivement : archivez-le d\'abord.');
     }
 
@@ -78,7 +78,7 @@ trait ArchivesRecords
     {
         $ids = array_filter((array) $request->input('ids', []), fn ($id) => is_scalar($id) && ctype_digit((string) $id));
 
-        if (!$ids) {
+        if (! $ids) {
             return 'Aucun élément sélectionné.';
         }
         if (count($ids) > $this->maxSelection) {
@@ -97,7 +97,7 @@ trait ArchivesRecords
             $response->with('success', "{$result['done']} élément(s) {$done}.");
         }
         if ($result['skipped']) {
-            $response->with('error', "{$refused} : " . implode(' ; ', $result['skipped']) . '.');
+            $response->with('error', "{$refused} : ".implode(' ; ', $result['skipped']).'.');
         } elseif ($result['done'] === 0) {
             $response->with('error', 'Aucun élément à traiter : la sélection a peut-être déjà été traitée.');
         }

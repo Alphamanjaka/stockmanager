@@ -26,7 +26,7 @@ class VariantOptions
      */
     public static function fromColor(?Color $color): array
     {
-        if (!$color || self::isNoVariantColor($color->name)) {
+        if (! $color || self::isNoVariantColor($color->name)) {
             return [];
         }
 
@@ -134,7 +134,7 @@ class VariantOptions
             $values = [];
             foreach ($rawValues as $value) {
                 $value = trim((string) $value);
-                if ($value !== '' && !in_array(mb_strtolower($value), array_map('mb_strtolower', $values), true)) {
+                if ($value !== '' && ! in_array(mb_strtolower($value), array_map('mb_strtolower', $values), true)) {
                     $values[] = $value;
                 }
             }
@@ -206,7 +206,7 @@ class VariantOptions
         foreach ($optionValuesList as $optionValues) {
             foreach ((array) $optionValues as $name => $value) {
                 $options[$name] ??= [];
-                if (!in_array($value, $options[$name], true)) {
+                if (! in_array($value, $options[$name], true)) {
                     $options[$name][] = $value;
                 }
             }

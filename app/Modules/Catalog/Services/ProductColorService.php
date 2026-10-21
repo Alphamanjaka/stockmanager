@@ -2,18 +2,19 @@
 
 namespace App\Modules\Catalog\Services;
 
+use App\Core\Services\BaseService;
+use App\Modules\Catalog\Models\Color;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
-use App\Modules\Catalog\Models\Color;
 use App\Modules\Catalog\Support\Pricing;
 use App\Modules\Catalog\Support\VariantOptions;
-use App\Core\Services\BaseService;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Exception;
 
 /**
  * Service dédié à la gestion des couleurs de produits et de leurs stocks associés.
@@ -23,8 +24,6 @@ use Exception;
 class ProductColorService extends BaseService
 {
     protected array $sortable = ['id', 'stock', 'price', 'price_purchase', 'alert_stock', 'created_at'];
-
-
 
     public function __construct(
         protected ProductColor $productColor,
@@ -38,8 +37,9 @@ class ProductColorService extends BaseService
      * Crée un produit, ses options et les variantes retenues dans la grille.
      * Les variantes démarrent à un stock de 0 : il augmente à la réception d'un achat.
      *
-     * @param array $data Données validées issues du StoreProductRequest
-     * @return \App\Modules\Catalog\Models\Product
+     * @param  array  $data  Données validées issues du StoreProductRequest
+     * @return Product
+     *
      * @throws Exception
      */
     public function storeProductWithVariants(array $data)
@@ -79,11 +79,11 @@ class ProductColorService extends BaseService
 
                 return $product;
             } catch (Exception $e) {
-                Log::error("Erreur critique dans ProductColorService@storeProductWithVariants: " . $e->getMessage(), [
+                Log::error('Erreur critique dans ProductColorService@storeProductWithVariants: '.$e->getMessage(), [
                     'payload' => $data,
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]);
-                throw new Exception("Impossible de créer le produit. Vérifiez les données des variantes." . $e->getMessage());
+                throw new Exception('Impossible de créer le produit. Vérifiez les données des variantes.'.$e->getMessage());
             }
         });
     }
@@ -122,7 +122,7 @@ class ProductColorService extends BaseService
      * Liste des produits (une ligne par variante), pour la page et pour l'export :
      * recherche (nom, SKU, couleur, catégorie), catégorie, statut du produit (actifs ou archives), tri.
      *
-     * @param array{search?: ?string, category?: ?string, status?: ?string, sort?: ?string, order?: ?string} $filters
+     * @param  array{search?: ?string, category?: ?string, status?: ?string, sort?: ?string, order?: ?string}  $filters
      */
     public function listQuery(array $filters): Builder
     {
@@ -162,6 +162,7 @@ class ProductColorService extends BaseService
             ->whereHas('product', fn ($q) => $q->active())
             ->get();
     }
+
     public function getAllWithRelations($filters = [])
     {
         $query = ProductColor::with(['product.category', 'color', 'brand']);
@@ -188,7 +189,7 @@ class ProductColorService extends BaseService
             }
 
             $combination = $this->requireCombination($options, $data['values'] ?? []);
-            $brandId = !empty($data['brand_id']) ? (int) $data['brand_id'] : null;
+            $brandId = ! empty($data['brand_id']) ? (int) $data['brand_id'] : null;
             $this->ensureUnique($product->id, $combination, $brandId);
             $this->appendNewValues($product, $combination);
 
@@ -219,7 +220,7 @@ class ProductColorService extends BaseService
             $product = $this->ensureOptions(Product::lockForUpdate()->findOrFail($variant->product_id));
 
             $combination = $this->requireCombination($product->options, $data['values'] ?? []);
-            $brandId = !empty($data['brand_id']) ? (int) $data['brand_id'] : null;
+            $brandId = ! empty($data['brand_id']) ? (int) $data['brand_id'] : null;
             $this->ensureUnique($product->id, $combination, $brandId, $variant->id);
             $this->appendNewValues($product, $combination);
 
@@ -252,7 +253,7 @@ class ProductColorService extends BaseService
                 foreach ($variant->option_values ?? [] as $name => $value) {
                     $option = collect($options)->first(fn ($candidate) => mb_strtolower($candidate['name']) === mb_strtolower($name));
                     $kept = $option && in_array(mb_strtolower($value), array_map('mb_strtolower', $option['values']), true);
-                    if (!$kept) {
+                    if (! $kept) {
                         throw new Exception("« {$name} : {$value} » est utilisé par la variante {$variant->sku} : modifiez ou supprimez d'abord cette variante.");
                     }
                 }
@@ -281,11 +282,12 @@ class ProductColorService extends BaseService
             if ($index === false) {
                 $options[] = ['name' => $name, 'values' => [$value]];
                 $combination[$name] = $value;
+
                 continue;
             }
 
             $combination[$options[$index]['name']] = $value;
-            if (!in_array(mb_strtolower($value), array_map('mb_strtolower', $options[$index]['values']), true)) {
+            if (! in_array(mb_strtolower($value), array_map('mb_strtolower', $options[$index]['values']), true)) {
                 $options[$index]['values'][] = $value;
             }
         }
@@ -343,7 +345,7 @@ class ProductColorService extends BaseService
         foreach ($options as &$option) {
             $value = $combination[$option['name']] ?? null;
             $known = array_map('mb_strtolower', $option['values']);
-            if ($value !== null && !in_array(mb_strtolower($value), $known, true)) {
+            if ($value !== null && ! in_array(mb_strtolower($value), $known, true)) {
                 $option['values'][] = $value;
             }
         }
@@ -371,9 +373,6 @@ class ProductColorService extends BaseService
         }
     }
 
-
-
-
     /**
      * Get products with available stock
      */
@@ -398,6 +397,7 @@ class ProductColorService extends BaseService
             ->orderBy('created_at', 'desc')
             ->get();
     }
+
     /**
      * Liste les couleurs et stocks pour un produit spécifique
      */
@@ -418,10 +418,9 @@ class ProductColorService extends BaseService
             ->select('product_colors.id', 'products.name as p_name', 'colors.name as c_name')
             ->get()
             ->mapWithKeys(function ($item) {
-                return [($item->p_name . '|' . $item->c_name) => $item->id];
+                return [($item->p_name.'|'.$item->c_name) => $item->id];
             });
     }
-
 
     // filter method for products list
     protected function applyFilters($query, $filters)
@@ -453,18 +452,17 @@ class ProductColorService extends BaseService
     /**
      * Effectue une recherche légère sur les variantes de produits pour la fonctionnalité de recherche globale.
      *
-     * @param string $query La chaîne de recherche.
-     * @param int $limit Le nombre maximum de résultats.
-     * @return \Illuminate\Support\Collection
+     * @param  string  $query  La chaîne de recherche.
+     * @param  int  $limit  Le nombre maximum de résultats.
      */
-    public function searchForGlobalSearch(string $query, int $limit = 5): \Illuminate\Support\Collection
+    public function searchForGlobalSearch(string $query, int $limit = 5): Collection
     {
         return ProductColor::with(['product', 'color', 'brand'])
-            ->whereHas('product', fn($q) => $q->whereLike('name', "%{$query}%"))
-            ->orWhereHas('color', fn($q) => $q->whereLike('name', "%{$query}%"))
+            ->whereHas('product', fn ($q) => $q->whereLike('name', "%{$query}%"))
+            ->orWhereHas('color', fn ($q) => $q->whereLike('name', "%{$query}%"))
             ->limit($limit)
             ->get()
-            ->map(fn(ProductColor $productColor) => [
+            ->map(fn (ProductColor $productColor) => [
                 'type' => 'product',
                 'id' => $productColor->id,
                 'name' => "{$productColor->toString()}",

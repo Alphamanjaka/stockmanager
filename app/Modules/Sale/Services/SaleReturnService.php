@@ -28,6 +28,7 @@ class SaleReturnService
      * le total remboursé est exactement le net payé.
      *
      * @param  array<int, int|string|null>  $quantities  [id de ligne de vente => quantité rendue]
+     *
      * @throws \Exception quantité supérieure à ce qui reste, ou aucun article rendu
      */
     public function create(int $saleId, array $quantities, string $reason, ?string $refundMethod = null, ?int $userId = null): SaleReturn

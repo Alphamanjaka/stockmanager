@@ -3,12 +3,13 @@
 namespace Tests\Feature\Catalog;
 
 use App\Modules\Catalog\Models\Category;
-use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\Color;
+use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Catalog\Services\ProductService;
 use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleItem;
-use App\Modules\Catalog\Services\ProductService;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
@@ -22,7 +23,7 @@ class ProductServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ProductService(new Product());
+        $this->service = new ProductService(new Product);
     }
 
     /** @test */
@@ -93,7 +94,7 @@ class ProductServiceTest extends TestCase
         $variant = ProductColor::forceCreate([
             'product_id' => $product->id,
             'color_id' => Color::factory()->create()->id,
-            'stock' => 10
+            'stock' => 10,
         ]);
 
         $sale = Sale::factory()->create();
@@ -106,7 +107,7 @@ class ProductServiceTest extends TestCase
         $exceptionThrown = false;
         try {
             $this->service->delete($product->id);
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             $exceptionThrown = true;
             // SQLSTATE de classe 23 = violation de contrainte d'intégrité (SQLite : 23000, PostgreSQL : 23503)
             $this->assertStringStartsWith('23', (string) $e->getCode());

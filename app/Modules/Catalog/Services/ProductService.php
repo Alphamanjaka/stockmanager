@@ -2,8 +2,8 @@
 
 namespace App\Modules\Catalog\Services;
 
-use App\Modules\Catalog\Models\Product;
 use App\Core\Services\BaseService;
+use App\Modules\Catalog\Models\Product;
 
 class ProductService extends BaseService
 {
@@ -19,6 +19,7 @@ class ProductService extends BaseService
         if (isset($data['name'])) {
             $data['name'] = mb_strtolower(trim($data['name']));
         }
+
         return parent::create($data);
     }
 
@@ -27,6 +28,7 @@ class ProductService extends BaseService
         if (isset($data['name'])) {
             $data['name'] = mb_strtolower(trim($data['name']));
         }
+
         return parent::update($id, $data);
     }
 }

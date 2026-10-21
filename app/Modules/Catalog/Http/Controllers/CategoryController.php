@@ -3,21 +3,22 @@
 namespace App\Modules\Catalog\Http\Controllers;
 
 use App\Core\Http\Controllers\Concerns\ArchivesRecords;
-use App\Modules\Catalog\Support\VariantOptions;
+use App\Http\Controllers\Controller;
+use App\Modules\Catalog\Http\Requests\StoreCategoryRequest;
+use App\Modules\Catalog\Http\Requests\UpdateCategoryRequest;
 use App\Modules\Catalog\Models\Category;
+use App\Modules\Catalog\Services\CategoryService;
+use App\Modules\Catalog\Support\VariantOptions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Modules\Catalog\Http\Requests\StoreCategoryRequest;
-use App\Modules\Catalog\Http\Requests\UpdateCategoryRequest;
-use App\Modules\Catalog\Services\CategoryService;
-use App\Http\Controllers\Controller;
 
 class CategoryController extends Controller
 {
     use ArchivesRecords;
 
-    public function __construct(protected CategoryService $categoryService){}
+    public function __construct(protected CategoryService $categoryService) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -34,7 +35,8 @@ class CategoryController extends Controller
         $categories = $this->categoryService->getAllCategory($filters);
         $stats = $this->categoryService->getCategoryStats();
         $distribution = $this->categoryService->getParentCategoryDistribution();
-        return view("catalog::categories.index", compact("categories", "stats", "distribution"));
+
+        return view('catalog::categories.index', compact('categories', 'stats', 'distribution'));
     }
 
     /**
@@ -45,7 +47,8 @@ class CategoryController extends Controller
         //
         $categories = $this->categoryService->getCategoriesList(); // On récupère les objets complets
         $categoriesChildrenAvalaibles = $this->categoryService->getAvailableChildren();
-        return view("catalog::categories.create", compact("categories", "categoriesChildrenAvalaibles"));
+
+        return view('catalog::categories.create', compact('categories', 'categoriesChildrenAvalaibles'));
     }
 
     /**
@@ -63,10 +66,11 @@ class CategoryController extends Controller
             $data['option_template'] = VariantOptions::normalizeOptions($request->input('option_template', [])) ?: null;
             $this->categoryService->create($data);
 
-            return redirect()->route("admin.categories.index")->with("success", "Category created successfully.");
+            return redirect()->route('admin.categories.index')->with('success', 'Category created successfully.');
         } catch (\Exception $e) {
-            Log::error("Erreur création catégorie : " . $e->getMessage());
-            return redirect()->back()->with("error", "An unexpected error occurred. Please try again.")->withInput();
+            Log::error('Erreur création catégorie : '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'An unexpected error occurred. Please try again.')->withInput();
         }
     }
 
@@ -81,7 +85,7 @@ class CategoryController extends Controller
         // Valeur du stock de toutes les variantes de la catégorie (pas seulement la page affichée), au coût
         $stockValue = $this->categoryService->getStockValue($category->id);
 
-        return view("catalog::categories.show", compact("category", "products", "stockValue"));
+        return view('catalog::categories.show', compact('category', 'products', 'stockValue'));
     }
 
     /**
@@ -95,7 +99,8 @@ class CategoryController extends Controller
         $categoriesParent = $this->categoryService->getCategoriesList();
         // get available children for this category
         $categories = $this->categoryService->getAvailableChildren(null); // On exclut la catégorie elle-même pour éviter les boucles
-        return view("catalog::categories.edit", compact("category", "categories", "categoriesParent"));
+
+        return view('catalog::categories.edit', compact('category', 'categories', 'categoriesParent'));
     }
 
     /**
@@ -110,14 +115,17 @@ class CategoryController extends Controller
             // Modèle d'options : nettoyé (valeurs « a, b » → liste), null si aucune option
             $data['option_template'] = VariantOptions::normalizeOptions($request->input('option_template', [])) ?: null;
             $this->categoryService->update($id, $data);
-            return redirect()->route("admin.categories.edit", $id)->with("success", "Catégorie mise à jour avec succès.");
+
+            return redirect()->route('admin.categories.edit', $id)->with('success', 'Catégorie mise à jour avec succès.');
         } catch (\Exception $e) {
-            Log::error("Erreur mise à jour catégorie : " . $e->getMessage());
-            return redirect()->route("admin.categories.edit", $id)
-                ->with("error", "Une erreur est survenue lors de la mise à jour : " . $e->getMessage())
+            Log::error('Erreur mise à jour catégorie : '.$e->getMessage());
+
+            return redirect()->route('admin.categories.edit', $id)
+                ->with('error', 'Une erreur est survenue lors de la mise à jour : '.$e->getMessage())
                 ->withInput();
         }
     }
+
     /**
      * Suppression définitive d'une catégorie archivée et vide : une catégorie qui contient des produits
      * (même archivés) reste archivée, la base refuse (avant, ses produits étaient supprimés avec elle).

@@ -2,11 +2,11 @@
 
 namespace App\Modules\Catalog\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use App\Modules\Catalog\Database\Factories\ProductColorFactory;
 use App\Modules\Catalog\Support\VariantOptions;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Variante vendable d'un produit (table historique product_colors, référencée par les ventes,
@@ -51,7 +51,7 @@ class ProductColor extends Model
         // Transition : tant que les écrans travaillent avec la couleur, la combinaison d'options,
         // la signature et le SKU sont complétés automatiquement à chaque enregistrement.
         static::saving(function (ProductColor $variant) {
-            $colorChanged = $variant->isDirty('color_id') && !$variant->isDirty('option_values');
+            $colorChanged = $variant->isDirty('color_id') && ! $variant->isDirty('option_values');
             if ($variant->color_id && ($variant->option_values === null || $colorChanged)) {
                 $variant->option_values = VariantOptions::fromColor($variant->color()->first());
             }
@@ -60,7 +60,7 @@ class ProductColor extends Model
                 $variant->signature = VariantOptions::signature($variant->option_values, $variant->brand_id);
             }
 
-            if (!$variant->sku && $variant->product_id && $variant->option_values !== null) {
+            if (! $variant->sku && $variant->product_id && $variant->option_values !== null) {
                 $product = $variant->product()->first(['name', 'options']);
                 $variant->sku = VariantOptions::generateSku(
                     $product->name ?? 'ARTICLE',
@@ -128,24 +128,26 @@ class ProductColor extends Model
     {
         return $this->label;
     }
+
     public function getCategoryNameAttribute()
     {
         return $this->product->category->name ?? 'Non catégorisé';
     }
 
     // scope pour la recherche
-    public function scopeSearch( $query, string $term){
-        $term = '%' . strtolower($term) . '%';
+    public function scopeSearch($query, string $term)
+    {
+        $term = '%'.strtolower($term).'%';
         // Regroupé entre parenthèses : sinon les OR contournent les autres filtres de la requête
         $query->where(function ($query) use ($term) {
-            $query->whereRaw('LOWER(' . $query->qualifyColumn('sku') . ') LIKE ?', [$term])
-            ->orWhereHas('product', function($q) use ($term) {
-                $q->whereRaw('LOWER(name) LIKE ?', [$term]);
-            })->orWhereHas('color', function($q) use ($term) {
-                $q->whereRaw('LOWER(name) LIKE ?', [$term]);
-            })->orWhereHas('product.category', function($q) use ($term) {
-                $q->whereRaw('LOWER(name) LIKE ?', [$term]);
-            });
+            $query->whereRaw('LOWER('.$query->qualifyColumn('sku').') LIKE ?', [$term])
+                ->orWhereHas('product', function ($q) use ($term) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$term]);
+                })->orWhereHas('color', function ($q) use ($term) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$term]);
+                })->orWhereHas('product.category', function ($q) use ($term) {
+                    $q->whereRaw('LOWER(name) LIKE ?', [$term]);
+                });
         });
     }
 }

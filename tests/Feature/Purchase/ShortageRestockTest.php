@@ -48,7 +48,7 @@ class ShortageRestockTest extends TestCase
             ->assertOk()
             ->assertSee('6,000.00')
             ->assertSee('Purchase price (product)')
-            ->assertSee('name="items[' . $variant->id . '][unit_price]" value="6000"', false)
+            ->assertSee('name="items['.$variant->id.'][unit_price]" value="6000"', false)
             // Plus jamais 75 % du prix de vente
             ->assertDontSee('7,500.00');
     }
@@ -61,7 +61,7 @@ class ShortageRestockTest extends TestCase
         $this->get(route('admin.purchases.createFromShortage'))
             ->assertOk()
             ->assertSee('To fill in on the order')
-            ->assertSee('name="items[' . $variant->id . '][unit_price]" value="0"', false)
+            ->assertSee('name="items['.$variant->id.'][unit_price]" value="0"', false)
             ->assertDontSee('7,500.00');
     }
 

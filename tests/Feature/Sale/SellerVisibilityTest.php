@@ -15,8 +15,11 @@ class SellerVisibilityTest extends TestCase
     use RefreshDatabase;
 
     private User $alice;
+
     private User $bob;
+
     private Sale $aliceSale;
+
     private Sale $bobSale;
 
     protected function setUp(): void

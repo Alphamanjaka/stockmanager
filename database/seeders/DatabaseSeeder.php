@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Color;
@@ -11,8 +10,9 @@ use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Contact\Models\Supplier;
 use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Sale\Services\SaleService;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -26,8 +26,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SupplierSeeder::class,
         ]);
-
-
 
         // 1. Création des Utilisateurs
         $admin = User::create([
@@ -108,12 +106,12 @@ class DatabaseSeeder extends Seeder
 
         // Vente 1 : 2 iPhones Noirs
         $saleService->createSale([
-            ['product_color_id' => $allVariants[0]->id, 'quantity' => 2]
+            ['product_color_id' => $allVariants[0]->id, 'quantity' => 2],
         ], 0, $vendeur->id);
 
         // Vente 2 : 1 MacBook Blanc
         $saleService->createSale([
-            ['product_color_id' => $allVariants[9]->id, 'quantity' => 1]
+            ['product_color_id' => $allVariants[9]->id, 'quantity' => 1],
         ], 100000, $vendeur->id); // Avec remise
 
         // Vente 3 : Mixte
@@ -124,12 +122,12 @@ class DatabaseSeeder extends Seeder
 
         // Vente 4 : 5 iPads Rouges
         $saleService->createSale([
-            ['product_color_id' => $allVariants[18]->id, 'quantity' => 5]
+            ['product_color_id' => $allVariants[18]->id, 'quantity' => 5],
         ], 0, $vendeur->id);
 
         // Vente 5 : 1 iPhone Bleu
         $saleService->createSale([
-            ['product_color_id' => $allVariants[3]->id, 'quantity' => 1]
+            ['product_color_id' => $allVariants[3]->id, 'quantity' => 1],
         ], 0, $admin->id);
 
         // WithoutModelEvents désactive le remplissage automatique des variantes (options, SKU, signature) :

@@ -4,15 +4,17 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Core\Models\Concerns\Archivable;
+use App\Modules\Sale\Models\Sale;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     // Un compte archivé ne peut plus se connecter ; ses ventes et inventaires gardent son nom
-    use HasFactory, Notifiable, Archivable;
+    use Archivable, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -54,7 +56,7 @@ class User extends Authenticatable
      */
     public function sales()
     {
-        return $this->hasMany(\App\Modules\Sale\Models\Sale::class);
+        return $this->hasMany(Sale::class);
     }
 
     /**

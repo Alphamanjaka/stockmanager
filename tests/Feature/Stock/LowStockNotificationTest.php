@@ -21,6 +21,7 @@ class LowStockNotificationTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private StockService $stock;
 
     protected function setUp(): void

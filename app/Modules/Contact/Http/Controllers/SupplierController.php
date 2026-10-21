@@ -3,21 +3,20 @@
 namespace App\Modules\Contact\Http\Controllers;
 
 use App\Core\Http\Controllers\Concerns\ArchivesRecords;
+use App\Http\Controllers\Controller;
 use App\Modules\Contact\Http\Requests\StoreSupplierRequest;
 use App\Modules\Contact\Models\Supplier;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
 use App\Modules\Contact\Services\SupplierService;
 use App\Modules\Purchase\Services\PurchaseService;
-use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
     use ArchivesRecords;
 
-    public function __construct(protected SupplierService $supplierService,protected PurchaseService $purchaseService)
-    {
-    }
+    public function __construct(protected SupplierService $supplierService, protected PurchaseService $purchaseService) {}
+
     /**
      * Affiche la liste des fournisseurs avec statistiques.
      */
@@ -33,6 +32,7 @@ class SupplierController extends Controller
         ];
         // Récupération des fournisseurs via le service
         $suppliers = $this->supplierService->getAllSuppliers($filters);
+
         // Affichage de la vue
         return view('contact::suppliers.index', compact('suppliers'));
     }
@@ -85,11 +85,11 @@ class SupplierController extends Controller
     public function update(Request $request, Supplier $supplier)
     {
         $validated = $request->validate([
-            'name'    => 'required|string|max:255|unique:suppliers,name,' . $supplier->id,
-            'email'   => 'nullable|email|max:255',
-            'phone'   => 'nullable|string|max:20',
+            'name' => 'required|string|max:255|unique:suppliers,name,'.$supplier->id,
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
-            'notes'   => 'nullable|string|max:2000',
+            'notes' => 'nullable|string|max:2000',
         ]);
 
         $this->supplierService->updateSupplier($supplier, $validated);

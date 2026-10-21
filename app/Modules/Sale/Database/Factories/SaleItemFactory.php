@@ -2,11 +2,13 @@
 
 namespace App\Modules\Sale\Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Modules\Catalog\Models\ProductColor;
+use App\Modules\Sale\Models\Sale;
 use App\Modules\Sale\Models\SaleItem;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Modules\Sale\Models\SaleItem>
+ * @extends Factory<SaleItem>
  */
 class SaleItemFactory extends Factory
 {
@@ -20,8 +22,8 @@ class SaleItemFactory extends Factory
     public function definition(): array
     {
         return [
-            'sale_id' => \App\Modules\Sale\Models\Sale::factory(),
-            'product_color_id' => \App\Modules\Catalog\Models\ProductColor::factory(),
+            'sale_id' => Sale::factory(),
+            'product_color_id' => ProductColor::factory(),
             'quantity' => $this->faker->numberBetween(1, 10),
             'unit_price' => $this->faker->randomFloat(2, 10, 500),
             'subtotal' => 0, // Sera calculé (qty * price)

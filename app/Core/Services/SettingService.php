@@ -3,9 +3,9 @@
 namespace App\Core\Services;
 
 use App\Core\Models\Setting;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\UploadedFile;
 
 class SettingService
 {
@@ -29,6 +29,7 @@ class SettingService
     {
         // Retrieve from the cached collection instead of a new DB query
         $allSettings = $this->getAllSettings();
+
         return $allSettings[$key] ?? $default;
     }
 
@@ -46,6 +47,7 @@ class SettingService
             // Handle File Upload (Logo)
             if ($value instanceof UploadedFile) {
                 $this->handleFileUpload($key, $value);
+
                 continue;
             }
 

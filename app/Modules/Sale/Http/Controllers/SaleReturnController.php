@@ -50,7 +50,7 @@ class SaleReturnController extends Controller
 
         return redirect()->route('admin.sales.show', $sale)
             ->with('success', "Avoir {$saleReturn->reference} enregistré : {$count} article(s) remis en stock, "
-                . money($saleReturn->total) . ' remboursé(s).');
+                .money($saleReturn->total).' remboursé(s).');
     }
 
     public function show(SaleReturn $saleReturn)

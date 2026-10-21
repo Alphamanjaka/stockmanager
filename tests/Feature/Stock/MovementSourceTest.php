@@ -27,6 +27,7 @@ class MovementSourceTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private ProductColor $wax;
 
     protected function setUp(): void

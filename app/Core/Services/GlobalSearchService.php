@@ -2,17 +2,17 @@
 
 namespace App\Core\Services;
 
-use Illuminate\Support\Collection;
 use App\Modules\Catalog\Services\ProductColorService;
-use App\Modules\Stock\Services\StockManagementService;
+use App\Modules\Contact\Services\CustomerService;
 use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Sale\Services\SaleService;
-use App\Modules\Contact\Services\CustomerService;
+use App\Modules\Stock\Services\StockManagementService;
+use Illuminate\Support\Collection;
 
 class GlobalSearchService
 {
     public function __construct(
-        protected ProductColorService   $productColorService,
+        protected ProductColorService $productColorService,
         protected PurchaseService $purchaseService,
         protected SaleService $saleService,
         protected StockManagementService $stockMovementService,
@@ -22,8 +22,8 @@ class GlobalSearchService
     /**
      * Effectue une recherche globale à travers différentes entités.
      *
-     * @param string $query La chaîne de recherche.
-     * @param int $limit Le nombre maximum de résultats par type d'entité.
+     * @param  string  $query  La chaîne de recherche.
+     * @param  int  $limit  Le nombre maximum de résultats par type d'entité.
      * @return Collection Une collection de résultats formatés.
      */
     public function search(string $query, int $limit = 5): Collection

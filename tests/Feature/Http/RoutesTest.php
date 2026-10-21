@@ -14,15 +14,15 @@ class RoutesTest extends TestCase
 
         foreach (Route::getRoutes() as $route) {
             $action = $route->getActionName();
-            if (!str_contains($action, '@') || !str_starts_with($action, 'App\\')) {
+            if (! str_contains($action, '@') || ! str_starts_with($action, 'App\\')) {
                 continue;
             }
             [$controller, $method] = explode('@', $action);
-            if (!method_exists($controller, $method)) {
-                $missing[] = implode('|', $route->methods()) . ' /' . $route->uri() . " → {$action}";
+            if (! method_exists($controller, $method)) {
+                $missing[] = implode('|', $route->methods()).' /'.$route->uri()." → {$action}";
             }
         }
 
-        $this->assertSame([], $missing, "Routes vers des méthodes inexistantes :\n" . implode("\n", $missing));
+        $this->assertSame([], $missing, "Routes vers des méthodes inexistantes :\n".implode("\n", $missing));
     }
 }

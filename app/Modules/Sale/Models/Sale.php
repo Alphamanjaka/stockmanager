@@ -2,12 +2,12 @@
 
 namespace App\Modules\Sale\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\User;
 use App\Modules\Contact\Models\Customer;
-use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use App\Modules\Sale\Database\Factories\SaleFactory;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 #[UseFactory(SaleFactory::class)]
 class Sale extends Model
@@ -16,12 +16,13 @@ class Sale extends Model
 
     /** Modes de paiement acceptés en caisse (libellés : lang/xx/pos.php, clé methods). */
     public const PAYMENT_CASH = 'cash';
+
     public const PAYMENT_METHODS = [self::PAYMENT_CASH, 'mobile_money', 'card'];
 
     /** Préfixe des numéros de facture, à la suite par année : FAC-2026-000123 (DocumentNumberService). */
     public const INVOICE_PREFIX = 'FAC';
 
-    protected $fillable = ['reference', 'total_brut', 'discount', 'total_net','user_id', 'customer_id', 'company_name', 'company_email', 'company_phone', 'company_address','currency_symbol', 'payment_method', 'amount_received'];
+    protected $fillable = ['reference', 'total_brut', 'discount', 'total_net', 'user_id', 'customer_id', 'company_name', 'company_email', 'company_phone', 'company_address', 'currency_symbol', 'payment_method', 'amount_received'];
 
     /** Monnaie rendue au client : somme reçue moins le net à payer (0 si la somme reçue n'est pas connue). */
     public function getChangeDueAttribute(): float
@@ -106,6 +107,7 @@ class Sale extends Model
     {
         return $this->hasMany(SaleReturn::class)->oldest()->orderBy('id');
     }
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -116,6 +118,7 @@ class Sale extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+
     public function toString()
     {
         return $this->reference;

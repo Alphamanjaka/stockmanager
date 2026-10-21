@@ -17,7 +17,7 @@ class ColorServiceTest extends TestCase
     {
         parent::setUp();
         // Initialisation du service avec une instance du modèle
-        $this->service = new ColorService(new Color());
+        $this->service = new ColorService(new Color);
     }
 
     /** @test */
@@ -66,7 +66,6 @@ class ColorServiceTest extends TestCase
         $this->assertEquals('Vert', $foundColor->name);
     }
 
-
     /** @test */
     public function it_applies_default_sort_by_name_for_colors()
     {
@@ -89,7 +88,7 @@ class ColorServiceTest extends TestCase
 
         $results = $this->service->getAllColors([
             'sort' => 'name',
-            'order' => 'desc'
+            'order' => 'desc',
         ], false);
 
         $this->assertEquals('B', $results->first()->name);

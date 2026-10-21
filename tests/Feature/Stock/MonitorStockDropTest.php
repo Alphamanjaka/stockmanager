@@ -23,8 +23,11 @@ class MonitorStockDropTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private StockService $stock;
+
     private ProductColor $wax;
+
     private ProductColor $savon;
 
     protected function setUp(): void

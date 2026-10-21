@@ -21,6 +21,7 @@ class VariantLabelsTest extends TestCase
     use RefreshDatabase;
 
     private ProductColor $ml25;
+
     private ProductColor $ml30;
 
     protected function setUp(): void

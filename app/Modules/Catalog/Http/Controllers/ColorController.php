@@ -2,13 +2,13 @@
 
 namespace App\Modules\Catalog\Http\Controllers;
 
+use App\Core\Http\Controllers\BaseResourceController;
 use App\Core\Http\Controllers\Concerns\ArchivesRecords;
 use App\Modules\Catalog\Http\Requests\StoreColorRequest;
 use App\Modules\Catalog\Models\Color;
+use App\Modules\Catalog\Services\ColorService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Http\FormRequest;
-use App\Modules\Catalog\Services\ColorService;
-use App\Core\Http\Controllers\BaseResourceController;
 
 class ColorController extends BaseResourceController
 {

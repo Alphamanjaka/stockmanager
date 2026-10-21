@@ -17,7 +17,7 @@ class CategoryServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new CategoryService(new Category());
+        $this->service = new CategoryService(new Category);
     }
 
     /** @test */
@@ -32,9 +32,8 @@ class CategoryServiceTest extends TestCase
 
         $data = [
             'name' => 'Parent Tech 2',
-            'children' => [$child1->id, $child2->id]
+            'children' => [$child1->id, $child2->id],
         ];
-
 
         // Act: Appel du service
         $category = $this->service->create($data);
@@ -60,7 +59,7 @@ class CategoryServiceTest extends TestCase
 
         // Assert & Act
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage("Cannot delete category with child categories.");
+        $this->expectExceptionMessage('Cannot delete category with child categories.');
 
         $this->service->destroy($parent->id);
     }
