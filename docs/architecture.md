@@ -159,7 +159,7 @@ protected array $menu = [
 
 Une entrée dont la route n'existe pas est masquée (le layout ne plante pas), un espace vide disparaît.
 L'entrée active, le fil d'Ariane et les raccourcis Alt + touche en sont déduits. `BackOfficeMenuTest` vérifie que
-chaque raccourci est unique et que chaque libellé est traduit en en/fr/es (`lang/*/backoffice.php`).
+chaque raccourci est unique et que chaque libellé est traduit dans chaque langue proposée (`lang/*/backoffice.php`).
 
 **Interface : thème et composants**
 
@@ -203,8 +203,8 @@ fichier JSON.
 - Exports : titres, colonnes et filtres passent aussi par `__()` (`Column::make(__('Price'), 'price')`).
 - `TranslationsTest` échoue si un texte n'a pas de traduction française, si un module affiche un texte traduit par un
   autre module, ou si une même clé est traduite différemment. Les tests de pages tournent en anglais (`phpunit.xml`).
-- L'espagnol ne traduit que le menu, la caisse et les documents PDF : le reste, messages de validation compris, s'affiche
-  en anglais.
+- Langues proposées : français et anglais (`config('app.supported_locales')`). L'espagnol, qui ne couvrait que le
+  menu, la caisse et les documents PDF, a été retiré ; un réglage resté sur `es` revient à `APP_LOCALE`.
 
 **Archiver plutôt que supprimer**
 

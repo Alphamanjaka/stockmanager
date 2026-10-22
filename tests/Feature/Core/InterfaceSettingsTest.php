@@ -24,18 +24,21 @@ class InterfaceSettingsTest extends TestCase
     /** @test */
     public function the_saved_language_applies_to_the_whole_application()
     {
-        $this->put('/admin/settings/1', ['app_locale' => 'es'])->assertRedirect('/admin/settings');
+        // Les tests tournent en anglais (phpunit.xml) : le réglage passe l'application en français
+        $this->put('/admin/settings/1', ['app_locale' => 'fr'])->assertRedirect('/admin/settings');
 
         $this->get('/admin/dashboard')
             ->assertOk()
-            ->assertSee('<html lang="es">', false)
-            ->assertSee(__('backoffice.launcher', [], 'es'));
+            ->assertSee('<html lang="fr">', false)
+            ->assertSee(__('backoffice.launcher', [], 'fr'));
     }
 
     /** @test */
     public function a_language_that_is_not_offered_is_refused()
     {
         $this->put('/admin/settings/1', ['app_locale' => 'xx'])->assertSessionHasErrors('app_locale');
+        // L'espagnol n'est plus proposé
+        $this->put('/admin/settings/1', ['app_locale' => 'es'])->assertSessionHasErrors('app_locale');
     }
 
     /** @test */
