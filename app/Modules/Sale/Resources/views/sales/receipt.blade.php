@@ -4,7 +4,7 @@
 --}}
 @php
     // Séparateurs de la langue courante ; décimales affichées seulement quand il y en a (ex. Ariary : 13 500 Ar)
-    [$decimalPoint, $thousands] = ['en' => ['.', ','], 'es' => [',', '.']][app()->getLocale()] ?? [',', ' '];
+    [$decimalPoint, $thousands] = app()->getLocale() === 'en' ? ['.', ','] : [',', ' '];
     $money = function ($amount) use ($sale, $decimalPoint, $thousands) {
         $amount = (float) $amount;
         $number = number_format($amount, floor($amount) == $amount ? 0 : 2, $decimalPoint, $thousands);

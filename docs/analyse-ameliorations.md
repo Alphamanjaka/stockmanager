@@ -82,7 +82,8 @@ mouvements passés.
 - **Langues mélangées.** Seules 15 vues sur 99 utilisent `__()`. L'interface est écrite en anglais en dur, alors que
   les messages d'erreur des services sont en français et que l'activité est malgache (MGA). Les fichiers
   `lang/fr`, `lang/en` et `lang/es` existent déjà, mais ne couvrent que le menu, la caisse et les documents PDF.
-  **Fait (#42)** : toute l'interface est traduite et le français est la langue par défaut. L'espagnol reste partiel.
+  **Fait (#42)** : toute l'interface est traduite et le français est la langue par défaut. L'espagnol, partiel, a
+  été retiré : seuls le français et l'anglais sont proposés.
 - **Cloche de notifications toujours vide.** La barre d'application affiche des notifications
   ([tools.blade.php](../resources/views/layouts/back-office/tools.blade.php)), mais
   [LowStockAlert](../app/Modules/Stock/Notifications/LowStockAlert.php) n'est jamais envoyée. Elle lit en plus
@@ -206,6 +207,5 @@ Relevés pendant les phases 1 à 4, non corrigés.
 |---|---|---|
 | L'export des produits valorise le stock au prix de vente | [ProductsExport](../app/Modules/Catalog/Exports/ProductsExport.php), colonne « Valeur du stock » : `stock × price` | Le PDF et l'Excel surestiment la valeur du stock de toute la marge, alors que les pages la calculent au coût depuis #28. |
 | Le « moins vendu » ignore les produits jamais vendus | [SaleService::getLeastSoldProduct](../app/Modules/Sale/Services/SaleService.php) : seulement les variantes présentes dans `sale_items` | La liste des produits affiche comme « moins vendu » un produit vendu au moins une fois, pas celui qui ne s'est jamais vendu. |
-| Espagnol partiel | `lang/es/` | Seuls le menu, la caisse et les documents PDF sont traduits ; le reste, messages de validation compris, s'affiche en anglais. |
-| Messages des services écrits en français | services, contrôleurs (`throw new \Exception('…')`, messages flash) | En anglais ou en espagnol, ces messages restent en français. |
+| Messages des services écrits en français | services, contrôleurs (`throw new \Exception('…')`, messages flash) | En anglais, ces messages restent en français. |
 | TVA : un seul taux, achats sans TVA | réglage `default_tax_rate`, [SaleService](../app/Modules/Sale/Services/SaleService.php) | Pas de taux par produit. Les coûts d'achat sont supposés hors taxes, ce qui compte pour la marge d'une entreprise assujettie. |

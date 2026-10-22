@@ -31,7 +31,7 @@ class BackOfficeMenuTest extends TestCase
         $missing = [];
 
         foreach (app(BackOfficeMenu::class)->translationKeys() as $key) {
-            foreach (['en', 'fr', 'es'] as $locale) {
+            foreach (array_keys(config('app.supported_locales')) as $locale) {
                 if (! Lang::has($key, $locale, false)) {
                     $missing[] = "{$locale}: {$key}";
                 }
