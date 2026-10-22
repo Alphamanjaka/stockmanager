@@ -1,7 +1,7 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Credit note ' . $saleReturn->reference)
-@section('subtitle', $saleReturn->created_at->format('d/m/Y H:i') . ' · ' . ($saleReturn->user->name ?? 'N/A'))
+@section('title', __('Credit note :reference', ['reference' => $saleReturn->reference]))
+@section('subtitle', $saleReturn->created_at->format('d/m/Y H:i') . ' · ' . ($saleReturn->user->name ?? __('N/A')))
 
 @php
     $sale = $saleReturn->sale;
@@ -10,25 +10,25 @@
 
 @section('actions')
     <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
-        <i class="bi bi-printer" aria-hidden="true"></i> Print
+        <i class="bi bi-printer" aria-hidden="true"></i> {{ __('Print') }}
     </button>
     <a href="{{ route('admin.sales.show', $sale->id) }}" class="btn btn-outline-secondary">
-        <i class="bi bi-receipt" aria-hidden="true"></i> Sale {{ $sale->reference }}
+        <i class="bi bi-receipt" aria-hidden="true"></i> {{ __('Sale :reference', ['reference' => $sale->reference]) }}
     </a>
 @endsection
 
 @section('content')
     <div class="row g-3">
         <div class="col-lg-8">
-            <x-ui.card title="Returned items" flush>
+            <x-ui.card :title="__('Returned items')" flush>
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Product</th>
-                                <th class="text-end">Quantity</th>
-                                <th class="text-end">Unit price</th>
-                                <th class="text-end">Refunded</th>
+                                <th>{{ __('Product') }}</th>
+                                <th class="text-end">{{ __('Quantity') }}</th>
+                                <th class="text-end">{{ __('Unit price') }}</th>
+                                <th class="text-end">{{ __('Refunded') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -47,23 +47,31 @@
                     </table>
                 </div>
                 <div class="ui-totals">
-                    <div class="ui-totals-grand"><span>Total refunded</span><span>{{ $money($saleReturn->total) }}</span></div>
+                    {{-- TVA de l'avoir : celle de la vente rendue (taux figé à la vente) --}}
+                    @if ($sale->hasVat())
+                        <div><span class="text-muted">{{ __('Total excl. VAT') }}</span><span>{{ $money($sale->excludingVat((float) $saleReturn->total)) }}</span></div>
+                        <div>
+                            <span class="text-muted">{{ __('VAT :rate %', ['rate' => $sale->vatRateLabel()]) }}</span>
+                            <span>{{ $money($sale->vatIncluded((float) $saleReturn->total)) }}</span>
+                        </div>
+                    @endif
+                    <div class="ui-totals-grand"><span>{{ __('Total refunded') }}</span><span>{{ $money($saleReturn->total) }}</span></div>
                 </div>
             </x-ui.card>
         </div>
 
         <div class="col-lg-4">
-            <x-ui.card title="Credit note">
+            <x-ui.card :title="__('Credit note')">
                 <dl class="ui-dl">
-                    <dt>Sale</dt>
+                    <dt>{{ __('Sale') }}</dt>
                     <dd><a href="{{ route('admin.sales.show', $sale->id) }}">{{ $sale->reference }}</a> · {{ $sale->created_at->format('d/m/Y') }}</dd>
-                    <dt>Customer</dt>
-                    <dd>{{ $sale->customer->name ?? 'Walk-in customer' }}</dd>
-                    <dt>Reason</dt>
+                    <dt>{{ __('Customer') }}</dt>
+                    <dd>{{ $sale->customer->name ?? __('Walk-in customer') }}</dd>
+                    <dt>{{ __('Reason') }}</dt>
                     <dd class="text-prewrap">{{ $saleReturn->reason }}</dd>
-                    <dt>Refunded by</dt>
+                    <dt>{{ __('Refunded by') }}</dt>
                     <dd>{{ $saleReturn->refund_method ? __('pos.methods.' . $saleReturn->refund_method) : '—' }}</dd>
-                    <dt>Recorded by</dt>
+                    <dt>{{ __('Recorded by') }}</dt>
                     <dd>{{ $saleReturn->user->name ?? '—' }}</dd>
                 </dl>
             </x-ui.card>

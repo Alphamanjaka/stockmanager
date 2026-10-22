@@ -1,7 +1,7 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Return items — ' . $sale->reference)
-@section('subtitle', $sale->created_at->format('d/m/Y H:i') . ' · ' . ($sale->customer->name ?? 'Walk-in customer'))
+@section('title', __('Return items — :reference', ['reference' => $sale->reference]))
+@section('subtitle', $sale->created_at->format('d/m/Y H:i') . ' · ' . ($sale->customer->name ?? __('Walk-in customer')))
 
 @php
     $money = fn ($value) => money($value, 2, $sale->currency_symbol);
@@ -16,20 +16,19 @@
         @csrf
 
         <x-ui.alert tone="info" icon="bi-arrow-counterclockwise">
-            The returned items go back to stock, and the refunded amount is deducted from the revenue of the day.
-            The sale itself is kept unchanged. A credit note is numbered for each return.
+            {{ __('The returned items go back to stock, and the refunded amount is deducted from the revenue of the day. The sale itself is kept unchanged. A credit note is numbered for each return.') }}
         </x-ui.alert>
 
-        <x-ui.card title="Items to return" flush>
+        <x-ui.card :title="__('Items to return')" flush>
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Product</th>
-                            <th class="text-end">Sold</th>
-                            <th class="text-end">Already returned</th>
-                            <th class="text-end">Refund per item</th>
-                            <th class="text-end" style="width: 140px">Quantity returned</th>
+                            <th>{{ __('Product') }}</th>
+                            <th class="text-end">{{ __('Quantity sold') }}</th>
+                            <th class="text-end">{{ __('Already returned') }}</th>
+                            <th class="text-end">{{ __('Refund per item') }}</th>
+                            <th class="text-end" style="width: 140px">{{ __('Quantity returned') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -46,7 +45,7 @@
                                 <td class="text-end">
                                     <input type="number" min="0" max="{{ max(0, $left) }}" step="1" name="quantities[{{ $item->id }}]"
                                         value="{{ old('quantities.' . $item->id, 0) }}" @disabled($left <= 0)
-                                        class="form-control form-control-sm text-end" aria-label="Quantity returned">
+                                        class="form-control form-control-sm text-end" aria-label="{{ __('Quantity returned') }}">
                                 </td>
                             </tr>
                         @endforeach
@@ -55,11 +54,11 @@
             </div>
         </x-ui.card>
 
-        <x-ui.card title="Refund">
+        <x-ui.card :title="__('Refund')">
             <div class="row">
-                <x-ui.field class="col-md-8" name="reason" label="Reason" type="textarea" rows="2" required maxlength="500"
-                    placeholder="e.g. Wrong size, defective item, cashier mistake..." :value="old('reason')" />
-                <x-ui.field class="col-md-4" name="refund_method" label="Refunded by">
+                <x-ui.field class="col-md-8" name="reason" :label="__('Reason')" type="textarea" rows="2" required maxlength="500"
+                    :placeholder="__('e.g. Wrong size, defective item, cashier mistake...')" :value="old('reason')" />
+                <x-ui.field class="col-md-4" name="refund_method" :label="__('Refunded by')">
                     <select name="refund_method" id="refund_method" class="form-select">
                         @foreach (\App\Modules\Sale\Models\Sale::PAYMENT_METHODS as $method)
                             <option value="{{ $method }}" @selected(old('refund_method', $sale->payment_method) === $method)>{{ __('pos.methods.' . $method) }}</option>
@@ -68,22 +67,22 @@
                 </x-ui.field>
             </div>
             <p class="small text-muted mb-0">
-                Net paid: {{ $money($sale->total_net) }} · already refunded: {{ $money($sale->refundedTotal()) }}.
-                The discount of the sale is shared over its items.
+                {{ __('Net paid: :paid · already refunded: :refunded.', ['paid' => $money($sale->total_net), 'refunded' => $money($sale->refundedTotal())]) }}
+                {{ __('The discount of the sale is shared over its items.') }}
             </p>
 
             <x-slot:footer>
                 <div class="ui-form-actions">
-                    <a href="{{ route('admin.sales.show', $sale->id) }}" class="btn btn-outline-secondary">Back to the sale</a>
+                    <a href="{{ route('admin.sales.show', $sale->id) }}" class="btn btn-outline-secondary">{{ __('Back to the sale') }}</a>
                     <button type="submit" name="all" value="1" class="btn btn-outline-danger"
-                        data-confirm="Cancel this sale?" data-confirm-tone="danger" data-confirm-ok="Cancel the sale"
-                        data-confirm-text="Every item not returned yet goes back to stock and the remaining amount is refunded.">
-                        <i class="bi bi-x-circle" aria-hidden="true"></i> Return everything (cancel the sale)
+                        data-confirm="{{ __('Cancel this sale?') }}" data-confirm-tone="danger" data-confirm-ok="{{ __('Cancel the sale') }}"
+                        data-confirm-text="{{ __('Every item not returned yet goes back to stock and the remaining amount is refunded.') }}">
+                        <i class="bi bi-x-circle" aria-hidden="true"></i> {{ __('Return everything (cancel the sale)') }}
                     </button>
                     <button type="submit" class="btn btn-primary"
-                        data-confirm="Record this return?" data-confirm-ok="Record"
-                        data-confirm-text="The items go back to stock and a credit note is created. This cannot be undone.">
-                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Record the return
+                        data-confirm="{{ __('Record this return?') }}" data-confirm-ok="{{ __('Record') }}"
+                        data-confirm-text="{{ __('The items go back to stock and a credit note is created. This cannot be undone.') }}">
+                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> {{ __('Record the return') }}
                     </button>
                 </div>
             </x-slot:footer>

@@ -262,18 +262,27 @@ class PurchaseServiceTest extends TestCase
     /** @test */
     public function it_can_get_purchase_statistics()
     {
-        // Arrange
-        Purchase::factory()->create(['state' => 'Received', 'total_net' => 100, 'discount' => 10]);
-        Purchase::factory()->create(['state' => 'Received', 'total_net' => 150, 'discount' => 0]);
-        Purchase::factory()->create(['state' => 'Ordered', 'total_net' => 200, 'discount' => 20]); // Not paid
+        // Arrange : les statistiques portent sur ce qui a été livré (articles reçus, remise déduite)
+        $variant = ProductColor::forceCreate(['product_id' => Product::factory()->create()->id, 'color_id' => Color::factory()->create()->id, 'stock' => 0]);
+        $purchase = function (string $state, float $gross, float $net, int $quantity, int $received) use ($variant) {
+            $purchase = Purchase::factory()->create(['state' => $state, 'total_amount' => $gross, 'total_net' => $net, 'discount' => $gross - $net]);
+            PurchaseItem::create([
+                'purchase_id' => $purchase->id, 'product_color_id' => $variant->id, 'quantity' => $quantity,
+                'received_quantity' => $received, 'unit_price' => 10, 'subtotal' => 10 * $quantity,
+            ]);
+        };
+        $purchase('Received', 110, 100, 11, 11); // 100 net, 10 de remise
+        $purchase('Received', 150, 150, 15, 15); // 150
+        $purchase('PartiallyReceived', 200, 200, 20, 5); // 50 reçus sur 200
+        $purchase('Ordered', 200, 180, 20, 0); // rien de livré : pas compté
 
         // Act
         $stats = $this->service->getPurchaseStatistics();
 
         // Assert
-        $this->assertEquals(250.00, $stats['totalSpent']); // 100 + 150
-        $this->assertEquals(2, $stats['totalPurchases']);
-        $this->assertEquals(10, $stats['totalDiscounts']); // 10 + 0 + 20
-        $this->assertEqualsWithDelta(125.00, $stats['averagePurchaseValue'], 0.01); // (100+150)/2
+        $this->assertEquals(300.00, $stats['totalSpent']); // 100 + 150 + 50
+        $this->assertEquals(3, $stats['totalPurchases']);
+        $this->assertEquals(10, $stats['totalDiscounts']);
+        $this->assertEqualsWithDelta(100.00, $stats['averagePurchaseValue'], 0.01); // 300 / 3
     }
 }

@@ -1,13 +1,13 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Customers')
+@section('title', __('Customers'))
 
 @section('actions')
     <x-ui.actions-menu>
         <x-ui.export-items list="customers" />
     </x-ui.actions-menu>
     <a href="{{ route('admin.customers.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg" aria-hidden="true"></i> New customer
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('New customer') }}
     </a>
 @endsection
 
@@ -21,7 +21,7 @@
     <x-ui.card flush :pagination="$customers" data-bulk>
         <x-slot:toolbar>
             <x-ui.filters :action="route('admin.customers.index')">
-                <x-ui.search placeholder="Search by name, phone or email..." />
+                <x-ui.search :placeholder="__('Search by name, phone or email...')" />
                 <x-ui.status-filter />
             </x-ui.filters>
         </x-slot:toolbar>
@@ -33,11 +33,11 @@
                 <thead>
                     <tr>
                         <x-ui.bulk-check-all />
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Address</th>
-                        <th class="text-end"><span class="visually-hidden">Actions</span></th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Phone') }}</th>
+                        <th>{{ __('Email') }}</th>
+                        <th>{{ __('Address') }}</th>
+                        <th class="text-end"><span class="visually-hidden">{{ __('Actions') }}</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,25 +50,25 @@
                             <td class="text-muted">{{ $customer->address ?: '—' }}</td>
                             <td class="text-end">
                                 <x-ui.actions-menu row>
-                                    <x-ui.menu-item :href="route('admin.customers.show', $customer->id)" icon="bi-eye">View</x-ui.menu-item>
-                                    <x-ui.menu-item :href="route('admin.customers.edit', $customer->id)" icon="bi-pencil">Edit</x-ui.menu-item>
+                                    <x-ui.menu-item :href="route('admin.customers.show', $customer->id)" icon="bi-eye">{{ __('View') }}</x-ui.menu-item>
+                                    <x-ui.menu-item :href="route('admin.customers.edit', $customer->id)" icon="bi-pencil">{{ __('Edit') }}</x-ui.menu-item>
                                     @if ($archived)
                                         <x-ui.menu-item :action="route('admin.customers.restore')" :ids="[$customer->id]"
-                                            icon="bi-arrow-counterclockwise">Restore</x-ui.menu-item>
+                                            icon="bi-arrow-counterclockwise">{{ __('Restore') }}</x-ui.menu-item>
                                         <li><hr class="dropdown-divider"></li>
                                         <x-ui.menu-item :action="route('admin.customers.destroy', $customer->id)" method="DELETE"
-                                            icon="bi-trash3" tone="danger" confirm="Delete this customer permanently?"
-                                            confirm-text="Only possible if it has no sale: otherwise it stays archived.">Delete permanently</x-ui.menu-item>
+                                            icon="bi-trash3" tone="danger" :confirm="__('Delete this customer permanently?')"
+                                            :confirm-text="__('Only possible if they have no sale: otherwise they stay archived.')">{{ __('Delete permanently') }}</x-ui.menu-item>
                                     @else
                                         <x-ui.menu-item :action="route('admin.customers.archive')" :ids="[$customer->id]" icon="bi-archive"
-                                            confirm="Archive this customer?">Archive</x-ui.menu-item>
+                                            :confirm="__('Archive this customer?')">{{ __('Archive') }}</x-ui.menu-item>
                                     @endif
                                 </x-ui.actions-menu>
                             </td>
                         </tr>
                     @empty
                         <x-ui.empty-row :colspan="6" icon="bi-person-vcard">
-                            {{ $archived ? 'No archived customer.' : 'No customer found.' }}
+                            {{ $archived ? __('No archived customer.') : __('No customer found.') }}
                         </x-ui.empty-row>
                     @endforelse
                 </tbody>

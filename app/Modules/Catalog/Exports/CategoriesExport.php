@@ -14,16 +14,16 @@ class CategoriesExport extends ListExport
 
     public function title(): string
     {
-        return 'Categories';
+        return __('Categories');
     }
 
     public function columns(): array
     {
         return [
-            Column::make('Name', 'name'),
-            Column::make('Parent', fn (Category $category) => $category->parent->name ?? 'Root'),
-            Column::make('Description', 'description'),
-            Column::make('Products', 'products_count')->number()->total()->width('12%'),
+            Column::make(__('Name'), 'name'),
+            Column::make(__('Parent'), fn (Category $category) => $category->parent->name ?? __('Root')),
+            Column::make(__('Description'), 'description'),
+            Column::make(__('Products'), 'products_count')->number()->total()->width('12%'),
         ];
     }
 

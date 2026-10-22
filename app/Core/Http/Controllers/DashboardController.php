@@ -45,23 +45,8 @@ class DashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Accès non autorisé');
         }
 
-        $period = $request->get('period', '7days');
-        $data = $this->dashboardService->getBackOfficeData($period);
-
-        // Les données du graphique ('labels', 'values') sont maintenant chargées via API.
-        return view('core::back-office.dashboard', [
-            'salesThisWeek' => $data['salesThisWeek'],
-            'salesThisMonth' => $data['salesThisMonth'],
-            'marginThisMonth' => $data['marginThisMonth'],
-            'totalProducts' => $data['totalProducts'],
-            'lowStockProducts' => $data['lowStockProducts'],
-            'totalCategories' => $data['totalCategories'],
-            'totalSuppliers' => $data['totalSuppliers'],
-            'totalSales' => $data['totalSales'],
-            'mostSoldProduct' => $data['mostSoldProduct'],
-            'leastSoldProduct' => $data['leastSoldProduct'],
-            'period' => $data['period'],
-        ]);
+        // Les données du graphique ('labels', 'values') sont chargées via API (chartData).
+        return view('core::back-office.dashboard', $this->dashboardService->getBackOfficeData($request->get('period', '7days')));
     }
 
     /**

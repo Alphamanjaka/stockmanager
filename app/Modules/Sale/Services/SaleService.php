@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\DB;
 
 class SaleService
 {
+    /** Net d'une vente hors taxes en SQL (prix TTC, taux figé sur la vente ; sans TVA : inchangé). */
+    private const EXCLUDING_VAT_SQL = 'sales.total_net / (1 + COALESCE(sales.vat_rate, 0) / 100)';
+
     public function __construct(
         protected StockService $stockService,
         protected CustomerService $customerService,
@@ -55,6 +58,8 @@ class SaleService
                 'company_address' => settings('company_address', ''),
                 // Devise figée comme les coordonnées : le reçu reste juste si le paramètre change
                 'currency_symbol' => settings('currency_symbol', 'MGA'),
+                // TVA figée de même (prix TTC) ; aucune si l'entreprise n'est pas assujettie
+                'vat_rate' => $this->currentVatRate(),
             ]);
 
             $totalBrut = 0;
@@ -104,6 +109,17 @@ class SaleService
 
             return $sale;
         });
+    }
+
+    /**
+     * Taux de TVA d'une nouvelle vente : celui des Paramètres quand l'entreprise est assujettie (réglage
+     * « vat_enabled »), sinon aucun. Les prix de vente sont TTC : la TVA est comprise dans le total.
+     */
+    private function currentVatRate(): ?float
+    {
+        $rate = (float) settings('default_tax_rate', 0);
+
+        return filter_var(settings('vat_enabled', false), FILTER_VALIDATE_BOOLEAN) && $rate > 0 ? $rate : null;
     }
 
     /**
@@ -236,6 +252,8 @@ class SaleService
      * Marge brute des ventes d'une période (toutes les ventes sans bornes), avec les coûts figés à la vente.
      * Une vente dont le coût d'une ligne n'est pas connu est laissée de côté (excluded) : la compter
      * gonflerait la marge. Les avoirs de la période retirent leur remboursement et le coût des articles rendus.
+     * Les montants encaissés sont pris hors taxes (taux de TVA figé sur chaque vente) : les coûts d'achat
+     * le sont aussi, et la TVA collectée n'est pas une marge.
      *
      * @return array{revenue: float, cost: float, margin: float, rate: ?float, excluded: int}
      *                                                                                        rate : marge en % du net encaissé des ventes comptées
@@ -251,7 +269,7 @@ class SaleService
         $totals = Sale::query()
             ->joinSub($costs, 'costs', 'costs.sale_id', '=', 'sales.id')
             ->when($from && $to, fn ($query) => $query->whereBetween('sales.created_at', [$from, $to]))
-            ->selectRaw('SUM(CASE WHEN costs.unknown_costs = 0 THEN sales.total_net ELSE 0 END) as revenue')
+            ->selectRaw('SUM(CASE WHEN costs.unknown_costs = 0 THEN '.self::EXCLUDING_VAT_SQL.' ELSE 0 END) as revenue')
             ->selectRaw('SUM(CASE WHEN costs.unknown_costs = 0 THEN costs.cost ELSE 0 END) as cost')
             ->selectRaw('SUM(CASE WHEN costs.unknown_costs > 0 THEN 1 ELSE 0 END) as excluded')
             ->toBase()
@@ -265,9 +283,10 @@ class SaleService
             ->groupBy('sale_return_id');
 
         $returns = $this->refundsQuery($from, $to)
+            ->join('sales', 'sales.id', '=', 'sale_returns.sale_id')
             ->joinSub($returnCosts, 'costs', 'costs.sale_return_id', '=', 'sale_returns.id')
             ->where('costs.unknown_costs', 0)
-            ->selectRaw('SUM(sale_returns.total) as refunds')
+            ->selectRaw('SUM('.str_replace('sales.total_net', 'sale_returns.total', self::EXCLUDING_VAT_SQL).') as refunds')
             ->selectRaw('SUM(costs.cost) as cost')
             ->toBase()
             ->first();

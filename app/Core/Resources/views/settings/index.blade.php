@@ -1,13 +1,13 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Settings')
+@section('title', __('Settings'))
 
 @php
     $sections = [
-        'general' => ['label' => 'Company', 'icon' => 'bi-building'],
-        'regional' => ['label' => 'Regional & currency', 'icon' => 'bi-globe2'],
-        'stock' => ['label' => 'Stock & products', 'icon' => 'bi-box-seam'],
-        'interface' => ['label' => 'Interface & system', 'icon' => 'bi-sliders'],
+        'general' => ['label' => __('Company'), 'icon' => 'bi-building'],
+        'regional' => ['label' => __('Regional & currency'), 'icon' => 'bi-globe2'],
+        'stock' => ['label' => __('Stock & products'), 'icon' => 'bi-box-seam'],
+        'interface' => ['label' => __('Interface & system'), 'icon' => 'bi-sliders'],
     ];
 @endphp
 
@@ -44,8 +44,8 @@
         </div>
 
         <div class="ui-form-bar ui-form-actions">
-            <span class="small text-muted ui-form-actions-start">Settings apply to the whole application, for every user.</span>
-            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save settings</button>
+            <span class="small text-muted ui-form-actions-start">{{ __('Settings apply to the whole application, for every user.') }}</span>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> {{ __('Save settings') }}</button>
         </div>
     </form>
 @endsection

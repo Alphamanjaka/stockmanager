@@ -27,10 +27,10 @@
 
     <div class="ui-filters-actions">
         <button type="submit" class="btn btn-outline-secondary">
-            <i class="bi bi-funnel" aria-hidden="true"></i> Filter
+            <i class="bi bi-funnel" aria-hidden="true"></i> {{ __('Filter') }}
         </button>
         @if ($active)
-            <a href="{{ $action }}" class="btn btn-link">Reset</a>
+            <a href="{{ $action }}" class="btn btn-link">{{ __('Reset') }}</a>
         @endif
     </div>
 </form>

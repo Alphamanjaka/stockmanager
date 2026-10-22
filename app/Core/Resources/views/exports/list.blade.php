@@ -8,9 +8,9 @@
 @section('title', $title)
 
 @section('meta')
-    {{ $rows->count() }} row(s)
+    {{ __(':count row(s)', ['count' => $rows->count()]) }}
     @if ($truncated)
-        (first {{ number_format($truncated) }})
+        {{ __('(first :count)', ['count' => number_format($truncated)]) }}
     @endif
 @endsection
 
@@ -45,7 +45,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ count($columns) }}" class="text-muted">No data.</td>
+                    <td colspan="{{ count($columns) }}" class="text-muted">{{ __('No data.') }}</td>
                 </tr>
             @endforelse
         </tbody>
@@ -54,7 +54,7 @@
                 <tr>
                     @foreach ($columns as $index => $column)
                         <td @class(['text-end' => $column->isNumeric()])>
-                            {{ $totals[$index] ?? ($loop->first ? 'Total' : '') }}
+                            {{ $totals[$index] ?? ($loop->first ? __('Total') : '') }}
                         </td>
                     @endforeach
                 </tr>
@@ -64,8 +64,7 @@
 
     @if ($truncated)
         <div class="pdf-note">
-            The PDF is limited to the first {{ number_format($truncated) }} rows. Export to Excel to get the full list,
-            or narrow it down with the filters.
+            {{ __('The PDF is limited to the first :count rows. Export to Excel to get the full list, or narrow it down with the filters.', ['count' => number_format($truncated)]) }}
         </div>
     @endif
 @endsection

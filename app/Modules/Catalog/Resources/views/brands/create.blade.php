@@ -1,17 +1,17 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'New brand')
+@section('title', __('New brand'))
 
 @section('content')
     <form action="{{ route('admin.brands.store') }}" method="POST" class="ui-form-page">
         @csrf
-        <x-ui.card title="Brand details">
+        <x-ui.card :title="__('Brand details')">
             @include('catalog::brands._form')
 
             <x-slot:footer>
                 <div class="ui-form-actions">
-                    <a href="{{ route('admin.brands.index') }}" class="btn btn-outline-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save</button>
+                    <a href="{{ route('admin.brands.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> {{ __('Save') }}</button>
                 </div>
             </x-slot:footer>
         </x-ui.card>

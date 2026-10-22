@@ -29,6 +29,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let submitting = false;
 
     // ---------- Outils ----------
+    // Textes dans la langue de l'application (data.i18n, purchases/_form.blade.php) ; « :count » remplacé
+    const t = (key, count = null) => (data.i18n?.[key] ?? key).replace(":count", count ?? "");
+
     const escapeHtml = (value) =>
         String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
@@ -76,23 +79,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="ui-cell-meta">${escapeHtml(variant.sku)}</div>
                 <input type="hidden" name="products[${i}][product_color_id]" value="${variant.id}">
             </td>
-            <td class="text-end" title="Alert threshold: ${variant.alert}">
+            <td class="text-end" title="${escapeHtml(t("alertThreshold", variant.alert))}">
                 ${low ? `<span class="ui-badge ui-badge-dot ui-tone-danger">${variant.stock}</span>` : variant.stock}
             </td>
             <td>
                 <input type="number" class="form-control form-control-sm text-end line-qty" name="products[${i}][quantity]"
-                    min="1" step="1" value="${Number(quantity) || 1}" aria-label="Quantity">
+                    min="1" step="1" value="${Number(quantity) || 1}" aria-label="${escapeHtml(t("quantity"))}">
             </td>
             <td>
                 <div class="input-group input-group-sm">
                     <input type="number" class="form-control text-end line-cost" name="products[${i}][unit_price]" min="0" step="0.01"
-                        value="${auto ? proposedCost(variant) : unitPrice}" aria-label="Unit cost" ${auto ? 'data-auto="1"' : ""}>
+                        value="${auto ? proposedCost(variant) : unitPrice}" aria-label="${escapeHtml(t("unitCost"))}" ${auto ? 'data-auto="1"' : ""}>
                     <span class="input-group-text">${escapeHtml(data.currency)}</span>
                 </div>
             </td>
             <td class="text-end fw-semibold line-subtotal"></td>
             <td class="text-end">
-                <button type="button" class="btn btn-icon btn-icon-danger line-remove" title="Remove" aria-label="Remove">
+                <button type="button" class="btn btn-icon btn-icon-danger line-remove" title="${escapeHtml(t("remove"))}" aria-label="${escapeHtml(t("remove"))}">
                     <i class="bi bi-trash3" aria-hidden="true"></i>
                 </button>
             </td>`;
@@ -166,10 +169,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         <span class="ui-cell-meta">${escapeHtml(variant.sku)}</span>
                     </span>
                     <span class="text-nowrap small text-muted">
-                        ${rowOf(variant.id) ? '<span class="ui-badge ui-tone-info">In the list</span>' : `Stock ${variant.stock}`}
+                        ${rowOf(variant.id) ? `<span class="ui-badge ui-tone-info">${escapeHtml(t("inList"))}</span>` : escapeHtml(t("stock", variant.stock))}
                     </span>
                 </div>`).join("")
-            : `<div class="list-group-item text-muted">${terms.length ? "No product found" : ""}</div>`;
+            : `<div class="list-group-item text-muted">${terms.length ? escapeHtml(t("noProduct")) : ""}</div>`;
 
         const open = terms.length > 0;
         results.hidden = !open;
@@ -296,30 +299,30 @@ document.addEventListener("DOMContentLoaded", () => {
         }));
         if (pending.length) {
             dirty = true;
-            toast(`${pending.length} line(s) added`);
+            toast(t("linesAdded", pending.length));
         }
     });
 
     // ---------- Contrôles avant envoi ----------
     function problem() {
         if (!supplier.value) {
-            return { message: "Choose the supplier.", focus: () => $(supplier).select2("open") };
+            return { message: t("chooseSupplier"), focus: () => $(supplier).select2("open") };
         }
         if (!lines.children.length) {
-            return { message: "Add at least one product line.", focus: () => search.focus() };
+            return { message: t("addLine"), focus: () => search.focus() };
         }
         for (const row of lines.children) {
             const quantity = row.querySelector(".line-qty");
             const cost = row.querySelector(".line-cost");
             if (!Number.isInteger(Number(quantity.value)) || Number(quantity.value) < 1) {
-                return { message: "Each quantity must be a whole number of at least 1.", focus: () => quantity.select() };
+                return { message: t("wholeQuantity"), focus: () => quantity.select() };
             }
             if (cost.value === "" || Number(cost.value) < 0) {
-                return { message: "Each line needs a unit cost (0 or more).", focus: () => cost.select() };
+                return { message: t("unitCostRequired"), focus: () => cost.select() };
             }
         }
         if (Number(discount.value || 0) > refresh()) {
-            return { message: "The discount cannot exceed the subtotal.", focus: () => discount.select() };
+            return { message: t("discountTooHigh"), focus: () => discount.select() };
         }
         return null;
     }

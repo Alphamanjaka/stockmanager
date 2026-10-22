@@ -3,7 +3,9 @@
     Sans label : bouton icône d'une ligne de tableau ; avec label : bouton texte rouge.
         <x-ui.delete-button :action="route('admin.brands.destroy', $brand)" confirm="Delete this brand?" />
 --}}
-@props(['action', 'confirm', 'label' => null, 'title' => 'Delete', 'disabled' => false])
+@props(['action', 'confirm', 'label' => null, 'title' => null, 'disabled' => false])
+
+@php $title ??= __('Delete'); @endphp
 
 <form action="{{ $action }}" method="POST" class="d-inline-flex m-0">
     @csrf

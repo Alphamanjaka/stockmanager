@@ -12,8 +12,8 @@
 
 @php $query = collect(request()->except(['page', 'ids']))->filter(fn ($value) => is_string($value) && $value !== '')->all(); @endphp
 
-<li><h6 class="dropdown-header">Export</h6></li>
+<li><h6 class="dropdown-header">{{ __('Export') }}</h6></li>
 <x-ui.menu-item :href="route('admin.exports.download', ['list' => $list, 'format' => 'pdf'] + $query)" icon="bi-file-earmark-pdf"
-    data-export-link>PDF document</x-ui.menu-item>
+    data-export-link>{{ __('PDF document') }}</x-ui.menu-item>
 <x-ui.menu-item :href="route('admin.exports.download', ['list' => $list, 'format' => 'xlsx'] + $query)" icon="bi-file-earmark-spreadsheet"
-    data-export-link>Excel spreadsheet</x-ui.menu-item>
+    data-export-link>{{ __('Excel spreadsheet') }}</x-ui.menu-item>

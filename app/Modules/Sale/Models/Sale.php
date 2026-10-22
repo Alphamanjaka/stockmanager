@@ -22,7 +22,34 @@ class Sale extends Model
     /** Préfixe des numéros de facture, à la suite par année : FAC-2026-000123 (DocumentNumberService). */
     public const INVOICE_PREFIX = 'FAC';
 
-    protected $fillable = ['reference', 'total_brut', 'discount', 'total_net', 'user_id', 'customer_id', 'company_name', 'company_email', 'company_phone', 'company_address', 'currency_symbol', 'payment_method', 'amount_received'];
+    protected $fillable = ['reference', 'total_brut', 'discount', 'total_net', 'user_id', 'customer_id', 'company_name', 'company_email', 'company_phone', 'company_address', 'currency_symbol', 'vat_rate', 'payment_method', 'amount_received'];
+
+    /**
+     * La vente porte de la TVA : taux figé à la vente (réglage « Assujetti à la TVA »), prix TTC.
+     * Sans taux (null ou 0), la facture n'en mentionne pas.
+     */
+    public function hasVat(): bool
+    {
+        return (float) $this->vat_rate > 0;
+    }
+
+    /** Taux de TVA affiché : « 20 » plutôt que « 20.00 ». */
+    public function vatRateLabel(): string
+    {
+        return rtrim(rtrim(number_format((float) $this->vat_rate, 2, '.', ''), '0'), '.');
+    }
+
+    /** Montant hors taxes d'un montant TTC de la vente (inchangé sans TVA). */
+    public function excludingVat(float $amount): float
+    {
+        return $this->hasVat() ? round($amount / (1 + (float) $this->vat_rate / 100), 2) : round($amount, 2);
+    }
+
+    /** TVA comprise dans un montant TTC de la vente : TTC − HT, pour que HT + TVA = TTC au centime près. */
+    public function vatIncluded(float $amount): float
+    {
+        return round($amount - $this->excludingVat($amount), 2);
+    }
 
     /** Monnaie rendue au client : somme reçue moins le net à payer (0 si la somme reçue n'est pas connue). */
     public function getChangeDueAttribute(): float
@@ -81,18 +108,22 @@ class Sale extends Model
     }
 
     /** Marge brute : net encaissé (remise et avoirs déduits) moins le coût des articles ; null si un coût manque. */
+    /**
+     * Marge brute : net encaissé (avoirs déduits) hors taxes, moins le coût des articles gardés.
+     * Les coûts d'achat sont hors taxes : la TVA collectée n'est pas une marge.
+     */
     public function grossMargin(): ?float
     {
         $cost = $this->costTotal();
 
-        return $cost === null ? null : round($this->netAfterReturns() - $cost, 2);
+        return $cost === null ? null : round($this->excludingVat($this->netAfterReturns()) - $cost, 2);
     }
 
     /** Taux de marge brute, en % du net encaissé (avoirs déduits). */
     public function marginRate(): ?float
     {
         $margin = $this->grossMargin();
-        $net = $this->netAfterReturns();
+        $net = $this->excludingVat($this->netAfterReturns());
 
         return $margin === null || $net <= 0 ? null : round($margin / $net * 100, 1);
     }

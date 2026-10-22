@@ -21,20 +21,20 @@ class ProductsExport extends ListExport
 
     public function title(): string
     {
-        return 'Products';
+        return __('Products');
     }
 
     public function columns(): array
     {
         return [
-            Column::make('Product', fn (ProductColor $variant) => $variant->label),
-            Column::make('SKU', 'sku')->width('13%'),
-            Column::make('Category', fn (ProductColor $variant) => $variant->category_name)->width('13%'),
-            Column::make('Stock', 'stock')->number()->total()->width('7%'),
-            Column::make('Alert', 'alert_stock')->number()->width('6%'),
-            Column::make('Cost price', 'price_purchase')->money()->width('11%'),
-            Column::make('Price', 'price')->money()->width('11%'),
-            Column::make('Stock value', fn (ProductColor $variant) => $variant->stock * $variant->price)->money()->total()->width('12%'),
+            Column::make(__('Product'), fn (ProductColor $variant) => $variant->label),
+            Column::make(__('SKU'), 'sku')->width('13%'),
+            Column::make(__('Category'), fn (ProductColor $variant) => $variant->category_name)->width('13%'),
+            Column::make(__('Stock'), 'stock')->number()->total()->width('7%'),
+            Column::make(__('Alert'), 'alert_stock')->number()->width('6%'),
+            Column::make(__('Cost price'), 'price_purchase')->money()->width('11%'),
+            Column::make(__('Price'), 'price')->money()->width('11%'),
+            Column::make(__('Stock value'), fn (ProductColor $variant) => $variant->stock * $variant->price)->money()->total()->width('12%'),
         ];
     }
 
@@ -52,7 +52,7 @@ class ProductsExport extends ListExport
     protected function filterLabels(array $filters): array
     {
         return [
-            'Category' => filled($filters['category'] ?? null) ? (string) Category::whereKey((int) $filters['category'])->value('name') : null,
+            __('Category') => filled($filters['category'] ?? null) ? (string) Category::whereKey((int) $filters['category'])->value('name') : null,
         ];
     }
 
@@ -61,8 +61,8 @@ class ProductsExport extends ListExport
         $low = $rows->filter(fn (ProductColor $variant) => $variant->alert_stock > 0 && $variant->stock <= $variant->alert_stock)->count();
 
         return [
-            'Variants' => number_format($rows->count()),
-            'Low stock' => number_format($low).' variant(s)',
+            __('Variants') => number_format($rows->count()),
+            __('Low stock') => __(':count variant(s)', ['count' => number_format($low)]),
         ];
     }
 }

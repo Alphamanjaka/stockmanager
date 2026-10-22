@@ -25,12 +25,12 @@ class StockMovementController extends Controller
         ];
 
         $stockMovements = $this->stockService->getAllStockMovements($filters, 15);
-        $dormantProducts = $this->stockService->getDormantProducts();
+        $dormantStock = $this->stockService->getDormantStock(60, 20);
         $rotationStats = $this->stockService->getRotationStats();
         $stockValueEvolution = $this->stockService->getTotalStockValueEvolution();
         $variantsWithoutCost = $this->stockService->countStockWithoutCost();
 
-        return view('stock::stock_movements.index', compact('stockMovements', 'dormantProducts', 'rotationStats', 'stockValueEvolution', 'variantsWithoutCost'));
+        return view('stock::stock_movements.index', compact('stockMovements', 'dormantStock', 'rotationStats', 'stockValueEvolution', 'variantsWithoutCost'));
     }
 
     /**

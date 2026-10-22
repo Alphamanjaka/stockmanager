@@ -31,6 +31,11 @@ return [
     'subtotal' => 'Subtotal',
     'discount' => 'Discount',
     'total_due' => 'Total due',
+    // TVA (prix TTC, taux figé sur la vente)
+    'unit_price_incl_vat' => 'Unit price incl. VAT',
+    'total_excl_vat' => 'Total excl. VAT',
+    'vat' => 'VAT :rate %',
+    'total_due_incl_vat' => 'Total due incl. VAT',
     'order_total' => 'Order total',
     'paid_by' => 'Paid by',
     'received' => 'Received',
@@ -42,6 +47,7 @@ return [
     'states' => [
         'Draft' => 'Draft',
         'Ordered' => 'Ordered',
+        'PartiallyReceived' => 'Partially received',
         'Received' => 'Received',
     ],
 ];

@@ -76,7 +76,7 @@ class ProductColorController extends Controller
             $this->productColorService->storeProductWithVariants($request->validated());
 
             return redirect()->route('admin.products.index')
-                ->with('success', 'Product and variants created successfully.');
+                ->with('success', __('Product and variants created.'));
         } catch (\Exception $e) {
             return back()->withInput()
                 ->with('error', $e->getMessage());

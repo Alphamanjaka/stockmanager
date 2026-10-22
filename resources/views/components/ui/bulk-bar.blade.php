@@ -19,18 +19,18 @@
 @endphp
 
 <div class="ui-bulk-bar" data-bulk-bar hidden>
-    <span class="ui-bulk-count" aria-live="polite"><strong data-bulk-count>0</strong> selected</span>
+    <span class="ui-bulk-count" aria-live="polite">{!! __(':count selected', ['count' => '<strong data-bulk-count>0</strong>']) !!}</span>
 
     <div class="ui-bulk-actions">
         @if ($archive && !$archived)
-            <x-ui.bulk-action :action="$archive" icon="bi-archive" confirm="Archive :count item(s)?"
-                confirm-text="They will be hidden from lists and forms, with their history kept. You can restore them at any time.">
-                Archive
+            <x-ui.bulk-action :action="$archive" icon="bi-archive" :confirm="__('Archive :count item(s)?')"
+                :confirm-text="__('They will be hidden from lists and forms, with their history kept. You can restore them at any time.')">
+                {{ __('Archive') }}
             </x-ui.bulk-action>
         @endif
         @if ($restore && $archived)
-            <x-ui.bulk-action :action="$restore" icon="bi-arrow-counterclockwise" confirm="Restore :count item(s)?">
-                Restore
+            <x-ui.bulk-action :action="$restore" icon="bi-arrow-counterclockwise" :confirm="__('Restore :count item(s)?')">
+                {{ __('Restore') }}
             </x-ui.bulk-action>
         @endif
 
@@ -49,6 +49,6 @@
     </div>
 
     <button type="button" class="btn btn-sm btn-link ms-auto" data-bulk-clear>
-        Clear selection <kbd>Esc</kbd>
+        {{ __('Clear selection') }} <kbd>{{ __('pos.keys.esc') }}</kbd>
     </button>
 </div>

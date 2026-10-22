@@ -76,6 +76,9 @@ return [
     // Receipt
     'receipt' => 'Receipt',
     'receipt_number' => 'Receipt no.',
+    'total_excl_vat' => 'Total excl. VAT',
+    'vat' => 'VAT :rate %',
+    'total_incl_vat' => 'Total incl. VAT',
     'date' => 'Date',
     'cashier' => 'Cashier',
     'customer' => 'Customer',

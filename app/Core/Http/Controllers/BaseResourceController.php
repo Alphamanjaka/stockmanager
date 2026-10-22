@@ -60,7 +60,7 @@ abstract class BaseResourceController extends Controller
         $this->service->create($request->validated());
 
         return redirect()->route("{$this->routeNamePrefix}.index")
-            ->with('success', ucfirst($this->resourceName).' created successfully.');
+            ->with('success', __('Created successfully.'));
     }
 
     /**
@@ -93,7 +93,7 @@ abstract class BaseResourceController extends Controller
         $this->service->update($id, $request->validated());
 
         return redirect()->route("{$this->routeNamePrefix}.index")
-            ->with('success', ucfirst($this->resourceName).' updated successfully.');
+            ->with('success', __('Changes saved.'));
     }
 
     /**
@@ -105,9 +105,9 @@ abstract class BaseResourceController extends Controller
             $this->service->delete($id);
 
             return redirect()->route("{$this->routeNamePrefix}.index")
-                ->with('success', ucfirst($this->resourceName).' deleted successfully.');
+                ->with('success', __('Deleted successfully.'));
         } catch (\Exception $e) {
-            return back()->with('error', 'Error deleting '.$this->resourceName.': '.$e->getMessage());
+            return back()->with('error', __('Unable to delete: :message', ['message' => $e->getMessage()]));
         }
     }
 }

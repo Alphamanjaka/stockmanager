@@ -40,6 +40,8 @@ class SettingController extends Controller
             'timezone' => 'nullable|timezone',
             'date_format' => 'nullable|in:d/m/Y,Y-m-d,m/d/Y',
             'global_alert_threshold' => 'nullable|integer|min:0',
+            // TVA : appliquée aux nouvelles ventes seulement si l'entreprise est assujettie (prix TTC)
+            'vat_enabled' => 'nullable|boolean',
             'default_tax_rate' => 'nullable|numeric|min:0|max:100',
             // Marge sur le coût : prix de vente proposé = prix d'achat × (1 + marge / 100)
             'default_margin_percent' => 'nullable|numeric|min:0|max:1000',

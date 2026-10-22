@@ -12,17 +12,17 @@ class UsersExport extends ListExport
 
     public function title(): string
     {
-        return 'Users';
+        return __('Users');
     }
 
     public function columns(): array
     {
         return [
-            Column::make('Name', 'name'),
-            Column::make('Email', 'email'),
-            Column::make('Role', fn (User $user) => $user->isBackOffice() ? 'Administrator' : 'Seller')->width('14%'),
-            Column::make('Sales made', 'sales_count')->number()->width('12%'),
-            Column::make('Created on', 'created_at')->date()->width('12%'),
+            Column::make(__('Name'), 'name'),
+            Column::make(__('Email'), 'email'),
+            Column::make(__('Role'), fn (User $user) => $user->isBackOffice() ? __('Administrator') : __('Seller'))->width('14%'),
+            Column::make(__('Sales made'), 'sales_count')->number()->width('12%'),
+            Column::make(__('Created on'), 'created_at')->date()->width('12%'),
         ];
     }
 
@@ -33,6 +33,6 @@ class UsersExport extends ListExport
 
     protected function filterLabels(array $filters): array
     {
-        return ['Role' => ['back_office' => 'Administrators', 'front_office' => 'Sellers'][$filters['role'] ?? ''] ?? null];
+        return [__('Role') => ['back_office' => __('Administrators'), 'front_office' => __('Sellers')][$filters['role'] ?? ''] ?? null];
     }
 }

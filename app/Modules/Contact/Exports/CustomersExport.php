@@ -13,17 +13,17 @@ class CustomersExport extends ListExport
 
     public function title(): string
     {
-        return 'Customers';
+        return __('Customers');
     }
 
     public function columns(): array
     {
         return [
-            Column::make('Name', 'name')->width('20%'),
-            Column::make('Phone', 'phone')->width('13%'),
-            Column::make('Email', 'email')->width('20%'),
-            Column::make('Address', 'address'),
-            Column::make('Customer since', 'created_at')->date()->width('11%'),
+            Column::make(__('Name'), 'name')->width('20%'),
+            Column::make(__('Phone'), 'phone')->width('13%'),
+            Column::make(__('Email'), 'email')->width('20%'),
+            Column::make(__('Address'), 'address'),
+            Column::make(__('Customer since'), 'created_at')->date()->width('11%'),
         ];
     }
 

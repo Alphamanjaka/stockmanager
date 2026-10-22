@@ -3,6 +3,8 @@
 namespace App\Modules\Contact\Services;
 
 use App\Modules\Contact\Models\Supplier;
+use App\Modules\Purchase\Models\Purchase;
+use App\Modules\Purchase\Models\PurchaseItem;
 use Illuminate\Support\Facades\DB;
 
 class SupplierService
@@ -71,27 +73,31 @@ class SupplierService
     }
 
     /**
-     * Récupère les détails et statistiques pour un fournisseur donné.
+     * Récupère les détails et statistiques pour un fournisseur donné : ce qu'il a réellement livré
+     * (achats entièrement ou partiellement reçus, quantités reçues).
      */
     public function getSupplierDetails(Supplier $supplier): array
     {
-        $purchases = $supplier->purchases()->where('state', 'Received');
-        // Statistiques globales pour ce fournisseur
-        $totalSpent = $purchases->sum('total_net');
-        $lastPurchase = $purchases->latest()->first();
+        $lastPurchase = $supplier->purchases()->whereIn('state', Purchase::WITH_RECEPTIONS)->latest()->first();
+
+        $received = fn () => DB::table('purchase_items')
+            ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
+            ->where('purchases.supplier_id', $supplier->id)
+            ->whereIn('purchases.state', Purchase::WITH_RECEPTIONS)
+            ->where('purchase_items.received_quantity', '>', 0);
+
+        // Volume d'affaires : articles reçus, remise de chaque achat déduite
+        $totalSpent = round((float) $received()->sum(DB::raw(PurchaseItem::RECEIVED_NET_SQL)), 2);
 
         // Top 5 des produits achetés chez ce fournisseur
         // purchase_items référence une variante (product_colors), pas directement un produit
-        $topProducts = DB::table('purchase_items')
-            ->join('purchases', 'purchase_items.purchase_id', '=', 'purchases.id')
+        $topProducts = $received()
             ->join('product_colors', 'purchase_items.product_color_id', '=', 'product_colors.id')
             ->join('products', 'product_colors.product_id', '=', 'products.id')
-            ->where('purchases.supplier_id', $supplier->id)
-            ->where('purchases.state', 'Received') // Only consider received purchases for top products
             ->select(
                 'products.name',
-                DB::raw('SUM(purchase_items.quantity) as total_qty'),
-                DB::raw('SUM(purchase_items.subtotal) as total_cost')
+                DB::raw('SUM(purchase_items.received_quantity) as total_qty'),
+                DB::raw('SUM(purchase_items.received_quantity * purchase_items.unit_price) as total_cost')
             )
             ->groupBy('products.id', 'products.name')
             ->orderByDesc('total_qty')

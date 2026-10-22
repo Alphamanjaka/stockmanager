@@ -10,6 +10,10 @@ document.addEventListener("DOMContentLoaded", function () {
         return; // Ne rien faire si le tableau n'est pas sur la page
     }
 
+    // Textes dans la langue de l'application (purchases/index.blade.php)
+    const i18n = JSON.parse(document.getElementById("purchases-i18n")?.textContent ?? "{}");
+    const t = (key) => i18n[key] ?? key;
+
     // Les champs affichés viennent de saisies (fournisseur, référence) : échappés avant insertion dans le HTML
     const escapeHtml = (value) =>
         String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -27,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
             .then(({ ok, data }) => {
                 if (!ok) {
-                    throw new Error(data.message || "An unexpected error occurred.");
+                    throw new Error(data.message || t("unexpectedError"));
                 }
                 return data;
             });
@@ -38,10 +42,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const updatePurchaseState = (url, token, newState, onSuccess) => {
         Swal.fire({
             icon: "question",
-            title: "Mark this purchase as received?",
-            text: "The stock of every line will be increased. This cannot be undone.",
+            title: t("receiveTitle"),
+            text: t("receiveText"),
             showCancelButton: true,
-            confirmButtonText: "Mark as received",
+            confirmButtonText: t("receiveConfirm"),
         }).then(({ isConfirmed }) => {
             if (isConfirmed) {
                 send(url, token, "POST", { state: newState, _method: "PATCH" })
@@ -55,11 +59,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const deletePurchase = (url, token, onSuccess) => {
         Swal.fire({
             icon: "warning",
-            title: "Delete this purchase?",
-            text: "This action cannot be undone.",
+            title: t("deleteTitle"),
+            text: t("deleteText"),
             showCancelButton: true,
             focusCancel: true,
-            confirmButtonText: "Delete",
+            confirmButtonText: t("delete"),
             customClass: { confirmButton: "btn btn-danger", cancelButton: "btn btn-outline-secondary" },
         }).then(({ isConfirmed }) => {
             if (isConfirmed) {
@@ -71,10 +75,10 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // Statut : même pastille que <x-ui.status>
-    const stateTones = { Draft: "neutral", Ordered: "info", Received: "success" };
+    const stateTones = { Draft: "neutral", Ordered: "info", PartiallyReceived: "warning", Received: "success" };
     const stateFormatter = (cell) => {
         const state = cell.getValue();
-        return `<span class="ui-badge ui-badge-dot ui-tone-${stateTones[state] ?? "neutral"}">${escapeHtml(state)}</span>`;
+        return `<span class="ui-badge ui-badge-dot ui-tone-${stateTones[state] ?? "neutral"}">${escapeHtml(i18n.states?.[state] ?? state)}</span>`;
     };
 
     const iconButton = (attributes, icon, title, extraClass = "") =>
@@ -90,18 +94,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (state === "Draft") {
             buttons =
-                iconButton({ href: urls.edit }, "bi-pencil", "Edit") +
-                iconButton({ type: "button", "data-url": urls.destroy, "data-token": urls.csrf }, "bi-trash3", "Delete", "btn-icon-danger quick-delete");
-        } else if (state === "Ordered") {
-            buttons = `
+                iconButton({ href: urls.edit }, "bi-pencil", escapeHtml(t("edit"))) +
+                iconButton({ type: "button", "data-url": urls.destroy, "data-token": urls.csrf }, "bi-trash3", escapeHtml(t("delete")), "btn-icon-danger quick-delete");
+        } else if (state === "Ordered" || state === "PartiallyReceived") {
+            // Livraison partielle (page de réception) ou réception de tout ce qui reste
+            buttons = iconButton({ href: urls.receive }, "bi-truck", escapeHtml(t("recordDelivery"))) + `
                 <button type="button" class="btn btn-sm btn-outline-success quick-update-state" data-url="${urls.update_state}"
                     data-token="${urls.csrf}" data-new-state="Received">
-                    <i class="bi bi-check2-circle" aria-hidden="true"></i> Received
+                    <i class="bi bi-check2-circle" aria-hidden="true"></i> ${escapeHtml(t("received"))}
                 </button>`;
         }
 
         // « Voir » est toujours présent
-        return `<div class="ui-row-actions">${iconButton({ href: urls.show }, "bi-eye", "View")}${buttons}</div>`;
+        return `<div class="ui-row-actions">${iconButton({ href: urls.show }, "bi-eye", escapeHtml(t("view")))}${buttons}</div>`;
     };
 
     const table = new Tabulator(tableElement, {
@@ -114,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
         sortMode: "remote",
         layout: "fitColumns",
         responsiveLayout: "collapse",
-        placeholder: "No purchase found",
+        placeholder: t("noPurchase"),
         // Case de sélection en tête de ligne (la ligne elle-même ne sélectionne pas : ses boutons restent cliquables)
         rowHeader: {
             formatter: "rowSelection",
@@ -126,12 +131,12 @@ document.addEventListener("DOMContentLoaded", function () {
             width: 44,
         },
         columns: [
-            { title: "Reference", field: "reference", headerFilter: "input", formatter: (cell) => `<span class="fw-semibold">${escapeHtml(cell.getValue())}</span>` },
-            { title: "Supplier", field: "supplier", headerFilter: "input", minWidth: 180, formatter: (cell) => escapeHtml(cell.getValue() ?? "—") },
-            { title: "Date", field: "date", width: 150 },
-            { title: "Status", field: "state", formatter: stateFormatter, width: 130 },
-            { title: "Total net", field: "total_net", hozAlign: "right", headerHozAlign: "right", width: 160 },
-            { title: "", field: "urls", formatter: actionsFormatter, hozAlign: "right", headerSort: false, width: 190 },
+            { title: t("reference"), field: "reference", headerFilter: "input", formatter: (cell) => `<span class="fw-semibold">${escapeHtml(cell.getValue())}</span>` },
+            { title: t("supplier"), field: "supplier", headerFilter: "input", minWidth: 180, formatter: (cell) => escapeHtml(cell.getValue() ?? "—") },
+            { title: t("date"), field: "date", width: 150 },
+            { title: t("status"), field: "state", formatter: stateFormatter, width: 130 },
+            { title: t("netTotal"), field: "total_net", hozAlign: "right", headerHozAlign: "right", width: 160 },
+            { title: "", field: "urls", formatter: actionsFormatter, hozAlign: "right", headerSort: false, width: 230 },
         ],
     });
 

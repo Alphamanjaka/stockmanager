@@ -76,6 +76,9 @@ return [
     // Recibo
     'receipt' => 'Recibo',
     'receipt_number' => 'Recibo n.º',
+    'total_excl_vat' => 'Total sin IVA',
+    'vat' => 'IVA :rate %',
+    'total_incl_vat' => 'Total IVA incl.',
     'date' => 'Fecha',
     'cashier' => 'Cajero',
     'customer' => 'Cliente',

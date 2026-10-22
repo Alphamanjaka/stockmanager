@@ -20,21 +20,21 @@ class StockMovementsExport extends ListExport
 
     public function title(): string
     {
-        return 'Stock movements';
+        return __('Stock movements');
     }
 
     public function columns(): array
     {
         return [
-            Column::make('Date', 'created_at')->datetime()->width('11%'),
-            Column::make('Product', fn (StockMovement $movement) => $movement->productColor?->label),
-            Column::make('Type', fn (StockMovement $movement) => $movement->kind()[1])->width('9%'),
-            Column::make('Quantity', fn (StockMovement $movement) => ($movement->type === 'in' ? 1 : -1) * abs($movement->quantity))
+            Column::make(__('Date'), 'created_at')->datetime()->width('11%'),
+            Column::make(__('Product'), fn (StockMovement $movement) => $movement->productColor?->label),
+            Column::make(__('Type'), fn (StockMovement $movement) => $movement->kind()[1])->width('9%'),
+            Column::make(__('Quantity'), fn (StockMovement $movement) => ($movement->type === 'in' ? 1 : -1) * abs($movement->quantity))
                 ->number()->width('8%'),
-            Column::make('Before', 'stock_before')->number()->width('7%'),
-            Column::make('After', 'stock_after')->number()->width('7%'),
-            Column::make('Reason', 'reason')->width('20%'),
-            Column::make('By', fn (StockMovement $movement) => $movement->user?->name)->width('10%'),
+            Column::make(__('Before'), 'stock_before')->number()->width('7%'),
+            Column::make(__('After'), 'stock_after')->number()->width('7%'),
+            Column::make(__('Reason'), 'reason')->width('20%'),
+            Column::make(__('By'), fn (StockMovement $movement) => $movement->user?->name)->width('10%'),
         ];
     }
 
@@ -48,9 +48,9 @@ class StockMovementsExport extends ListExport
         $date = fn (?string $value) => rescue(fn () => $value ? Carbon::parse($value)->format('d/m/Y') : null, null, false);
 
         return [
-            'Type' => ['in' => 'Stock in', 'out' => 'Stock out'][$filters['type'] ?? ''] ?? null,
-            'From' => $date($filters['date_from'] ?? null),
-            'To' => $date($filters['date_to'] ?? null),
+            __('Type') => ['in' => __('Stock in'), 'out' => __('Stock out')][$filters['type'] ?? ''] ?? null,
+            __('From') => $date($filters['date_from'] ?? null),
+            __('To') => $date($filters['date_to'] ?? null),
         ];
     }
 }

@@ -332,23 +332,45 @@ class StockService
     }
 
     /**
-     * Récupère les variantes "dormantes" (stock > 0 mais aucune sortie depuis X jours).
+     * Stock dormant : variantes en stock (produits en service) sans aucun mouvement depuis $days jours,
+     * ni vente, ni réception, ni correction. Une variante reçue récemment n'en fait donc pas partie, même invendue.
+     * Valorisé au coût d'achat (une variante sans coût compte pour 0).
+     *
+     * @return array{count: int, value: float, variants: \Illuminate\Database\Eloquent\Collection<int, ProductColor>}
+     *                                                                                                                variants : les $limit plus grosses valeurs, avec last_movement_at (null : jamais bougé)
      */
-    public function getDormantProducts(int $days = 60)
+    public function getDormantStock(int $days = 60, int $limit = 5): array
     {
-        $cutoffDate = now()->subDays($days);
-
-        return ProductColor::with(['product', 'color', 'brand'])
+        $dormant = fn () => ProductColor::query()
             ->where('stock', '>', 0)
-            ->whereNotExists(function ($query) use ($cutoffDate) {
-                $query->select(DB::raw(1))
-                    ->from('stock_movements')
-                    ->whereColumn('stock_movements.product_color_id', 'product_colors.id')
-                    ->where('type', 'out')
-                    ->where('created_at', '>=', $cutoffDate);
-            })
-            ->limit(20)
+            ->whereHas('product', fn ($query) => $query->active())
+            ->whereNotExists(fn ($query) => $query->select(DB::raw(1))
+                ->from('stock_movements')
+                ->whereColumn('stock_movements.product_color_id', 'product_colors.id')
+                ->where('created_at', '>=', now()->subDays($days)));
+
+        $totals = $dormant()
+            ->selectRaw('COUNT(*) as variants, SUM(stock * COALESCE(price_purchase, 0)) as value')
+            ->toBase()
+            ->first();
+
+        $variants = $dormant()
+            ->select('product_colors.*')
+            ->addSelect(['last_movement_at' => StockMovement::query()
+                ->selectRaw('MAX(created_at)')
+                ->whereColumn('stock_movements.product_color_id', 'product_colors.id')])
+            ->withCasts(['last_movement_at' => 'datetime'])
+            ->with(['product', 'color', 'brand'])
+            ->orderByRaw('stock * COALESCE(price_purchase, 0) DESC')
+            ->orderBy('id')
+            ->limit($limit)
             ->get();
+
+        return [
+            'count' => (int) $totals->variants,
+            'value' => round((float) $totals->value, 2),
+            'variants' => $variants,
+        ];
     }
 
     public function getRotationStats(int $limit = 5)

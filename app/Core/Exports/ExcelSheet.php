@@ -100,7 +100,7 @@ class ExcelSheet implements FromArray, ShouldAutoSize, WithColumnFormatting, Wit
             return $value + 0;
         }
         if (is_bool($value)) {
-            return $value ? 'Yes' : 'No';
+            return $value ? __('Yes') : __('No');
         }
 
         return (string) $value;

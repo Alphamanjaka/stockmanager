@@ -40,6 +40,7 @@ app/Modules/Purchase/
 ├── Database/Migrations/          Migrations du module
 ├── Database/Factories/           Factories (liées au modèle par #[UseFactory])
 ├── Resources/views/              Vues : view('purchase::purchases.index')
+├── Resources/lang/fr.json        Traductions françaises des textes du module (clé = texte anglais)
 └── Routes/
     ├── admin.php                 Back office  : /admin/..., noms admin.*
     ├── saler.php                 Front office : /saler/..., noms saler.*
@@ -80,7 +81,7 @@ pour que l'ordre de chargement des modules n'ait pas d'importance.
 
   | Origine | Effet | Méthode |
   |---|---|---|
-  | Achat passé au statut « Reçu » | entrée, coût moyen pondéré recalculé | `addStock` avec coût unitaire |
+  | Livraison d'un achat (complète ou partielle) | entrée des quantités livrées, coût moyen pondéré recalculé | `addStock` avec coût unitaire |
   | Vente | sortie | `removeStock` |
   | Retour de vente (avoir), annulation | entrée, au coût figé à la vente | `addStock` avec coût unitaire |
   | Inventaire physique validé | écart compté | `adjustTo` |
@@ -90,6 +91,11 @@ pour que l'ordre de chargement des modules n'ait pas d'importance.
   `source_type` / `source_id`, le document à l'origine (`App\Modules\Stock\Support\MovementSource` : achat, vente,
   inventaire, correction). Le type est un libellé court, pas un nom de classe : le module Stock ne dépend pas des
   modules qui l'appellent. La nature affichée d'un mouvement et l'alerte de pertes lisent la source, plus le motif.
+- **Réception partielle** : chaque ligne d'achat garde sa quantité reçue (`received_quantity`). Statuts :
+  Brouillon → Commandé → Partiellement reçu (une partie livrée, le reste attendu) → Reçu (tout livré, ou commande
+  soldée : le reste n'est plus attendu). `PurchaseService::receive()` enregistre une livraison ; le reste à livrer
+  des commandes en cours compte comme « commandé » dans les ruptures. Les statistiques d'achat portent sur ce qui a
+  été livré.
 - **Coût d'une variante** (`price_purchase`) : coût moyen pondéré (CUMP). À chaque réception, `StockService`
   le recalcule sous le même verrou que le stock : `(stock × coût actuel + quantité reçue × coût payé) / nouveau stock`,
   la remise de l'achat étant répartie sur ses lignes. Les ventes, inventaires et corrections ne le changent pas.
@@ -175,6 +181,30 @@ chaque raccourci est unique et que chaque libellé est traduit en en/fr/es (`lan
 - **Montants** : `money($montant)` (devise et position des Paramètres).
 - **Confirmation** : `data-confirm="Question ?"` sur un bouton d'envoi ou un formulaire (`resources/js/ui.js`) ;
   `data-confirm-tone="danger"` pour une suppression.
+
+**Traduire l'interface**
+
+L'interface est en français par défaut (`APP_LOCALE=fr`, ou le réglage « Langue » des Paramètres). Les vues sont
+écrites en anglais et chaque texte affiché passe par `__()` : le texte anglais est la clé, sa traduction est dans un
+fichier JSON.
+
+| Texte | Fichier de traduction |
+|---|---|
+| Affiché par un seul module | `app/Modules/<Module>/Resources/lang/fr.json` (Core : `app/Core/Resources/lang/fr.json`) |
+| Layouts, composants `x-ui`, mots communs à plusieurs modules (Name, Cancel, Stock...) | `lang/fr.json` |
+| Menu, caisse, documents PDF, validation | fichiers PHP existants : `lang/xx/backoffice.php`, `pos.php`, `documents.php`, `validation.php` |
+
+- Vue : `{{ __('New brand') }}`, attribut de composant `:label="__('Name')"`, paramètres
+  `__('Sold :count times', ['count' => $n])`. Un texte qui contient du HTML : `{!! __('...<strong>archived</strong>...') !!}`,
+  une saisie n'y entre qu'en paramètre échappé (`e($customer->name)`).
+- JavaScript : les textes viennent de la vue, `@js(__('...'))` ou un objet `i18n` dans les données JSON de la page
+  (`purchase-form.js`, `purchases-index.js`, caisse : `pos.php`).
+- Statuts enregistrés en anglais (Draft, Ordered, Received) : traduits à l'affichage (`<x-ui.status>`, `__($purchase->state)`).
+- Exports : titres, colonnes et filtres passent aussi par `__()` (`Column::make(__('Price'), 'price')`).
+- `TranslationsTest` échoue si un texte n'a pas de traduction française, si un module affiche un texte traduit par un
+  autre module, ou si une même clé est traduite différemment. Les tests de pages tournent en anglais (`phpunit.xml`).
+- L'espagnol ne traduit que le menu, la caisse et les documents PDF : le reste, messages de validation compris, s'affiche
+  en anglais.
 
 **Archiver plutôt que supprimer**
 

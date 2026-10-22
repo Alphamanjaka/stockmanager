@@ -13,6 +13,7 @@ use Illuminate\Support\ServiceProvider;
  *
  * Chaque module déclare son nom et hérite du chargement par convention :
  * - Resources/views      → vues accessibles via "<nom>::dossier.vue"
+ * - Resources/lang       → traductions du module : fr.json, la clé est le texte anglais (« New brand » → « Nouvelle marque »)
  * - Database/Migrations  → migrations du module
  * - Routes/admin.php     → back office : préfixe /admin, noms "admin.*", auth + ensure.back.office
  * - Routes/saler.php     → front office : préfixe /saler, noms "saler.*", auth + ensure.front.office
@@ -63,6 +64,7 @@ abstract class ModuleServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadViewsFrom($this->path('Resources/views'), $this->name);
+        $this->loadJsonTranslationsFrom($this->path('Resources/lang'));
         $this->loadMigrationsFrom($this->path('Database/Migrations'));
 
         $menu = $this->app->make(BackOfficeMenu::class);

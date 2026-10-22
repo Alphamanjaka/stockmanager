@@ -19,20 +19,20 @@ class PurchasesExport extends ListExport
 
     public function title(): string
     {
-        return 'Purchases';
+        return __('Purchases');
     }
 
     public function columns(): array
     {
         return [
-            Column::make('Reference', 'reference')->width('14%'),
-            Column::make('Date', 'created_at')->datetime()->width('13%'),
-            Column::make('Supplier', fn (Purchase $purchase) => $purchase->supplier->name ?? null),
-            Column::make('Supplier ref.', 'supplier_reference')->width('12%'),
-            Column::make('Status', 'state')->width('9%'),
-            Column::make('Total', 'total_amount')->money()->total()->width('12%'),
-            Column::make('Discount', 'discount')->money()->total()->width('11%'),
-            Column::make('Net total', 'total_net')->money()->total()->width('12%'),
+            Column::make(__('Reference'), 'reference')->width('14%'),
+            Column::make(__('Date'), 'created_at')->datetime()->width('13%'),
+            Column::make(__('Supplier'), fn (Purchase $purchase) => $purchase->supplier->name ?? null),
+            Column::make(__('Supplier ref.'), 'supplier_reference')->width('12%'),
+            Column::make(__('Status'), fn (Purchase $purchase) => $purchase->stateLabel())->width('9%'),
+            Column::make(__('Total'), 'total_amount')->money()->total()->width('12%'),
+            Column::make(__('Discount'), 'discount')->money()->total()->width('11%'),
+            Column::make(__('Net total'), 'total_net')->money()->total()->width('12%'),
         ];
     }
 
@@ -44,9 +44,9 @@ class PurchasesExport extends ListExport
     protected function filterLabels(array $filters): array
     {
         return [
-            'Status' => $filters['state'] ?? null,
-            'Reference' => $filters['reference'] ?? null,
-            'Supplier' => $filters['supplier'] ?? null,
+            __('Status') => Purchase::stateLabels()[$filters['state'] ?? ''] ?? null,
+            __('Reference') => $filters['reference'] ?? null,
+            __('Supplier') => $filters['supplier'] ?? null,
         ];
     }
 }

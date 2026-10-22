@@ -35,7 +35,7 @@ class SupplierDeletionTest extends TestCase
 
         $product = Product::factory()->create(['category_id' => Category::factory()->create()->id]);
         $variant = ProductColor::forceCreate(['product_id' => $product->id, 'color_id' => Color::factory()->create()->id, 'stock' => 5, 'price' => 1000]);
-        PurchaseItem::create(['purchase_id' => $this->purchase->id, 'product_color_id' => $variant->id, 'quantity' => 5, 'unit_price' => 700, 'subtotal' => 3500]);
+        PurchaseItem::create(['purchase_id' => $this->purchase->id, 'product_color_id' => $variant->id, 'quantity' => 5, 'received_quantity' => 5, 'unit_price' => 700, 'subtotal' => 3500]);
     }
 
     /** @test */
@@ -86,7 +86,7 @@ class SupplierDeletionTest extends TestCase
         // Achats importés ou détachés avant l'archivage : sans fournisseur
         $this->purchase->forceFill(['supplier_id' => null])->save();
 
-        $this->get(route('admin.purchases.show', $this->purchase->id))->assertOk()->assertSee('Non renseigné');
+        $this->get(route('admin.purchases.show', $this->purchase->id))->assertOk()->assertSee(__('documents.not_specified'));
         $this->get(route('admin.purchases.pdf', $this->purchase->id))->assertOk();
         $this->getJson(route('admin.purchases.get-purchases-api'))->assertOk()->assertJsonPath('data.0.supplier', null);
     }

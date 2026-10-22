@@ -1,14 +1,14 @@
 @extends('layouts.app-back-office')
 
-@section('title', 'Sale ' . $sale->reference)
-@section('subtitle', $sale->created_at->format('d/m/Y H:i') . ' · ' . ($sale->user->name ?? 'N/A'))
+@section('title', __('Sale :reference', ['reference' => $sale->reference]))
+@section('subtitle', $sale->created_at->format('d/m/Y H:i') . ' · ' . ($sale->user->name ?? __('N/A')))
 
 @php $status = $sale->returnStatus(); @endphp
 
 @section('actions')
     @if ($status !== 'returned')
         <a href="{{ route('admin.sales.returns.create', $sale->id) }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Return items
+            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> {{ __('Return items') }}
         </a>
     @endif
     <a href="{{ route('admin.sales.receipt', ['id' => $sale->id, 'print' => 1]) }}" target="_blank" class="btn btn-outline-secondary">
@@ -29,10 +29,10 @@
             <div class="ui-stack">
                 {{-- Avoirs : la facture reste inchangée, les retours la complètent --}}
                 @if ($status)
-                    <x-ui.card title="Returns" flush>
+                    <x-ui.card :title="__('Returns')" flush>
                         <x-slot:actions>
                             <x-ui.badge :tone="$status === 'returned' ? 'danger' : 'warning'">
-                                {{ $status === 'returned' ? 'Sale cancelled' : 'Partially returned' }}
+                                {{ $status === 'returned' ? __('Sale cancelled') : __('Partially returned') }}
                             </x-ui.badge>
                         </x-slot:actions>
                         <ul class="list-group list-group-flush">
@@ -41,14 +41,14 @@
                                     <span>
                                         <a href="{{ route('admin.sale-returns.show', $saleReturn->id) }}">{{ $saleReturn->reference }}</a>
                                         <span class="ui-cell-meta d-block">
-                                            {{ $saleReturn->created_at->format('d/m/Y H:i') }} · {{ $saleReturn->user->name ?? '—' }} · {{ $saleReturn->items->sum('quantity') }} item(s)
+                                            {{ $saleReturn->created_at->format('d/m/Y H:i') }} · {{ $saleReturn->user->name ?? '—' }} · {{ __(':count item(s)', ['count' => $saleReturn->items->sum('quantity')]) }}
                                         </span>
                                     </span>
                                     <span class="text-danger text-nowrap">-{{ money($saleReturn->total, 2, $sale->currency_symbol) }}</span>
                                 </li>
                             @endforeach
                             <li class="list-group-item d-flex justify-content-between fw-semibold">
-                                <span>Net after returns</span>
+                                <span>{{ __('Net after returns') }}</span>
                                 <span>{{ money($sale->netAfterReturns(), 2, $sale->currency_symbol) }}</span>
                             </li>
                         </ul>
@@ -56,42 +56,45 @@
                 @endif
 
                 {{-- Coûts figés à la vente : back office seulement (la facture est partagée avec les vendeurs) --}}
-                <x-ui.card title="Margin">
+                <x-ui.card :title="__('Margin')">
                     @if ($sale->grossMargin() === null)
-                        <span class="text-muted">The purchase cost of at least one item was not known at the time of the sale.</span>
+                        <span class="text-muted">{{ __('The purchase cost of at least one item was not known at the time of the sale.') }}</span>
                     @else
                         <dl class="ui-dl">
-                            <dt>Cost of items</dt>
+                            <dt>{{ __('Cost of items') }}</dt>
                             <dd>{{ money($sale->costTotal(), 2, $sale->currency_symbol) }}</dd>
-                            <dt>Gross margin</dt>
+                            <dt>{{ __('Gross margin') }}</dt>
                             <dd @class(['fw-semibold', 'text-danger' => $sale->grossMargin() < 0])>{{ money($sale->grossMargin(), 2, $sale->currency_symbol) }}</dd>
-                            <dt>Margin rate</dt>
-                            <dd>{{ $sale->marginRate() ?? 0 }} % of the net total{{ $status ? ', returns deducted' : '' }}</dd>
+                            <dt>{{ __('Margin rate') }}</dt>
+                            <dd>{{ $status ? __(':rate % of the net total, returns deducted', ['rate' => $sale->marginRate() ?? 0]) : __(':rate % of the net total', ['rate' => $sale->marginRate() ?? 0]) }}</dd>
                         </dl>
+                        @if ($sale->hasVat())
+                            <p class="small text-muted mt-2 mb-0">{{ __('Calculated excluding VAT: purchase costs are excluding VAT.') }}</p>
+                        @endif
                     @endif
                 </x-ui.card>
 
-                <x-ui.card title="Seller">
+                <x-ui.card :title="__('Seller')">
                     <dl class="ui-dl">
-                        <dt>Name</dt>
-                        <dd>{{ $sale->user->name ?? 'N/A' }}</dd>
-                        <dt>Email</dt>
+                        <dt>{{ __('Name') }}</dt>
+                        <dd>{{ $sale->user->name ?? __('N/A') }}</dd>
+                        <dt>{{ __('Email') }}</dt>
                         <dd>{{ $sale->user->email ?? '—' }}</dd>
-                        <dt>Phone</dt>
+                        <dt>{{ __('Phone') }}</dt>
                         <dd>{{ $sale->user->phone ?? '—' }}</dd>
                     </dl>
                 </x-ui.card>
 
-                <x-ui.card title="Customer">
+                <x-ui.card :title="__('Customer')">
                     @if ($sale->customer)
                         <dl class="ui-dl">
-                            <dt>Name</dt>
+                            <dt>{{ __('Name') }}</dt>
                             <dd><a href="{{ route('admin.customers.show', $sale->customer->id) }}">{{ $sale->customer->name }}</a></dd>
-                            <dt>Phone</dt>
+                            <dt>{{ __('Phone') }}</dt>
                             <dd>{{ $sale->customer->phone ?: '—' }}</dd>
                         </dl>
                     @else
-                        <span class="text-muted">Walk-in customer</span>
+                        <span class="text-muted">{{ __('Walk-in customer') }}</span>
                     @endif
                 </x-ui.card>
             </div>

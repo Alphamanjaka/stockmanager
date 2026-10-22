@@ -15,10 +15,10 @@
             @if ($slot->isNotEmpty())
                 {{ $slot }}
             @else
-                You are viewing <strong>archived</strong> items. They are hidden everywhere else; restore one to use it again.
+                {!! __('You are viewing <strong>archived</strong> items. They are hidden everywhere else; restore one to use it again.') !!}
             @endif
             @if ($date)
-                <span class="text-muted">(archived on {{ $date->format('d/m/Y') }})</span>
+                <span class="text-muted">({{ __('archived on :date', ['date' => $date->format('d/m/Y')]) }})</span>
             @endif
         </span>
         @if ($restore && $id)
@@ -26,12 +26,12 @@
                 @csrf
                 <input type="hidden" name="ids[]" value="{{ $id }}">
                 <button type="submit" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Restore
+                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> {{ __('Restore') }}
                 </button>
             </form>
         @else
             <a href="{{ request()->fullUrlWithoutQuery(['status', 'page']) }}" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-list-ul" aria-hidden="true"></i> Back to active items
+                <i class="bi bi-list-ul" aria-hidden="true"></i> {{ __('Back to active items') }}
             </a>
         @endif
     </div>
