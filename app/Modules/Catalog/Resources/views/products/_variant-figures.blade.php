@@ -40,6 +40,12 @@
         @if ($add) value="5" @endif>
     <div class="form-text">{{ __('An alert is raised when the stock reaches this level.') }}</div>
 </div>
+<div class="col-md-6 ui-field">
+    <label class="form-label" for="{{ $prefix }}-variant-barcode">{{ __('Barcode') }}</label>
+    <input type="text" name="barcode" id="{{ $prefix }}-variant-barcode" class="form-control" inputmode="numeric"
+        maxlength="{{ \App\Modules\Catalog\Support\Barcode::MAX_LENGTH }}" autocomplete="off">
+    <div class="form-text">{{ __('Scan the manufacturer barcode. Leave empty to use an internal code.') }}</div>
+</div>
 <div class="col-md-6 ui-field mb-0">
     {{-- Affiché seulement : pas de name, la valeur n'est jamais envoyée --}}
     <label class="form-label" for="{{ $prefix }}-variant-stock">{{ __('Stock') }}</label>

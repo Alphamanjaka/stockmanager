@@ -10,7 +10,7 @@
         ['id' => 'suppliers', 'name' => __('Suppliers'), 'icon' => 'bi-truck',
             'desc' => __('Import your suppliers to manage your procurement process.')],
         ['id' => 'products', 'name' => __('Products'), 'icon' => 'bi-box',
-            'desc' => __('One row per variant: name, category, brand, price, price_purchase, alert_stock, sku, and one option_<name> column per option (e.g. option_volume, option_color). Existing variants are updated (same SKU, or same product + options + brand). No stock: it comes from received purchases.')],
+            'desc' => __('One row per variant: name, category, brand, price, price_purchase, alert_stock, sku, barcode, and one option_<name> column per option (e.g. option_volume, option_color). Existing variants are updated (same SKU, same barcode, or same product + options + brand). No stock: it comes from received purchases.')],
         ['id' => 'purchases', 'name' => __('Purchases'), 'icon' => 'bi-cart3',
             'desc' => __('Import your purchase records. The stock increases when an imported purchase is marked as received.')],
         ['id' => 'colors', 'name' => __('Colors'), 'icon' => 'bi-palette',

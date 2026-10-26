@@ -43,7 +43,7 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
 
 ## Caisse
 
-- Recherche d'un article en scannant son code ou en tapant son nom ; vignettes par catégorie et par marque,
+- Recherche d'un article en scannant son code-barres (celui du fabricant ou celui du logiciel) ou en tapant son nom ; vignettes par catégorie et par marque,
   articles les plus vendus en tête.
 - Utilisable entièrement au clavier : quantité avant l'article (`3` `*`), quantité d'une ligne (`+` `−`),
   encaissement (`F9`), annulation (`F4`).
@@ -87,6 +87,11 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
 - Prix de vente proposé à partir du coût et d'un taux de marge par défaut.
 - Catégories, marques et couleurs gérées à part.
 - Archivage : un produit archivé n'est plus en vente mais reste dans l'historique.
+- **Code-barres** de chaque variante : celui du fabricant (EAN-13, EAN-8, UPC-A), scanné ou importé, ou à défaut un
+  code créé par le logiciel. Une faute de frappe ou un code déjà utilisé est refusé.
+- **Étiquettes code-barres** : nom, prix et code-barres, sur planche A4 (24, 21 ou 40 étiquettes) ou sur rouleau
+  pour imprimante thermique (50 × 30 mm). On peut reprendre une planche entamée, et préparer d'un clic les
+  étiquettes d'un produit (une par article en stock) ou d'une livraison (une par article reçu).
 
 ## Stock
 

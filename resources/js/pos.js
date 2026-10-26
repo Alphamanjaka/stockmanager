@@ -134,11 +134,13 @@ function initPos({ config, items, categories, brands, top }) {
                 item.name,
                 item.variant,
                 item.sku,
+                item.barcode,
                 brandById.get(item.brand)?.name,
                 ...item.categories.map((id) => categoryById.get(id)?.name),
             ].join(" "),
         );
         item.skuKey = normalize(item.sku);
+        item.barcodeKey = normalize(item.barcode);
         item.nameKey = normalize(item.name);
     });
 
@@ -212,7 +214,7 @@ function initPos({ config, items, categories, brands, top }) {
         const exactKey = normalize(text.trim());
         const score = (item) =>
             (item.stock > 0 ? 0 : 10) +
-            (first === "" ? 0 : item.skuKey === exactKey ? 0 : item.nameKey.startsWith(first) ? 1 : 2);
+            (first === "" ? 0 : item.skuKey === exactKey || item.barcodeKey === exactKey ? 0 : item.nameKey.startsWith(first) ? 1 : 2);
         state.results = results.sort((a, b) => score(a) - score(b));
         state.highlight = Math.min(state.highlight, Math.max(0, state.results.length - 1));
     }
@@ -423,7 +425,10 @@ function initPos({ config, items, categories, brands, top }) {
         const key = normalize(text.trim());
         if (key === "") return;
 
-        const item = items.find((candidate) => candidate.skuKey && candidate.skuKey === key) ?? state.results[state.highlight];
+        // Scan : code-barres (fabricant ou interne) ou SKU exact
+        const item =
+            items.find((candidate) => (candidate.barcodeKey && candidate.barcodeKey === key) || (candidate.skuKey && candidate.skuKey === key)) ??
+            state.results[state.highlight];
         if (!item) {
             warn(t("not_found", { query: text.trim() }));
             search.select(); // le prochain scan remplace la saisie

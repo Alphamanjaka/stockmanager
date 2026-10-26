@@ -3,6 +3,7 @@
 namespace App\Modules\Catalog\Models;
 
 use App\Modules\Catalog\Database\Factories\ProductColorFactory;
+use App\Modules\Catalog\Support\Barcode;
 use App\Modules\Catalog\Support\VariantOptions;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,7 +30,7 @@ class ProductColor extends Model
 
     protected $fillable = [
         'product_id', 'color_id', 'alert_stock', 'price', 'price_purchase', 'is_active',
-        'option_values', 'signature', 'sku', 'brand_id',
+        'option_values', 'signature', 'sku', 'brand_id', 'barcode',
     ];
 
     protected function casts(): array
@@ -45,6 +46,18 @@ class ProductColor extends Model
         static::updating(function (ProductColor $variant) {
             if ($variant->isDirty('stock')) {
                 throw new \LogicException("Le stock de la variante {$variant->id} ne peut pas être modifié directement : passez par un mouvement de stock.");
+            }
+        });
+
+        // Code-barres : sans code fabricant, la variante reçoit son code interne dès qu'elle a un identifiant
+        static::created(function (ProductColor $variant) {
+            if (blank($variant->barcode)) {
+                $variant->forceFill(['barcode' => self::freeInternalBarcode($variant->id)])->saveQuietly();
+            }
+        });
+        static::updating(function (ProductColor $variant) {
+            if (blank($variant->barcode)) {
+                $variant->barcode = self::freeInternalBarcode($variant->id);
             }
         });
 
@@ -71,6 +84,19 @@ class ProductColor extends Model
                 );
             }
         });
+    }
+
+    /** Code interne de la variante ; préfixe suivant (21, 22…) si un code fabricant saisi le porte déjà. */
+    private static function freeInternalBarcode(int $variantId): string
+    {
+        foreach (range(20, 29) as $prefix) {
+            $code = Barcode::internal($variantId, $prefix);
+            if (! self::where('barcode', $code)->where('id', '!=', $variantId)->exists()) {
+                return $code;
+            }
+        }
+
+        throw new \RuntimeException("Aucun code-barres interne libre pour la variante {$variantId}.");
     }
 
     public function product()
@@ -141,6 +167,7 @@ class ProductColor extends Model
         // Regroupé entre parenthèses : sinon les OR contournent les autres filtres de la requête
         $query->where(function ($query) use ($term) {
             $query->whereRaw('LOWER('.$query->qualifyColumn('sku').') LIKE ?', [$term])
+                ->orWhereRaw('LOWER('.$query->qualifyColumn('barcode').') LIKE ?', [$term])
                 ->orWhereHas('product', function ($q) use ($term) {
                     $q->whereRaw('LOWER(name) LIKE ?', [$term]);
                 })->orWhereHas('color', function ($q) use ($term) {
