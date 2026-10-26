@@ -186,12 +186,10 @@ Classées de la plus simple à la plus complexe. Ces fonctionnalités ne sont pa
 
 Les plus récentes en premier.
 
-### 27-10-2026
+### 26-10-2026
 
 - **Code-barres** sur chaque produit (celui du fabricant ou un code interne), reconnu par la caisse.
 - **Étiquettes code-barres** à imprimer, sur planche A4 ou sur rouleau (menu Produits > Étiquettes code-barres).
-
-### 26-10-2026
 
 - **Analyse ABC** des produits (menu Ventes > Analyse ABC).
 - **Mobile Money détaillé** : opérateur et numéro de transaction sur chaque vente, sur le ticket et la facture,
