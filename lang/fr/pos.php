@@ -52,6 +52,15 @@ return [
         'mobile_money' => 'Mobile Money',
         'card' => 'Carte bancaire',
     ],
+    // Opérateurs Mobile Money
+    'operators' => [
+        'mvola' => 'MVola',
+        'orange_money' => 'Orange Money',
+        'airtel_money' => 'Airtel Money',
+    ],
+    'operator' => 'Opérateur',
+    'transaction_reference' => 'N° de transaction',
+    'transaction_reference_hint' => 'Indiqué dans le SMS de confirmation reçu par le client.',
     'amount_received' => 'Somme reçue',
     'amount_received_hint' => 'Laissez vide si le client donne le montant exact.',
     'exact_amount' => 'Montant exact',
@@ -85,6 +94,7 @@ return [
     'paid_by' => 'Payé par',
     'received' => 'Somme reçue',
     'change' => 'Rendu',
+    'transaction' => 'Transaction',
     'thanks' => 'Merci de votre visite !',
     'print' => 'Imprimer',
     'close' => 'Fermer',

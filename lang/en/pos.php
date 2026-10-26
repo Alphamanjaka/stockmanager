@@ -52,6 +52,15 @@ return [
         'mobile_money' => 'Mobile Money',
         'card' => 'Bank card',
     ],
+    // Mobile Money operators
+    'operators' => [
+        'mvola' => 'MVola',
+        'orange_money' => 'Orange Money',
+        'airtel_money' => 'Airtel Money',
+    ],
+    'operator' => 'Operator',
+    'transaction_reference' => 'Transaction number',
+    'transaction_reference_hint' => 'Shown in the confirmation text message the customer received.',
     'amount_received' => 'Amount received',
     'amount_received_hint' => 'Leave empty if the customer pays the exact amount.',
     'exact_amount' => 'Exact amount',
@@ -83,6 +92,7 @@ return [
     'cashier' => 'Cashier',
     'customer' => 'Customer',
     'paid_by' => 'Paid by',
+    'transaction' => 'Transaction',
     'received' => 'Received',
     'change' => 'Change',
     'thanks' => 'Thank you for your visit!',

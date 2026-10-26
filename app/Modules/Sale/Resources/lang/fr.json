@@ -36,7 +36,7 @@
     "Record the return": "Enregistrer le retour",
     "Record this return?": "Enregistrer ce retour ?",
     "Recorded by": "Enregistré par",
-    "Reference or customer...": "Référence ou client…",
+    "Reference, customer or transaction...": "Référence, client ou transaction…",
     "Refund": "Remboursement",
     "Refund per item": "Remboursement par article",
     "Refunded by": "Remboursé par",
@@ -65,5 +65,9 @@
     "Unit price incl. VAT": "Prix unitaire TTC",
     "VAT": "TVA",
     "VAT :rate %": "TVA :rate %",
-    "Walk-in customer": "Client de passage"
+    "Walk-in customer": "Client de passage",
+    "Mobile Money operator": "Opérateur Mobile Money",
+    "Paid by :method": "Payé par :method",
+    "Transaction :reference": "Transaction :reference",
+    "Transaction number": "N° de transaction"
 }

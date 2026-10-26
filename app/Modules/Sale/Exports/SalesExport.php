@@ -31,7 +31,7 @@ class SalesExport extends ListExport
             Column::make(__('Date'), 'created_at')->datetime()->width('10%'),
             Column::make(__('Customer'), fn (Sale $sale) => $sale->customer->name ?? null),
             Column::make(__('Seller'), fn (Sale $sale) => $sale->user->name ?? null)->width('10%'),
-            Column::make(__('Payment'), fn (Sale $sale) => __("pos.methods.{$sale->payment_method}"))->width('7%'),
+            Column::make(__('Payment'), fn (Sale $sale) => $sale->paymentLabel().($sale->payment_reference ? " ({$sale->payment_reference})" : ''))->width('10%'),
             Column::make(__('Gross total'), 'total_brut')->money()->total()->width('10%'),
             Column::make(__('Discount'), 'discount')->money()->total()->width('8%'),
             Column::make(__('Net total'), 'total_net')->money()->total()->width('10%'),

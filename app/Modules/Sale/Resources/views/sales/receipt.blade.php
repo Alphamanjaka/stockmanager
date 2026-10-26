@@ -179,8 +179,11 @@
 
         <div class="row">
             <span>{{ __('pos.paid_by') }}</span>
-            <span>{{ __('pos.methods.' . $sale->payment_method) }}</span>
+            <span>{{ $sale->paymentLabel() }}</span>
         </div>
+        @if ($sale->payment_reference)
+            <div class="row"><span>{{ __('pos.transaction') }}</span><span>{{ $sale->payment_reference }}</span></div>
+        @endif
         @if ($sale->amount_received !== null && $sale->payment_method === \App\Modules\Sale\Models\Sale::PAYMENT_CASH)
             <div class="row"><span>{{ __('pos.received') }}</span><span>{{ $money($sale->amount_received) }}</span></div>
             <div class="row"><span>{{ __('pos.change') }}</span><span>{{ $money($sale->change_due) }}</span></div>

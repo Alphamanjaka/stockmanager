@@ -58,6 +58,8 @@ trait ChecksOutSales
             'reference' => $sale->reference,
             'total_net' => (float) $sale->total_net,
             'payment_method' => $sale->payment_method,
+            'payment_operator' => $sale->payment_operator,
+            'payment_reference' => $sale->payment_reference,
             'amount_received' => (float) $sale->amount_received,
             'change_due' => $sale->change_due,
             'receipt_url' => route("{$routePrefix}receipt", $sale->id),

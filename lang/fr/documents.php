@@ -37,6 +37,7 @@ return [
     'vat' => 'TVA :rate %',
     'total_due_incl_vat' => 'Net à payer TTC',
     'order_total' => 'Total de la commande',
+    'transaction' => 'Transaction',
     'paid_by' => 'Payé par',
     'received' => 'Reçu',
     'change' => 'Rendu',

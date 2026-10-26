@@ -37,6 +37,7 @@ return [
     'vat' => 'VAT :rate %',
     'total_due_incl_vat' => 'Total due incl. VAT',
     'order_total' => 'Order total',
+    'transaction' => 'Transaction',
     'paid_by' => 'Paid by',
     'received' => 'Received',
     'change' => 'Change',
