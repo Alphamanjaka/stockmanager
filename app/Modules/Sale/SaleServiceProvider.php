@@ -3,6 +3,7 @@
 namespace App\Modules\Sale;
 
 use App\Core\Support\ModuleServiceProvider;
+use App\Modules\Sale\Exports\AbcAnalysisExport;
 use App\Modules\Sale\Exports\SalesExport;
 
 /**
@@ -15,6 +16,7 @@ class SaleServiceProvider extends ModuleServiceProvider
 
     protected array $exports = [
         'sales' => SalesExport::class,
+        'abc-analysis' => AbcAnalysisExport::class,
     ];
 
     protected array $menu = [
@@ -22,6 +24,7 @@ class SaleServiceProvider extends ModuleServiceProvider
             ['label' => 'backoffice.sales', 'icon' => 'bi-cash-coin', 'route' => 'admin.sales.index', 'shortcut' => 's', 'children' => [
                 ['label' => 'backoffice.menu.all_sales', 'route' => 'admin.sales.index'],
                 ['label' => 'backoffice.menu.new_sale', 'route' => 'admin.sales.create'],
+                ['label' => 'backoffice.menu.abc_analysis', 'route' => 'admin.sales.abc'],
             ]],
         ],
     ];

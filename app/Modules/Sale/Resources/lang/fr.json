@@ -69,5 +69,22 @@
     "Mobile Money operator": "Opérateur Mobile Money",
     "Paid by :method": "Payé par :method",
     "Transaction :reference": "Transaction :reference",
-    "Transaction number": "N° de transaction"
+    "Transaction number": "N° de transaction",
+    ":count product(s)": ":count produit(s)",
+    ":revenue of revenue since :date, credit notes deducted": ":revenue de chiffre d'affaires depuis le :date, avoirs déduits",
+    ":share % of revenue · :value in stock at cost": ":share % du chiffre d'affaires · :value en stock au coût",
+    "ABC analysis": "Analyse ABC",
+    "All classes": "Toutes les classes",
+    "Class": "Classe",
+    "Class :class": "Classe :class",
+    "Cumulative share": "Part cumulée",
+    "First 80 % of revenue: never let them run out": "Premiers 80 % du chiffre d'affaires : à ne jamais laisser en rupture",
+    "Last 5 % of revenue and products without sales: stock to reduce": "Derniers 5 % du chiffre d'affaires et produits sans vente : stock à réduire",
+    "Last :days days": ":days derniers jours",
+    "Next 15 % of revenue": "15 % suivants du chiffre d'affaires",
+    "No product to analyse.": "Aucun produit à analyser.",
+    "Period": "Période",
+    "Revenue": "Chiffre d'affaires",
+    "Share": "Part",
+    "Stock value (cost)": "Valeur du stock (coût)"
 }

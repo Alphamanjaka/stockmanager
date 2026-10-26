@@ -8,9 +8,11 @@ use App\Modules\Contact\Models\Customer;
 use App\Modules\Contact\Services\CustomerService;
 use App\Modules\Sale\Http\Controllers\Concerns\ChecksOutSales;
 use App\Modules\Sale\Http\Requests\StoreSaleRequest;
+use App\Modules\Sale\Services\AbcAnalysisService;
 use App\Modules\Sale\Services\SaleService;
 use App\Modules\Sale\Support\PosCatalog;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class SaleAdminController extends Controller
 {
@@ -36,6 +38,23 @@ class SaleAdminController extends Controller
         $margin = $this->saleService->getGrossMargin();
 
         return view('sale::back-office.sales.index', array_merge(compact('sales', 'customer', 'margin'), $stats));
+    }
+
+    /**
+     * Analyse ABC : variantes classées par chiffre d'affaires sur la période (?days=), filtrables par classe (?class=).
+     */
+    public function abc(Request $request, AbcAnalysisService $abc)
+    {
+        $analysis = $abc->analyse($request->integer('days', AbcAnalysisService::DEFAULT_PERIOD));
+        $class = in_array($request->query('class'), AbcAnalysisService::CLASSES, true) ? $request->query('class') : null;
+
+        $lines = $class ? $analysis['lines']->where('class', $class)->values() : $analysis['lines'];
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $lines = (new LengthAwarePaginator($lines->forPage($page, 25)->values(), $lines->count(), 25, $page, [
+            'path' => $request->url(),
+        ]))->withQueryString();
+
+        return view('sale::back-office.sales.abc', compact('analysis', 'class', 'lines'));
     }
 
     /**
