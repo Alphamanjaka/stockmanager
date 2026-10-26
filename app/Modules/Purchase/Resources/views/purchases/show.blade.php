@@ -18,6 +18,14 @@
     <a href="{{ route('admin.purchases.pdf.preview', $purchase->id) }}" class="btn btn-outline-secondary" target="_blank">
         <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> PDF
     </a>
+    {{-- Étiquettes des articles déjà livrés, une par article reçu --}}
+    @php $deliveredItems = $purchase->items->filter(fn ($item) => $item->received_quantity > 0); @endphp
+    @if ($deliveredItems->isNotEmpty())
+        <a href="{{ route('admin.labels.create', ['variants' => $deliveredItems->mapWithKeys(fn ($item) => [$item->product_color_id => $item->received_quantity])->all()]) }}"
+            class="btn btn-outline-secondary">
+            <i class="bi bi-upc-scan" aria-hidden="true"></i> {{ __('Labels') }}
+        </a>
+    @endif
     @if ($draft)
         <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-primary">
             <i class="bi bi-pencil" aria-hidden="true"></i> {{ __('Edit') }}

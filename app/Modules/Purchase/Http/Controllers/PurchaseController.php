@@ -324,6 +324,7 @@ class PurchaseController extends Controller
             'id' => $variant->id,
             'name' => $variant->label,
             'sku' => $variant->sku,
+            'barcode' => $variant->barcode,
             'stock' => (int) $variant->stock,
             'alert' => (int) $variant->alert_stock,
             // Coût proposé par défaut : prix d'achat de la variante (jamais son prix de vente)

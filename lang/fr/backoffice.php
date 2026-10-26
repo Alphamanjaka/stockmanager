@@ -54,6 +54,7 @@ return [
         'new_purchase' => 'Nouvel achat',
         'restock' => 'Réapprovisionner les ruptures',
         'all_sales' => 'Toutes les ventes',
+        'labels' => 'Étiquettes code-barres',
         'abc_analysis' => 'Analyse ABC',
         'new_sale' => 'Nouvelle vente',
     ],

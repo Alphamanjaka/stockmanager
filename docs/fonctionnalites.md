@@ -43,7 +43,7 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
 
 ## Caisse
 
-- Recherche d'un article en scannant son code ou en tapant son nom ; vignettes par catégorie et par marque,
+- Recherche d'un article en scannant son code-barres (celui du fabricant ou celui du logiciel) ou en tapant son nom ; vignettes par catégorie et par marque,
   articles les plus vendus en tête.
 - Utilisable entièrement au clavier : quantité avant l'article (`3` `*`), quantité d'une ligne (`+` `−`),
   encaissement (`F9`), annulation (`F4`).
@@ -87,6 +87,11 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
 - Prix de vente proposé à partir du coût et d'un taux de marge par défaut.
 - Catégories, marques et couleurs gérées à part.
 - Archivage : un produit archivé n'est plus en vente mais reste dans l'historique.
+- **Code-barres** de chaque variante : celui du fabricant (EAN-13, EAN-8, UPC-A), scanné ou importé, ou à défaut un
+  code créé par le logiciel. Une faute de frappe ou un code déjà utilisé est refusé.
+- **Étiquettes code-barres** : nom, prix et code-barres, sur planche A4 (24, 21 ou 40 étiquettes) ou sur rouleau
+  pour imprimante thermique (50 × 30 mm). On peut reprendre une planche entamée, et préparer d'un clic les
+  étiquettes d'un produit (une par article en stock) ou d'une livraison (une par article reçu).
 
 ## Stock
 
@@ -167,14 +172,13 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
 
 Classées de la plus simple à la plus complexe. Ces fonctionnalités ne sont pas encore disponibles.
 
-1. Étiquettes code-barres à imprimer en planche.
-2. Résumé quotidien par e-mail : chiffre d'affaires, marge, ruptures.
-3. Réapprovisionnement selon la vitesse de vente et le délai du fournisseur.
-4. Rôles supplémentaires : magasinier, gérant.
-5. Sessions de caisse : fond de caisse, clôture, écart sur les espèces.
-6. Promotions : prix par quantité, remises par catégorie, périodes.
-7. Vente à crédit : paiements partiels, dettes clients, relances.
-8. Plusieurs boutiques ou dépôts, caisse hors connexion.
+1. Résumé quotidien par e-mail : chiffre d'affaires, marge, ruptures.
+2. Réapprovisionnement selon la vitesse de vente et le délai du fournisseur.
+3. Rôles supplémentaires : magasinier, gérant.
+4. Sessions de caisse : fond de caisse, clôture, écart sur les espèces.
+5. Promotions : prix par quantité, remises par catégorie, périodes.
+6. Vente à crédit : paiements partiels, dettes clients, relances.
+7. Plusieurs boutiques ou dépôts, caisse hors connexion.
 
 ---
 
@@ -183,6 +187,9 @@ Classées de la plus simple à la plus complexe. Ces fonctionnalités ne sont pa
 Les plus récentes en premier.
 
 ### 26-10-2026
+
+- **Code-barres** sur chaque produit (celui du fabricant ou un code interne), reconnu par la caisse.
+- **Étiquettes code-barres** à imprimer, sur planche A4 ou sur rouleau (menu Produits > Étiquettes code-barres).
 
 - **Analyse ABC** des produits (menu Ventes > Analyse ABC).
 - **Mobile Money détaillé** : opérateur et numéro de transaction sur chaque vente, sur le ticket et la facture,

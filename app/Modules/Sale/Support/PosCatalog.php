@@ -38,6 +38,7 @@ class PosCatalog
                 'name' => $variant->product->name ?? '',
                 'variant' => $variant->variant_name,
                 'sku' => $variant->sku,
+                'barcode' => $variant->barcode,
                 'price' => (float) $variant->price,
                 'stock' => (int) $variant->stock,
                 'alert' => (int) $variant->alert_stock,
