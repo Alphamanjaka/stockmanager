@@ -158,7 +158,7 @@ Les quatre phases sont faites. Les phases 1 à 3 ont une PR par point ; la phase
 Classées de la plus utile à la moins utile pour un commerce à Madagascar.
 
 *Mise à jour (26-10-2026)* : elles sont traitées de la plus simple à la plus complexe, dans cet ordre : 3, 6, 5, 7,
-4, 9, 1, 8, 2, 10. Faites : 3, 6.
+4, 9, 1, 8, 2, 10. Faites : 3, 6, 5.
 
 1. **Sessions de caisse.** Fonds de caisse à l'ouverture, clôture en fin de journée (total par mode de paiement),
    écart sur les espèces signalé au back office.
@@ -169,7 +169,9 @@ Classées de la plus utile à la moins utile pour un commerce à Madagascar.
    vente par opérateur, affichés sur le reçu, la facture et l'export, recherche par numéro dans la liste des ventes.
 4. **Réapprovisionnement intelligent.** Vitesse de vente sur 30 ou 90 jours, nombre de jours de stock restants,
    quantité à commander selon le délai du fournisseur, au lieu de la règle actuelle `seuil × 1,5`.
-5. **Étiquettes code-barres.** Imprimer les codes SKU en planche, puisque la caisse sait déjà les scanner.
+5. **Étiquettes code-barres.** Imprimer les codes SKU en planche, puisque la caisse sait déjà les scanner. **Fait**,
+   avec un code-barres court plutôt que le SKU (trop long pour une petite étiquette) : code du fabricant ou EAN-13
+   interne (`product_colors.barcode`), planches A4 et rouleau thermique (`LabelService`, `LabelFormat`).
 6. **Analyse ABC** des produits (les 20 % qui font 80 % du chiffre). Le stock dormant valorisé au coût existe
    depuis la phase 4 (`StockService::getDormantStock`, tableau de bord et page des mouvements). **Fait** : page
    « Analyse ABC » des ventes (`AbcAnalysisService`) sur 30, 90, 180 ou 365 jours. A : premiers 80 % du chiffre
