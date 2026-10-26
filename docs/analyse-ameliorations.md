@@ -158,7 +158,7 @@ Les quatre phases sont faites. Les phases 1 à 3 ont une PR par point ; la phase
 Classées de la plus utile à la moins utile pour un commerce à Madagascar.
 
 *Mise à jour (26-10-2026)* : elles sont traitées de la plus simple à la plus complexe, dans cet ordre : 3, 6, 5, 7,
-4, 9, 1, 8, 2, 10. Faites : 3, 6.
+4, 9, 1, 8, 2, 10. Faites : 3, 6, 7.
 
 1. **Sessions de caisse.** Fonds de caisse à l'ouverture, clôture en fin de journée (total par mode de paiement),
    écart sur les espèces signalé au back office.
@@ -177,6 +177,9 @@ Classées de la plus utile à la moins utile pour un commerce à Madagascar.
    déduits, stock au coût par classe, export PDF et Excel.
 7. **Résumé quotidien** envoyé à 20 h par e-mail ou WhatsApp : chiffre d'affaires, marge, ruptures, écart de caisse.
    Les chiffres existent déjà sur le tableau de bord ; l'écart de caisse attend les sessions de caisse (idée 1).
+   **Fait** par e-mail (`DailySummaryService`, commande `reports:daily-summary` vérifiée chaque heure, envoyée une
+   fois par jour à l'heure réglée), avec une page d'aperçu pour n'importe quel jour et un e-mail d'essai. WhatsApp
+   et l'écart de caisse restent à faire.
 8. **Promotions.** Prix par quantité, remise par catégorie, période promotionnelle.
 9. **Rôles supplémentaires.** Magasinier (réceptions, inventaires, corrections) et gérant (rapports sans
    paramètres ni utilisateurs).

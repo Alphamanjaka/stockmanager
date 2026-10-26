@@ -2,6 +2,7 @@
 
 namespace App\Core;
 
+use App\Core\Console\Commands\SendDailySummary;
 use App\Core\Exports\UsersExport;
 use App\Core\Navigation\BackOfficeMenu;
 use App\Core\Support\ModuleServiceProvider;
@@ -30,11 +31,19 @@ class CoreServiceProvider extends ModuleServiceProvider
         'dashboard' => [
             ['label' => 'backoffice.dashboard', 'icon' => 'bi-speedometer2', 'route' => 'admin.dashboard', 'shortcut' => 'd'],
         ],
+        // Résumé quotidien (ventes du jour, envoyé par e-mail) : rangé avec les ventes, après leurs pages
+        'sale' => [
+            ['label' => 'backoffice.daily_summary', 'icon' => 'bi-envelope-paper', 'route' => 'admin.daily-summary.index', 'order' => 20],
+        ],
         'admin' => [
             ['label' => 'backoffice.users', 'icon' => 'bi-people', 'route' => 'admin.users.index', 'shortcut' => 'u'],
             ['label' => 'backoffice.settings', 'icon' => 'bi-sliders', 'route' => 'admin.settings.index', 'shortcut' => 'g'],
             ['label' => 'backoffice.import', 'icon' => 'bi-box-arrow-in-down', 'route' => 'admin.imports.index', 'shortcut' => 'i'],
         ],
+    ];
+
+    protected array $commands = [
+        SendDailySummary::class,
     ];
 
     protected array $exports = [

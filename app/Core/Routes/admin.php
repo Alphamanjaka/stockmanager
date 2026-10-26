@@ -2,6 +2,7 @@
 
 // Back office (préfixe /admin, noms admin.*, protégé par ModuleServiceProvider)
 
+use App\Core\Http\Controllers\DailySummaryController;
 use App\Core\Http\Controllers\DashboardController;
 use App\Core\Http\Controllers\ExportController;
 use App\Core\Http\Controllers\ImportController;
@@ -12,6 +13,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/dashboard', [DashboardController::class, 'backOffice'])->name('dashboard');
 Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartDataApi'])->name('dashboard.chart-data');
+
+// Résumé quotidien : aperçu d'un jour, réglages de l'envoi par e-mail, e-mail d'essai
+Route::prefix('daily-summary')->name('daily-summary.')->controller(DailySummaryController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('/preview', 'preview')->name('preview');
+    Route::put('/settings', 'updateSettings')->name('settings');
+    Route::post('/test', 'sendTest')->name('test');
+});
 
 // Cloche : ouvrir une notification (marquée comme lue) ou tout marquer comme lu
 Route::get('/notifications/{notification}', [NotificationController::class, 'read'])->whereUuid('notification')->name('notifications.read');

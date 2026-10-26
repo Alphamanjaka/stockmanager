@@ -3,6 +3,7 @@
 return [
     'administration' => 'Administration',
     'dashboard' => 'Dashboard',
+    'daily_summary' => 'Daily summary',
     'management' => 'Management',
     'inventory' => 'Inventory',
     'products' => 'Products',
