@@ -241,6 +241,7 @@ La documentation détaillée est rangée dans [`docs/`](docs/) ; l'historique de
 
 | Document | Contenu |
 |---|---|
+| [fonctionnalites.md](docs/fonctionnalites.md) | Ce que fait le logiciel, pour les utilisateurs et les clients ; nouveautés |
 | [architecture.md](docs/architecture.md) | Modules, règles de dépendance, conventions de l'interface, recettes |
 | [flux-vente.md](docs/flux-vente.md) | Création d'une vente, de la caisse jusqu'à la base de données |
 | [migration-variantes.md](docs/migration-variantes.md) | Variantes flexibles : conception et migration en production |
