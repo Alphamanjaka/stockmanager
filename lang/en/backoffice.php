@@ -55,6 +55,7 @@ return [
         'restock' => 'Restock shortages',
         'all_sales' => 'All sales',
         'labels' => 'Barcode labels',
+        'abc_analysis' => 'ABC analysis',
         'new_sale' => 'New sale',
     ],
     'crumbs' => [
