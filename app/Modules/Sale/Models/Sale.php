@@ -17,12 +17,17 @@ class Sale extends Model
     /** Modes de paiement acceptés en caisse (libellés : lang/xx/pos.php, clé methods). */
     public const PAYMENT_CASH = 'cash';
 
-    public const PAYMENT_METHODS = [self::PAYMENT_CASH, 'mobile_money', 'card'];
+    public const PAYMENT_MOBILE_MONEY = 'mobile_money';
+
+    public const PAYMENT_METHODS = [self::PAYMENT_CASH, self::PAYMENT_MOBILE_MONEY, 'card'];
+
+    /** Opérateurs Mobile Money (libellés : lang/xx/pos.php, clé operators). */
+    public const MOBILE_OPERATORS = ['mvola', 'orange_money', 'airtel_money'];
 
     /** Préfixe des numéros de facture, à la suite par année : FAC-2026-000123 (DocumentNumberService). */
     public const INVOICE_PREFIX = 'FAC';
 
-    protected $fillable = ['reference', 'total_brut', 'discount', 'total_net', 'user_id', 'customer_id', 'company_name', 'company_email', 'company_phone', 'company_address', 'currency_symbol', 'vat_rate', 'payment_method', 'amount_received'];
+    protected $fillable = ['reference', 'total_brut', 'discount', 'total_net', 'user_id', 'customer_id', 'company_name', 'company_email', 'company_phone', 'company_address', 'currency_symbol', 'vat_rate', 'payment_method', 'amount_received', 'payment_operator', 'payment_reference'];
 
     /**
      * La vente porte de la TVA : taux figé à la vente (réglage « Assujetti à la TVA »), prix TTC.
@@ -49,6 +54,14 @@ class Sale extends Model
     public function vatIncluded(float $amount): float
     {
         return round($amount - $this->excludingVat($amount), 2);
+    }
+
+    /** Mode de paiement affiché : « Mobile Money · MVola » quand l'opérateur est connu. */
+    public function paymentLabel(): string
+    {
+        $label = __("pos.methods.{$this->payment_method}");
+
+        return $this->payment_operator ? $label.' · '.__("pos.operators.{$this->payment_operator}") : $label;
     }
 
     /** Monnaie rendue au client : somme reçue moins le net à payer (0 si la somme reçue n'est pas connue). */

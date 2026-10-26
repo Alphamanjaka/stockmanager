@@ -155,14 +155,18 @@ Les quatre phases sont faites. Les phases 1 à 3 ont une PR par point ; la phase
 
 ## 5. Nouvelles idées
 
-Classées de la plus utile à la moins utile pour un commerce à Madagascar. Aucune n'est encore faite.
+Classées de la plus utile à la moins utile pour un commerce à Madagascar.
+
+*Mise à jour (26-10-2026)* : elles sont traitées de la plus simple à la plus complexe, dans cet ordre : 3, 6, 5, 7,
+4, 9, 1, 8, 2, 10. Faite : 3.
 
 1. **Sessions de caisse.** Fonds de caisse à l'ouverture, clôture en fin de journée (total par mode de paiement),
    écart sur les espèces signalé au back office.
 2. **Vente à crédit et dettes clients.** Paiements partiels, solde dû par client, relances. Très courant dans le
    commerce de détail local.
 3. **Mobile Money détaillé.** Choix de l'opérateur (MVola, Orange Money, Airtel Money) et numéro de transaction sur
-   la vente, pour pouvoir rapprocher les paiements.
+   la vente, pour pouvoir rapprocher les paiements. **Fait** : obligatoires en caisse, un numéro ne paie qu'une
+   vente par opérateur, affichés sur le reçu, la facture et l'export, recherche par numéro dans la liste des ventes.
 4. **Réapprovisionnement intelligent.** Vitesse de vente sur 30 ou 90 jours, nombre de jours de stock restants,
    quantité à commander selon le délai du fournisseur, au lieu de la règle actuelle `seuil × 1,5`.
 5. **Étiquettes code-barres.** Imprimer les codes SKU en planche, puisque la caisse sait déjà les scanner.

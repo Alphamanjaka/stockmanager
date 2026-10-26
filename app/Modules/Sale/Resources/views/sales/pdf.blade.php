@@ -75,7 +75,10 @@
     <table class="pdf-summary">
         <tr>
             <td class="pdf-summary-cell" style="width: 55%; padding-right: 6mm;">
-                <div><span class="text-muted">{{ __('documents.paid_by') }}</span> {{ __('pos.methods.' . $sale->payment_method) }}</div>
+                <div><span class="text-muted">{{ __('documents.paid_by') }}</span> {{ $sale->paymentLabel() }}</div>
+                @if ($sale->payment_reference)
+                    <div><span class="text-muted">{{ __('documents.transaction') }}</span> {{ $sale->payment_reference }}</div>
+                @endif
                 @if ($sale->amount_received !== null && $sale->payment_method === \App\Modules\Sale\Models\Sale::PAYMENT_CASH)
                     <div><span class="text-muted">{{ __('documents.received') }}</span> {{ $money($sale->amount_received) }}</div>
                     <div><span class="text-muted">{{ __('documents.change') }}</span> {{ $money($sale->change_due) }}</div>

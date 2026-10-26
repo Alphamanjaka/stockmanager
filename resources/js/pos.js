@@ -466,6 +466,8 @@ function initPos({ config, items, categories, brands, top }) {
 
     const modal = window.bootstrap.Modal.getOrCreateInstance(modalElement);
     const method = () => form.elements.payment_method.value;
+    const isMobile = () => method() === "mobile_money";
+    const referenceInput = $("pos-reference");
     let lastQuickDue = null;
 
     function showStep(step) {
@@ -519,8 +521,13 @@ function initPos({ config, items, categories, brands, top }) {
         receivedInput.placeholder = numberFormat.format(due); // champ vide = montant exact
         renderQuickCash(due);
 
+        // Mobile Money : l'opérateur et le numéro de transaction sont exigés pour valider
+        $("pos-mobile").hidden = !isMobile();
+        form.querySelectorAll("#pos-mobile input").forEach((input) => (input.disabled = !isMobile()));
+        const mobileValid = !isMobile() || (form.elements.payment_operator.value !== "" && referenceInput.value.trim() !== "");
+
         const change = $("pos-change");
-        let valid = !discountInvalid;
+        let valid = !discountInvalid && mobileValid;
         if (method() !== "cash" || received === null) {
             change.className = "pos-change";
             change.textContent = method() === "cash" ? t("paid_exact") : "";
@@ -553,6 +560,8 @@ function initPos({ config, items, categories, brands, top }) {
         discountInput.value = "0";
         receivedInput.value = "";
         form.elements.payment_method[0].checked = true;
+        form.querySelectorAll('[name="payment_operator"]').forEach((input) => (input.checked = false));
+        referenceInput.value = "";
         form.elements.new_customer_name.value = "";
         form.elements.new_customer_phone.value = "";
         window.bootstrap.Collapse.getInstance($("new-customer"))?.hide();
@@ -624,7 +633,8 @@ function initPos({ config, items, categories, brands, top }) {
         resetPayment();
         render();
 
-        $("pos-done-ref").textContent = `${sale.reference} · ${money(sale.total_net)} · ${config.methods[sale.payment_method] ?? ""}`;
+        const operator = sale.payment_operator ? ` · ${config.operators[sale.payment_operator] ?? ""} ${sale.payment_reference ?? ""}` : "";
+        $("pos-done-ref").textContent = `${sale.reference} · ${money(sale.total_net)} · ${config.methods[sale.payment_method] ?? ""}${operator}`;
         $("pos-done-link").href = sale.show_url;
         const change = $("pos-done-change");
         if (sale.payment_method === "cash" && sale.change_due > 0) {
@@ -836,12 +846,17 @@ function initPos({ config, items, categories, brands, top }) {
         submitSale();
     });
     form.addEventListener("input", (event) => {
-        if (event.target === receivedInput || event.target === discountInput) updatePayment();
+        if (event.target === receivedInput || event.target === discountInput || event.target === referenceInput) updatePayment();
     });
     form.addEventListener("change", (event) => {
         if (event.target.name === "payment_method") {
             updatePayment();
             if (method() === "cash") receivedInput.focus();
+            if (isMobile()) (form.elements.payment_operator.value ? referenceInput : form.querySelector('[name="payment_operator"]')).focus();
+        }
+        if (event.target.name === "payment_operator") {
+            updatePayment();
+            referenceInput.focus();
         }
     });
     $("pos-quick-cash").addEventListener("click", (event) => {

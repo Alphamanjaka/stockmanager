@@ -9,7 +9,7 @@ Le même écran sert au front office (`/saler/create`) et au back office (`/admi
 - **Catalogue chargé une fois** (`Support/PosCatalog`) : variantes actives (en rupture comprises, non ajoutables), catégories avec leurs parents, marques, et les 24 meilleures ventes des 90 derniers jours (onglet par défaut). Recherche et filtres se font dans le navigateur, sans attente.
 - **Ajout d'un article** : scan ou saisie du code (SKU) + Entrée, recherche par nom sans accents, ou toucher une vignette. `3*` avant l'article = 3 exemplaires. Le stock est vérifié avant l'ajout.
 - **Clavier** : F2 recherche, +/− quantité de la ligne choisie, ↑/↓ choisir une ligne, Suppr retirer, F4 annuler la vente, F9 encaisser. Une frappe hors d'un champ (scanner) est redirigée vers la recherche.
-- **Encaissement** : mode de paiement (espèces, Mobile Money, carte), remise, somme reçue avec billets proposés ; la monnaie à rendre est affichée en direct et la validation est bloquée si la somme est insuffisante.
+- **Encaissement** : mode de paiement (espèces, Mobile Money, carte), remise, somme reçue avec billets proposés ; la monnaie à rendre est affichée en direct et la validation est bloquée si la somme est insuffisante. En Mobile Money, l'opérateur (MVola, Orange Money, Airtel Money) et le numéro de transaction du SMS de confirmation sont exigés.
 - **Après validation** (AJAX, la caisse reste ouverte) : monnaie à rendre en grand, reçu ticket 80 mm imprimé automatiquement (`/receipt`, réglable par poste), stocks mis à jour, Entrée = client suivant.
 - Le panier en cours et les réglages (bip, impression automatique) sont mémorisés sur le poste : un rechargement de page ne perd pas la vente.
 - Données envoyées : `products[]` (`product_color_id`, `quantity`), `discount`, `payment_method`, `amount_received` (vide = montant exact), client facultatif.
@@ -24,6 +24,10 @@ Le système valide les données entrantes avant d'atteindre le contrôleur :
 - `discount` : Numérique, minimum 0.
 - `payment_method` : facultatif, `cash` (défaut), `mobile_money` ou `card`.
 - `amount_received` : facultatif, numérique, minimum 0 (somme remise par le client).
+- `payment_operator` et `payment_reference` : requis en `mobile_money` (opérateur `mvola`, `orange_money` ou
+  `airtel_money`, numéro de transaction de 50 caractères au plus). Un numéro déjà utilisé chez le même opérateur est
+  refusé ; pour les autres modes, les deux champs sont ignorés. Le numéro s'affiche sur le reçu, la facture et
+  l'export, et la recherche de la liste des ventes le retrouve.
 
 ## 3. Orchestration (`SaleController@store`)
 

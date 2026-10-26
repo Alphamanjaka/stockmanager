@@ -12,6 +12,7 @@
         // Panier en cours et réglages mémorisés par poste et par utilisateur
         'storageKey' => 'pos.' . auth()->id(),
         'methods' => __('pos.methods'),
+        'operators' => __('pos.operators'),
         'i18n' => __('pos.js') + [
             'all' => __('pos.all'),
             'all_brands' => __('pos.all_brands'),
@@ -148,6 +149,26 @@
                                     aria-describedby="pos-received-hint">
                                 <div class="form-text" id="pos-received-hint">{{ __('pos.amount_received_hint') }}</div>
                                 <div class="pos-quick-cash" id="pos-quick-cash"></div>
+                            </div>
+
+                            {{-- Mobile Money : opérateur et numéro de transaction (SMS de confirmation), pour le rapprochement --}}
+                            <div id="pos-mobile" hidden>
+                                <fieldset class="mb-3">
+                                    <legend class="form-label fs-6">{{ __('pos.operator') }}</legend>
+                                    <div class="pos-methods">
+                                        @foreach (\App\Modules\Sale\Models\Sale::MOBILE_OPERATORS as $operator)
+                                            <input type="radio" class="btn-check" name="payment_operator" value="{{ $operator }}"
+                                                id="pos-operator-{{ $operator }}" autocomplete="off">
+                                            <label class="btn btn-outline-primary" for="pos-operator-{{ $operator }}">
+                                                {{ __("pos.operators.{$operator}") }}
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </fieldset>
+                                <label for="pos-reference" class="form-label fs-6">{{ __('pos.transaction_reference') }}</label>
+                                <input type="text" name="payment_reference" id="pos-reference" maxlength="50"
+                                    class="form-control form-control-lg" autocomplete="off" aria-describedby="pos-reference-hint">
+                                <div class="form-text" id="pos-reference-hint">{{ __('pos.transaction_reference_hint') }}</div>
                             </div>
 
                             <div class="pos-change" id="pos-change" aria-live="polite"></div>

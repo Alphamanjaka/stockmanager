@@ -34,6 +34,7 @@ class SaleService
      *                          - ['customer_id' => id] pour un client existant,
      *                          ou ['new_customer_name' => ..., 'new_customer_phone' => ...] pour le créer
      *                          - ['payment_method' => 'cash'|'mobile_money'|'card', 'amount_received' => somme remise]
+     *                          - en Mobile Money : ['payment_operator' => 'mvola'|…, 'payment_reference' => n° de transaction]
      */
     public function createSale(array $productsData, float $discount = 0, ?int $user_id = null, array $details = []): Sale
     {
@@ -51,7 +52,10 @@ class SaleService
                 'reference' => $this->documentNumbers->next(Sale::INVOICE_PREFIX),
                 'discount' => $discount,
                 'user_id' => $userId, // Toujours mieux de savoir qui a vendu
-                'payment_method' => $details['payment_method'] ?? Sale::PAYMENT_CASH,
+                'payment_method' => $method = $details['payment_method'] ?? Sale::PAYMENT_CASH,
+                // Opérateur et transaction n'ont de sens qu'en Mobile Money
+                'payment_operator' => $method === Sale::PAYMENT_MOBILE_MONEY ? ($details['payment_operator'] ?? null) : null,
+                'payment_reference' => $method === Sale::PAYMENT_MOBILE_MONEY ? ($details['payment_reference'] ?? null) : null,
                 'company_name' => settings('company_name', 'StockMaster Pro'),
                 'company_email' => settings('company_email', ''),
                 'company_phone' => settings('company_phone', ''),
@@ -181,6 +185,7 @@ class SaleService
             ->latest()
             ->when($filters['search'] ?? null, function ($query, $search) {
                 $query->where(fn ($q) => $q->whereLike('reference', "%{$search}%")
+                    ->orWhereLike('payment_reference', "%{$search}%")
                     ->orWhereHas('customer', fn ($c) => $c->whereLike('name', "%{$search}%")));
             })
             ->when($filters['customer'] ?? null, function ($query, $customerId) {

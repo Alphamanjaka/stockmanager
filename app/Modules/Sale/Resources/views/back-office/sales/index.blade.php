@@ -37,7 +37,7 @@
                     @if ($customer)
                         <input type="hidden" name="customer" value="{{ $customer->id }}">
                     @endif
-                    <x-ui.search :placeholder="__('Reference or customer...')" />
+                    <x-ui.search :placeholder="__('Reference, customer or transaction...')" />
                     <div class="input-group ui-filter">
                         <span class="input-group-text">{{ __('From') }}</span>
                         <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" aria-label="{{ __('From') }}">

@@ -96,7 +96,7 @@ class PosCheckoutTest extends TestCase
     {
         // Le montant saisi n'a pas de sens hors espèces : il est ignoré
         $this->actingAs($this->seller)
-            ->postJson(route('saler.store'), $this->cart(2) + ['payment_method' => 'mobile_money', 'amount_received' => 10])
+            ->postJson(route('saler.store'), $this->cart(2) + ['payment_method' => 'mobile_money', 'payment_operator' => 'mvola', 'payment_reference' => 'MP261026.1530.A12345', 'amount_received' => 10])
             ->assertCreated()
             ->assertJson(['payment_method' => 'mobile_money', 'amount_received' => 2000, 'change_due' => 0]);
     }

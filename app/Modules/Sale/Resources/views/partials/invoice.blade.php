@@ -35,6 +35,12 @@
                     <div class="text-muted">{{ __('Walk-in customer') }}</div>
                 @endif
                 <div class="text-muted mt-1">{{ $sale->created_at->format('d/m/Y H:i') }}</div>
+                <div class="text-muted">
+                    {{ __('Paid by :method', ['method' => $sale->paymentLabel()]) }}
+                    @if ($sale->payment_reference)
+                        · {{ __('Transaction :reference', ['reference' => $sale->payment_reference]) }}
+                    @endif
+                </div>
             </div>
         </div>
     </div>
