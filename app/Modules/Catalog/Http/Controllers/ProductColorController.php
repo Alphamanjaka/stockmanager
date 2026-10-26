@@ -11,10 +11,12 @@ use App\Modules\Catalog\Services\CategoryService;
 use App\Modules\Catalog\Services\ColorService;
 use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Catalog\Services\ProductService;
+use App\Modules\Catalog\Support\Barcode;
 use App\Modules\Catalog\Support\Pricing;
 use App\Modules\Sale\Services\SaleService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ProductColorController extends Controller
 {
@@ -164,7 +166,7 @@ class ProductColorController extends Controller
      */
     public function updateVariant(Request $request, int $variantId)
     {
-        $validated = $request->validate($this->variantRules());
+        $validated = $request->validate($this->variantRules($variantId));
 
         try {
             $this->productColorService->updateVariant($variantId, $validated);
@@ -203,9 +205,16 @@ class ProductColorController extends Controller
     }
 
     /** Champs communs à l'ajout et à la modification d'une variante. */
-    private function variantRules(): array
+    /** @param  int|null  $variantId  variante modifiée (son propre code-barres n'est pas un doublon) */
+    private function variantRules(?int $variantId = null): array
     {
         return [
+            // Code du fabricant (EAN-13, EAN-8, UPC-A : clé de contrôle vérifiée) ; vide : code interne
+            'barcode' => [
+                'nullable', 'string', 'max:'.Barcode::MAX_LENGTH, 'regex:/^[0-9A-Za-z.\-]+$/',
+                Rule::unique('product_colors', 'barcode')->ignore($variantId),
+                fn ($attribute, $value, $fail) => Barcode::hasValidCheckDigit($value) ?: $fail(__('The barcode check digit is wrong: check the code.')),
+            ],
             'values' => 'nullable|array',
             'values.*' => 'nullable|string|max:100',
             'brand_id' => 'nullable|exists:brands,id',

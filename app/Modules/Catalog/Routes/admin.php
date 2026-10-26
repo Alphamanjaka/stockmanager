@@ -5,8 +5,13 @@
 use App\Modules\Catalog\Http\Controllers\BrandController;
 use App\Modules\Catalog\Http\Controllers\CategoryController;
 use App\Modules\Catalog\Http\Controllers\ColorController;
+use App\Modules\Catalog\Http\Controllers\LabelController;
 use App\Modules\Catalog\Http\Controllers\ProductColorController;
 use Illuminate\Support\Facades\Route;
+
+// Étiquettes code-barres : préparation, puis planche PDF
+Route::get('/labels', [LabelController::class, 'create'])->name('labels.create');
+Route::post('/labels/print', [LabelController::class, 'print'])->name('labels.print');
 
 // Routes AJAX spécifiques pour l'édition rapide
 Route::patch('/products/main/{id}/update-details', [ProductColorController::class, 'updateDetails'])->name('products.updateDetails');

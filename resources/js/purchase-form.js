@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const data = JSON.parse(document.getElementById("purchase-form-data").textContent);
     const catalog = new Map(data.catalog.map((variant) => [variant.id, variant]));
-    const searchIndex = data.catalog.map((variant) => ({ variant, text: `${variant.name} ${variant.sku ?? ""}`.toLowerCase() }));
+    const searchIndex = data.catalog.map((variant) => ({ variant, text: `${variant.name} ${variant.sku ?? ""} ${variant.barcode ?? ""}`.toLowerCase() }));
     const MAX_RESULTS = 20;
 
     const search = document.getElementById("product-search");

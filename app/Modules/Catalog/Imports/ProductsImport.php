@@ -9,6 +9,7 @@ use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Catalog\Services\CategoryService;
 use App\Modules\Catalog\Services\ProductColorService;
 use App\Modules\Catalog\Services\ProductService;
+use App\Modules\Catalog\Support\Barcode;
 use App\Modules\Catalog\Support\VariantOptions;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\OnEachRow;
@@ -65,7 +66,10 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
     {
         $brandId = $this->brandId($row['brand'] ?? null);
         $sku = trim((string) ($row['sku'] ?? ''));
+        $barcode = trim((string) ($row['barcode'] ?? '')) ?: null;
+        // Variante retrouvée par son SKU, sinon par son code-barres
         $variant = $sku !== '' ? ProductColor::where('sku', $sku)->first() : null;
+        $variant ??= $barcode ? ProductColor::where('barcode', $barcode)->first() : null;
 
         if (! $variant) {
             $product = $this->product($row);
@@ -77,7 +81,9 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
                 ->first();
 
             if (! $variant) {
+                $this->ensureBarcodeFree($barcode);
                 $this->productColorService->createVariant($product, [
+                    'barcode' => $barcode,
                     'values' => $combination,
                     'brand_id' => $brandId,
                     'price' => $this->number($row['price']),
@@ -91,13 +97,23 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
         }
 
         // Variante existante : seules les colonnes renseignées sont mises à jour
+        $this->ensureBarcodeFree($barcode, $variant->id);
         $variant->update(array_filter([
+            'barcode' => $barcode,
             'price' => $this->number($row['price'] ?? null),
             'price_purchase' => $this->number($row['price_purchase'] ?? null),
             'alert_stock' => $this->integer($row['alert_stock'] ?? null),
             'brand_id' => $brandId,
         ], fn ($value) => $value !== null));
         $this->updated++;
+    }
+
+    /** Un code-barres n'identifie qu'une variante. */
+    private function ensureBarcodeFree(?string $barcode, ?int $variantId = null): void
+    {
+        if ($barcode && ProductColor::where('barcode', $barcode)->when($variantId, fn ($q) => $q->where('id', '!=', $variantId))->exists()) {
+            throw new \Exception("le code-barres {$barcode} est déjà celui d'une autre variante.");
+        }
     }
 
     /** Produit retrouvé par son nom (sans tenir compte de la casse), sinon créé. */
@@ -198,6 +214,13 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
                 $data[$column] = str_replace([' ', ','], '', (string) $data[$column]);
             }
         }
+        // Excel lit un EAN comme un nombre (4006381333931.0) : il est remis en texte, sans décimale
+        if (isset($data['barcode']) && is_numeric($data['barcode'])) {
+            $data['barcode'] = number_format((float) $data['barcode'], 0, '', '');
+        }
+        if (isset($data['barcode'])) {
+            $data['barcode'] = trim((string) $data['barcode']);
+        }
 
         return $data;
     }
@@ -210,6 +233,10 @@ class ProductsImport implements OnEachRow, WithHeadingRow, WithValidation
             'price_purchase' => 'nullable|numeric|min:0',
             'alert_stock' => 'nullable|integer|min:0',
             'sku' => 'nullable|string|max:64',
+            'barcode' => [
+                'nullable', 'string', 'max:'.Barcode::MAX_LENGTH, 'regex:/^[0-9A-Za-z.\-]+$/',
+                fn ($attribute, $value, $fail) => Barcode::hasValidCheckDigit((string) $value) ?: $fail(__('The barcode check digit is wrong: check the code.')),
+            ],
             'brand' => 'nullable|string|max:255',
             'category' => 'nullable|string',
             'description' => 'nullable|string',

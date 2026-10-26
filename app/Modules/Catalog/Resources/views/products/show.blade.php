@@ -12,6 +12,9 @@
         <x-ui.menu-item href="#" data-bs-toggle="modal" data-bs-target="#optionsModal" icon="bi-sliders">
             {{ __('Options & specifications') }}
         </x-ui.menu-item>
+        <x-ui.menu-item :href="route('admin.labels.create', ['product' => $product->id])" icon="bi-upc-scan">
+            {{ __('Print labels') }}
+        </x-ui.menu-item>
         @unless ($product->isArchived())
             <li><hr class="dropdown-divider"></li>
             <x-ui.menu-item :action="route('admin.products.archive')" :ids="[$product->id]" icon="bi-archive"
@@ -85,6 +88,9 @@
                                         <td>
                                             <div class="ui-cell-title">{{ $variant->variant_name ?: __('Default') }}</div>
                                             <div class="ui-cell-meta">{{ $variant->sku }}</div>
+                                            @if ($variant->barcode)
+                                                <div class="ui-cell-meta"><i class="bi bi-upc" aria-hidden="true"></i> {{ $variant->barcode }}</div>
+                                            @endif
                                         </td>
                                         <td class="text-end">{{ money($variant->price_purchase) }}</td>
                                         <td class="text-end fw-semibold">{{ money($variant->price) }}</td>
@@ -110,7 +116,8 @@
                                                     data-stock="{{ $variant->stock }}"
                                                     data-alert-stock="{{ $variant->alert_stock }}"
                                                     data-price="{{ $variant->price }}"
-                                                    data-price-purchase="{{ $variant->price_purchase }}">
+                                                    data-price-purchase="{{ $variant->price_purchase }}"
+                                                    data-barcode="{{ $variant->barcode }}">
                                                     <i class="bi bi-pencil" aria-hidden="true"></i>
                                                 </button>
                                                 {{-- Secours en cas d'erreur de saisie : correction par un mouvement de stock --}}
@@ -394,6 +401,7 @@
             $('#edit-variant-alert').val(this.dataset.alertStock);
             $('#edit-variant-price').val(this.dataset.price);
             $('#edit-variant-price-purchase').val(this.dataset.pricePurchase);
+            $('#edit-variant-barcode').val(this.dataset.barcode);
             $('#editVariantForm').attr('action', `/admin/products/variants/${this.dataset.id}`);
         });
 

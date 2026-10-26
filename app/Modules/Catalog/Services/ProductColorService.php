@@ -203,6 +203,8 @@ class ProductColorService extends BaseService
                 'price' => $data['price'] ?? Pricing::suggestedPrice($data['price_purchase'] ?? null) ?? $product->price ?? 0,
                 'price_purchase' => $data['price_purchase'] ?? 0,
                 'alert_stock' => $data['alert_stock'] ?? $this->defaultAlertStock(),
+                // Vide : code interne attribué à la création (ProductColor)
+                'barcode' => $data['barcode'] ?? null,
             ]);
         });
     }
@@ -231,6 +233,8 @@ class ProductColorService extends BaseService
                 'price' => $data['price'],
                 'price_purchase' => $data['price_purchase'] ?? 0,
                 'alert_stock' => $data['alert_stock'] ?? $this->defaultAlertStock(),
+                // Vide : retour au code interne
+                'barcode' => $data['barcode'] ?? null,
             ]);
 
             return $variant;

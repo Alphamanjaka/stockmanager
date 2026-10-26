@@ -84,7 +84,7 @@
     "No product requires restocking.": "Aucun produit à réapprovisionner.",
     "No user found.": "Aucun utilisateur trouvé.",
     "Number of sales": "Nombre de ventes",
-    "One row per variant: name, category, brand, price, price_purchase, alert_stock, sku, and one option_<name> column per option (e.g. option_volume, option_color). Existing variants are updated (same SKU, or same product + options + brand). No stock: it comes from received purchases.": "Une ligne par variante : name, category, brand, price, price_purchase, alert_stock, sku, et une colonne option_<nom> par option (ex. option_volume, option_color). Les variantes existantes sont mises à jour (même SKU, ou même produit + options + marque). Pas de stock : il provient des achats reçus.",
+    "One row per variant: name, category, brand, price, price_purchase, alert_stock, sku, barcode, and one option_<name> column per option (e.g. option_volume, option_color). Existing variants are updated (same SKU, same barcode, or same product + options + brand). No stock: it comes from received purchases.": "Une ligne par variante : name, category, brand, price, price_purchase, alert_stock, sku, barcode, et une colonne option_<nom> par option (ex. option_volume, option_color). Les variantes existantes sont mises à jour (même SKU, même code-barres, ou même produit + options + marque). Pas de stock : il provient des achats reçus.",
     "Open the point of sale": "Ouvrir la caisse",
     "Orders to receive": "Commandes à recevoir",
     "Period": "Période",
