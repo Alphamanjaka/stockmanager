@@ -134,6 +134,12 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
   - C : le reste et les produits qui ne se vendent pas, où le stock peut être réduit.
   
   Pour chaque classe : nombre de produits, part du chiffre d'affaires et valeur du stock au coût.
+- **Résumé du jour par e-mail**, chaque soir à l'heure choisie : chiffre d'affaires comparé au même jour de la
+  semaine précédente, nombre de ventes, panier moyen, marge, encaissements par mode de paiement (et par opérateur
+  Mobile Money), meilleures ventes, ventes par vendeur, puis ce qui demande une action : produits à
+  réapprovisionner, commandes à recevoir, pertes non expliquées. Envoyé aux administrateurs ou aux adresses choisies.
+  - Le même résumé se consulte dans le logiciel pour n'importe quel jour passé, sans rien envoyer.
+  - Un bouton envoie un e-mail d'essai pour vérifier la messagerie ; une erreur du serveur d'e-mail s'affiche.
 
 ## Alertes
 
@@ -172,13 +178,12 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
 
 Classées de la plus simple à la plus complexe. Ces fonctionnalités ne sont pas encore disponibles.
 
-1. Résumé quotidien par e-mail : chiffre d'affaires, marge, ruptures.
-2. Réapprovisionnement selon la vitesse de vente et le délai du fournisseur.
-3. Rôles supplémentaires : magasinier, gérant.
-4. Sessions de caisse : fond de caisse, clôture, écart sur les espèces.
-5. Promotions : prix par quantité, remises par catégorie, périodes.
-6. Vente à crédit : paiements partiels, dettes clients, relances.
-7. Plusieurs boutiques ou dépôts, caisse hors connexion.
+1. Réapprovisionnement selon la vitesse de vente et le délai du fournisseur.
+2. Rôles supplémentaires : magasinier, gérant.
+3. Sessions de caisse : fond de caisse, clôture, écart sur les espèces.
+4. Promotions : prix par quantité, remises par catégorie, périodes.
+5. Vente à crédit : paiements partiels, dettes clients, relances.
+6. Plusieurs boutiques ou dépôts, caisse hors connexion.
 
 ---
 
@@ -188,9 +193,9 @@ Les plus récentes en premier.
 
 ### 26-10-2026
 
+- **Résumé du jour par e-mail**, avec un aperçu dans le logiciel et un e-mail d'essai (menu Ventes > Résumé du jour).
 - **Code-barres** sur chaque produit (celui du fabricant ou un code interne), reconnu par la caisse.
 - **Étiquettes code-barres** à imprimer, sur planche A4 ou sur rouleau (menu Produits > Étiquettes code-barres).
-
 - **Analyse ABC** des produits (menu Ventes > Analyse ABC).
 - **Mobile Money détaillé** : opérateur et numéro de transaction sur chaque vente, sur le ticket et la facture,
   et recherche d'une vente par son numéro de transaction.

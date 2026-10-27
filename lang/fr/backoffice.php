@@ -3,6 +3,7 @@
 return [
     'administration' => 'Administration',
     'dashboard' => 'Tableau de bord',
+    'daily_summary' => 'Résumé du jour',
     'management' => 'Gestion',
     'inventory' => 'Inventaire',
     'products' => 'Produits',
