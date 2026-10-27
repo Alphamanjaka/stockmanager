@@ -21,7 +21,8 @@ class ContactModelTest extends TestCase
     {
         $this->assertInstanceOf(Contact::class, new Supplier);
         $this->assertInstanceOf(Contact::class, new Customer);
-        $this->assertSame((new Supplier)->getFillable(), (new Customer)->getFillable());
+        // Coordonnées communes ; le fournisseur a en plus son délai de livraison
+        $this->assertSame([...(new Customer)->getFillable(), 'lead_time_days'], (new Supplier)->getFillable());
         $this->assertSame(['suppliers', 'customers'], [(new Supplier)->getTable(), (new Customer)->getTable()]);
     }
 

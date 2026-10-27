@@ -1,7 +1,7 @@
 @extends('layouts.app-back-office')
 
 @section('title', __('Restock shortages'))
-@section('subtitle', __('Suggested orders for variants at or below their alert threshold once the quantities already ordered are counted, grouped by last supplier.'))
+@section('subtitle', __('Suggested orders for variants that will reach their alert threshold before a new delivery, given their sales speed and the supplier lead time, grouped by last supplier.'))
 
 @section('content')
     @if ($groupedProducts->isEmpty())
@@ -33,7 +33,8 @@
                                         <th>{{ __('Product') }}</th>
                                         <th class="text-end">{{ __('Current stock') }}</th>
                                         <th class="text-end">{{ __('On order') }}</th>
-                                        <th class="text-end">{{ __('Alert threshold') }}</th>
+                                        <th class="text-end">{{ __('Sales / day') }}</th>
+                                        <th class="text-end">{{ __('Days of stock') }}</th>
                                         <th class="text-end">{{ __('Unit cost') }}</th>
                                         <th style="width: 150px">{{ __('Quantity to order') }}</th>
                                     </tr>
@@ -53,7 +54,10 @@
                                                 <div class="ui-cell-title">{{ $product->label }}</div>
                                                 <div class="ui-cell-meta">{{ $product->sku }}</div>
                                             </td>
-                                            <td class="text-end"><x-ui.badge tone="danger" dot>{{ $product->stock }}</x-ui.badge></td>
+                                            <td class="text-end">
+                                                <x-ui.badge :tone="$product->stock <= $product->alert_stock ? 'danger' : 'warning'" dot>{{ $product->stock }}</x-ui.badge>
+                                                <div class="ui-cell-meta">{{ __('Threshold: :count', ['count' => $product->alert_stock]) }}</div>
+                                            </td>
                                             <td class="text-end">
                                                 @if ($product->ordered_quantity > 0)
                                                     {{ $product->ordered_quantity }}
@@ -62,7 +66,25 @@
                                                     <span class="text-muted">—</span>
                                                 @endif
                                             </td>
-                                            <td class="text-end text-muted">{{ $product->alert_stock }}</td>
+                                            <td class="text-end">
+                                                @if ($product->sold_quantity > 0)
+                                                    {{ number_format($product->daily_sales, 1) }}
+                                                    <div class="ui-cell-meta">{{ __(':count sold in :days days', ['count' => $product->sold_quantity, 'days' => $product->sales_period]) }}</div>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                    <div class="ui-cell-meta">{{ __('No sale in :days days', ['days' => $product->sales_period]) }}</div>
+                                                @endif
+                                            </td>
+                                            <td class="text-end">
+                                                @if ($product->days_left !== null)
+                                                    <x-ui.badge :tone="$product->days_left < $product->lead_time_days ? 'danger' : 'warning'">
+                                                        {{ __(':count d', ['count' => $product->days_left]) }}
+                                                    </x-ui.badge>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
+                                                <div class="ui-cell-meta">{{ __('Delivery in :count d', ['count' => $product->lead_time_days]) }}</div>
+                                            </td>
                                             <td class="text-end">
                                                 @if ($product->last_unit_price !== null)
                                                     {{ money($product->last_unit_price) }}

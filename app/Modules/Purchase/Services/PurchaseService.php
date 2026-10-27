@@ -17,6 +17,18 @@ class PurchaseService
     /** Actions du bon de commande et statut obtenu (le brouillon n'en change pas). */
     public const ACTIONS = ['draft' => null, 'ordered' => 'Ordered', 'received' => 'Received'];
 
+    /**
+     * Réapprovisionnement (réglages Paramètres › Stock et produits) : vitesse de vente mesurée sur 30 ou 90 jours,
+     * délai de livraison quand le fournisseur n'en a pas, jours de ventes à couvrir une fois la commande livrée.
+     */
+    public const SALES_PERIODS = [30, 90];
+
+    public const DEFAULT_SALES_PERIOD = 30;
+
+    public const DEFAULT_LEAD_TIME_DAYS = 7;
+
+    public const DEFAULT_COVERAGE_DAYS = 30;
+
     // Injecter StockService pour gérer les mouvements de stock lors des achats
     public function __construct(protected StockService $stockService) {}
 
@@ -437,17 +449,42 @@ class PurchaseService
         });
     }
 
+    /** Réglages du réapprovisionnement : [période des ventes, délai par défaut, jours à couvrir], en jours. */
+    public function restockSettings(): array
+    {
+        $period = (int) settings('restock_sales_period', self::DEFAULT_SALES_PERIOD);
+        $lead = settings('default_lead_time_days');
+        $coverage = settings('restock_coverage_days');
+
+        return [
+            in_array($period, self::SALES_PERIODS, true) ? $period : self::DEFAULT_SALES_PERIOD,
+            is_numeric($lead) && $lead >= 0 ? (int) $lead : self::DEFAULT_LEAD_TIME_DAYS,
+            is_numeric($coverage) && $coverage >= 0 ? (int) $coverage : self::DEFAULT_COVERAGE_DAYS,
+        ];
+    }
+
     /**
-     * Regroupe les produits en rupture de stock par leur dernier fournisseur connu.
-     * Une variante est en rupture quand son stock, plus ce qui est déjà commandé (reste à livrer des achats
-     * commandés ou partiellement reçus), ne dépasse pas son seuil d'alerte : une commande en cours n'est pas reproposée.
+     * Regroupe les produits à réapprovisionner par leur dernier fournisseur connu.
+     *
+     * Vitesse de vente : quantités vendues (retours déduits) sur la période réglée, par jour. Délai : celui du
+     * dernier fournisseur, sinon le délai par défaut. Une variante est à réapprovisionner quand son stock, plus ce
+     * qui est déjà commandé (reste à livrer des commandes en cours), ne couvre plus les ventes attendues pendant le
+     * délai de livraison en gardant le seuil d'alerte en réserve : stock + commandé ≤ seuil + vitesse × délai.
+     * Sans vente, c'est la règle du seuil seul ; sans seuil ni vente, la variante n'est pas surveillée.
+     *
+     * Quantité suggérée : de quoi avoir, à la livraison, le seuil en réserve plus les jours de ventes à couvrir,
+     * et au moins 1,5 × le seuil : max(1,5 × seuil, seuil + vitesse × (délai + couverture)) − stock − commandé.
      *
      * @return Collection
      */
     public function getShortageProductsGroupedBySupplier()
     {
+        [$period, $defaultLead, $coverage] = $this->restockSettings();
+        $sold = $this->stockService->soldQuantitiesQuery(now()->subDays($period));
+
         // oq : quantités commandées et pas encore livrées (reste à livrer des commandes en cours).
         // lp : dernière ligne d'un achat commandé ou reçu chez un fournisseur (un brouillon n'engage personne).
+        // sq : quantités vendues sur la période, retours déduits.
         $sql = "
             SELECT
                 pc.id, pc.stock, pc.alert_stock, pc.price, pc.price_purchase,
@@ -456,6 +493,8 @@ class PurchaseService
                 pc.option_values, pc.sku,
                 b.name as brand_name,
                 COALESCE(oq.ordered_quantity, 0) as ordered_quantity,
+                COALESCE(sq.sold, 0) as sold_quantity,
+                COALESCE(lp.lead_time_days, ?) as lead_time_days,
                 lp.unit_price as last_unit_price,
                 lp.supplier_id as last_supplier_id,
                 lp.supplier_name as last_supplier_name
@@ -470,7 +509,7 @@ class PurchaseService
                 GROUP BY pi.product_color_id
             ) oq ON pc.id = oq.product_color_id
             LEFT JOIN (
-                SELECT pi.product_color_id, pi.unit_price, s.id as supplier_id, s.name as supplier_name
+                SELECT pi.product_color_id, pi.unit_price, s.id as supplier_id, s.name as supplier_name, s.lead_time_days
                 FROM purchase_items pi
                 JOIN purchases pur ON pi.purchase_id = pur.id
                 JOIN suppliers s ON pur.supplier_id = s.id
@@ -485,17 +524,21 @@ class PurchaseService
                     LIMIT 1
                 )
             ) lp ON pc.id = lp.product_color_id
-            WHERE pc.stock + COALESCE(oq.ordered_quantity, 0) <= pc.alert_stock AND pc.alert_stock > 0
-              AND p.archived_at IS NULL
+            LEFT JOIN ({$sold->toSql()}) sq ON pc.id = sq.product_color_id
+            WHERE p.archived_at IS NULL
+              AND (pc.alert_stock > 0 OR COALESCE(sq.sold, 0) > 0)
+              -- stock + commandé ≤ seuil + (vendu / période) × délai, multiplié par la période (calcul en entiers)
+              AND (pc.stock + COALESCE(oq.ordered_quantity, 0)) * ?
+                  <= pc.alert_stock * ? + COALESCE(sq.sold, 0) * COALESCE(lp.lead_time_days, ?)
         ";
 
-        $results = DB::select($sql);
+        $results = DB::select($sql, [$defaultLead, ...$sold->getBindings(), $period, $period, $defaultLead]);
 
         if (empty($results)) {
             return collect();
         }
 
-        $productsWithSupplier = collect($results)->map(function ($item) {
+        $productsWithSupplier = collect($results)->map(function ($item) use ($period, $coverage) {
             // Formatage des noms pour la vue (objet simulé)
             $product = new \stdClass;
             foreach ($item as $key => $value) {
@@ -519,11 +562,19 @@ class PurchaseService
                 $product->cost_source = $cost > 0 ? 'catalog' : 'unknown';
             }
 
-            // Quantité suggérée (indépendante du fournisseur) : remonter à 1,5 × le seuil d'alerte,
-            // moins ce qui est déjà commandé
+            // Vitesse de vente, jours de stock restants, quantité suggérée (voir la docblock)
             $product->ordered_quantity = (int) $product->ordered_quantity;
-            $missing = $product->alert_stock * 1.5 - $product->stock - $product->ordered_quantity;
-            $product->suggested_quantity = max(1, (int) ceil($missing));
+            $product->sold_quantity = max(0, (int) $product->sold_quantity);
+            $product->lead_time_days = (int) $product->lead_time_days;
+            $product->sales_period = $period;
+            $product->daily_sales = $product->sold_quantity / $period;
+            $product->days_left = $product->daily_sales > 0 ? (int) floor(max(0, $product->stock) / $product->daily_sales) : null;
+
+            $target = max(
+                $product->alert_stock * 1.5,
+                $product->alert_stock + $product->daily_sales * ($product->lead_time_days + $coverage),
+            );
+            $product->suggested_quantity = max(1, (int) ceil(round($target - $product->stock - $product->ordered_quantity, 6)));
 
             return $product;
         });

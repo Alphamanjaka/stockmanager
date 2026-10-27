@@ -28,6 +28,7 @@ class StoreSupplierRequest extends FormRequest
             'phone' => 'required|string|max:255',
             'email' => 'nullable|email|unique:suppliers,email',
             'notes' => 'nullable|string|max:2000',
+            'lead_time_days' => 'nullable|integer|min:0|max:365',
         ];
     }
 }
