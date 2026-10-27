@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\Mail;
  *
  * Le même résumé est affiché dans le back office (aperçu, jours passés) et envoyé par e-mail chaque soir
  * (commande reports:daily-summary), aux destinataires des réglages ou, à défaut, aux administrateurs.
+ *
+ * Les journées et l'heure d'envoi suivent le fuseau de la boutique (réglage « Fuseau horaire »), alors que
+ * l'application et la base sont en UTC : à Madagascar (UTC+3), la journée va de 0 h à 24 h heure locale.
  */
 class DailySummaryService
 {
@@ -55,24 +58,24 @@ class DailySummaryService
      */
     public function build(Carbon $date): array
     {
-        $from = $date->copy()->startOfDay();
-        $to = $date->copy()->endOfDay();
+        $day = Carbon::parse($date->toDateString(), $this->timezone());
+        [$from, $to] = $this->bounds($day);
 
         $revenue = $this->saleService->revenueBetween($from, $to);
         $salesCount = Sale::whereBetween('created_at', [$from, $to])->count();
         // Même jour de la semaine précédente : comparaison à jour égal (le samedi avec le samedi)
-        $previousDate = $date->copy()->subWeek();
-        $previous = $this->saleService->revenueBetween($previousDate->copy()->startOfDay(), $previousDate->copy()->endOfDay());
+        $previousDate = $day->copy()->subWeek();
+        $previous = $this->saleService->revenueBetween(...$this->bounds($previousDate));
         $margin = $this->saleService->getGrossMargin($from, $to);
 
         return [
-            'date' => $date->copy()->startOfDay(),
+            'date' => $day,
             'revenue' => $revenue,
             'refunds' => round((float) $this->saleService->refundsQuery($from, $to)->sum('total'), 2),
             'sales_count' => $salesCount,
             'average' => $salesCount > 0 ? round((float) Sale::whereBetween('created_at', [$from, $to])->avg('total_net'), 2) : 0.0,
             'previous' => [
-                'date' => $previousDate->startOfDay(),
+                'date' => $previousDate,
                 'revenue' => $previous,
                 'change' => $previous > 0 ? round(($revenue - $previous) / $previous * 100, 1) : null,
             ],
@@ -84,6 +87,19 @@ class DailySummaryService
             'awaiting' => array_intersect_key($this->purchaseService->getAwaitingDelivery(), ['count' => 0, 'value' => 0]),
             'losses' => $this->losses($from, $to),
         ];
+    }
+
+    /**
+     * Début et fin d'une journée locale, dans le fuseau de l'application : les dates passées aux requêtes
+     * sont écrites telles quelles, sans conversion.
+     *
+     * @return array{Carbon, Carbon}
+     */
+    private function bounds(Carbon $day): array
+    {
+        $timezone = config('app.timezone');
+
+        return [$day->copy()->startOfDay()->setTimezone($timezone), $day->copy()->endOfDay()->setTimezone($timezone)];
     }
 
     /** Encaissements par mode de paiement, et par opérateur en Mobile Money. */
@@ -172,12 +188,26 @@ class DailySummaryService
 
     // --- Envoi --------------------------------------------------------------------------------
 
+    /** Fuseau de la boutique (réglage « Fuseau horaire »), celui de l'application à défaut. */
+    public function timezone(): string
+    {
+        $timezone = (string) $this->settings->get('timezone');
+
+        return in_array($timezone, timezone_identifiers_list(), true) ? $timezone : config('app.timezone');
+    }
+
+    /** Date et heure de la boutique : l'heure d'envoi et « aujourd'hui » en dépendent. */
+    public function now(): Carbon
+    {
+        return now($this->timezone());
+    }
+
     public function isEnabled(): bool
     {
         return filter_var($this->settings->get(self::ENABLED, false), FILTER_VALIDATE_BOOLEAN);
     }
 
-    /** Heure d'envoi (0 à 23), 20 h par défaut. */
+    /** Heure d'envoi (0 à 23, heure de la boutique), 20 h par défaut. */
     public function hour(): int
     {
         $hour = $this->settings->get(self::HOUR);
@@ -223,7 +253,7 @@ class DailySummaryService
     {
         $value = $this->settings->get(self::LAST_SENT);
 
-        return $value ? rescue(fn () => Carbon::parse($value), null, false) : null;
+        return $value ? rescue(fn () => Carbon::parse($value, $this->timezone()), null, false) : null;
     }
 
     public function markSent(Carbon $at): void

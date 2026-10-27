@@ -37,6 +37,8 @@ class DailySummaryTest extends TestCase
         parent::setUp();
         // Mardi 27 octobre 2026, 20 h
         $this->travelTo(Carbon::parse('2026-10-27 20:00'));
+        // Fuseau de la boutique : celui de l'application (UTC), pour lire les heures telles quelles
+        $this->settings(['timezone' => 'UTC']);
         $this->admin = User::factory()->backOffice()->create(['email' => 'gerant@boutique.mg']);
         $this->seller = User::factory()->frontOffice()->create(['name' => 'Hery']);
 
@@ -147,7 +149,7 @@ class DailySummaryTest extends TestCase
     /** @test */
     public function a_mail_server_error_is_shown_to_the_user()
     {
-        $this->mock(DailySummaryService::class)->shouldReceive('send')->andThrow(new \RuntimeException('Connection refused'));
+        Mail::shouldReceive('to')->andThrow(new \RuntimeException('Connection refused'));
 
         $this->actingAs($this->admin)->post(route('admin.daily-summary.test'))
             ->assertSessionHas('error', fn (string $message) => str_contains($message, 'Connection refused'));
@@ -180,6 +182,32 @@ class DailySummaryTest extends TestCase
         $this->travelTo(Carbon::parse('2026-10-28 20:00'));
         $this->artisan('reports:daily-summary --scheduled')->assertSuccessful();
         Mail::assertSent(DailySummaryMail::class, 2);
+    }
+
+    /** @test */
+    public function days_and_sending_time_follow_the_time_zone_of_the_shop()
+    {
+        Mail::fake();
+        $this->settings(['timezone' => 'Indian/Antananarivo', DailySummaryService::ENABLED => '1', DailySummaryService::HOUR => '20']);
+
+        // L'application est en UTC : 22 h UTC le 26, c'est 1 h du matin le 27 à Madagascar
+        $this->travelTo(Carbon::parse('2026-10-26 22:00'));
+        $this->sell($this->wax, 1);
+        $this->travelTo(Carbon::parse('2026-10-27 12:00'));
+        $this->sell($this->savon, 1);
+
+        $summary = app(DailySummaryService::class);
+        $this->assertEquals(12000, $summary->build(Carbon::parse('2026-10-27'))['revenue']);
+        $this->assertEquals(0, $summary->build(Carbon::parse('2026-10-26'))['revenue']);
+
+        // 20 h UTC, c'est 23 h à Madagascar : trop tard. 17 h UTC, c'est 20 h : envoyé
+        $this->travelTo(Carbon::parse('2026-10-26 20:00'));
+        $this->artisan('reports:daily-summary --scheduled')->assertSuccessful();
+        Mail::assertNothingSent();
+
+        $this->travelTo(Carbon::parse('2026-10-27 17:00'));
+        $this->artisan('reports:daily-summary --scheduled')->assertSuccessful();
+        Mail::assertSent(DailySummaryMail::class, fn ($mail) => $mail->summary['date']->toDateString() === '2026-10-27');
     }
 
     /** @test */

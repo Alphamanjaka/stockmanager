@@ -26,6 +26,8 @@ class DailySummaryController extends Controller
 
         return view('core::daily-summary.index', [
             'date' => $date,
+            'today' => $this->summary->now()->toDateString(),
+            'timezone' => $this->summary->timezone(),
             'enabled' => $this->summary->isEnabled(),
             'hour' => $this->summary->hour(),
             'recipientsSetting' => (string) $this->settings->get(DailySummaryService::RECIPIENTS, ''),
@@ -87,11 +89,12 @@ class DailySummaryController extends Controller
         return back()->with('success', __('Test e-mail sent to :email.', ['email' => $email]));
     }
 
-    /** Jour demandé (?date=AAAA-MM-JJ), aujourd'hui par défaut ; jamais dans le futur. */
+    /** Jour demandé (?date=AAAA-MM-JJ), aujourd'hui par défaut (heure de la boutique) ; jamais dans le futur. */
     private function date(Request $request): Carbon
     {
-        $date = rescue(fn () => $request->filled('date') ? Carbon::createFromFormat('Y-m-d', $request->input('date')) : null, null, false);
+        $now = $this->summary->now();
+        $date = rescue(fn () => $request->filled('date') ? Carbon::createFromFormat('Y-m-d', $request->input('date'), $now->timezone) : null, null, false);
 
-        return $date && $date->lte(now()) ? $date : now();
+        return $date && $date->lte($now) ? $date : $now;
     }
 }

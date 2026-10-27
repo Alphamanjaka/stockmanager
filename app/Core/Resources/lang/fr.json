@@ -177,7 +177,7 @@
     "Automatic sending": "Envoi automatique",
     "Send the summary every day": "Envoyer le résumé chaque jour",
     "Sending time": "Heure d'envoi",
-    "Summary of the current day, sent once.": "Résumé de la journée en cours, envoyé une seule fois.",
+    "Summary of the current day, sent once. Time zone: :timezone (Settings › Regional & currency).": "Résumé de la journée en cours, envoyé une seule fois. Fuseau horaire : :timezone (Paramètres › Région et devise).",
     "Recipients": "Destinataires",
     "Separate the addresses with a comma. Empty: all administrators.": "Séparez les adresses par une virgule. Vide : tous les administrateurs.",
     "Sent to": "Envoyé à",

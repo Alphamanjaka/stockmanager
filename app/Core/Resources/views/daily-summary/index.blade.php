@@ -9,7 +9,7 @@
 
 @php
     $day = $date->toDateString();
-    $isToday = $date->isToday();
+    $isToday = $day === $today;
 @endphp
 
 @section('content')
@@ -25,7 +25,7 @@
                             class="btn btn-outline-secondary" title="{{ __('Previous day') }}" aria-label="{{ __('Previous day') }}">
                             <i class="bi bi-chevron-left" aria-hidden="true"></i>
                         </a>
-                        <input type="date" name="date" value="{{ $day }}" max="{{ today()->toDateString() }}" class="form-control w-auto"
+                        <input type="date" name="date" value="{{ $day }}" max="{{ $today }}" class="form-control w-auto"
                             aria-label="{{ __('Day') }}" onchange="this.form.submit()">
                         @unless ($isToday)
                             <a href="{{ route('admin.daily-summary.index', ['date' => $date->copy()->addDay()->toDateString()]) }}"
@@ -67,7 +67,7 @@
                                     <option value="{{ $value }}" @selected((int) old('hour', $hour) === $value)>{{ sprintf('%02d:00', $value) }}</option>
                                 @endforeach
                             </select>
-                            <div class="form-text">{{ __('Summary of the current day, sent once.') }}</div>
+                            <div class="form-text">{{ __('Summary of the current day, sent once. Time zone: :timezone (Settings › Regional & currency).', ['timezone' => $timezone]) }}</div>
                         </div>
 
                         <div class="ui-field">

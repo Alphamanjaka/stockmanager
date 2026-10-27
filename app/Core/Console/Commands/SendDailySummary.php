@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\App;
  * Envoi du résumé quotidien par e-mail.
  *
  * Planifiée toutes les heures (routes/console.php) avec --scheduled : n'envoie que si le résumé est activé,
- * à l'heure choisie dans les réglages, et une seule fois par jour. Sans --scheduled, envoie tout de suite.
+ * à l'heure choisie dans les réglages (heure de la boutique), et une seule fois par jour. Sans --scheduled,
+ * envoie tout de suite.
  */
 class SendDailySummary extends Command
 {
@@ -29,14 +30,14 @@ class SendDailySummary extends Command
             App::setLocale($locale);
         }
 
-        $now = now();
+        $now = $summary->now();
         if ($this->option('scheduled')) {
             if (! $summary->isEnabled() || $now->hour !== $summary->hour() || $summary->lastSentAt()?->isSameDay($now)) {
                 return self::SUCCESS;
             }
         }
 
-        $date = $this->option('date') ? Carbon::parse($this->option('date')) : $now;
+        $date = $this->option('date') ? Carbon::parse($this->option('date'), $summary->timezone()) : $now;
         $recipients = $summary->send($date);
 
         if ($recipients === []) {
