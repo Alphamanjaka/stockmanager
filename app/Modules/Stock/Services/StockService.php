@@ -2,6 +2,7 @@
 
 namespace App\Modules\Stock\Services;
 
+use App\Core\Support\Role;
 use App\Models\User;
 use App\Modules\Catalog\Models\ProductColor;
 use App\Modules\Stock\Models\StockMovement;
@@ -171,7 +172,7 @@ class StockService
     }
 
     /**
-     * Cloche du back office. Passage sous le seuil d'alerte (stock ≤ seuil) : notification aux administrateurs.
+     * Cloche du back office. Passage sous le seuil d'alerte (stock ≤ seuil) : notification à tous les comptes du back office.
      * Retour au-dessus : les notifications non lues de la variante sont marquées comme lues.
      * Comme sur la page des ruptures, un seuil à 0 ou un produit archivé ne donne pas d'alerte.
      * Les notifications sont écrites dans la transaction du mouvement : annulées avec lui.
@@ -189,7 +190,7 @@ class StockService
                 return;
             }
 
-            Notification::send(User::where('role', 'back_office')->active()->get(), new LowStockAlert($variant));
+            Notification::send(User::whereIn('role', Role::BACK_OFFICE)->active()->get(), new LowStockAlert($variant));
         } elseif ($before <= $alert && $after > $alert) {
             $ids = DatabaseNotification::where('type', LowStockAlert::class)->whereNull('read_at')->get()
                 ->filter(fn (DatabaseNotification $notification) => ($notification->data['product_color_id'] ?? null) === $variant->id)

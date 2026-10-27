@@ -8,7 +8,7 @@ use App\Modules\Catalog\Http\Controllers\Api\ProductColorControllerAPI;
 use Illuminate\Support\Facades\Route;
 
 // Fiche produit (AJAX)
-Route::get('products/{productId}/variants', [ProductColorControllerAPI::class, 'getVariants']);
+Route::get('products/{productId}/variants', [ProductColorControllerAPI::class, 'getVariants'])->name('api.products.variants');
 
 Route::apiResource('categories', CategoryControllerAPI::class);
 Route::apiResource('colors', ColorControllerAPI::class)->only(['index', 'store']);

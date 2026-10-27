@@ -3,14 +3,19 @@
 @section('title', __('Products'))
 
 @section('actions')
+    {{-- Magasinier : produits en lecture seule (App\Core\Support\Role) --}}
     <x-ui.actions-menu>
         <x-ui.export-items list="products" />
-        <li><hr class="dropdown-divider"></li>
-        <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">{{ __('Import products') }}</x-ui.menu-item>
+        @can('open', 'admin.imports.index')
+            <li><hr class="dropdown-divider"></li>
+            <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">{{ __('Import products') }}</x-ui.menu-item>
+        @endcan
     </x-ui.actions-menu>
-    <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('New product') }}
-    </a>
+    @can('open', 'admin.products.create')
+        <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('New product') }}
+        </a>
+    @endcan
 @endsection
 
 @php
@@ -63,7 +68,11 @@
             </x-slot:toolbar>
 
             {{-- Les cases portent le produit : cocher une variante coche tout le produit --}}
-            <x-ui.bulk-bar export="products" :archive="route('admin.products.archive')" :restore="route('admin.products.restore')" />
+            @can('open', 'admin.products.archive')
+                <x-ui.bulk-bar export="products" :archive="route('admin.products.archive')" :restore="route('admin.products.restore')" />
+            @else
+                <x-ui.bulk-bar export="products" />
+            @endcan
 
             <div class="table-responsive">
                 <table class="table table-hover">
@@ -109,7 +118,8 @@
                                 <td class="text-end">
                                     <x-ui.actions-menu row>
                                         <x-ui.menu-item :href="route('admin.products.show', $item->product_id)" icon="bi-eye">{{ __('View') }}</x-ui.menu-item>
-                                        @if ($archived)
+                                        @cannot('open', 'admin.products.archive')
+                                        @elseif ($archived)
                                             <x-ui.menu-item :action="route('admin.products.restore')" :ids="[$item->product_id]"
                                                 icon="bi-arrow-counterclockwise">{{ __('Restore') }}</x-ui.menu-item>
                                             <li><hr class="dropdown-divider"></li>
@@ -124,7 +134,7 @@
                                                 :confirm-text="__('It will no longer be offered at the checkout or in purchase orders. Its history is kept.')">
                                                 {{ __('Archive') }}
                                             </x-ui.menu-item>
-                                        @endif
+                                        @endcannot
                                     </x-ui.actions-menu>
                                 </td>
                             </tr>

@@ -26,8 +26,9 @@
                 <x-ui.search :placeholder="__('Search by name or email...')" />
                 <select name="role" class="form-select ui-filter" aria-label="{{ __('Role') }}">
                     <option value="">{{ __('All roles') }}</option>
-                    <option value="back_office" @selected(request('role') === 'back_office')>{{ __('Administrators') }}</option>
-                    <option value="front_office" @selected(request('role') === 'front_office')>{{ __('Sellers') }}</option>
+                    @foreach (\App\Core\Support\Role::ALL as $role)
+                        <option value="{{ $role }}" @selected(request('role') === $role)>{{ \App\Core\Support\Role::label($role) }}</option>
+                    @endforeach
                 </select>
                 <x-ui.status-filter />
             </x-ui.filters>
@@ -60,11 +61,15 @@
                             </td>
                             <td>{{ $user->email }}</td>
                             <td>
-                                @if ($user->isBackOffice())
-                                    <x-ui.badge tone="primary" icon="bi-shield-check">{{ __('Administrator') }}</x-ui.badge>
-                                @else
-                                    <x-ui.badge tone="neutral" icon="bi-shop">{{ __('Seller') }}</x-ui.badge>
-                                @endif
+                                @php
+                                    [$tone, $icon] = match ($user->role) {
+                                        \App\Core\Support\Role::ADMIN => ['primary', 'bi-shield-check'],
+                                        \App\Core\Support\Role::MANAGER => ['info', 'bi-briefcase'],
+                                        \App\Core\Support\Role::STOREKEEPER => ['warning', 'bi-box-seam'],
+                                        default => ['neutral', 'bi-shop'],
+                                    };
+                                @endphp
+                                <x-ui.badge :tone="$tone" :icon="$icon">{{ \App\Core\Support\Role::label($user->role) }}</x-ui.badge>
                             </td>
                             <td class="text-end">{{ $user->sales_count }}</td>
                             <td>{{ $user->created_at->format('d/m/Y') }}</td>

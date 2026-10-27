@@ -26,7 +26,7 @@
             <i class="bi bi-upc-scan" aria-hidden="true"></i> {{ __('Labels') }}
         </a>
     @endif
-    @if ($draft)
+    @if ($draft && auth()->user()->canOpen('admin.purchases.edit'))
         <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-primary">
             <i class="bi bi-pencil" aria-hidden="true"></i> {{ __('Edit') }}
         </a>
@@ -145,7 +145,12 @@
 
                         {{-- Étape suivante : le stock n'augmente qu'à la réception, des quantités livrées --}}
                         <div class="d-grid gap-2">
-                            @if ($draft)
+                            @cannot('open', 'admin.purchases.updateState')
+                                {{-- Magasinier : il enregistre les livraisons, sans changer le statut de la commande --}}
+                                <a href="{{ route('admin.purchases.receive', $purchase->id) }}" class="btn btn-primary">
+                                    <i class="bi bi-truck" aria-hidden="true"></i> {{ __('Record a delivery') }}
+                                </a>
+                            @elseif ($draft)
                                 <form action="{{ route('admin.purchases.updateState', $purchase->id) }}" method="POST" class="d-grid gap-2">
                                     @csrf
                                     @method('PATCH')
@@ -176,7 +181,7 @@
                                         </button>
                                     @endif
                                 </form>
-                                @if ($purchase->state === Purchase::PARTIALLY_RECEIVED)
+                                @if ($purchase->state === Purchase::PARTIALLY_RECEIVED && auth()->user()->canOpen('admin.purchases.close'))
                                     {{-- Le fournisseur ne livrera pas le reste : il ne compte plus comme commandé --}}
                                     <form action="{{ route('admin.purchases.close', $purchase->id) }}" method="POST" class="d-grid">
                                         @csrf
@@ -187,7 +192,7 @@
                                         </button>
                                     </form>
                                 @endif
-                            @endif
+                            @endcannot
                         </div>
                     @endif
                 </x-ui.card>
@@ -196,8 +201,10 @@
                     <dl class="ui-dl">
                         <dt>{{ __('Name') }}</dt>
                         <dd>
-                            @if ($purchase->supplier)
+                            @if ($purchase->supplier && auth()->user()->canOpen('admin.suppliers.show'))
                                 <a href="{{ route('admin.suppliers.show', $purchase->supplier->id) }}">{{ $purchase->supplier->name }}</a>
+                            @elseif ($purchase->supplier)
+                                {{ $purchase->supplier->name }}
                             @else
                                 {{ __('documents.not_specified') }}
                             @endif

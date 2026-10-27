@@ -3,6 +3,7 @@
 namespace App\Core\Exports;
 
 use App\Core\Services\UserService;
+use App\Core\Support\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -20,7 +21,7 @@ class UsersExport extends ListExport
         return [
             Column::make(__('Name'), 'name'),
             Column::make(__('Email'), 'email'),
-            Column::make(__('Role'), fn (User $user) => $user->isBackOffice() ? __('Administrator') : __('Seller'))->width('14%'),
+            Column::make(__('Role'), fn (User $user) => Role::label($user->role))->width('14%'),
             Column::make(__('Sales made'), 'sales_count')->number()->width('12%'),
             Column::make(__('Created on'), 'created_at')->date()->width('12%'),
         ];
@@ -33,6 +34,6 @@ class UsersExport extends ListExport
 
     protected function filterLabels(array $filters): array
     {
-        return [__('Role') => ['back_office' => __('Administrators'), 'front_office' => __('Sellers')][$filters['role'] ?? ''] ?? null];
+        return [__('Role') => in_array($filters['role'] ?? null, Role::ALL, true) ? Role::label($filters['role']) : null];
     }
 }

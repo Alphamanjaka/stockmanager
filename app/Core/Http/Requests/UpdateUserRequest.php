@@ -2,6 +2,7 @@
 
 namespace App\Core\Http\Requests;
 
+use App\Core\Support\Role;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -13,8 +14,8 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Seuls les utilisateurs avec le rôle 'back_office' peuvent mettre à jour un profil.
-        return auth()->user() && auth()->user()->isBackOffice();
+        // Seuls les administrateurs gèrent les comptes (un gérant n'a pas accès aux utilisateurs)
+        return auth()->user() && auth()->user()->isAdmin();
     }
 
     /**
@@ -32,7 +33,7 @@ class UpdateUserRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($userId)],
             // Le mot de passe est optionnel, mais s'il est fourni, il doit être confirmé et avoir 8 caractères min.
             'password' => 'nullable|string|min:8|confirmed',
-            'role' => ['required', 'string', Rule::in(['front_office', 'back_office'])],
+            'role' => ['required', 'string', Rule::in(Role::ALL)],
         ];
     }
 }

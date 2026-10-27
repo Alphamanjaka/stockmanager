@@ -2,6 +2,7 @@
 
 namespace App\Modules\Stock\Console\Commands;
 
+use App\Core\Support\Role;
 use App\Models\User;
 use App\Modules\Stock\Mail\StockDropAlert;
 use App\Modules\Stock\Services\StockService;
@@ -56,8 +57,8 @@ class MonitorStockDrop extends Command
 
         $this->warn("⚠️ Pertes non expliquées : {$summary}. Envoi des alertes...");
 
-        // Envoi aux administrateurs en service (rôle 'back_office', compte non archivé)
-        $admins = User::where('role', 'back_office')->active()->get();
+        // Envoi aux administrateurs et gérants en service (compte non archivé)
+        $admins = User::whereIn('role', Role::SUPERVISORS)->active()->get();
         foreach ($admins as $admin) {
             Mail::to($admin->email)->send(new StockDropAlert($losses['lines'], $losses['value'], $losses['percentage'], $hours));
             // Pause de 2 secondes entre chaque email pour éviter le "Rate Limit" de Mailtrap

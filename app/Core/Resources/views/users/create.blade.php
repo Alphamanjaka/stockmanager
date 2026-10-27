@@ -13,12 +13,21 @@
                     <x-ui.field class="col-md-6" name="email" :label="__('Email address')" type="email" required autocomplete="off"
                         :value="old('email')" />
                     <x-ui.field class="col-md-6 mb-0" name="role" :label="__('Role')" required
-                        :hint="__('Administrators use the back office; sellers use the point of sale.')">
+                        :hint="__('What each role can open is listed below.')">
                         <select name="role" id="role" @class(['form-select', 'is-invalid' => $errors->has('role')]) required>
-                            <option value="front_office" @selected(old('role') === 'front_office')>{{ __('Seller (front office)') }}</option>
-                            <option value="back_office" @selected(old('role') === 'back_office')>{{ __('Administrator (back office)') }}</option>
+                            @foreach (\App\Core\Support\Role::ALL as $role)
+                                <option value="{{ $role }}" @selected(old('role', \App\Core\Support\Role::SELLER) === $role)>{{ \App\Core\Support\Role::label($role) }}</option>
+                            @endforeach
                         </select>
                     </x-ui.field>
+                    {{-- Ce que chaque rôle peut ouvrir (App\Core\Support\Role) --}}
+                    <div class="col-12 form-text mt-2">
+                        <ul class="mb-0 ps-3">
+                            @foreach (\App\Core\Support\Role::ALL as $role)
+                                <li><strong>{{ \App\Core\Support\Role::label($role) }}</strong> : {{ __("backoffice.role_hints.{$role}") }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
                 </div>
             </div>
 

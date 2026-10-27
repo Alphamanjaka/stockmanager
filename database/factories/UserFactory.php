@@ -54,6 +54,22 @@ class UserFactory extends Factory
         ]);
     }
 
+    /** Gérant : le back office sans les utilisateurs ni les paramètres. */
+    public function manager(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'manager',
+        ]);
+    }
+
+    /** Magasinier : réceptions, inventaires, mouvements de stock. */
+    public function storekeeper(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'storekeeper',
+        ]);
+    }
+
     /**
      * Create a front office user
      */

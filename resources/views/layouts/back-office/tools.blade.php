@@ -1,16 +1,18 @@
 {{-- Outils : recherche globale, notifications, profil ($unreadCount et $latestNotifications : CoreServiceProvider).
      Langue et thème se règlent dans Administration › Paramètres › Interface & System. --}}
 <div class="bo-tools">
-    {{-- Recherche globale (global-search.js) --}}
-    <div class="dropdown search-input-wrapper bo-search d-none d-sm-block">
-        <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
-            <input type="search" id="global-search-input" class="form-control"
-                placeholder="{{ __('backoffice.search_placeholder') }}" aria-label="{{ __('backoffice.search_placeholder') }}"
-                autocomplete="off" data-bs-toggle="dropdown" aria-expanded="false" />
+    {{-- Recherche globale (global-search.js) : elle parcourt ventes, clients et utilisateurs, pas pour un magasinier --}}
+    @can('open', 'global.search')
+        <div class="dropdown search-input-wrapper bo-search d-none d-sm-block">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+                <input type="search" id="global-search-input" class="form-control"
+                    placeholder="{{ __('backoffice.search_placeholder') }}" aria-label="{{ __('backoffice.search_placeholder') }}"
+                    autocomplete="off" data-bs-toggle="dropdown" aria-expanded="false" />
+            </div>
+            <div id="global-search-results" class="dropdown-menu"></div>
         </div>
-        <div id="global-search-results" class="dropdown-menu"></div>
-    </div>
+    @endcan
 
     @auth
         {{-- Notifications --}}
@@ -62,11 +64,14 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li><span class="dropdown-item-text small text-muted">{{ auth()->user()->email }}</span></li>
-                <li>
-                    <a class="dropdown-item" href="{{ route('admin.users.index') }}">
-                        <i class="bi bi-person" aria-hidden="true"></i> {{ __('backoffice.profile') }}
-                    </a>
-                </li>
+                <li><span class="dropdown-item-text small text-muted">{{ \App\Core\Support\Role::label(auth()->user()->role) }}</span></li>
+                @can('open', 'admin.users.index')
+                    <li>
+                        <a class="dropdown-item" href="{{ route('admin.users.index') }}">
+                            <i class="bi bi-person" aria-hidden="true"></i> {{ __('backoffice.profile') }}
+                        </a>
+                    </li>
+                @endcan
                 <li>
                     <hr class="dropdown-divider">
                 </li>

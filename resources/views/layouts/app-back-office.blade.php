@@ -27,7 +27,7 @@
         <div class="bo-topbar">
             @include('layouts.back-office.launcher')
 
-            <a class="ui-brand" href="{{ route('admin.dashboard') }}">
+            <a class="ui-brand" href="{{ route(\App\Core\Support\Role::landingRoute(auth()->user()?->role)) }}">
                 <span class="ui-brand-mark"><i class="bi bi-box-seam-fill" aria-hidden="true"></i></span>
                 <span class="ui-brand-name">StockMaster</span>
             </a>

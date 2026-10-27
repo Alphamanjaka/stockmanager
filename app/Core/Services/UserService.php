@@ -2,6 +2,7 @@
 
 namespace App\Core\Services;
 
+use App\Core\Support\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
@@ -14,7 +15,7 @@ class UserService
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => $data['role'] ?? 'front_office',
+            'role' => $data['role'] ?? Role::SELLER,
         ]);
     }
 
@@ -40,7 +41,7 @@ class UserService
 
     /**
      * @param  array{search?: ?string, role?: ?string, status?: ?string}  $filters  recherche (nom ou e-mail),
-     *                                                                              rôle (front_office, back_office), statut (comptes actifs, ou archivés : status=archived)
+     *                                                                              rôle (App\Core\Support\Role), statut (comptes actifs, ou archivés : status=archived)
      */
     public function getAllUsers(array $filters = [])
     {
@@ -56,7 +57,7 @@ class UserService
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where(fn ($q) => $q
                 ->whereLike('name', "%{$search}%")
                 ->orWhereLike('email', "%{$search}%")))
-            ->when(in_array($filters['role'] ?? null, ['front_office', 'back_office'], true),
+            ->when(in_array($filters['role'] ?? null, Role::ALL, true),
                 fn ($query) => $query->where('role', $filters['role']))
             ->latest('id');
     }

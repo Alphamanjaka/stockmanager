@@ -7,33 +7,40 @@
     · {!! __(':count variant(s)', ['count' => '<span id="variant-count">' . $variants->count() . '</span>']) !!}
 @endsection
 
+{{-- Magasinier : fiche en lecture seule, sans modifier le produit ni ses variantes (App\Core\Support\Role) --}}
+@php $canEdit = auth()->user()->canOpen('admin.products.updateDetails'); @endphp
+
 @section('actions')
     <x-ui.actions-menu>
-        <x-ui.menu-item href="#" data-bs-toggle="modal" data-bs-target="#optionsModal" icon="bi-sliders">
-            {{ __('Options & specifications') }}
-        </x-ui.menu-item>
+        @if ($canEdit)
+            <x-ui.menu-item href="#" data-bs-toggle="modal" data-bs-target="#optionsModal" icon="bi-sliders">
+                {{ __('Options & specifications') }}
+            </x-ui.menu-item>
+        @endif
         <x-ui.menu-item :href="route('admin.labels.create', ['product' => $product->id])" icon="bi-upc-scan">
             {{ __('Print labels') }}
         </x-ui.menu-item>
-        @unless ($product->isArchived())
+        @if ($canEdit && ! $product->isArchived())
             <li><hr class="dropdown-divider"></li>
             <x-ui.menu-item :action="route('admin.products.archive')" :ids="[$product->id]" icon="bi-archive"
                 :confirm="__('Archive this product and all its variants?')"
                 :confirm-text="__('It will no longer be offered at the checkout or in purchase orders. Its history is kept.')">
                 {{ __('Archive') }}
             </x-ui.menu-item>
-        @endunless
+        @endif
     </x-ui.actions-menu>
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProductModal">
-        <i class="bi bi-pencil" aria-hidden="true"></i> {{ __('Edit') }}
-    </button>
+    @if ($canEdit)
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProductModal">
+            <i class="bi bi-pencil" aria-hidden="true"></i> {{ __('Edit') }}
+        </button>
+    @endif
 @endsection
 
 @php $canAddVariant = !empty($product->options) || $variants->isEmpty(); @endphp
 
 @section('content')
     @if ($product->isArchived())
-        <x-ui.archived-notice :restore="route('admin.products.restore')" :id="$product->id" :date="$product->archived_at">
+        <x-ui.archived-notice :restore="$canEdit ? route('admin.products.restore') : null" :id="$product->id" :date="$product->archived_at">
             {!! __('This product is <strong>archived</strong>: it is no longer offered at the checkout or in purchase orders.') !!}
         </x-ui.archived-notice>
     @endif
@@ -62,12 +69,14 @@
 
                 <x-ui.card :title="__('Variants & stock')" flush
                     :subtitle="__('Stock is read-only here: it changes with received purchases, sales, stock counts and corrections.')">
-                    <x-slot:actions>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addVariantModal"
-                            @disabled(!$canAddVariant) title="{{ $canAddVariant ? '' : __('Add an option first (options & specifications)') }}">
-                            <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('Add a variant') }}
-                        </button>
-                    </x-slot:actions>
+                    @if ($canEdit)
+                        <x-slot:actions>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addVariantModal"
+                                @disabled(!$canAddVariant) title="{{ $canAddVariant ? '' : __('Add an option first (options & specifications)') }}">
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('Add a variant') }}
+                            </button>
+                        </x-slot:actions>
+                    @endif
 
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -108,6 +117,7 @@
                                         <td class="text-end text-muted">{{ $variant->alert_stock }}</td>
                                         <td class="text-end">
                                             <div class="ui-row-actions">
+                                                @if ($canEdit)
                                                 <button type="button" class="btn btn-icon edit-variant-btn" title="{{ __('Edit') }}" aria-label="{{ __('Edit') }}"
                                                     data-bs-toggle="modal" data-bs-target="#editVariantModal"
                                                     data-id="{{ $variant->id }}"
@@ -120,6 +130,7 @@
                                                     data-barcode="{{ $variant->barcode }}">
                                                     <i class="bi bi-pencil" aria-hidden="true"></i>
                                                 </button>
+                                                @endif
                                                 {{-- Secours en cas d'erreur de saisie : correction par un mouvement de stock --}}
                                                 @if (Route::has('admin.movements.create'))
                                                     <a href="{{ route('admin.movements.create', ['variant' => $variant->id]) }}" class="btn btn-icon"
@@ -127,8 +138,10 @@
                                                         <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
                                                     </a>
                                                 @endif
-                                                <x-ui.delete-button :action="route('admin.products.variants.destroy', $variant->id)"
-                                                    :confirm="__('Delete this variant?')" />
+                                                @if ($canEdit)
+                                                    <x-ui.delete-button :action="route('admin.products.variants.destroy', $variant->id)"
+                                                        :confirm="__('Delete this variant?')" />
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -166,6 +179,7 @@
         </div>
     </div>
 
+    @if ($canEdit)
     {{-- Modifier les informations générales --}}
     <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalTitle" aria-hidden="true">
         <div class="modal-dialog">
@@ -301,6 +315,7 @@
             </form>
         </div>
     </div>
+    @endif
 @endsection
 
 @push('scripts')

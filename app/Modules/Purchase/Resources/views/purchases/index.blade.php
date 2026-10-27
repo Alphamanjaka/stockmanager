@@ -4,16 +4,23 @@
 
 @section('actions')
     {{-- Les liens d'export suivent les filtres du tableau (data-export-link, mis à jour par purchases-index.js) --}}
+    {{-- Magasinier : réceptions seulement, ni commande ni import (App\Core\Support\Role) --}}
     <x-ui.actions-menu>
-        <x-ui.menu-item :href="route('admin.purchases.createFromShortage')" icon="bi-exclamation-triangle">{{ __('Restock shortages') }}</x-ui.menu-item>
-        <li><hr class="dropdown-divider"></li>
+        @can('open', 'admin.purchases.createFromShortage')
+            <x-ui.menu-item :href="route('admin.purchases.createFromShortage')" icon="bi-exclamation-triangle">{{ __('Restock shortages') }}</x-ui.menu-item>
+            <li><hr class="dropdown-divider"></li>
+        @endcan
         <x-ui.export-items list="purchases" />
-        <li><hr class="dropdown-divider"></li>
-        <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">{{ __('Import purchases') }}</x-ui.menu-item>
+        @can('open', 'admin.imports.index')
+            <li><hr class="dropdown-divider"></li>
+            <x-ui.menu-item :href="route('admin.imports.index')" icon="bi-box-arrow-in-down">{{ __('Import purchases') }}</x-ui.menu-item>
+        @endcan
     </x-ui.actions-menu>
-    <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('New purchase') }}
-    </a>
+    @can('open', 'admin.purchases.create')
+        <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('New purchase') }}
+        </a>
+    @endcan
 @endsection
 
 @php
