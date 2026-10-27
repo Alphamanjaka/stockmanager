@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * Base commune des contacts (fournisseurs, clients) : mêmes coordonnées, même recherche.
  *
  * Classe abstraite, sans table : chaque contact garde sa propre table (suppliers, customers)
- * et n'y ajoute que ce qui lui est propre (relations, factory). Les règles de validation,
+ * et n'y ajoute que ce qui lui est propre (relations, factory, délai de livraison d'un fournisseur). Les règles de validation,
  * qui diffèrent (téléphone obligatoire et email unique pour un fournisseur), restent dans
  * les requêtes de chaque contact.
  *

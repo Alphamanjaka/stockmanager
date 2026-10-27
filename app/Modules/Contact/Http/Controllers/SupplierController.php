@@ -90,6 +90,7 @@ class SupplierController extends Controller
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:2000',
+            'lead_time_days' => 'nullable|integer|min:0|max:365',
         ]);
 
         $this->supplierService->updateSupplier($supplier, $validated);

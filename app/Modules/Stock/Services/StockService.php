@@ -332,6 +332,24 @@ class StockService
     }
 
     /**
+     * Quantités vendues par variante depuis $since, retours déduits, lues dans les mouvements (sorties des ventes,
+     * entrées des avoirs) : les modules qui en ont besoin (réapprovisionnement) ne dépendent pas des ventes.
+     * Une variante sans vente n'a pas de ligne. Colonnes : product_color_id, sold.
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function soldQuantitiesQuery(\DateTimeInterface $since)
+    {
+        // Sortie d'une vente : quantité négative ; entrée d'un avoir : positive
+        return DB::table('stock_movements')
+            ->select('product_color_id')
+            ->selectRaw('-SUM(quantity) as sold')
+            ->whereIn('source_type', [MovementSource::SALE, MovementSource::SALE_RETURN])
+            ->where('created_at', '>=', $since)
+            ->groupBy('product_color_id');
+    }
+
+    /**
      * Stock dormant : variantes en stock (produits en service) sans aucun mouvement depuis $days jours,
      * ni vente, ni réception, ni correction. Une variante reçue récemment n'en fait donc pas partie, même invendue.
      * Valorisé au coût d'achat (une variante sans coût compte pour 0).

@@ -168,7 +168,13 @@ Classées de la plus utile à la moins utile pour un commerce à Madagascar.
    la vente, pour pouvoir rapprocher les paiements. **Fait** : obligatoires en caisse, un numéro ne paie qu'une
    vente par opérateur, affichés sur le reçu, la facture et l'export, recherche par numéro dans la liste des ventes.
 4. **Réapprovisionnement intelligent.** Vitesse de vente sur 30 ou 90 jours, nombre de jours de stock restants,
-   quantité à commander selon le délai du fournisseur, au lieu de la règle actuelle `seuil × 1,5`.
+   quantité à commander selon le délai du fournisseur, au lieu de la règle actuelle `seuil × 1,5`. **Fait**
+   (`PurchaseService::getShortageProductsGroupedBySupplier`) : vitesse lue dans les mouvements de stock (ventes moins
+   avoirs, `StockService::soldQuantitiesQuery`, sans dépendre du module Ventes), délai du fournisseur
+   (`suppliers.lead_time_days`) ou délai par défaut. Proposée quand `stock + commandé ≤ seuil + vitesse × délai` ;
+   quantité `max(1,5 × seuil, seuil + vitesse × (délai + jours à couvrir)) − stock − commandé`. Sans vente, la
+   règle du seuil est inchangée ; une variante sans seuil est suivie dès qu'elle se vend. Limite : un produit
+   récent ou resté en rupture une partie de la période a une vitesse sous-estimée (jours sans stock non exclus).
 5. **Étiquettes code-barres.** Imprimer les codes SKU en planche, puisque la caisse sait déjà les scanner. **Fait**,
    avec un code-barres court plutôt que le SKU (trop long pour une petite étiquette) : code du fabricant ou EAN-13
    interne (`product_colors.barcode`), planches A4 et rouleau thermique (`LabelService`, `LabelFormat`).

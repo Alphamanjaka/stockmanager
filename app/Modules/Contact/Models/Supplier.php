@@ -14,6 +14,16 @@ class Supplier extends Contact
 {
     protected $table = 'suppliers';
 
+    protected $casts = ['lead_time_days' => 'integer'];
+
+    /** Coordonnées communes (Contact), plus le délai de livraison en jours (vide : délai par défaut). */
+    public function __construct(array $attributes = [])
+    {
+        $this->mergeFillable(['lead_time_days']);
+
+        parent::__construct($attributes);
+    }
+
     public function purchases()
     {
         return $this->hasMany(Purchase::class);

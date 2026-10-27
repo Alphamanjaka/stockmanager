@@ -117,9 +117,15 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
 - Étapes : brouillon, commandé, partiellement reçu, reçu. Bon de commande en PDF.
 - **Réception partielle** : livraisons successives, reste à livrer suivi ; une commande peut être soldée si le
   reste ne viendra pas.
-- **Réapprovisionnement** : liste des articles sous leur seuil, regroupés par dernier fournisseur, avec une
-  quantité suggérée. Les quantités déjà commandées sont déduites, pour ne pas commander deux fois.
-- Fiche fournisseur avec son historique d'achats.
+- **Réapprovisionnement selon la vitesse de vente** : un article est proposé dès que son stock ne tiendra pas
+  jusqu'à la prochaine livraison, sans attendre qu'il passe sous son seuil. Le logiciel mesure ce qui se vend par
+  jour (sur 30 ou 90 jours, retours déduits) et tient compte du délai de livraison de chaque fournisseur.
+  - Pour chaque article : ventes par jour, nombre de jours de stock restants, délai de livraison.
+  - Quantité suggérée : de quoi vendre pendant le délai de livraison et le nombre de jours choisi (30 par défaut),
+    en gardant le seuil d'alerte en réserve.
+  - Les quantités déjà commandées sont déduites, pour ne pas commander deux fois. Articles regroupés par dernier
+    fournisseur.
+- Fiche fournisseur avec son historique d'achats et son délai de livraison.
 
 ## Tableau de bord et analyses
 
@@ -178,6 +184,7 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
 
 Classées de la plus simple à la plus complexe. Ces fonctionnalités ne sont pas encore disponibles.
 
+1. Résumé quotidien par e-mail : chiffre d'affaires, marge, ruptures.
 1. Réapprovisionnement selon la vitesse de vente et le délai du fournisseur.
 2. Rôles supplémentaires : magasinier, gérant.
 3. Sessions de caisse : fond de caisse, clôture, écart sur les espèces.
@@ -190,6 +197,11 @@ Classées de la plus simple à la plus complexe. Ces fonctionnalités ne sont pa
 ## Nouveautés
 
 Les plus récentes en premier.
+
+### 27-10-2026
+
+- **Réapprovisionnement selon la vitesse de vente** et le délai de livraison du fournisseur (menu Achats >
+  Réapprovisionner les ruptures ; délais dans la fiche fournisseur et dans Paramètres > Stock et produits).
 
 ### 26-10-2026
 
