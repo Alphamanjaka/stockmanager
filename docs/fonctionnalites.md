@@ -36,8 +36,8 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
 - **De vraies marges** : le coût d'achat est suivi au coût moyen pondéré et figé sur chaque vente.
 - **Rien ne se perd** : on archive au lieu de supprimer, l'historique des ventes et des achats reste complet.
 - **Des chiffres pour décider** : ventes du jour, marge, ruptures, stock qui dort, produits qui font le chiffre.
-- **Deux espaces** : le back office pour le gérant, la caisse pour les vendeurs, qui ne voient ni les coûts ni
-  les paramètres.
+- **Chacun son accès** : administrateur, gérant, magasinier et vendeur ne voient que ce qui les concerne. La
+  caisse pour les vendeurs, les réceptions et inventaires pour le magasinier, les chiffres pour le gérant.
 
 ---
 
@@ -168,8 +168,13 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
 
 ## Utilisateurs et sécurité
 
-- Deux rôles : administrateur (back office complet) et vendeur (caisse, ses ventes, consultation des produits sans
-  les coûts).
+- **Quatre rôles**, choisis sur la fiche de chaque utilisateur :
+  - **Administrateur** : tout, y compris les utilisateurs et les paramètres.
+  - **Gérant** : tout le suivi (ventes, achats, stock, tableaux de bord, résumé du jour), sans les utilisateurs, les
+    paramètres ni l'import. Il reçoit les alertes et le résumé du jour.
+  - **Magasinier** : réception des livraisons, inventaires, mouvements et corrections de stock, étiquettes, et les
+    produits en lecture seule. Il ne voit ni les ventes, ni le tableau de bord, ni les bons de commande à passer.
+  - **Vendeur** : la caisse, ses ventes, consultation des produits sans les coûts.
 - Connexion bloquée après 5 essais ratés par minute.
 - Recherche globale dans le back office : produits, ventes, achats, mouvements et pages.
 
@@ -184,13 +189,10 @@ dernières arrivées sont listées dans [Nouveautés](#nouveautés).
 
 Classées de la plus simple à la plus complexe. Ces fonctionnalités ne sont pas encore disponibles.
 
-1. Résumé quotidien par e-mail : chiffre d'affaires, marge, ruptures.
-1. Réapprovisionnement selon la vitesse de vente et le délai du fournisseur.
-2. Rôles supplémentaires : magasinier, gérant.
-3. Sessions de caisse : fond de caisse, clôture, écart sur les espèces.
-4. Promotions : prix par quantité, remises par catégorie, périodes.
-5. Vente à crédit : paiements partiels, dettes clients, relances.
-6. Plusieurs boutiques ou dépôts, caisse hors connexion.
+1. Sessions de caisse : fond de caisse, clôture, écart sur les espèces.
+2. Promotions : prix par quantité, remises par catégorie, périodes.
+3. Vente à crédit : paiements partiels, dettes clients, relances.
+4. Plusieurs boutiques ou dépôts, caisse hors connexion.
 
 ---
 
@@ -200,6 +202,7 @@ Les plus récentes en premier.
 
 ### 27-10-2026
 
+- **Rôles gérant et magasinier** (menu Administration > Utilisateurs) : chacun n'ouvre que les pages de son travail.
 - **Réapprovisionnement selon la vitesse de vente** et le délai de livraison du fournisseur (menu Achats >
   Réapprovisionner les ruptures ; délais dans la fiche fournisseur et dans Paramètres > Stock et produits).
 

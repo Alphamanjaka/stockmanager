@@ -3,6 +3,19 @@
 return [
     'administration' => 'Administration',
     'dashboard' => 'Dashboard',
+    // Account roles (App\Core\Support\Role)
+    'roles' => [
+        'front_office' => 'Seller',
+        'storekeeper' => 'Storekeeper',
+        'manager' => 'Manager',
+        'back_office' => 'Administrator',
+    ],
+    'role_hints' => [
+        'front_office' => 'The point of sale only.',
+        'storekeeper' => 'Purchase receipts, stock counts, stock movements, products (read only) and labels.',
+        'manager' => 'The whole back office except users, settings and import.',
+        'back_office' => 'The whole back office, including users and settings.',
+    ],
     'daily_summary' => 'Daily summary',
     'management' => 'Management',
     'inventory' => 'Inventory',

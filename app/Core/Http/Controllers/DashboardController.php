@@ -3,6 +3,7 @@
 namespace App\Core\Http\Controllers;
 
 use App\Core\Services\DashboardService;
+use App\Core\Support\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
@@ -20,12 +21,9 @@ class DashboardController extends Controller
         // Redirection automatique vers le bon dashboard selon le rôle
         $user = auth()->user();
 
-        if ($user->isBackOffice()) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        if ($user->isFrontOffice()) {
-            return redirect()->route('saler.dashboard');
+        // Première page du rôle : tableau de bord, ou les achats à réceptionner pour un magasinier
+        if ($user->isBackOffice() || $user->isFrontOffice()) {
+            return redirect()->route(Role::landingRoute($user->role));
         }
 
         // Fallback si aucun rôle n'est détecté (sécurité)

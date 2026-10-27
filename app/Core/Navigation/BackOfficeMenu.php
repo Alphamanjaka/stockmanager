@@ -31,7 +31,8 @@ use Illuminate\Support\Str;
  * - active   motifs de noms de routes qui rendent l'entrée active ; par défaut « admin.x.* » pour « admin.x.index »,
  *            sinon la route seule
  *
- * Une entrée dont la route n'existe pas, ou que l'utilisateur n'a pas le droit de voir, est masquée ;
+ * Une entrée dont la route n'existe pas, que le rôle de l'utilisateur ne peut pas ouvrir, ou qu'il n'a pas le droit
+ * de voir (can), est masquée ;
  * un espace sans entrée visible disparaît du lanceur. Le layout ne peut donc pas planter à cause du menu.
  */
 final class BackOfficeMenu
@@ -159,10 +160,19 @@ final class BackOfficeMenu
         );
     }
 
-    /** Route de l'entrée si elle existe (une route retirée d'un module masque l'entrée au lieu de faire planter). */
+    /**
+     * Route de l'entrée si elle existe (une route retirée d'un module masque l'entrée au lieu de faire planter)
+     * et si le rôle de l'utilisateur connecté peut l'ouvrir (App\Core\Support\Role).
+     */
     private function routeOf(array $entry): ?string
     {
-        return isset($entry['route']) && Route::has($entry['route']) ? $entry['route'] : null;
+        $route = $entry['route'] ?? null;
+
+        if ($route === null || ! Route::has($route)) {
+            return null;
+        }
+
+        return auth()->user()?->canOpen($route) === false ? null : $route;
     }
 
     /** @return list<string> */

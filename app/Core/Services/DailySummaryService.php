@@ -3,6 +3,7 @@
 namespace App\Core\Services;
 
 use App\Core\Mail\DailySummaryMail;
+use App\Core\Support\Role;
 use App\Models\User;
 use App\Modules\Purchase\Services\PurchaseService;
 use App\Modules\Sale\Models\Sale;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Mail;
  * et ce qui demande une action (ruptures, commandes à recevoir, pertes non expliquées).
  *
  * Le même résumé est affiché dans le back office (aperçu, jours passés) et envoyé par e-mail chaque soir
- * (commande reports:daily-summary), aux destinataires des réglages ou, à défaut, aux administrateurs.
+ * (commande reports:daily-summary), aux destinataires des réglages ou, à défaut, aux administrateurs et gérants.
  *
  * Les journées et l'heure d'envoi suivent le fuseau de la boutique (réglage « Fuseau horaire »), alors que
  * l'application et la base sont en UTC : à Madagascar (UTC+3), la journée va de 0 h à 24 h heure locale.
@@ -215,12 +216,12 @@ class DailySummaryService
         return is_numeric($hour) && $hour >= 0 && $hour <= 23 ? (int) $hour : self::DEFAULT_HOUR;
     }
 
-    /** Adresses des réglages ; à défaut, celles des administrateurs actifs. */
+    /** Adresses des réglages ; à défaut, celles des administrateurs et gérants actifs. */
     public function recipients(): array
     {
         $configured = self::parseRecipients((string) $this->settings->get(self::RECIPIENTS, ''));
 
-        return $configured ?: User::where('role', 'back_office')->active()->pluck('email')->filter()->values()->all();
+        return $configured ?: User::whereIn('role', Role::SUPERVISORS)->active()->pluck('email')->filter()->values()->all();
     }
 
     /** « a@x.mg, b@y.mg » ou une adresse par ligne → liste sans doublons. */

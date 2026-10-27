@@ -6,6 +6,8 @@ use App\Core\Console\Commands\SendDailySummary;
 use App\Core\Exports\UsersExport;
 use App\Core\Navigation\BackOfficeMenu;
 use App\Core\Support\ModuleServiceProvider;
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 
 /**
@@ -53,6 +55,9 @@ class CoreServiceProvider extends ModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        // Pages du back office ouvertes au rôle (App\Core\Support\Role) : @can('open', 'admin.purchases.create')
+        Gate::define('open', fn (User $user, string $route) => $user->canOpen($route));
 
         // Layout du back office : menu résolu pour la page courante
         View::composer('layouts.app-back-office', function ($view) {

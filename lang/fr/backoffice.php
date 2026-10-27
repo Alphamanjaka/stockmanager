@@ -4,6 +4,19 @@ return [
     'administration' => 'Administration',
     'dashboard' => 'Tableau de bord',
     'daily_summary' => 'Résumé du jour',
+    // Rôles des comptes (App\Core\Support\Role)
+    'roles' => [
+        'front_office' => 'Vendeur',
+        'storekeeper' => 'Magasinier',
+        'manager' => 'Gérant',
+        'back_office' => 'Administrateur',
+    ],
+    'role_hints' => [
+        'front_office' => 'La caisse seulement.',
+        'storekeeper' => 'Réceptions des achats, inventaires, mouvements de stock, produits en lecture et étiquettes.',
+        'manager' => "Tout le back office, sauf les utilisateurs, les paramètres et l'import.",
+        'back_office' => 'Tout le back office, dont les utilisateurs et les paramètres.',
+    ],
     'management' => 'Gestion',
     'inventory' => 'Inventaire',
     'products' => 'Produits',

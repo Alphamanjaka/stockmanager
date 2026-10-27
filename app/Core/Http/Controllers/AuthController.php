@@ -3,6 +3,7 @@
 namespace App\Core\Http\Controllers;
 
 use App\Core\Http\Requests\LoginUserRequest;
+use App\Core\Support\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,12 +39,8 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-            $dashboardRoute = $user->isBackOffice()
-                ? 'admin.dashboard'
-                : 'saler.dashboard';
-
-            // Redirige vers la page que l'utilisateur voulait visiter, ou vers son tableau de bord.
-            return redirect()->intended(route($dashboardRoute))
+            // Redirige vers la page que l'utilisateur voulait visiter, ou vers la première page de son rôle.
+            return redirect()->intended(route(Role::landingRoute($user->role)))
                 ->with('success', 'Connecté avec succès !');
         }
 

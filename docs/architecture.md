@@ -61,6 +61,13 @@ La protection est appliquée **par le nom du fichier**, dans `ModuleServiceProvi
 | `Routes/api.php` | `/api` | (libres) | `web`, `auth`, `ensure.back.office` |
 
 Une route placée dans le bon fichier ne peut donc pas être exposée sans contrôle d'accès par oubli.
+
+**Rôles du back office** (`App\Core\Support\Role`) : administrateur (`back_office`, tout), gérant (`manager`) et
+magasinier (`storekeeper`). `ensure.back.office` vérifie que le rôle peut ouvrir la route, d'après une liste de motifs
+de noms de routes par rôle ; une route qu'aucun motif n'autorise est refusée (et toute route du back office doit
+avoir un nom, `RolesTest` le vérifie). Une nouvelle page est ouverte d'office au gérant (sauf si elle est ajoutée à ses
+refus), et au magasinier seulement si elle est ajoutée à sa liste.
+Le menu masque les pages refusées ; dans une vue, `@can('open', 'admin.purchases.create')` masque un bouton.
 Les paramètres d'URL numériques partagés entre modules (ex. `{sale}` sous `/saler`) sont contraints à des chiffres
 pour que l'ordre de chargement des modules n'ait pas d'importance.
 

@@ -105,7 +105,7 @@ mouvements passés.
   **Restant** : voir l'idée 1 (sessions de caisse).
 - **Rôles.** Deux rôles seulement (`back_office`, `front_office`). Un magasinier qui réceptionne et compte le stock
   doit avoir un accès administrateur complet : paramètres, utilisateurs, coûts.
-  **Restant** : voir l'idée 9.
+  **Fait** : rôles gérant et magasinier (idée 9).
 
 ---
 
@@ -158,7 +158,7 @@ Les quatre phases sont faites. Les phases 1 à 3 ont une PR par point ; la phase
 Classées de la plus utile à la moins utile pour un commerce à Madagascar.
 
 *Mise à jour (26-10-2026)* : elles sont traitées de la plus simple à la plus complexe, dans cet ordre : 3, 6, 5, 7,
-4, 9, 1, 8, 2, 10. Faites : 3, 6, 5, 7.
+4, 9, 1, 8, 2, 10. Faites : 3, 6, 5, 7, 4, 9.
 
 1. **Sessions de caisse.** Fonds de caisse à l'ouverture, clôture en fin de journée (total par mode de paiement),
    écart sur les espèces signalé au back office.
@@ -190,7 +190,13 @@ Classées de la plus utile à la moins utile pour un commerce à Madagascar.
    d'envoi et les journées suivent le réglage « Fuseau horaire ». WhatsApp et l'écart de caisse restent à faire.
 8. **Promotions.** Prix par quantité, remise par catégorie, période promotionnelle.
 9. **Rôles supplémentaires.** Magasinier (réceptions, inventaires, corrections) et gérant (rapports sans
-   paramètres ni utilisateurs).
+   paramètres ni utilisateurs). **Fait** : `App\Core\Support\Role`, une liste de motifs de noms de routes par rôle,
+   vérifiée par `EnsureBackOfficeAccess` sur toutes les routes `admin.php` et `api.php` (refus par défaut ; un
+   export se vérifie sous `admin.exports.<liste>`). Le menu masque les pages refusées, les vues masquent les boutons
+   (`@can('open', 'route')`). Gérant : tout sauf utilisateurs, paramètres, import et envoi du résumé ; il reçoit
+   les alertes et le résumé avec l'administrateur. Magasinier : réceptions (sans changer le statut d'une commande),
+   inventaires, mouvements, produits en lecture, étiquettes. Limite : les pages ouvertes au magasinier affichent
+   encore les coûts (achats, fiche produit).
 10. **Plus tard.** Plusieurs boutiques ou dépôts avec transferts de stock, et une caisse qui fonctionne hors
     connexion (le panier est déjà gardé sur le poste).
 

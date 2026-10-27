@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Core\Models\Concerns\Archivable;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Core\Support\Role;
 use App\Modules\Sale\Models\Sale;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -59,20 +60,28 @@ class User extends Authenticatable
         return $this->hasMany(Sale::class);
     }
 
-    /**
-     * Check if user is back office
-     */
+    /** Travaille dans le back office : administrateur, gérant ou magasinier (pages selon le rôle : Role). */
     public function isBackOffice(): bool
     {
-        return $this->role === 'back_office';
+        return Role::isBackOffice($this->role);
     }
 
-    /**
-     * Check if user is front office
-     */
+    /** Administrateur : tout le back office, dont les utilisateurs et les paramètres. */
+    public function isAdmin(): bool
+    {
+        return $this->role === Role::ADMIN;
+    }
+
+    /** Vendeur : la caisse (front office). */
     public function isFrontOffice(): bool
     {
-        return $this->role === 'front_office';
+        return $this->role === Role::SELLER;
+    }
+
+    /** Le compte peut-il ouvrir la route $name du back office ? */
+    public function canOpen(string $name): bool
+    {
+        return Role::allows($this->role, $name);
     }
 
     public function archiveBlocker(): ?string
