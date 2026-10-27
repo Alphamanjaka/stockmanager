@@ -198,6 +198,12 @@ Le système repose sur le scheduler Laravel pour les tâches critiques :
     Alerte les administrateurs si les pertes non expliquées de la période atteignent 1 % (paramétrable) de la
     valeur du stock, valorisée au coût d'achat (au prix de vente quand le coût n'est pas renseigné).
 
+- **Résumé quotidien** (`reports:daily-summary`) : vérifié chaque heure, envoyé une fois par jour à l'heure réglée
+    (Ventes › Résumé du jour), seulement s'il est activé. Sans `--scheduled`, envoie tout de suite :
+    ```bash
+    php artisan reports:daily-summary --date=2026-10-27
+    ```
+
 Pour activer les tâches planifiées en production, une seule entrée Cron est nécessaire :
 
 ```cron

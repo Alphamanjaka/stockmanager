@@ -158,7 +158,7 @@ Les quatre phases sont faites. Les phases 1 à 3 ont une PR par point ; la phase
 Classées de la plus utile à la moins utile pour un commerce à Madagascar.
 
 *Mise à jour (26-10-2026)* : elles sont traitées de la plus simple à la plus complexe, dans cet ordre : 3, 6, 5, 7,
-4, 9, 1, 8, 2, 10. Faites : 3, 6, 5, 4.
+4, 9, 1, 8, 2, 10. Faites : 3, 6, 5, 7.
 
 1. **Sessions de caisse.** Fonds de caisse à l'ouverture, clôture en fin de journée (total par mode de paiement),
    écart sur les espèces signalé au back office.
@@ -185,6 +185,9 @@ Classées de la plus utile à la moins utile pour un commerce à Madagascar.
    déduits, stock au coût par classe, export PDF et Excel.
 7. **Résumé quotidien** envoyé à 20 h par e-mail ou WhatsApp : chiffre d'affaires, marge, ruptures, écart de caisse.
    Les chiffres existent déjà sur le tableau de bord ; l'écart de caisse attend les sessions de caisse (idée 1).
+   **Fait** par e-mail (`DailySummaryService`, commande `reports:daily-summary` vérifiée chaque heure, envoyée une
+   fois par jour à l'heure réglée), avec une page d'aperçu pour n'importe quel jour et un e-mail d'essai. L'heure
+   d'envoi et les journées suivent le réglage « Fuseau horaire ». WhatsApp et l'écart de caisse restent à faire.
 8. **Promotions.** Prix par quantité, remise par catégorie, période promotionnelle.
 9. **Rôles supplémentaires.** Magasinier (réceptions, inventaires, corrections) et gérant (rapports sans
    paramètres ni utilisateurs).
@@ -223,4 +226,5 @@ Relevés pendant les phases 1 à 4, non corrigés.
 | L'export des produits valorise le stock au prix de vente | [ProductsExport](../app/Modules/Catalog/Exports/ProductsExport.php), colonne « Valeur du stock » : `stock × price` | Le PDF et l'Excel surestiment la valeur du stock de toute la marge, alors que les pages la calculent au coût depuis #28. |
 | Le « moins vendu » ignore les produits jamais vendus | [SaleService::getLeastSoldProduct](../app/Modules/Sale/Services/SaleService.php) : seulement les variantes présentes dans `sale_items` | La liste des produits affiche comme « moins vendu » un produit vendu au moins une fois, pas celui qui ne s'est jamais vendu. |
 | Messages des services écrits en français | services, contrôleurs (`throw new \Exception('…')`, messages flash) | En anglais, ces messages restent en français. |
+| Le réglage « Fuseau horaire » n'est appliqué qu'au résumé quotidien | `config/app.php` : `timezone` fixé à `UTC` ; réglage `timezone` (`Indian/Antananarivo` par défaut depuis #49, au lieu d'`Europe/Paris`) | Ailleurs, « aujourd'hui » (tableau de bord, ventes du jour) et les heures affichées sont en UTC : à Madagascar, la journée va de 3 h à 3 h et les heures ont 3 h de retard. |
 | TVA : un seul taux, achats sans TVA | réglage `default_tax_rate`, [SaleService](../app/Modules/Sale/Services/SaleService.php) | Pas de taux par produit. Les coûts d'achat sont supposés hors taxes, ce qui compte pour la marge d'une entreprise assujettie. |

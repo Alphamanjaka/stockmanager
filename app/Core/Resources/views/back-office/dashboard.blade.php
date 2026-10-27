@@ -9,6 +9,12 @@
 @section('title', __('Dashboard'))
 @section('subtitle', __('What needs your attention today'))
 
+@section('actions')
+    <a href="{{ route('admin.daily-summary.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-envelope-paper" aria-hidden="true"></i> {{ __('Daily summary') }}
+    </a>
+@endsection
+
 @php
     $link = fn (string $route, array $parameters = []) => Route::has($route) ? route($route, $parameters) : null;
     $marginHint = ($marginThisMonth['rate'] === null ? __('No sale with a known cost') : __(':rate % of sales', ['rate' => $marginThisMonth['rate']]))
